@@ -6,10 +6,6 @@ A workstation application has no API and must stay unmodified. Where its only st
 
 The application monitors the workstation and lets operators and agents act through its [catalog](glossary.md#catalog). The screen bridge is its only path to the workstation application. The workstation application keeps the interaction with the controller and the hardware.
 
-## Concepts
-
-Terms: [station profiles](glossary.md#station-profile), [procedures](glossary.md#procedure), [bridge modes](glossary.md#bridge-mode), [risk levels](glossary.md#risk-level), the [interlock](glossary.md#interlock), the [control holder](glossary.md#control-holder), [terminals](glossary.md#terminal) and [workstation sign-in](glossary.md#workstation-sign-in).
-
 ## Workstation application and the MES
 
 ```mermaid

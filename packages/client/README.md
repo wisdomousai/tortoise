@@ -1,10 +1,10 @@
 # @agent-native/client
 
-This package is the typed client every non-React [caller](../../docs/glossary.md#caller) uses. It holds a `Transport` interface over the [instance](../../docs/glossary.md#instance)'s query, command and change-event endpoints, an HTTP implementation, typed [capability](../../docs/glossary.md#capability) calls and `LiveQuery`. Browsers, scripts, the MCP bridge and the React bindings share it, so a person and an agent see the same receipts and the same live updates.
+The client package lets non-React [callers](../../docs/glossary.md#caller) use an application's typed operations. It holds a `Transport` interface over the [instance](../../docs/glossary.md#instance)'s query, command and change-event endpoints, an HTTP implementation, typed [capability](../../docs/glossary.md#capability) calls and `LiveQuery`. Browsers, scripts, the MCP bridge and the React bindings share it, so a person and an agent see the same receipts and the same live updates.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Browser-safe. It trusts its transport to send the caller's identity.
+Browser-safe. It trusts its transport to send the caller's identity.
 
 ## Primitives
 
@@ -42,7 +42,7 @@ bun test packages/client
 - an older failure, which cannot erase a newer snapshot;
 - HTTP errors, which keep caller-safe field details.
 
-## Skills
+## Task guides
 
 - [build-screens](../frame/skills/build-screens/SKILL.md)
 

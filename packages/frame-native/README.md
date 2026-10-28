@@ -2,9 +2,9 @@
 
 The domain-neutral React Native frame around one application's native [screens](../../docs/glossary.md#screen), for Android and iOS. It supplies navigation, the [session](../../docs/glossary.md#session) context and live invalidation, and fills them from the configured application's `screens-native` entrypoint. The package also ships glove-sized components as a shadcn registry, styled with Tailwind classes through Uniwind.
 
-## Layer
+## Context
 
-Framework (`packages/*`). The mobile starter in `apps/mobile` renders `NativeFrame`. Content imports `defineNativeScreens`, `useSession` and the components. The frame trusts the starter to pass in the screens and the transport.
+The mobile starter in `apps/mobile` renders `NativeFrame`. Content imports `defineNativeScreens`, `useSession` and the components. The frame trusts the starter to pass in the screens and the transport.
 
 ## Primitives
 
@@ -93,6 +93,6 @@ bun run check:mobile-bundle
 
 The frame and the components have no render tests. `typecheck` checks them against React Native's and Uniwind's types. `check:mobile-bundle` bundles them with the starter's fixture application through Metro and Uniwind. They have not run on a device.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](../mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

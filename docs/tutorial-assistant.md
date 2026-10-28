@@ -2,10 +2,6 @@
 
 The tutorial builds an [application](glossary.md#application) with an assistant in a panel beside every screen. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the spare parts customer service desk of a power transformer plant. Utilities call the desk about bushings, tap changer parts, gaskets and relays for transformers in service. The assistant finds a transformer by its serial, looks up parts, opens screens, answers from the records and asks the person when a request is ambiguous. It fills the quote form for the person to check and create. It requests approval for a discount above 10 percent and for a cancellation.
 
-## Concepts
-
-Terms: [agent definition](glossary.md#agent-definition), [agent run](glossary.md#agent-run), [harness](glossary.md#harness), [grant](glossary.md#grant), [approval request](glossary.md#approval-request), [UI session context](glossary.md#ui-session-context), [UI intent](glossary.md#ui-intent), [agent scenario](glossary.md#agent-scenario) and [model entry](glossary.md#model-entry).
-
 ## Setup
 
 The first step runs in the framework repository and exports a new repository with `scaffold new`. Every later step runs at the root of that export.
@@ -16,7 +12,7 @@ The first step runs in the framework repository and exports a new repository wit
 4. Paste the step's prompt.
 5. Review the diff and commit it before the next step.
 
-`bun run check` fails in a source export at `check:readmes` and `check:skills`, because the copied READMEs and skills name examples and root scripts the export leaves out. The steps use these checks from the export root instead:
+In a source export, `bun run check:skills` reports paths into omitted examples and patterns and a root script removed from the export. The steps use these checks from the export root instead:
 
 ```sh
 bun run format

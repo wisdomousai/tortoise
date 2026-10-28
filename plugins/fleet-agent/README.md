@@ -2,9 +2,9 @@
 
 The site side of a [fleet](../../docs/glossary.md#fleet). A site's [instance](../../docs/glossary.md#instance) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Server only, except `contracts` and `plugin-manifest`.
+Server only, except `contracts` and `plugin-manifest`.
 
 ## Primitives
 
@@ -70,7 +70,7 @@ bun test plugins/fleet-agent
 
 The upgrade test installs version 1 of the site with `app install` and runs it with two effects queued for an unreachable [system of record](../../docs/glossary.md#system-of-record). It stages the 2.0.0 release the fleet assigns. The installed release's binary then runs `app install` on the staged folder. The new binary migrates the workspace before `current` switches. The effects stay pending with contract version 1 recorded, and version 2 then queues its own. The test's releases run `test/site-cli.ts`.
 
-## Skills
+## Task guides
 
 - [connect-a-site-to-a-fleet](skills/connect-a-site-to-a-fleet/SKILL.md): composing the plugin, enrolling a site, staging releases and turning on the relay.
 

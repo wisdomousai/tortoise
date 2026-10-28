@@ -10,7 +10,6 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 ## Before writing
 
 - Check whether the scanner fits an existing [input source](../../../../docs/glossary.md#input-source): `createWedgeSource`, `createSerialSource`, `createHidPosSource` or `createCameraSource`. For rugged Android devices, use `createIntentSource` from `plugins/intent-scanner`.
-- Most scanners are keyboard wedges.
 - Decide whether the change is data or code. A new scanner model, prefix, layout or route is a profile or route stored per station through the configuration module. It needs no new code.
 - Take vendor programming barcodes from vendor data supplied with the deployment. Never hard-code them.
 

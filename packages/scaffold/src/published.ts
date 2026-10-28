@@ -27,10 +27,11 @@ const frameworkScripts = new Set([
   'scripts/workspace-manifests.ts',
   'scripts/release.ts',
   'scripts/local-registry.ts',
-  // The framework's exports as of its last skill review, and the script that records them; the
-  // export has no framework source to review.
+  // Framework coverage and reviewed exports belong to the source checkout. An installed-framework
+  // application can create its own registry and stamp if it adds a local workspace.
   'scripts/reviewed-surface.json',
-  'scripts/skills-stamp.ts',
+  'scripts/skill-coverage.json',
+  'scripts/check-skills.test.ts',
 ]);
 
 /** Whether a published-framework export leaves `path` out. */

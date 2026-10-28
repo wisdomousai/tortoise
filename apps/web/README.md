@@ -2,9 +2,9 @@
 
 The starter's web root: the [web frame](../../packages/frame/README.md) around the configured [application](../../docs/glossary.md#application)'s [screens](../../docs/glossary.md#screen), the stock shadcn primitives and the starter's styles. The Vite config asks the frame for its plugins, which bind the application's `screens` entrypoint to `virtual:agent-native/screens`. This package therefore never names content.
 
-## Layer
+## Context
 
-[starter](../../docs/glossary.md#starter) (`apps/*`). Extend it here, or shadow any frame file by adding one at the same `src/` path.
+Extend it here, or shadow any frame file by adding one at the same `src/` path.
 
 ## Primitives
 
@@ -50,6 +50,6 @@ bun run test:e2e
 
 The package has no test files of its own. `check:boundaries` bundles every example's screens through this Vite config. The Playwright specs in `showcase/examples/*/e2e` and `showcase/patterns/*/e2e` drive the built web root in Chromium.
 
-## Skills
+## Task guides
 
 - [build-screens](../../packages/frame/skills/build-screens/SKILL.md): screens, registry components and replacing a frame file in the starter.

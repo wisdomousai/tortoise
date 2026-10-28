@@ -2,10 +2,6 @@
 
 An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or workstation application.
 
-## Concepts
-
-Terms: [driver](glossary.md#driver), [driver contract](glossary.md#driver-contract), [driver SDK](glossary.md#driver-sdk), [delivery mode](glossary.md#delivery-mode), [risk level](glossary.md#risk-level) and [interlock](glossary.md#interlock).
-
 ## Driver processes
 
 A driver is an executable in any language that reads and writes lines, such as Python for a serial instrument or C# for a vendor COM server. The [host](glossary.md#host) starts the driver as a child process and speaks a small protocol to it. Each action in the driver's contract is an effect type of an outbox [target](glossary.md#target), and the driver's state enters as [observations](glossary.md#observation). Capabilities, handlers, screens, agents and generators therefore work as they do for any other [system of record](systems-of-record.md).

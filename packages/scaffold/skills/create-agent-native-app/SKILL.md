@@ -31,7 +31,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 5. Extend the application with `scaffold add`.
 6. Shape the generated parts into the requested domain.
 7. Set `shelfLifeDays` in the manifest to how long one build should serve before it is rebuilt or removed. The scaffold writes 180.
-8. Pick the skill for each further change from the second table below. The tutorial orders those skills into one build, with a prompt per step.
+8. Pick the skill for each further change from `AGENTS.md` at the application root. The tutorials order those skills into a build, with a prompt per step.
 
 | Example | Shows |
 | --- | --- |
@@ -43,31 +43,6 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `showcase/examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
 | `showcase/examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
 | `showcase/patterns/*` | one concept each on an oil lab's test requests for power transformers in service, as `docs/patterns.md` lists them. Exports leave them out |
-
-| Task | Skill |
-| --- | --- |
-| A command or query, a record shape, a trigger | `packages/runtime/skills/add-capability/SKILL.md` |
-| Writes another system must accept, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
-| Screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
-| A cross-cutting concern several applications compose | `packages/host/skills/write-host-plugin/SKILL.md` |
-| A domain part an application mounts once, such as approval requests | `packages/host/skills/write-a-feature/SKILL.md` |
-| Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
-| Tools an agent runs, confined in a sandbox | `plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md` |
-| A model on this host, base or fine-tuned | `plugins/model-server/skills/serve-a-local-model/SKILL.md` |
-| A workstation application with no API, through its screen | `workstations/screen-bridge/skills/bridge-station-screen/SKILL.md` |
-| Barcode scanners and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
-| Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
-| The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
-| Deployment policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
-| Removing an application from a site without losing records | `plugins/site/skills/decommission-an-application/SKILL.md` |
-| A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-instance/SKILL.md` |
-| A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
-| Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |
-| Plant signals from MQTT, Sparkplug B or OPC UA | `packages/observation/skills/observe-plant-signals/SKILL.md` |
-| A sequence that waits on people or systems between steps | `plugins/workflows/skills/declare-a-workflow/SKILL.md` |
-| Two agent-native applications that call each other | `plugins/peer-link/skills/connect-two-applications/SKILL.md` |
-| Operators who sign in at a shared terminal by badge and PIN | `workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md` |
-| Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
 `bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.
 

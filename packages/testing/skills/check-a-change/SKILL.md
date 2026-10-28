@@ -8,6 +8,7 @@ description: Choose and run the checks for a change in this repository and repor
 ## Before writing
 
 - In an application that installs the framework from a registry, the framework rows of the table do not apply. `bun run check` there runs what the export keeps, and `bun run check:framework` fails when two framework versions are installed.
+- A source export that leaves out examples and patterns currently reports those missing paths and changed root scripts in `check:skills`. Run the applicable focused checks too, and report the full-check failure rather than treating those checks as equivalent.
 - Subprocess tests can time out under load. Rerun one before treating a timeout as a regression.
 - A sandbox that blocks listening sockets makes the `test:service` suites report `EADDRINUSE`.
 
@@ -17,7 +18,7 @@ description: Choose and run the checks for a change in this repository and repor
 2. Run `bun run check` before calling the work done.
 3. Edit the area's entry in `docs/implementation-status.md` when the change adds or invalidates browser, native, live or by-hand evidence, or closes or opens a known gap. Do not restate what tests prove.
 4. Update the entry in `docs/primitives.md` when a building block's meaning, status or location changes.
-5. Keep the package README's Primitives, Entrypoints, Trust boundary, Dependencies and Tests sections true.
+5. Keep the relevant README's purpose, entrypoints, trust boundaries, failure behavior and test instructions accurate.
 6. When `bun run check:skills` reports a changed surface, read each skill it names. Update it for what changed: new or renamed entrypoints, exports, steps, commands and checks.
 7. Review the skills the same way for a changed behavior with an unchanged surface, such as a new rule, a changed default or a new limit. The check does not prompt for it.
 8. Run `bun run skills:stamp <workspace>` once the skills are reviewed.
@@ -36,14 +37,14 @@ description: Choose and run the checks for a change in this repository and repor
 | Change | Run first |
 | --- | --- |
 | A capability, policy or handler in an application | `bun test showcase/examples/<app>` or `bun test showcase/patterns/<name>`, `bun run generate`, `bun run test:conformance` |
-| The base pattern | `bun test patterns`, since every other pattern imports it |
+| The base pattern | `bun test showcase/patterns`, since every other pattern imports it |
 | A screen or registry item | `bun run build`, `bunx playwright test showcase/examples/<app>/e2e`, `bun run check:registry:operator` for operator items |
 | A framework package | `bun test packages/<name>`, `bun run check:boundaries`; `bun run test:portable` for kernel, runtime, client, integration or mobile code |
 | A host plugin | `bun test plugins/<name>`, `bun run check:boundaries` |
 | A feature, or how an application mounts one | `bun test` on the feature's package, with `featureConformance` from `@agent-native/testing/features` in its tests, then `bun test showcase/examples/<app>` for each application that mounts it |
 | An agent definition, or a capability an agent calls | `bun test showcase/examples/<app>/test/<name>-agent.test.ts`; a run against a model only with a configured harness and `AGENT_SCENARIOS=live`, reported as live evidence |
 | A connector, outbox or sync | `bun run test:integration`, `bun run test:conformance` |
-| The CLI, MCP or the sandbox binary | `bun run test:sandbox`, `bun run test:service` |
+| The CLI, MCP or the sandbox binary | `bun run test:service`, and `bun run test:sandbox` when that script is present |
 | The execution host, the process port or the seccomp filter | `bun test plugins/execution-host plugins/process`, then `bun run test:execution-host:linux` (Docker) for the bubblewrap tests, which skip off Linux |
 | A model entry, the model server or the model gate | `bun test plugins/model-server packages/agents`; a real llama-server or vLLM run is live evidence |
 | A storage adapter, the workspace lease or the hosted platform | `bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts`; with `STORAGE_POSTGRES_URL` set against a throwaway server, reported as by-hand evidence |
@@ -55,4 +56,4 @@ description: Choose and run the checks for a change in this repository and repor
 | A framework package's imports, dependencies or packed files | `bun run check:manifests`; `bun scripts/check-manifests.ts --write` rewrites the manifests |
 | A change that should reach the next framework release | `bun run changeset` to record it; the release scripts are in [development and testing](../../../../docs/development-and-testing.md#framework-packages) |
 | The scaffold or what it exports | `bun run test:scaffold`; `SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold/src/generate.test.ts -t "from a registry"` for an export that installs the framework |
-| A README, doc link or skill | `bun run check:readmes`, `bun run check:skills`; prose follows `docs/styleguide.md` |
+| A README, doc link or skill | `bun run check:skills`, `bun run docs:build`; review prose and links against `docs/styleguide.md` |

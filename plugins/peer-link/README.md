@@ -2,9 +2,9 @@
 
 Calls between two agent-native applications. The called application publishes a peer API (`definePeerApi` in `@agent-native/contracts`) and serves it through this plugin. An administrator creates a one-use enrollment code there. The calling application exchanges the code at the enrollment route for its peer credential, registering an Ed25519 public key. Every later request that presents the credential acts as the peer's service [principal](../../docs/glossary.md#principal), `peer:<id>`. A request that also includes a signed subject assertion acts as the person the subject is mapped to. On the calling application the same plugin connects each declared peer target with a code, keeps the credential and key, and gives the integration package's peer port and peer source their clients.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Bun only, because the called application is a serving [host](../../docs/glossary.md#host).
+Bun only, because the called application is a serving [host](../../docs/glossary.md#host).
 
 ## Primitives
 
@@ -120,7 +120,7 @@ bun test plugins/peer-link
 - `test/scenarios.test.ts` runs the `peer.*` [behavioral scenarios](../../docs/glossary.md#behavioral-scenario) through `directDriver`.
 - `test/ui-bindings.test.ts` checks that the peers screen references every bound capability.
 
-## Skills
+## Task guides
 
 - [connect-two-applications](skills/connect-two-applications/SKILL.md): a peer API, a peer target, connecting and mapping, and the two-host tests.
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md): completion, the feed and data providers on a peer target.

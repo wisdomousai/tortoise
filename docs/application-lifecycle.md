@@ -1,25 +1,12 @@
 # Application lifecycle
 
-An [application](glossary.md#application) is the program a [host](glossary.md#host) runs. A [site](glossary.md#site) is a plant, an office, or a customer location where that host runs under a deployment policy.
+A production build can report a [best-before date](glossary.md#best-before-date) from the application's declared shelf life. The host warns after that date and continues to run commands. A replacement release gets a new date.
 
-The [manifest](glossary.md#manifest) sets a [shelf life](glossary.md#shelf-life) as a number of days. A production build records when it was built. The [best-before date](glossary.md#best-before-date) is the build date plus the shelf life. These show that date:
-
-- the host
-- `app status`
-- the compliance posture
-- the fleet
-
-Commands still run after the date.
-
-Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not completed.
-
-## Concepts
-
-Terms: [shelf life](glossary.md#shelf-life), [best-before date](glossary.md#best-before-date) and [decommissioning](glossary.md#decommissioning).
+Removal depends on the records still waiting for delivery. Before deleting the data directory, the uninstall command drains the [outbox](glossary.md#outbox) and refuses the purge while effects remain unresolved. Records kept only in the application need a backup before removal.
 
 ## Shelf life and best-before date
 
-The manifest declares the shelf life as a whole number of days, and `defineManifest` refuses any other value. An application without one builds releases without a best-before date.
+The [manifest](glossary.md#manifest) declares the [shelf life](glossary.md#shelf-life) as a whole number of days, and `defineManifest` refuses any other value. An application without one builds releases without a best-before date.
 
 A build stamps the time it was made. `scripts/application-entry.ts` writes the entry that `bun run build:cli`, the desktop sidecar build and `bun run bundle create` compile, and the entry stamps the definition with the build time (`packages/kernel/src/build.ts`). A run from source has no stamp and no date. The best-before date is the build date plus the shelf life, in UTC, and it is the last day within the shelf life.
 

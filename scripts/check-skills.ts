@@ -8,10 +8,11 @@
  * - a `bun run <script>` names no script of the root or a workspace `package.json`;
  * - a path in code that starts with a layer, `docs/`, `scripts/` or `skills/` does not exist, so a
  *   skill cannot keep naming a file after it moved. Paths with `<placeholder>` or globs are skipped;
- * - AGENTS.md does not list the skill, or the owning workspace's README does not link it.
+ * - AGENTS.md does not list the skill, or the owning workspace does not list it in the coverage
+ *   registry.
  *
- * It keeps skills current with the code they describe. Every package, plugin and SDK README has a
- * `## Skills` section naming the skills that cover it, or why none do. The check fails when a
+ * It keeps skills current with the code they describe. `scripts/skill-coverage.json` names the
+ * skills covering each tracked workspace, or why none do. The check fails when a
  * workspace's public surface (entrypoints and exported names, see `skill-surface.ts`) or the root
  * package scripts differ from `scripts/reviewed-surface.json`, and names the skills to review;
  * `bun run skills:stamp` records the surface once they are reviewed. When the agents' link
@@ -26,12 +27,13 @@ import { currentSurface } from './skill-surface';
 import {
   layers,
   linkDirectories,
+  installedSkills,
   reviewedSurfaceFile,
   root,
   rootScripts,
   rootScriptSkills,
+  skillCoverageFile,
   skills,
-  skillsSection,
   surfaceWorkspaces,
 } from './skills';
 
@@ -91,37 +93,62 @@ for (const skill of found) {
   }
 
   if (!agents.includes(`${skill.directory}/SKILL.md`)) report('not listed in AGENTS.md');
-  if (skill.workspace) {
-    const readme = join(root, skill.workspace, 'README.md');
-    if (
-      !existsSync(readme) ||
-      !readFileSync(readme, 'utf8').includes(`skills/${skill.name}/SKILL.md`)
-    )
-      report(`not linked from ${skill.workspace}/README.md`);
-  }
 }
 
-// Coverage: each tracked workspace names the skills that cover it, or says why none do.
-const byName = new Map(found.map((skill) => [skill.name, skill]));
+// Coverage is structured data, not a requirement on a README's presence or headings.
+// An application may cover its own workspace with a skill from an installed framework package.
+const byName = new Map([...found, ...installedSkills()].map((skill) => [skill.name, skill]));
 const reviewers = new Map<string, readonly string[]>([[rootScripts, rootScriptSkills]]);
-for (const workspace of surfaceWorkspaces()) {
-  const section = skillsSection(workspace);
-  if (!section) {
-    errors.push(
-      `${workspace}/README.md: add a "## Skills" section linking the skills that cover it, or saying why none do`,
-    );
+const workspaces = surfaceWorkspaces();
+let coverage: Record<string, unknown> = {};
+if (workspaces.length) {
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(join(root, skillCoverageFile), 'utf8'));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      throw new Error('expected an object keyed by workspace');
+    coverage = parsed as Record<string, unknown>;
+  } catch (error) {
+    errors.push(`${skillCoverageFile}: cannot read coverage (${String(error)})`);
+  }
+}
+for (const key of Object.keys(coverage))
+  if (!workspaces.includes(key)) errors.push(`${skillCoverageFile}: unknown workspace ${key}`);
+for (const workspace of workspaces) {
+  const entry = coverage[workspace];
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    errors.push(`${skillCoverageFile}: missing coverage for ${workspace}`);
     continue;
   }
-  if (!section.text) errors.push(`${workspace}/README.md: the Skills section is empty`);
-  for (const name of section.skills)
-    if (!byName.has(name)) errors.push(`${workspace}/README.md: links unknown skill ${name}`);
-  reviewers.set(workspace, section.skills);
+  const { skills: names, reason } = entry as { skills?: unknown; reason?: unknown };
+  if (!Array.isArray(names) || !names.every((name) => typeof name === 'string' && name)) {
+    errors.push(`${skillCoverageFile}: ${workspace} needs a skills array of names`);
+    continue;
+  }
+  if (!names.length && (typeof reason !== 'string' || !reason.trim()))
+    errors.push(`${skillCoverageFile}: ${workspace} needs a reason when no skills cover it`);
+  if (names.length && reason !== undefined)
+    errors.push(`${skillCoverageFile}: ${workspace} has both skills and a no-coverage reason`);
+  if (new Set(names).size !== names.length)
+    errors.push(`${skillCoverageFile}: ${workspace} repeats a skill`);
+  for (const name of names)
+    if (!byName.has(name))
+      errors.push(`${skillCoverageFile}: ${workspace} names unknown skill ${name}`);
+  reviewers.set(workspace, names);
+}
+for (const skill of found) {
+  if (skill.workspace && workspaces.includes(skill.workspace)) {
+    const names = reviewers.get(skill.workspace);
+    if (names && !names.includes(skill.name))
+      errors.push(
+        `${skillCoverageFile}: ${skill.workspace} does not list its own skill ${skill.name}`,
+      );
+  }
 }
 
 // Drift: the surface the skills were last reviewed against. An application that installs the
 // framework from a registry has no framework workspaces and no record of them.
 let recorded: Record<string, string[]> = {};
-const tracked = surfaceWorkspaces().length > 0;
+const tracked = workspaces.length > 0;
 try {
   recorded = JSON.parse(readFileSync(join(root, reviewedSurfaceFile), 'utf8'));
 } catch {
@@ -148,10 +175,10 @@ for (const key of new Set([...Object.keys(current), ...Object.keys(recorded)])) 
   if (then && !added.length && !removed.length) continue;
   const names = reviewers.get(key);
   const review = !names
-    ? `add a Skills section to ${key}/README.md`
+    ? `add coverage for ${key} to ${skillCoverageFile}`
     : names.length
       ? `review ${names.map((name) => `${byName.get(name)?.directory ?? name}/SKILL.md`).join(', ')}`
-      : `decide whether ${key} now needs a skill (its README says none)`;
+      : `decide whether ${key} now needs a skill (the registry says none)`;
   errors.push(
     `${key}: ${then ? `surface changed (${listed([...added, ...removed])})` : 'surface not reviewed yet'}; ${review}, then run ${stamp}`,
   );

@@ -1,14 +1,14 @@
 # @agent-native/bundle
 
-This package creates and checks the [site bundle](../../docs/glossary.md#site-bundle): one signed, versioned artifact per application and platform, checked before a [site](../../docs/glossary.md#site) installs it. A bundle is a directory with three parts:
+The bundle package creates and checks the [site bundle](../../docs/glossary.md#site-bundle): one signed, versioned artifact per application and platform, checked before a [site](../../docs/glossary.md#site) installs it. A bundle is a directory with three parts:
 
 - `files/` holds the payload: the compiled binary, the web build, the generated security manifest and contract, and an SBOM written from the lockfile when the bundle is created.
 - `bundle.json` lists every file with its SHA-256 and size. It also names the application, version, platform, storage schema, catalog digest and declared requirements, and the [best-before date](../../docs/glossary.md#best-before-date) when the application has a shelf life.
 - `bundle.sig` is an Ed25519 signature over the canonical manifest.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server only. It trusts only the keys a site lists and the approvals a site keeps.
+Server only. It trusts only the keys a site lists and the approvals a site keeps.
 
 ## Primitives
 
@@ -69,9 +69,9 @@ bun test packages/bundle
 - another platform, an unreadable storage schema and another application;
 - a changed or malformed best-before date.
 
-It also requires an approval of the exact requirements for a first install or a widening.
+The admission tests also check that a first install or widened requirements need approval for the exact requirements.
 
-## Skills
+## Task guides
 
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
 - [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md): the best-before date a bundle includes, and removal.

@@ -2,9 +2,9 @@
 
 The [screen bridge](../../docs/glossary.md#screen-bridge) reads a [workstation application](../../docs/glossary.md#workstation-application) and operates it through its screen. [Observations](../../docs/glossary.md#observation) enter the application through a domain ingest command (`createStationObserver`). Actions leave through the [outbox](../../docs/glossary.md#outbox) as a [system-of-record](../../docs/glossary.md#system-of-record) [connector](../../docs/glossary.md#connector) (`createStationConnector`). Inside the connector, a gated controller runs declared [procedures](../../docs/glossary.md#procedure) and accepts them only on stable readback.
 
-## Layer
+## Context
 
-Workstation (`workstations/*`). Server only, except `requirements`. The domain [module](../../docs/glossary.md#module) declares the screen and the outbox targets, as `showcase/examples/winding-line` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or suggest targets; deterministic code acts and verifies. Nothing here writes application state directly.
+Server only, except `requirements`. The domain [module](../../docs/glossary.md#module) declares the screen and the outbox targets, as `showcase/examples/winding-line` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or suggest targets; deterministic code acts and verifies. Nothing here writes application state directly.
 
 ## Primitives
 
@@ -81,7 +81,7 @@ cd showcase/examples/winding-line && bun run station:golden
 - `test/recognition.test.ts`: vision endpoints are loopback or allowlisted; worker restart, redirects and golden gating.
 - `test/profile.test.ts`: procedures cannot target forbidden regions or unknown fields.
 
-## Skills
+## Task guides
 
 - [bridge-station-screen](skills/bridge-station-screen/SKILL.md): Bridge workstation application through its screen, or choose its automation route instead.
 

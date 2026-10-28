@@ -1,86 +1,28 @@
-# @agent-native/pattern-agents
+# Suggest a lab test method
 
-`pattern-agents` composes the [base pattern](../base/README.md) unchanged with agents. When a test request is submitted without a method, an agent suggests the method from its description as an [approval request](../../../docs/glossary.md#approval-request). A technician approves or rejects each one. A run started from the test request screen sends [UI intents](../../../docs/glossary.md#ui-intent) back to that screen.
+A technician submits an oil-sample request without a test method. This pattern adds a method suggester to the [base lab desk](../base/README.md): the suggester submits an [approval request](../../../docs/primitives.md#approval-request) instead of changing the request itself.
 
-## Layer
+## Try a suggestion
 
-Content (`showcase/patterns/*`). It imports the base pattern, the framework and `@agent-native/automation`.
-
-## Primitives
-
-The pattern is one [application](../../../docs/primitives.md#application). It claims:
-
-- an [agent definition](../../../docs/primitives.md#agent-definition), `test-request.method-suggester`, whose output is `request-approval`;
-- [agent runs](../../../docs/primitives.md#agent-run) on the deterministic harness, started from the test request screen;
-- [approval requests](../../../docs/primitives.md#approval-request) for `test-request.update`, held in their own `suggestions` slice;
-- a [trigger](../../../docs/primitives.md#trigger), `suggest-methods-for-new-requests`, on `test-request.submit`;
-- the [trigger grant](../../../docs/primitives.md#trigger-grant) a person issues before the trigger runs;
-- the [UI session context](../../../docs/primitives.md#ui-session-context) that the test request screen registers;
-- [agent scenarios](../../../docs/primitives.md#agent-scenario) that judge the agent by what it commits and requests.
-
-Its own files:
-
-| File | Runs in | Holds |
-| --- | --- | --- |
-| `contracts.ts` | Browser and server | The `method-suggestions` module: the approval operations and the method suggester |
-| `domain.ts`, `method.ts` | Server; `method.ts` also browser | The `suggestions` slice, and the keyword table that maps a description to a test method |
-| `handlers.ts` | Server | `approvalHandlers` over the `suggestions` slice. Only `test-request.update` may be requested |
-| `policy.ts` | Server | The route for the `method-suggestions` module. It selects the whole state, so its rules read the base pattern's members |
-| `automation.ts` | Server | The trigger and its `suggest-method` job |
-| `application.ts` | Server | The base handlers in the `testRequests` slice, the approval handlers, both routes, `selectableResources` and the automation plugin |
-| `screens.tsx`, `ui/methods.tsx` | Browser | The base test request screen with a method section, the approvals list, the automation screen and `resources` |
-
-`methodFor` in `method.ts` matches words such as gas, breakdown, furan and water to an IEC method. It returns an empty string when no word matches, so the job and the screen suggest nothing.
-
-The trigger reacts to `test-request.submit`. Its job reads the request and, when the method is empty and the description names a test, requests approval for `test-request.update` with that method. It runs as the person who issued its trigger grant, narrowed to `test-request.get` and `approval.request`, so it never changes a request. It is a deterministic job, so a dev launch needs no model.
-
-The test request screen registers the open request as the UI session context, because `test-request` is a selectable resource. **Suggest a method (offline run)** starts a deterministic run that requests approval for the method and then calls `ui.request-review`. The screen shows the review above the pending suggestions. `screens.resources` maps `test-request` and `approval-request` to the screens a `ui.open` intent leads to.
-
-## Entrypoints
-
-| Import | Runs in | Holds |
-| --- | --- | --- |
-| `@agent-native/pattern-agents/manifest` | Browser and server | The test requests module, the method-suggestions module and the automation plugin manifest |
-| `@agent-native/pattern-agents/application` | Server | `createTestRequestsAgentsApplication` |
-| `@agent-native/pattern-agents/screens` | Browser | The test request screens with method suggestions, approvals and automation |
-
-## Trust boundary
-
-Any member may request approval. Approving needs a person and runs `test-request.update` as the approver, so the base pattern's policy refuses a viewer's approval and the request stays pending. Rejecting and expiring need a technician. The suggester's grant leaves out `test-request.update` itself, so a run that tries to change a request directly is refused.
-
-A run reaches the screen only through the `ui.*` run tools, and only for the UI session it captured when it started. Each intent is checked under the run's own grant. A resource the run cannot read, or a kind that is not selectable, is refused and never reaches the screen. Intents change no records.
-
-## Dependencies
-
-`@agent-native/pattern-base`, `@agent-native/automation`, `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/frame`, and in tests `@agent-native/agents` and `@agent-native/testing`.
-
-## Tests
-
-```sh
-bun test showcase/patterns/agents/
-```
-
-- `test/automation.test.ts`: the trigger does nothing before a grant. After it, a request without a method gets an approval request from an `auto:` run. A request that has a method, or whose description names no test, gets none. A viewer may neither approve nor reject. A technician's approval sets the method, a technician's rejection leaves it empty, and after revoking no request is made.
-- `test/agent-scenarios.test.ts`: `runAgentScenarios` with the deterministic harness. The suggester requests approval and commits nothing, and its direct `test-request.update` is refused.
-- `test/ui-intents.test.ts`: a run started from a UI session requests approval, opens the test request and asks for a review naming the approval request. The screen's poll receives both intents. A missing request and an unselectable kind are refused.
-- `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern, the base or the automation plugin.
-
-Run the pattern in the browser:
+From the repository root:
 
 ```sh
 cd showcase/patterns/agents
 bun run dev:web
 ```
 
-Enable the trigger on the Automation screen, then submit a request without a method whose description names a test, such as "Dissolved gas after a Buchholz gas alarm". A suggestion appears on the request's screen. On such a request, **Suggest a method (offline run)** starts the run from the screen.
+Enable the trigger on the Automation screen. Submit a request with no method and a description such as “Dissolved gas after a Buchholz gas alarm.” The matching suggestion appears on the request. A technician can approve or reject it; a viewer cannot. **Suggest a method (offline run)** starts the deterministic run directly from the request screen.
 
-## Skills
+## How the request reaches a person
 
-- [add-capability](../../../packages/runtime/skills/add-capability/SKILL.md)
-- [build-screens](../../../packages/frame/skills/build-screens/SKILL.md)
+The trigger starts only after a person issues its grant. The job reads the new request, matches words such as gas, breakdown, furan or water in [`method.ts`](method.ts), and requests approval for `test-request.update`. If no word matches, the job proposes nothing. A technician's approval runs the update under that technician's policy; the suggester's grant never includes the update command.
 
-## References
+The request screen also gives a run a UI session. The run can request a review or open a readable resource through checked UI intents. Those intents change the screen, not the stored request. [`automation.ts`](automation.ts) declares the trigger, and [`ui/methods.tsx`](ui/methods.tsx) connects the screen.
 
-- [Patterns](../../../docs/patterns.md)
-- [Agents](../../../docs/agents.md)
-- [Automation plugin](../../../plugins/automation/README.md)
+## Checks
+
+```sh
+bun test showcase/patterns/agents
+```
+
+The automation and agent-scenario tests use a deterministic harness and check approval, grant revocation and refused direct writes. No live model is needed for this pattern. For the model-backed version, see [local model](../local-model/README.md).

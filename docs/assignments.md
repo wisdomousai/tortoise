@@ -2,10 +2,6 @@
 
 An [assignment](glossary.md#assignment) hands work to an [assignee](glossary.md#assignee) with a [brief](glossary.md#brief) and takes structured [reports](glossary.md#assignment-report) back. A person reviews each report, then accepts it into the [application](glossary.md#application)'s records or discards it. The `assignment` [feature](glossary.md#feature) keeps assignments and reports, and generates their operations from the application's [assignment kinds](glossary.md#assignment-kind).
 
-## Concepts
-
-Terms: [assignment](glossary.md#assignment), [assignment kind](glossary.md#assignment-kind), [assignment report](glossary.md#assignment-report), [assignee](glossary.md#assignee), [brief](glossary.md#brief) and [worklist](glossary.md#worklist).
-
 An [outbox effect](glossary.md#effect) asks a [system of record](glossary.md#system-of-record) to change its records, and the system of record decides. An assignment asks an assignee to do work and report what it found. A person in the issuing application decides what each report changes. These applications use assignments:
 
 - `showcase/examples/asset-survey`: a survey of part of the plant structure goes to a paired phone or a person, and each capture is a report on one node. An extraction sends one capture to the model or a person to read.

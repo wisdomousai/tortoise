@@ -1,10 +1,10 @@
 # @agent-native/connector-opcua
 
-This plugin observes an OPC UA server read-only. It polls node values with the Read service, and the values become gated [observations](../../docs/glossary.md#observation), submitted through the application's ingest command as the screen and driver observers do. The plugin never writes to the server.
+The OPC UA connector observes a server read-only. It polls node values with the Read service, and the values become gated [observations](../../docs/glossary.md#observation), submitted through the application's ingest command as the screen and driver observers do. The connector never writes to the server.
 
-## Layer
+## Context
 
-Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-safe data; everything else is server only. The UA binary client is implemented here, with no client library. The server is input.
+This connector is a library without plugin entrypoints. `./contracts` is browser-safe data; everything else is server only. The UA binary client is implemented here, with no client library. The server is input.
 
 ## Primitives
 
@@ -68,7 +68,7 @@ bun test plugins/connector-opcua
 - a fault for an ended session;
 - the observer: observations, a lost server making them uncertain, and only reads sent.
 
-## Skills
+## Task guides
 
 - [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md): declaring the source, writing the ingest command, starting the observer and binding the destination.
 

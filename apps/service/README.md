@@ -2,9 +2,9 @@
 
 The starter's [instance](../../docs/glossary.md#instance) process: the HTTP entry and the application CLI for the application that `app.config.json` names. It is the one place the [starter](../../docs/glossary.md#starter) learns which content it hosts, and it learns it from configuration. Adding or switching an application therefore changes no starter code.
 
-## Layer
+## Context
 
-Starter (`apps/*`). It trusts the application it is configured with, which runs with the [host](../../docs/glossary.md#host)'s privileges. Everything it runs comes from [`@agent-native/host`](../../packages/host/README.md).
+The service trusts the configured application, which runs with the [host](../../docs/glossary.md#host)'s privileges. The service uses [`@agent-native/host`](../../packages/host/README.md) to run it.
 
 ## Primitives
 
@@ -54,6 +54,6 @@ bun run test:sandbox
 
 The package has no test files. An example's `test/application.test.ts` drives the host with that application. `test:sandbox` compiles the standalone CLI binary and runs it with an empty environment.
 
-## Skills
+## Task guides
 
 - [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md): starting an application on the starter.

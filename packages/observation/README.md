@@ -2,9 +2,9 @@
 
 Turns readings from sources that cannot be queried into [observations](../../docs/glossary.md#observation). A source is a vendor screen read by accessibility, OCR or a vision model, or an instrument read through a driver. The package submits observations through a domain ingest command, like any other [caller](../../docs/glossary.md#caller), and never writes storage or acts on the source.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server only, because the observer hashes payloads with `node:crypto`. The package trusts its extractors and the application's ingest command; it treats every reading as a claim about the source.
+Server only, because the observer hashes payloads with `node:crypto`. The package trusts its extractors and the application's ingest command; it treats every reading as a claim about the source.
 
 ## Primitives
 
@@ -45,7 +45,7 @@ bun test packages/observation workstations/screen-bridge
 
 The station suites cover the same rules through the screen observer.
 
-## Skills
+## Task guides
 
 - [observe-plant-signals](skills/observe-plant-signals/SKILL.md): MQTT, Sparkplug B and OPC UA sources as readings.
 - [bridge-station-screen](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md): a workstation application reached through its screen.

@@ -79,6 +79,8 @@ export const surfaceLayers = ['packages', 'workstations', 'plugins', 'sdks'] as 
 /** The key under which the root package scripts are recorded, and the skills that cover them. */
 export const rootScripts = 'package.json scripts';
 export const rootScriptSkills = ['check-a-change', 'create-agent-native-app'];
+/** Coverage of each framework workspace, independent of its README. */
+export const skillCoverageFile = 'scripts/skill-coverage.json';
 export const reviewedSurfaceFile = 'scripts/reviewed-surface.json';
 /** Where Claude Code and Codex read project skills; `skills-link` fills both. */
 export const linkDirectories = ['.claude/skills', '.agents/skills'];
@@ -89,22 +91,6 @@ export function surfaceWorkspaces(): string[] {
       .filter((name) => existsSync(join(root, layer, name, 'package.json')))
       .map((name) => `${layer}/${name}`),
   );
-}
-
-/**
- * A workspace README's `## Skills` section: the skills it links, or the stated reason it has
- * none. Undefined when the README has no such section.
- */
-export function skillsSection(workspace: string): { skills: string[]; text: string } | undefined {
-  const readme = join(root, workspace, 'README.md');
-  if (!existsSync(readme)) return undefined;
-  const match = /\n## Skills\n([\s\S]*?)(?=\n## |$)/.exec(readFileSync(readme, 'utf8'));
-  if (!match) return undefined;
-  const text = match[1]!.trim();
-  const skills = [...text.matchAll(/\]\([^)]*skills\/([a-z0-9-]+)\/SKILL\.md\)/g)].map(
-    (link) => link[1]!,
-  );
-  return { skills, text };
 }
 
 /**

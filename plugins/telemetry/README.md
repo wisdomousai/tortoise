@@ -4,9 +4,9 @@ The [telemetry](../../docs/glossary.md#telemetry) [host plugin](../../docs/gloss
 
 No record contents, inputs, principals or resource IDs are exported.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Server only. The plugin trusts the audit plugin's log as its only source of events, and the network port as its only path to the collector.
+Server only. The plugin trusts the audit plugin's log as its only source of events, and the network port as its only path to the collector.
 
 ## Primitives
 
@@ -99,6 +99,6 @@ bun test plugins/telemetry
 - a collector that is down, with counts kept and spans dropped past the buffer;
 - an instance with no collector bound.
 
-## Skills
+## Task guides
 
 - [export-telemetry](skills/export-telemetry/SKILL.md): composing the plugin, binding a collector, and adding a metric.

@@ -1,10 +1,10 @@
 # @agent-native/scaffold
 
-The [scaffold](../../docs/glossary.md#scaffold) exports the [framework](../../docs/glossary.md#framework), the [starter](../../docs/glossary.md#starter) and content as a standalone [application](../../docs/glossary.md#application) in a new directory. It also generates new applications and their parts. An export includes a versioned file-hash manifest, installs with the pinned lockfile and passes its own checks.
+The [scaffold](../../docs/glossary.md#scaffold) exports the [framework](../../docs/glossary.md#framework), the [starter](../../docs/glossary.md#starter) and content as a standalone [application](../../docs/glossary.md#application) in a new directory. It also generates new applications and their parts. An export includes a versioned file-hash manifest; the checks available depend on what the export contains.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checkout it copies from and, for a published-framework export, the configured registry.
+Server-side CLI. The scaffold trusts the source checkout it copies from and, for a published-framework export, the configured registry.
 
 ## Primitives
 
@@ -57,6 +57,8 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 `--registry` writes a `bunfig.toml` that installs the `@agent-native` scope from that URL. The first `bun install` writes the lockfile; commit it. Only `new` supports a published-framework export, because the examples' own tests read plugin and SDK source by path.
 
+The framework's skill coverage and reviewed-surface files stay in its source checkout. If the exported application adds a local framework workspace, create `scripts/skill-coverage.json` for it and use `bun run skills:stamp` after reviewing its skills. Coverage may name a skill from an installed framework package.
+
 ### Generated parts
 
 `add collection <type>` writes the collection's contract with generated reads and create and update commands, their handlers, list and record screens, and a test. The handlers set the fields a person does not choose: the status, the author and the creation time. With `--tree`, the collection also gets a parent, generated move, retire and tree operations, and a tree screen with search.
@@ -83,7 +85,7 @@ The first kind also writes `contracts/assignments.ts`, the hook table in `handle
 - `feature.ts`: the slice, the handlers and the policy over an access view;
 - with `--screens`, `screens.tsx`: one screen declared with `defineFeatureScreens`, added to `defineScreens({ features })`. Without it, both operations declare a headless UI exception.
 
-It also adds the access view to `policy.ts` (members read, editors record), the mount to `application.ts` and `test/<id>-feature.test.ts`, which runs the feature conformance cases and the roles through the application. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers changing it from there.
+The feature generator also adds the access view to `policy.ts` (members read, editors record), the mount to `application.ts` and `test/<id>-feature.test.ts`, which runs the feature conformance cases and the roles through the application. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers changing the generated feature.
 
 `add target` also lists the target's destination as disabled in `apps/desktop/site-policy.json`. `site check` then passes until someone binds the destination to the system of record's URL.
 
@@ -97,7 +99,7 @@ A generated application keeps `// scaffold:<list>` comments in its capabilities,
 - a part whose file already exists;
 - a file without the marker it needs.
 
-It writes nothing unless every file is produced.
+`scaffold add` writes nothing unless every file is produced.
 
 ## Trust boundary
 
@@ -118,7 +120,7 @@ A generated application lists the site, network, audit and compliance plugins. I
 Gaps:
 
 - An example export always copies the framework.
-- In an application exported from source, `bun run check` fails at `check:readmes` and `check:skills`. The copied framework READMEs and skills link to examples the export leaves out.
+- In a source export, `bun run check:skills` reports links and paths into omitted examples and patterns, plus root scripts that the export removed. The tutorial checks run independently of that full check.
 
 ## Dependencies
 
@@ -147,7 +149,7 @@ The full acceptance runs are opt-in with `SCAFFOLD_ACCEPTANCE=1`, so an exported
 - The generated application's run adds a collection, a capability and a target. It then runs format, generate, typecheck, build, its tests and its Playwright spec of the default screens.
 - The registry run packs the framework, serves it on loopback and exports with `--registry`. It installs, reinstalls with `--frozen-lockfile` from a clean `node_modules` and adds a target. It then runs the application's whole `check` and its Playwright spec.
 
-## Skills
+## Task guides
 
 - [create-agent-native-app](skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.
 

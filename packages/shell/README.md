@@ -2,9 +2,9 @@
 
 [OS handlers](../../docs/glossary.md#os-handler) and [OS actions](../../docs/glossary.md#os-action) at runtime, with the platform registrations generated from the same declarations. The package checks the syntax of a raw OS request, matches it to the first declared handler that accepts it and fills the handler's target templates. It builds the instruction a shell adapter runs for a declared action, and it holds the desktop and mobile shell adapters without their Electron or Expo calls.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Pure functions with no Node, Bun or browser API, so the host, the mobile host and a browser adapter can share them. The [OS plugin](../../plugins/os/README.md) composes these functions into the [shell port](../../docs/glossary.md#shell-port). The [desktop starter](../../apps/desktop/README.md) supplies the Electron calls to the adapter. The package trusts the declarations in the [catalog](../../docs/glossary.md#catalog) and treats every raw request as untrusted.
+Pure functions with no Node, Bun or browser API, so the host, the mobile host and a browser adapter can share them. The [OS plugin](../../plugins/os/README.md) composes these functions into the [shell port](../../docs/glossary.md#shell-port). The [desktop starter](../../apps/desktop/README.md) supplies the Electron calls to the adapter. The package trusts the declarations in the [catalog](../../docs/glossary.md#catalog) and treats every raw request as untrusted.
 
 ## Primitives
 
@@ -59,7 +59,7 @@ A template can name only the request's own fields, so a sender cannot pick a dif
 - no credentials, fragment or repeated parameter;
 - every value within the JSON form of the action's schema: text with `const`, `enum`, `pattern` and `maxLength`.
 
-It needs only that JSON form, so it works on declarations read over HTTP. A value it cannot check fails.
+`openActionFor` needs only that JSON form, so it works on declarations read over HTTP. A value the matcher cannot check fails.
 
 ### Generators
 
@@ -163,6 +163,6 @@ bun test packages/shell
 
 The mobile adapter runs end to end in the OS plugin's `test/mobile.test.ts`. Its notifications run in the notifications plugin's tests, and its intents in the Android intents plugin's tests.
 
-## Skills
+## Task guides
 
 - [add-os-integration](skills/add-os-integration/SKILL.md): declaring OS handlers and actions and regenerating the platform registrations from them.

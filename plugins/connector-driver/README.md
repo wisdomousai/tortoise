@@ -1,8 +1,8 @@
 # @agent-native/connector-driver
 
-This plugin puts hardware [drivers](../../docs/glossary.md#driver) in any language behind the [outbox](../../docs/glossary.md#outbox): driver actions become outbox [targets](../../docs/glossary.md#target), and driver state becomes [observations](../../docs/glossary.md#observation). A driver is an executable that controls equipment, such as an instrument, a controller or a vendor COM server. The host starts it through the [process port](../../docs/glossary.md#process-port) and talks JSON-RPC 2.0 to it over its standard streams, one message per line.
+The driver connector puts hardware [drivers](../../docs/glossary.md#driver) in any language behind the [outbox](../../docs/glossary.md#outbox): driver actions become outbox [targets](../../docs/glossary.md#target), and driver state becomes [observations](../../docs/glossary.md#observation). A driver is an executable that controls equipment, such as an instrument, a controller or a vendor COM server. The host starts it through the [process port](../../docs/glossary.md#process-port) and talks JSON-RPC 2.0 to it over its standard streams, one message per line.
 
-## Layer
+## Context
 
 [Host plugin](../../docs/glossary.md#host-plugin) layer. `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. The equipment's own code runs in the driver process. A crash, a 32-bit COM server or a device permission therefore never touches the process that holds the workspace. The plugin trusts the executable the [deployment policy](../../docs/glossary.md#deployment-policy) binds, and still checks every response it sends.
 
@@ -154,7 +154,7 @@ bun test plugins/connector-driver
 
 Each SDK's own tests run its simulated chamber against this base.
 
-## Skills
+## Task guides
 
 - [write-hardware-driver](skills/write-hardware-driver/SKILL.md): writing a driver contract, wiring it into an application, and writing, checking and binding the driver.
 

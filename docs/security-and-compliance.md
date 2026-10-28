@@ -1,12 +1,8 @@
 # Security and compliance
 
-The security and compliance controls are [host plugins](glossary.md#host-plugin). A host plugin is a part an [application](glossary.md#application) composes for one concern.
+The [application](glossary.md#application) names the destinations, folders and programs it needs. Security [host plugins](glossary.md#host-plugin) enforce the [deployment policy](glossary.md#deployment-policy) that binds permitted resources at a [site](glossary.md#site). The [egress guard](glossary.md#egress-guard) refuses unbound network access, and the [audit log](glossary.md#audit-log) records operations, denials and connections.
 
-An application declares what it may reach. The [host](glossary.md#host) enforces that declaration. The [audit log](glossary.md#audit-log) records what the application did. An audit log is the hash-chained record of commands, queries and denials. An auditor checks that record before deployment and while the application runs.
-
-## Concepts
-
-Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [deployment policy](glossary.md#deployment-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log), the [compliance bundle](glossary.md#compliance-bundle) and the [peer link](glossary.md#peer-link).
+The audit log is a hash chain. An auditor checks it before deployment and while the application runs.
 
 ## Controls and plugins
 

@@ -2,9 +2,9 @@
 
 The device side of [device link](../../docs/glossary.md#device-link), which pairs a phone or tablet with a [hub](../../docs/glossary.md#hub). The plugin exchanges an enrollment code for the device's credential and keeps the credential in the platform's secret store. It provides the device's network port: one [destination](../../docs/glossary.md#destination), `hub`, at the paired origin, with the credential on every request. The hub side is [`@agent-native/device-link`](../device-link/README.md).
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Runs on Android, iOS and Bun; `src/` is portable source.
+Runs on Android, iOS and Bun; `src/` is portable source.
 
 ## Primitives
 
@@ -84,6 +84,6 @@ bun test plugins/hub-link
 
 The tests in `plugins/device-link/test` run pairing end to end against a real hub, with delivery and revocation. The `link.test.ts` file there also runs the launch key exchange, the browser session's capabilities and their revocation. The WebView has not run on a device. The pairing screen has been type-checked, not rendered on a device.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

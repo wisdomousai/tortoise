@@ -1,10 +1,10 @@
 # @agent-native/android-intents
 
-This [host plugin](../../docs/glossary.md#host-plugin) connects an [application](../../docs/glossary.md#application) to Android intents in both directions. It serves `intent` [OS handlers](../../docs/glossary.md#os-handler), which receive an activity intent with the application's own action from another app. It serves `intent` [OS actions](../../docs/glossary.md#os-action), which start an explicit intent in another app.
+The Android intents [host plugin](../../docs/glossary.md#host-plugin) connects an [application](../../docs/glossary.md#application) to Android intents in both directions. It serves `intent` [OS handlers](../../docs/glossary.md#os-handler), which receive an activity intent with the application's own action from another app. It serves `intent` [OS actions](../../docs/glossary.md#os-action), which start an explicit intent in another app.
 
-## Layer
+## Context
 
-Plugin layer, shipped with the framework. The TypeScript runs in the [instance](../../docs/glossary.md#instance) on every platform. The Kotlin module `AgentNativeOsIntents` passes intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
+The TypeScript runs in the [instance](../../docs/glossary.md#instance) on every platform. The Kotlin module `AgentNativeOsIntents` passes intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
 
 ## Primitives
 
@@ -75,6 +75,6 @@ bun test plugins/android-intents
 
 `bun run check` does not compile the Kotlin module.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

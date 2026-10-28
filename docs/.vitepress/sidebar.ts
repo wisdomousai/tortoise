@@ -43,6 +43,7 @@ export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
 
 const layers: ReadonlyArray<readonly [directory: string, text: string]> = [
   ['packages', 'Packages'],
+  ['workstations', 'Workstations'],
   ['plugins', 'Plugins'],
   ['apps', 'Apps'],
   ['showcase/examples', 'Examples'],
@@ -50,14 +51,10 @@ const layers: ReadonlyArray<readonly [directory: string, text: string]> = [
   ['sdks', 'SDKs'],
 ];
 
-const workspaces = (layer: string): string[] =>
+const directories = (layer: string): string[] =>
   existsSync(join(repoRoot, layer))
     ? readdirSync(join(repoRoot, layer))
-        .filter(
-          (name) =>
-            statSync(join(repoRoot, layer, name)).isDirectory() &&
-            existsSync(join(repoRoot, layer, name, 'README.md')),
-        )
+        .filter((name) => statSync(join(repoRoot, layer, name)).isDirectory())
         .sort()
     : [];
 
@@ -87,13 +84,16 @@ export function sidebar(): DefaultTheme.Sidebar {
   ];
   const skills: DefaultTheme.SidebarItem[] = [];
   for (const [layer, text] of layers) {
-    const names = workspaces(layer);
-    if (!names.length) continue;
-    items.push({
-      text,
-      collapsed: true,
-      items: names.map((name) => ({ text: name, link: `/${layer}/${name}/` })),
-    });
+    const names = directories(layer);
+    const withReadmes = names.filter((name) =>
+      existsSync(join(repoRoot, layer, name, 'README.md')),
+    );
+    if (withReadmes.length)
+      items.push({
+        text,
+        collapsed: true,
+        items: withReadmes.map((name) => ({ text: name, link: `/${layer}/${name}/` })),
+      });
     for (const name of names)
       for (const skill of skillsOf(`${layer}/${name}`))
         skills.push({

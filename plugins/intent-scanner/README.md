@@ -2,9 +2,9 @@
 
 The intent scanner [host plugin](../../docs/glossary.md#host-plugin) reads scans from rugged Android devices, such as Zebra, Honeywell and Datalogic. These devices scan with a built-in imager and hand each scan to other software as a broadcast intent, configured in the vendor's scanner software. The plugin brings a native receiver for those intents and an [input source](../../docs/glossary.md#input-source) that decodes each one through the same `decodeScan` as the wedge, serial, HID and camera sources. Prefixes, AIM identifiers and GS1 parsing therefore follow the [scanner profile](../../docs/glossary.md#scanner-profile), and scan routes work unchanged.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Android only. iOS has no broadcast intents, so an application that targets iOS leaves this plugin out on that platform.
+Android only. iOS has no broadcast intents, so an application that targets iOS leaves this plugin out on that platform.
 
 ## Primitives
 
@@ -93,7 +93,7 @@ bun test plugins/intent-scanner
 
 The Kotlin receiver has not been compiled or run. The device test with `adb shell am broadcast` runs on demand.
 
-## Skills
+## Task guides
 
 - [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.
 

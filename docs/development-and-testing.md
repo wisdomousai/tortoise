@@ -1,5 +1,7 @@
 # Development and testing
 
+Use these commands to develop the configured application and verify a change. Automated, browser, native and live-provider checks establish different things; report each that ran and any that were skipped.
+
 ## Setup
 
 Install the pinned dependencies:
@@ -22,7 +24,6 @@ bun run typecheck
 bun run check:boundaries
 bun run check:manifests
 bun run check:framework
-bun run check:readmes
 bun run check:skills
 bun run check:size
 bun run generate
@@ -38,7 +39,7 @@ bun run build
 - **`check:boundaries`**: imports across layers, server code reaching browser bundles, and direct network or process APIs outside the reviewed exemptions in `scripts/boundary-rules.ts`. Portable source may not import `node:` or `bun:` modules or use Node or Bun globals.
 - **`check:manifests`**: a framework package manifest that would not install on its own.
 - **`check:framework`**: more than one installed framework version. It runs `scaffold versions`.
-- **`check:skills`**: a skill that is out of date with the code it describes ([AGENTS.md](../AGENTS.md#skills)).
+- **`check:skills`**: invalid skill metadata, links, paths or coverage, and public surfaces that changed since their skills were reviewed ([AGENTS.md](../AGENTS.md#skills)). Workspace coverage lives in `scripts/skill-coverage.json`; README headings do not determine it.
 - **`check:size`**: code in a package `src/index.ts` other than re-exports. Files over 300 lines and functions over 80 lines are listed as hints and do not fail.
 - **`generate`**: a [catalog](glossary.md#catalog) that cannot be documented. It writes the reference to `dist/reference/<id>/`, which is not committed.
 - **`check:registry:operator`**: generated operator registry files that are out of date. `bun run build:registry:operator` regenerates them.

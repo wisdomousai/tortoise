@@ -2,9 +2,9 @@
 
 React bindings that turn a [person's](../../docs/glossary.md#person) intent into exactly one [command](../../docs/glossary.md#command) and keep committed data live on a [screen](../../docs/glossary.md#screen). Forms validate with the [capability's](../../docs/glossary.md#capability) own schema and keep one [idempotency key](../../docs/glossary.md#idempotency-key) per intent. [Live queries](../../docs/glossary.md#live-query) follow the [journal](../../docs/glossary.md#journal) through TanStack Query behind an authorization fence. Capture helpers time and route point-of-work input, and UI-context helpers hand an agent exactly what the person selected.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Browser-safe. The bindings trust the [instance](../../docs/glossary.md#instance) to authorize and validate.
+Browser-safe. The bindings trust the [instance](../../docs/glossary.md#instance) to authorize and validate.
 
 ## Primitives
 
@@ -57,7 +57,7 @@ bun test packages/react
   - scanner bursts are told apart from typing.
 - `src/context.test.ts`: captured targets stay fixed after selection changes; session routing, acknowledgement and stale registrations.
 
-## Skills
+## Task guides
 
 - [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
 

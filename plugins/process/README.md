@@ -2,9 +2,9 @@
 
 The process [host plugin](../../docs/glossary.md#host-plugin). It provides the host's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [deployment policy](../../docs/glossary.md#deployment-policy) binds under `processes`. Server code that needs a child, such as a recognition worker or a hardware driver, asks the port by process ID and never names an executable itself.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts the deployment policy as the only source of executables, and the site plugin to have validated it.
+Server only, except `plugin-manifest`. The plugin trusts the deployment policy as the only source of executables, and the site plugin to have validated it.
 
 ## Primitives
 
@@ -97,7 +97,7 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 
 `packages/kernel/test/processes.test.ts` covers the refusing default and two providers refused at composition. The station's recognition tests run the worker protocol over an injected start.
 
-## Skills
+## Task guides
 
 - [write-hardware-driver](../connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.

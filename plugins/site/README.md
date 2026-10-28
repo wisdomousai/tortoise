@@ -2,9 +2,9 @@
 
 The site [host plugin](../../docs/glossary.md#host-plugin). It resolves the [deployment policy](../../docs/glossary.md#deployment-policy) against the composed [requirement declarations](../../docs/glossary.md#requirement-declaration) and refuses a policy below its [hardening profile](../../docs/glossary.md#hardening-profile) floor. It enforces the policy's identity floor and hands the resolved policy to the network, audit and compliance plugins.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin is composed first. It binds nothing and records nothing on its own: the [`network`](../network/README.md) and [`audit`](../audit/README.md) plugins do, and they require it. It trusts the `site-policy` setting as launcher input and never reads caller input.
+Server only, except `plugin-manifest`. The plugin is composed first. It binds nothing and records nothing on its own: the [`network`](../network/README.md) and [`audit`](../audit/README.md) plugins do, and they require it. It trusts the `site-policy` setting as launcher input and never reads caller input.
 
 ## Primitives
 
@@ -170,7 +170,7 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 
 `test/identity-provider.test.ts` signs in through the same routes against the stand-in provider, called in process. It covers the sign-in page and the principal, and refusals for an unknown person, a redirect off loopback and a code spent by a wrong verifier.
 
-## Skills
+## Task guides
 
 - [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a deployment policy, building and installing a signed bundle, and exporting firewall rules.
 - [decommission-an-application](skills/decommission-an-application/SKILL.md): a shelf life, draining and deciding effects, a purge that loses nothing, and removing the site from a fleet.

@@ -7,10 +7,6 @@ Two domain-neutral kits support [operator](glossary.md#operator) screens at a [w
 
 `winding-line` uses both kits, and the `quality-inspection` capture screen uses parts of the registry.
 
-## Concepts
-
-Terms: [scanner profiles](glossary.md#scanner-profile), [input sources](glossary.md#input-source) and scan routes.
-
 ## Design guidelines
 
 - **No precision gestures.** Drag, double-tap, long text entry, small close buttons, hover-only affordances and swipes fail with gloves. Targets follow the operator size tokens, which are larger at glove density.
@@ -98,7 +94,7 @@ The setup block shows a calibration barcode that holds the characters most likel
 - the layout mismatch;
 - the separator substitute.
 
-It suggests a profile and reports problems that no setting can fix. This works for cheap wedge scanners that have no configuration software. The kit ships no vendor programming barcodes; those come from vendor data supplied with the deployment.
+Calibration suggests a profile and reports problems that no setting can fix. The process also works for wedge scanners without configuration software. The kit ships no vendor programming barcodes; those come from vendor data supplied with the deployment.
 
 ## Scan routing
 

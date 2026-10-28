@@ -1,6 +1,6 @@
 /**
- * Relative Markdown links that point at a missing file or a missing heading. Shared by the README
- * and skill checks. External links (`https:`, `mailto:` and the like) are not followed. Reads
+ * Relative Markdown links that point at a missing file or a missing heading. Used by the skill
+ * checks. External links (`https:`, `mailto:` and the like) are not followed. Reads
  * files only.
  */
 import { existsSync, readFileSync } from 'node:fs';

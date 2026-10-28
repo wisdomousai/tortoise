@@ -18,7 +18,7 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 ## Steps
 
 1. Create `plugins/<name>` with a `package.json` named `@agent-native/<name>`.
-2. Start its README with that name as the first line; `bun run check:readmes` enforces it.
+2. Document what the plugin does, what it trusts and how to test it in its README.
 3. Declare the browser-safe `plugin-manifest` entrypoint with `definePluginManifest`. List its modules and the settings it claims. Every operation ID starts with the plugin's ID; `namespace` names another prefix only for operation IDs that are already a wire protocol. Put its [requirement declarations](../../../../docs/glossary.md#requirement-declaration) in `components`: destinations, exchange folders, devices and child processes. Startup refuses a setting that no composed plugin claims.
 4. Declare the server `plugin` entrypoint with `defineHostPlugin`: `state.create` for its own slice, its handlers, and an authorization port over its own resource types only. A resource type the application's policy covers, or another unit claims, is refused at composition. Return targets, observers and remote-query sources from `connect`; expose a service from `open`.
 5. List the features and plugins it needs in `requires`.
@@ -36,7 +36,7 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 12. Declare the browser `plugin-screens` entrypoint with `definePluginScreens`, its routes and navigation. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
 13. For native screens and Expo modules, follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
 14. Compose the plugin in an application's `manifest.ts`, `application.ts` and `screens.tsx`, after the plugins it requires.
-15. Write the README sections a package README has: Layer, Primitives, Entrypoints, Trust boundary, Dependencies, Tests and Skills. State what the plugin trusts and how it fails.
+15. Add the plugin and its covering skills to `scripts/skill-coverage.json`; create the registry if the application installs the framework and does not have one. If no skill applies, use an empty `skills` array and explain why in `reason`.
 16. Add the plugin's entry to `docs/primitives.md` when it is a new building block.
 
 ## Checks

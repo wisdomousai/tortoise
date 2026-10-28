@@ -1,10 +1,10 @@
 # @agent-native/connector-files
 
-This [connector](../../docs/glossary.md#connector) reaches a [system of record](../../docs/glossary.md#system-of-record) through shared folders. [Outbox effects](../../docs/glossary.md#effect) are dropped as files, and their outcome is read from receipt files or from the archive that the other system moves accepted files into. Result exports in an inbox folder feed [inbound sync](../../docs/glossary.md#inbound-sync).
+The file [connector](../../docs/glossary.md#connector) reaches a [system of record](../../docs/glossary.md#system-of-record) through shared folders. [Outbox effects](../../docs/glossary.md#effect) are dropped as files, and their outcome is read from receipt files or from the archive that the other system moves accepted files into. Result exports in an inbox folder feed [inbound sync](../../docs/glossary.md#inbound-sync).
 
-## Layer
+## Context
 
-Plugin layer, as a connector library without plugin entrypoints. `./contracts` is browser-safe data. Everything else is server only and reaches the file system only through [exchange folders](../../docs/glossary.md#exchange-folder) that the [deployment policy](../../docs/glossary.md#deployment-policy) binds. The other system's files are input.
+This connector is a library without plugin entrypoints. `./contracts` is browser-safe data. Everything else is server only and reaches the file system only through [exchange folders](../../docs/glossary.md#exchange-folder) that the [deployment policy](../../docs/glossary.md#deployment-policy) binds. The other system's files are input.
 
 ## Primitives
 
@@ -92,7 +92,7 @@ bun test plugins/connector-files
 - a copied file that keeps an old modification time, a replaced file, and a file that does not parse;
 - the component's declarations with and without the folders.
 
-## Skills
+## Task guides
 
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md): wiring a target, its outbox and inbound sync, with a file exchange as one of the ports.
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): binding the exchange folders in the deployment policy.

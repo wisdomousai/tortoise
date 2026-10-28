@@ -1,5 +1,7 @@
 # Primitives
 
+This reference lists the building blocks an application can compose, their status and the code that implements them. Follow the links for usage, trust boundaries and limitations. [Implementation status](implementation-status.md) records evidence that automated checks cannot establish.
+
 ```mermaid
 flowchart LR
   subgraph Callers
@@ -41,7 +43,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Feature
 
-_A reusable domain part an application mounts once, such as approval requests: modules under one operation namespace, a state slice, handlers and a policy over an access view the application supplies, hooks the application implements, and optional connections. A host plugin is a feature with ports, a lifecycle and settings._
+_A reusable domain part that an application mounts once, such as approval requests. It has modules under one operation namespace, a state slice, handlers, a policy, hooks and optional connections. The policy reads an access view that the application supplies, and the application implements the hooks. A host plugin is a feature with ports, a lifecycle and settings._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/testing`](../packages/testing/README.md)
 
@@ -53,7 +55,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md)
 
 ### Generator
 
-_A pure transformation from the catalog to a reference document. Nothing generated from the catalog is committed; `bun run generate` writes the documents to `dist/reference/`._
+_A pure transformation from the catalog to a reference document. Nothing generated from the catalog is committed. `bun run generate` writes the documents to `dist/reference/`._
 
 implemented · [`scripts/generate.ts`](../scripts/generate.ts) [`scripts/reference-artifacts.ts`](../scripts/reference-artifacts.ts)
 
@@ -83,13 +85,13 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/co
 
 ### Collection
 
-_A typed set of records a module keeps in its state slice, with generated reads, generated create, update, move and retire commands, and for a tree collection a tree read._
+_A typed set of records that a module keeps in its state slice. The framework generates its reads and its create, update, move and retire commands, and a tree read for a tree collection._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
 ### Execution context
 
-_Who is calling, in which workspace, under which grant, through which channel and with which cancellation signal, and for an agent, in which run. A trusted host supplies it; a surface never builds it from caller input._
+_Who is calling, in which workspace, under which grant, through which channel and with which cancellation signal, and for an agent, in which run. A trusted host supplies it. A surface never builds it from caller input._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
@@ -113,7 +115,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/ad
 
 ### State migration
 
-_Numbered versions of an application's, each feature's and each plugin's state, with the steps between them, stamped per workspace. A feature can adopt data an older application version kept in its own state. Storage runs the steps when it loads a workspace; the `migrate` command runs them on a checked copy before it replaces the database._
+_Numbered versions of an application's, each feature's and each plugin's state, with the steps between them, stamped per workspace. A feature can adopt data an older application version kept in its own state. Storage runs the steps when it loads a workspace. The `migrate` command runs them on a checked copy before it replaces the database._
 
 implemented · [`packages/kernel/src/migrations.ts`](../packages/kernel/src/migrations.ts) [`packages/kernel/src/state-upgrade.ts`](../packages/kernel/src/state-upgrade.ts) [`packages/host/src/cli/migrate-command.ts`](../packages/host/src/cli/migrate-command.ts)
 
@@ -235,7 +237,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 ### Assignment
 
-_Work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the structured reports the assignee sends back for a person to accept or discard. The `assignment` feature keeps assignments and reports._
+_Work handed to a person, an agent, a paired device, a peer application or a target, with a brief. The assignee sends back structured reports, and a person accepts or discards each one. The `assignment` feature keeps assignments and reports._
 
 implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/patterns/assignments`](../showcase/patterns/assignments/README.md) [`showcase/examples/asset-survey`](../showcase/examples/asset-survey/README.md)
 
@@ -363,7 +365,7 @@ implemented · [`packages/observation`](../packages/observation/README.md) [`wor
 
 ### Interlock
 
-_The checks a connector passes before it acts on a screen or on equipment. A model may suggest an action; deterministic code checks, executes and verifies it._
+_The checks a connector passes before it acts on a screen or on equipment. A model may suggest an action. Deterministic code checks, executes and verifies it._
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
@@ -455,7 +457,7 @@ partial · [`plugins/execution-host`](../plugins/execution-host/README.md) [`plu
 
 ### Station and scanner profiles
 
-_Schema-validated data about one site's equipment. A station profile describes one kind of workstation application and is versioned; a scanner profile describes how one scanner at one workstation reaches the application._
+_Schema-validated data about one site's equipment. A station profile is versioned and describes one kind of workstation application. A scanner profile describes how one scanner at one workstation reaches the application._
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/devices`](../packages/devices/README.md)
 
@@ -467,7 +469,7 @@ implemented · [`packages/devices`](../packages/devices/README.md)
 
 ### Golden test
 
-_A replay of labeled inputs through a station profile and its extractors, run before a station profile change or a model change is used._
+_A replay of labeled inputs through a station profile and its extractors. It runs before a station profile change or a model change goes into use._
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md)
 
@@ -485,7 +487,7 @@ implemented · [`packages/testing`](../packages/testing/README.md)
 
 ### Agent scenario
 
-_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the approval requests it submitted instead of by its text._
+_A test of an agent definition on a task and fixture state. The test judges the run by the commands that the run committed and the approval requests that it submitted, not by its text._
 
 implemented · [`packages/testing`](../packages/testing/README.md)
 
@@ -509,7 +511,7 @@ partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts
 
 ### Shelf life
 
-_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, `app status`, posture and fleet health show it, and nothing is refused after it._
+_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, `app status`, posture and fleet health show it. The host refuses nothing after that date._
 
 implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/site/src/install`](../plugins/site/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
 

@@ -2,10 +2,6 @@
 
 The [instance](glossary.md#instance) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
 
-## Concepts
-
-Terms: the [principal](glossary.md#principal), the [container](glossary.md#container), [membership](glossary.md#membership), the [policy](glossary.md#policy), the [grant](glossary.md#grant) and delegated grant, and field projection.
-
 ## Execution context
 
 Every command and query reaches the instance with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
@@ -40,7 +36,7 @@ In the `field-service` example, the workspace owner creates work orders and is a
 - `integration`: only a [integration allowlist](glossary.md#integration-allowlist) may call it.
 - A rule: it resolves the container from authoritative state and names the roles allowed. It can also name the resource a limited grant must contain, and refuse a delegated run.
 
-It evaluates a command on both the current and the proposed state, so a rule cannot forget the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
+The declarative policy evaluates a command on both the current and proposed state, so a rule cannot omit the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
 
 ## Feature policies
 
@@ -101,7 +97,7 @@ The CASL [adapter](glossary.md#adapter) keeps CASL syntax out of capability desc
 - **Rule order**: denies take precedence and are part of the computed scope. The adapter rejects an allow after a deny, wildcard subjects and actions, and field-specific rules in a row scope.
 - **Immutability**: rules and scopes are copied, so a validated policy cannot be changed.
 
-It is not a general CASL-to-SQL translator. A new codebase supplies explicit mappings, and agreement tests show that its results match the object decisions. A new operator needs agreement tests across object, memory and SQL evaluation before it is used (`packages/adapters/src/casl.test.ts`).
+The adapter is not a general CASL-to-SQL translator. A new codebase supplies explicit mappings, and agreement tests show that the SQL results match the object decisions. A new operator needs agreement tests across object, memory and SQL evaluation before it is used (`packages/adapters/src/casl.test.ts`).
 
 ## Tests
 

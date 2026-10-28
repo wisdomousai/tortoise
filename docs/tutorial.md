@@ -2,10 +2,6 @@
 
 The tutorial builds one [application](glossary.md#application) step by step, from a generated skeleton to a staged site install. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the tool crib of a power transformer plant. Attendants at the crib window lend torque wrenches, crimpers, insulation testers and gauges to employees, and each tool has an etched asset tag.
 
-## Concepts
-
-Terms: [scaffold](glossary.md#scaffold), [collection](glossary.md#collection), [capability](glossary.md#capability), [command](glossary.md#command), [query](glossary.md#query), [policy](glossary.md#policy), [UI binding](glossary.md#ui-binding), [feature](glossary.md#feature), [input source](glossary.md#input-source), [workstation sign-in](glossary.md#workstation-sign-in), [target](glossary.md#target), [outbox](glossary.md#outbox), [reconciliation](glossary.md#reconciliation), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [surface](glossary.md#surface), [UI session context](glossary.md#ui-session-context), [UI intent](glossary.md#ui-intent), [assignment kind](glossary.md#assignment-kind), [deployment policy](glossary.md#deployment-policy) and [site bundle](glossary.md#site-bundle).
-
 ## Setup
 
 The first step runs in the framework repository and exports a new repository with `scaffold new`. Every later step runs at the root of that export. `bun install` in the export links the skills into `.claude/skills/` for Claude Code and `.agents/skills/` for Codex, and the agent reads the export's `AGENTS.md`.
@@ -17,7 +13,7 @@ The first step runs in the framework repository and exports a new repository wit
 
 `scaffold add` runs from the export root. Its policy rules, descriptions and tests name the generated `editor` role, which the tool records step renames to attendant, so each later step renames it in the generated part.
 
-`bun run check` fails in a source export at `check:readmes` and `check:skills`, because the copied READMEs and skills link to examples the export leaves out. The steps use these checks instead, from the export root:
+In a source export, `bun run check:skills` reports paths into omitted examples and patterns and a root script removed from the export. The steps use these checks instead, from the export root:
 
 ```sh
 bun run format

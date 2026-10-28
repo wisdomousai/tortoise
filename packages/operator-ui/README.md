@@ -2,9 +2,9 @@
 
 Input parts for an [operator](../../docs/glossary.md#operator) at a point of work, published as the `operator` [UI registry](../../docs/glossary.md#ui-registry) over stock shadcn primitives. The parts use glove-sized targets and hold-to-confirm for consequential actions, and they show state as an icon plus text instead of color alone. An application pulls an item with `shadcn add` and owns the copied source.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Browser code. Trust-relevant behavior stays in the catalog [commands](../../docs/glossary.md#command) the parts call, which authorize and validate.
+Browser code. Trust-relevant behavior stays in the catalog [commands](../../docs/glossary.md#command) the parts call, which authorize and validate.
 
 ## Primitives
 
@@ -64,7 +64,7 @@ bun run check:registry:operator
 
 Gap: no acceptance test runs `shadcn add` in a scratch application.
 
-## Skills
+## Task guides
 
 - [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
 - [add-scanner-input](../devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.

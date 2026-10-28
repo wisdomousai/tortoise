@@ -4,11 +4,19 @@ Delivery to and from a [system of record](../../docs/glossary.md#system-of-recor
 
 `createTargetIntegration` builds all of this for one [target](../../docs/glossary.md#target), so an application's `connect` declares targets instead of wiring workers. `targetHandlers` implements the complete, sync and status capabilities of a target declared with `defineTarget` in `@agent-native/contracts`. `connectTarget` connects the target to its port. A target declared without a feed only delivers, and its inbound side pulls nothing.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the port implementation and the completion and sync commands. The package trusts the connector and the application's commands, and treats what the system of record returns as data.
+Server only. Domain-neutral: the domain supplies the port implementation and the completion and sync commands. The package trusts the connector and the application's commands, and treats what the system of record returns as data.
 
-## Primitives
+## Delivering a goods receipt
+
+The [receiving example](../../showcase/examples/receiving/README.md) declares an ERP target and connects it to a file-based port. When an editor posts a counted line, the application commits the pending posting and an outbox effect. The dispatcher claims that effect and asks the port to write a file after the transaction ends.
+
+The file write acknowledges delivery; it does not mean the ERP accepted the goods receipt. The dispatcher polls for the response, and the target's completion command records the ERP's decision. A transient failure is retried; an outcome that cannot be established is held for a person. A separate inbound sync imports advance shipping notices through the target's sync command.
+
+[`erp-port.ts`](../../showcase/examples/receiving/erp-port.ts) supplies the file port, and [`application.ts`](../../showcase/examples/receiving/application.ts) connects it. Use the [system-of-record guide](../../docs/systems-of-record.md) when adding a different connector.
+
+## API reference
 
 - [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `DeliveryResult`, `DeliveryAcknowledged`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`. `createPeerPort`, `PeerPortOptions`, `PeerClient` and `payloadBlobs` serve a target that is another agent-native host. `createPeerCall`, `PeerCall`, `PeerCallOptions`, `PeerReceipt` and `PeerCallError` are the HTTP mapping to such a host that the peer port and the fleet agent share.
 - [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher` (with `worker`, `leaseMs` and `recheck`), `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`.
@@ -106,7 +114,7 @@ bun run test:integration
 - `test/convergent.test.ts`: acceptance without acting, the not-ready, precondition and act paths, consecutive reads, interruption and the lookup rules, against a fake instrument.
 - `test/reliability.test.ts`: a paused worker against the one that took over after its claim expired, a kill after the target accepted, and an acknowledged effect polled and drained. It also covers cancel before a claim, the original caller's recheck before the first claim and after revocation, and out-of-order acknowledged versions.
 
-## Skills
+## Task guides
 
 - [connect-system-of-record](skills/connect-system-of-record/SKILL.md): connect a system of record with outbox delivery and completion, held effects, inbound sync, a remote query or a new `SystemOfRecordPort`.
 - [connect-two-applications](../../plugins/peer-link/skills/connect-two-applications/SKILL.md): a peer API and a peer target served and connected through `@agent-native/peer-link`.

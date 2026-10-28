@@ -1,10 +1,10 @@
 # @agent-native/event-log
 
-This package implements the [audit log](../../docs/glossary.md#audit-log): an append-only, hash-chained record of every command, query, denial, outbox transition, sync pass, connection and run. The [journal](../../docs/glossary.md#journal) tells screens what changed. The audit log tells an auditor who did what, through which [surface](../../docs/glossary.md#surface), and what was refused.
+The event-log package implements the [audit log](../../docs/glossary.md#audit-log): an append-only, hash-chained record of every command, query, denial, outbox transition, sync pass, connection and run. The [journal](../../docs/glossary.md#journal) tells screens what changed. The audit log tells an auditor who did what, through which [surface](../../docs/glossary.md#surface), and what was refused.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server only as a whole. The `chain`, `memory` and `forward` modules use no Node or Bun API and run on any JavaScript host. The event envelope and port types live in [`@agent-native/contracts`](../contracts/README.md), so screens can render events without loading this package.
+Server only as a whole. The `chain`, `memory` and `forward` modules use no Node or Bun API and run on any JavaScript host. The event envelope and port types live in [`@agent-native/contracts`](../contracts/README.md), so screens can render events without loading this package.
 
 ## Primitives
 
@@ -57,10 +57,6 @@ bun test packages/event-log
 - `test/event-log.test.ts`: chaining and canonical form, concurrent appends, durable reopen, rotation, tamper detection, torn-line recovery and rejected batches. It also covers verification up to the writer head, the single-writer lock and RFC 5424 forwarding.
 
 `packages/runtime/test/audit.test.ts` tests the rollback of a command whose required append fails.
-
-## Skills
-
-None. `plugins/audit` opens the log, and the package has no extension point of its own.
 
 ## References
 

@@ -1,17 +1,6 @@
 # Capability authoring
 
-A [capability](glossary.md#capability) is a command or query declared once. Authoring one capability follows this order:
-
-1. the contract
-2. the handler
-3. the policy rule
-4. the tests
-
-The `field-service` example is the worked reference.
-
-## Concepts
-
-Terms: [capability](glossary.md#capability), [module](glossary.md#module), [handler](glossary.md#handler), [collection](glossary.md#collection), [state migration](glossary.md#state-migration) and [behavioral scenario](glossary.md#behavioral-scenario).
+A [capability](glossary.md#capability) is a command or a query, declared once. In `field-service` the declaration is a contract, the server function is a handler, access is a policy rule, and the check is a behavioral scenario.
 
 ## Contract
 

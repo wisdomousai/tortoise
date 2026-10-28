@@ -56,6 +56,7 @@ export default withMermaid(
     rewrites: {
       'README.md': 'index.md',
       'packages/:name/README.md': 'packages/:name/index.md',
+      'workstations/:name/README.md': 'workstations/:name/index.md',
       'plugins/:name/README.md': 'plugins/:name/index.md',
       'apps/:name/README.md': 'apps/:name/index.md',
       'showcase/examples/:name/README.md': 'showcase/examples/:name/index.md',

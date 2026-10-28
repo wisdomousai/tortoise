@@ -1,10 +1,10 @@
 # @agent-native/compliance
 
-This [host plugin](../../docs/glossary.md#host-plugin) produces the [compliance bundle](../../docs/glossary.md#compliance-bundle): the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. They are generated from the [catalog](../../docs/glossary.md#catalog) and the [deployment policy](../../docs/glossary.md#deployment-policy), and a serving host re-checks posture on an interval. Listed auditors read posture and the [audit log](../../docs/glossary.md#audit-log) through ordinary queries, and the CLI gains `compliance report`.
+The compliance [host plugin](../../docs/glossary.md#host-plugin) produces the [compliance bundle](../../docs/glossary.md#compliance-bundle): the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. They are generated from the [catalog](../../docs/glossary.md#catalog) and the [deployment policy](../../docs/glossary.md#deployment-policy), and a serving host re-checks posture on an interval. Listed auditors read posture and the [audit log](../../docs/glossary.md#audit-log) through ordinary queries, and the CLI gains `compliance report`.
 
-## Layer
+## Context
 
-Plugin layer, shipped with the framework. An application composes it as `compliance`, after the site and audit plugins it reads from. Server only, except `contracts`, `plugin-manifest`, `plugin-screens` and `components/`. It trusts the services of the site and audit plugins, and changes nothing it reads.
+An application composes it as `compliance`, after the site and audit plugins it reads from. Server only, except `contracts`, `plugin-manifest`, `plugin-screens` and `components/`. It trusts the services of the site and audit plugins, and changes nothing it reads.
 
 ## Primitives
 
@@ -75,7 +75,7 @@ bun test plugins/compliance
 - Each example's `test/ui-bindings.test.ts` checks the screen's bindings.
 - `showcase/examples/quality-inspection/e2e/compliance.pw.ts` drives the screen in Chromium.
 
-## Skills
+## Task guides
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
 

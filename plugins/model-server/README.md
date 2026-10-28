@@ -2,9 +2,9 @@
 
 The model server plugin runs a local model for agents that require one. It hashes the weights it is given and refuses to start when a digest differs from the [model entry](../../docs/glossary.md#model-entry), or when a fine-tune has no passing activation. It starts llama.cpp `llama-server` or vLLM through the [process port](../../docs/glossary.md#process-port), listening on the address the [deployment policy](../../docs/glossary.md#deployment-policy) binds to `local-inference`. The [harness](../../docs/glossary.md#harness) it returns records the measured digests on every run.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
+Server only, except `plugin-manifest` and `contracts`.
 
 ## Primitives
 
@@ -115,7 +115,7 @@ bun test plugins/model-server
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
 ```
 
-## Skills
+## Task guides
 
 - [serve-a-local-model](skills/serve-a-local-model/SKILL.md): declaring a model entry, serving it through this plugin, exporting a dataset and gating a fine-tune.
 

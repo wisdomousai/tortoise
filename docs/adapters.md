@@ -2,10 +2,6 @@
 
 The framework reaches storage and serves the HTTP, MCP and CLI [surfaces](glossary.md#surface) through ports. Each port has a reference adapter that an application can replace.
 
-## Concepts
-
-Terms: the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) adapters and the [storage](glossary.md#storage) adapters.
-
 ## Ports
 
 | Port | Reference adapters | What an adapter keeps |

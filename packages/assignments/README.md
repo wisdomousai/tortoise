@@ -1,10 +1,10 @@
 # @agent-native/assignments
 
-This package hands work to an assignee and takes structured reports back for review. An application declares assignment kinds as schemas: what the requester fills in, what the assignee receives, what one report holds and what a reviewer adds on accepting it. The package generates the operations of a [feature](../../docs/glossary.md#feature) with ID `assignment`, and the assignee's side, the worklist, for an application that takes work from another.
+The assignments package hands work to an assignee and takes structured reports back for review. An application declares assignment kinds as schemas: what the requester fills in, what the assignee receives, what one report holds and what a reviewer adds on accepting it. The package generates the operations of a [feature](../../docs/glossary.md#feature) with ID `assignment`, and the assignee's side, the worklist, for an application that takes work from another.
 
-## Layer
+## Context
 
-Framework (`packages/*`). The contracts are browser-safe. The package imports framework packages only, never a plugin, example or pattern. Its source is portable, because a worklist runs on a phone.
+The contracts are browser-safe. The package imports framework packages only, never a plugin, example or pattern. Its source is portable, because a worklist runs on a phone.
 
 ## Primitives
 
@@ -81,7 +81,7 @@ bun test packages/assignments
 - `assignmentTargetPort` keeps results in memory until the target's sync applies them. If the host stops in between, the offer stays completed without its result, and the planner withdraws the assignment and sends it again.
 - A report the sync skips is not recorded anywhere; the assignment shows only the reports it applied.
 
-## Skills
+## Task guides
 
 - [assign-work](skills/assign-work/SKILL.md): declare an assignment kind, mount the feature with its access view and hooks, pick the assignee types and serve a worklist.
 

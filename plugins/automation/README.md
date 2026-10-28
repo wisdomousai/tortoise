@@ -1,10 +1,10 @@
 # @agent-native/automation
 
-This [host plugin](../../docs/glossary.md#host-plugin) runs work without a [person](../../docs/glossary.md#person) at the [screen](../../docs/glossary.md#screen). A [trigger](../../docs/glossary.md#trigger) starts an [agent definition](../../docs/glossary.md#agent-definition) or a deterministic job on a committed change or on a schedule. A trigger does nothing until a person issues a [trigger grant](../../docs/glossary.md#trigger-grant) for it, and every run acts as that person, narrowed to the trigger's [capabilities](../../docs/glossary.md#capability).
+The automation [host plugin](../../docs/glossary.md#host-plugin) runs work without a [person](../../docs/glossary.md#person) at the [screen](../../docs/glossary.md#screen). A [trigger](../../docs/glossary.md#trigger) starts an [agent definition](../../docs/glossary.md#agent-definition) or a deterministic job on a committed change or on a schedule. A trigger does nothing until a person issues a [trigger grant](../../docs/glossary.md#trigger-grant) for it, and every run acts as that person, narrowed to the trigger's [capabilities](../../docs/glossary.md#capability).
 
-## Layer
+## Context
 
-Plugin layer, with the three plugin entrypoints an application lists. It trusts the triggers and jobs the application passes in code. Every run is an ordinary [caller](../../docs/glossary.md#caller) that the application's [policy](../../docs/glossary.md#policy) authorizes.
+The application lists the three plugin entrypoints. It trusts the triggers and jobs the application passes in code. Every run is an ordinary [caller](../../docs/glossary.md#caller) that the application's [policy](../../docs/glossary.md#policy) authorizes.
 
 ## Primitives
 
@@ -87,7 +87,7 @@ bun test plugins/automation
 - `test/local-approval.test.ts`: on a serving host with the site and network plugins, a received lot starts a requesting agent's run on a local model. The model sees only the lot query and `approval.request`. The approval request names the issuer, the run and the model and changes nothing. A viewer's approve is refused and leaves it pending, and an inspector's approve commits the inspection as the inspector.
 - `test/live.test.ts`: the same flow on a real model, run only when `LOCAL_MODEL_GGUF` names a GGUF file. The test starts llama.cpp `llama-server` itself and binds `local-inference` to it with a five-minute `timeoutMs`.
 
-## Skills
+## Task guides
 
 - [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 

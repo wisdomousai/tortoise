@@ -2,9 +2,9 @@
 
 The notifications host plugin shows outbox [effects](../../docs/glossary.md#effect) as local notifications on the desktop or phone. When a person chooses a notification's action, the plugin runs the [command](../../docs/glossary.md#command) that action stands for. It serves the application's `notify` [OS actions](../../docs/glossary.md#os-action) and `reply` [OS handlers](../../docs/glossary.md#os-handler) on top of the [OS plugin](../os/README.md), which it requires. Without this plugin, startup refuses an application that declares either.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest` and `contracts`.
+Server only, except `plugin-manifest` and `contracts`.
 
 ## Primitives
 
@@ -101,6 +101,6 @@ bun test plugins/notifications
 
 `showcase/examples/field-service/test/os.test.ts` covers the desktop path over HTTP, from the Electron relay to the reply. `showcase/examples/asset-survey-field/test/os.test.ts` covers a phone: a notice without buttons that inbound sync queues, shown once per new assignment and completed.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

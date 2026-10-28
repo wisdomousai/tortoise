@@ -2,11 +2,17 @@
 
 Shared test machinery for the framework's claim that a [capability](../../docs/glossary.md#capability) behaves the same on every [surface](../../docs/glossary.md#surface). A [behavioral scenario](../../docs/glossary.md#behavioral-scenario) runs against a `ScenarioDriver`, and `assertEquivalent` compares the outcomes of two runs. The [UI-binding](../../docs/glossary.md#ui-binding) helpers check that every capability claiming a UI binding is referenced by a [screen](../../docs/glossary.md#screen) of its application. [Agent scenarios](../../docs/glossary.md#agent-scenario) judge an agent definition's runs by their [receipts](../../docs/glossary.md#receipt) and [approval requests](../../docs/glossary.md#approval-request).
 
-## Layer
+## Context
 
-Framework (`packages/*`). Test code; production code does not import it. Scenarios trust the test to supply the [execution context](../../docs/glossary.md#execution-context), as a host would.
+Test code; production code does not import it. Scenarios trust the test to supply the [execution context](../../docs/glossary.md#execution-context), as a host would.
 
-## Primitives
+## Choosing the evidence
+
+To test a domain rule, write a behavioral scenario against a `ScenarioDriver` and run it with `directDriver`. Supply other drivers when the same scenario needs to run through another transport, and compare the outcomes. For example, the [field-service transport test](../../showcase/examples/field-service/test/transport-conformance.test.ts) drives HTTP, CLI and MCP directly and compares their results; it does not use the scenario helper.
+
+Use `unboundOperations` to find capabilities whose declared screen bindings are missing, `connectorConformance` for a system-of-record port, and `storageConformance` for a storage adapter. Agent scenarios check committed receipts and approval requests, not just the model's text. A deterministic harness does not establish how a live provider or model behaves.
+
+## API reference
 
 - [Behavioral scenario](../../docs/primitives.md#behavioral-scenario): `BehavioralScenario`, `ScenarioDriver`, `runScenarios`, `directDriver`, `assertEquivalent`.
 - [Model entry](../../docs/primitives.md#model-entry): `gateModel` produces the `ModelActivation` a managed model server requires.
@@ -165,7 +171,7 @@ Elsewhere:
 - The behavioral scenario helpers have no suite of their own. `showcase/examples/field-service/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
 - The UI-binding helpers are exercised by the UI-binding test of every example.
 
-## Skills
+## Task guides
 
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 - [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox completion, sync and live reads.

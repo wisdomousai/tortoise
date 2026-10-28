@@ -2,10 +2,6 @@
 
 The host runs agent harnesses under provider accounts that the local owner connects.
 
-## Concepts
-
-Terms: the [credential vault](glossary.md#credential-vault).
-
 ## Provider harnesses
 
 A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [instance](glossary.md#instance) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace.

@@ -1,30 +1,27 @@
 # Architecture
 
-A [capability](glossary.md#capability) is a command or query declared once. The [host](glossary.md#host) is the process that runs one [application](glossary.md#application). It serves every capability through the same [surfaces](glossary.md#surface):
+A Tortoise [application](glossary.md#application) keeps the records of one task at one site. It declares the commands that change those records, the queries that read them and the screens people use. Its contracts, handlers and screens live in separate [entrypoints](#application-entrypoints).
 
-- HTTP
-- MCP
-- the CLI
-- the screens
+The [host](glossary.md#host) is the process that runs the application: the Bun host behind the desktop window and the browser, or the mobile host on a phone. It opens one [instance](glossary.md#instance), the application opened on its [workspace](glossary.md#workspace). The workspace holds the application's data. While the instance is open, no other process writes that workspace.
 
-An [instance](glossary.md#instance) is one application opened on one [workspace](glossary.md#workspace). The instance commits each change to [storage](glossary.md#storage). A [host plugin](glossary.md#host-plugin) is a part the application composes for one cross-cutting concern.
+People, agents, scripts and other systems therefore reach the records only through the instance. A person works in the screens. An agent calls the same commands as tools, through MCP or an agent run in the host. A script uses the CLI or HTTP. Each of these [surfaces](glossary.md#surface) sends its calls to the same instance.
 
-## Concepts
+Inside the instance, the runtime validates and authorizes each command, then commits its changes through [storage](glossary.md#storage). Queries pass the same authorization checks. After a commit, journal entries refresh the open screens that show the changed records, and dispatchers deliver committed outbox effects to other systems.
 
-Terms: [application](glossary.md#application), [instance](glossary.md#instance), [host](glossary.md#host), [embedded mode](glossary.md#embedded-mode), [attached mode](glossary.md#attached-mode) and [host plugin](glossary.md#host-plugin).
+Framework packages implement this path. The application composes [host plugins](glossary.md#host-plugin) for cross-cutting behavior such as network access and the audit log. The starter names the application in `app.config.json`.
 
 ## Layers
 
 | Layer | Location | Holds |
 | --- | --- | --- |
 | [Framework](glossary.md#framework) | `packages/*` | Domain-neutral primitives, ports, adapters and [UI registries](glossary.md#ui-registry), including the generic host and the [web frame](glossary.md#web-frame). |
-| [Workstation](glossary.md#workstation) | `workstations/*` | The edge-workstation opinion: the [screen bridge](glossary.md#screen-bridge) and [workstation sign-in](glossary.md#workstation-sign-in). |
+| [Workstation](glossary.md#workstation) | `workstations/*` | Packages for edge workstations: the [screen bridge](glossary.md#screen-bridge) and [workstation sign-in](glossary.md#workstation-sign-in). |
 | Plugins | `plugins/*` | [Host plugins](#host-plugins) for cross-cutting concerns an application chooses to compose, such as [deployment policy](glossary.md#deployment-policy), network, audit and compliance. |
 | [Starter](glossary.md#starter) | `apps/*` | Thin wiring its owner forks and extends: configuration, entrypoints, web root, stock UI primitives and the desktop and mobile wrappers. |
 | Content | `showcase/examples/*`, `showcase/patterns/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [pattern](glossary.md#pattern) composes the base pattern and adds one concern. |
 | Driver SDKs | `sdks/*` | The driver protocol in Python and C#, for [hardware drivers](hardware-drivers.md). |
 
-The starter learns its application from configuration. Generic behavior goes into framework packages. A new application therefore does not edit the starter, and an owner who forks it keeps receiving framework changes.
+The starter reads its application from configuration. Generic behavior goes into framework packages. A new application therefore needs no change to the starter, and an owner who forks the starter keeps receiving framework changes.
 
 The web frame files are registry sources. A file in `apps/web/src` replaces the frame file at the same path.
 
@@ -33,12 +30,12 @@ The web frame files are registry sources. A file in `apps/web/src` replaces the 
 An application has three entrypoints:
 
 - **Manifest:** the browser-safe [manifest](glossary.md#manifest) with the application's modules.
-- **Application definition:** the server [application definition](glossary.md#application-definition) with state, [handlers](glossary.md#handler), authorization, services and the [targets](glossary.md#target) that reach other systems. It runs with the host's privileges; only callers are untrusted.
+- **Application definition:** the server [application definition](glossary.md#application-definition) with state, [handlers](glossary.md#handler), authorization, services and the [targets](glossary.md#target) that reach other systems. It runs with the host's privileges. Only callers are untrusted.
 - **Screens:** the application's [screens](glossary.md#screen).
 
 `app.config.json` names the application the starter hosts. The `apps/service` entrypoint and the CLI load its application definition into the host, and the web frame binds its screens. Compiled builds generate a static entry for the same application.
 
-Each application has its own [catalog](glossary.md#catalog), generated reference, web build and workspace. `bun run generate` writes the reference to `dist/reference/<id>/`, and nothing generated is committed.
+Each application has its own [catalog](glossary.md#catalog), generated reference, web build and workspace. `bun run generate` writes the reference to `dist/reference/<id>/`. Nothing generated is committed.
 
 ## Surfaces and identity
 
@@ -54,7 +51,7 @@ Every surface calls the same instance.
 
 ## Request flow
 
-A module declares the browser-safe contracts of its capabilities; the handlers are separate server code and the screens are ordinary React components. The application definition composes modules, state, authorization and services. The host adds storage, sessions and surfaces, and the [generators](glossary.md#generator) read the same catalog.
+A module declares the browser-safe contracts of its capabilities. The handlers are separate server code, and the screens are ordinary React components. The application definition composes modules, state, authorization and services. The host adds storage, sessions and surfaces, and the [generators](glossary.md#generator) read the same catalog.
 
 ```mermaid
 flowchart LR
@@ -91,7 +88,7 @@ On a failure, the composition closes everything it opened, newest first.
 
 ### Host platforms
 
-A host platform is trusted host code that the starter chooses; an application cannot choose it. The host platforms differ in workspace ownership, storage and the capabilities they offer:
+A host platform is trusted host code. The starter chooses it, and an application cannot. The host platforms differ in workspace ownership, storage and the capabilities they offer:
 
 | Host platform | Ownership | Storage | Capabilities |
 | --- | --- | --- | --- |
@@ -99,9 +96,9 @@ A host platform is trusted host code that the starter chooses; an application ca
 | Hosted (`hostedPlatform`) | A [workspace lease](glossary.md#workspace-lease) in Postgres, plus the OS lock on the local directory | Postgres row storage | As the Bun platform |
 | Mobile (`packages/mobile`) | An exclusive transaction on the workspace's lock database | SQLite snapshot storage | None |
 
-The desktop window starts the host or attaches to a running one, and loads the shared web build. These are deployment choices, and module behavior does not depend on them.
+The desktop window starts the host or attaches to a running one, and loads the shared web build. These are deployment choices. Module behavior does not depend on them.
 
-A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. Synchronization of one workspace across several devices is out of scope.
+A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. The framework does not synchronize one workspace across several devices.
 
 ### Embedded and attached modes
 
@@ -116,19 +113,19 @@ The storage port has an atomic transaction callback and a read callback. It impo
 | Adapter | Layout | Used by |
 | --- | --- | --- |
 | Memory | Structured clones in memory | Tests |
-| SQLite (`SQLiteStorage`) | One row per record; a commit writes only the rows it changed | The Bun host platform |
+| SQLite (`SQLiteStorage`) | One row per record. A commit writes only the rows it changed. | The Bun host platform |
 | Postgres (`PostgresStorage`) | The same row layout, shared safely by several hosts | The hosted platform |
 | Snapshot (`SnapshotStorage`) | One JSON document per workspace | The mobile host platform |
 
 The SQLite, Postgres and snapshot adapters accept only JSON. The adapters reject sparse arrays instead of reloading the holes as nulls. The row layout is not a relational model of module state.
 
-A replacement adapter passes the storage conformance suite in `packages/testing`, which checks the atomicity, isolation and persistence the composition relies on.
+A replacement adapter must pass the storage conformance suite in `packages/testing`. The suite checks the atomicity, isolation and persistence that the composition relies on.
 
 ## Systems of record
 
-A [system of record](glossary.md#system-of-record) owns records the application reads or changes, and decides what it accepts. It cannot join the application's transaction. The application reaches it through a target and the target's [connector](glossary.md#connector).
+The application reaches a [system of record](glossary.md#system-of-record) through a target and the target's [connector](glossary.md#connector). The external call runs after the local transaction commits.
 
-A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. It relies on the system of record's idempotency or on a lookup, and a complete command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
+A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. Because delivery can repeat, the dispatcher relies on the system of record's idempotency or on a lookup. The target's complete command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
 
 Inbound sync imports changes through ordinary commands. No transaction spans two systems.
 
@@ -138,7 +135,7 @@ The policy port is injected. Every open screen receives live updates after a com
 
 In the React bindings, a [live query](glossary.md#live-query) refetches when a declared dependency changes, or on every change when it declares none. It ignores stale responses. It clears protected data when authorization changes, and reconnects from a [snapshot](glossary.md#snapshot) cursor.
 
-[UI intents](glossary.md#ui-session-context) expire and are not business events.
+[UI intents](glossary.md#ui-intent) expire and are not business events.
 
 ## Agents
 
@@ -146,15 +143,15 @@ An [agent run](glossary.md#agent-run) keeps [harness](glossary.md#harness) outpu
 
 ## Host plugins
 
-Modules, [host components](glossary.md#host-component) and plugins declare their network access, devices, [exchange folders](glossary.md#exchange-folder) and child processes as [requirement declarations](glossary.md#requirement-declaration). Nothing is discovered at runtime.
+Modules, [host components](glossary.md#host-component) and plugins declare their network access, devices, [exchange folders](glossary.md#exchange-folder) and child processes as [requirement declarations](glossary.md#requirement-declaration). The host discovers nothing at runtime.
 
 ### Ports
 
-The host is a composition with ports. A plugin provides a port; without one, the composition's default applies.
+The host is a composition with ports. A plugin provides a port. When no plugin provides it, the composition's default applies.
 
 | Port | Default without a plugin | Provided by |
 | --- | --- | --- |
-| Network | Refuses every destination | `plugins/network`, the [egress guard](glossary.md#egress-guard); `plugins/hub-link` on a paired device, without an egress guard |
+| Network | Refuses every destination | `plugins/network`, the [egress guard](glossary.md#egress-guard). `plugins/hub-link` on a paired device, without an egress guard |
 | Ingress | The host platform's own listener: loopback on the Bun platform | `plugins/network` (TLS or mTLS from the deployment policy) |
 | Identity | Admits the trusted [local owner](glossary.md#owner) | `plugins/site` |
 | Audit log | No log | `plugins/audit` |
@@ -168,52 +165,54 @@ Plugins provide ports because a wrapper around each call cannot write an audit r
 
 A [feature](glossary.md#feature) is a reusable domain part an application mounts once, such as approval requests. It has modules whose operation IDs start with the feature's ID, a state slice under that ID, handlers and a policy. The feature never reads application state. The application mounts it with `mountFeature`, which supplies:
 
-- an access view the application computes from its own state, which the feature's policy and handlers read;
-- hooks the feature calls inside a command, which may write application records in the same transaction;
+- an access view that the application computes from its own state. The feature's policy and handlers read it.
+- hooks that the feature calls inside a command. A hook may write application records in the same transaction.
 - an adoption that moves data an older application version kept in its own state into the feature's slice.
 
-A host plugin is a feature with ports, settings, lifecycle hooks and platforms, and no access view or hooks. `defineApplication` folds features, then plugins, into one state, handler list, policy, set of services and set of connections (`packages/kernel/src/features`). A feature's slice is stamped `feature:<id>` and a plugin's `plugin:<id>`.
+A host plugin is a feature with ports, settings, lifecycle hooks and platforms, and no access view or command hooks. `defineApplication` merges features, then plugins, into one state, one handler list, one policy, one set of services and one set of connections (`packages/kernel/src/features`). A feature's slice is stamped `feature:<id>` and a plugin's `plugin:<id>`.
 
-Composition refuses these, at definition time:
+Composition refuses these at definition time:
 
-- feature or plugin lists that differ from the manifest's, in content or order, and a `requires` not composed before;
-- a feature and a plugin with the same ID, or two units with operations in the same namespace;
-- an operation outside its unit's namespace, or an application operation inside one. A plugin's namespace is its ID unless its manifest names another; device link (`link`), hub link (`hub`), notifications (`notification`) and workstation sign-in (`station`) keep ones that predate the rule;
-- a feature module, target, source or resource type that is not the feature's ID or does not start with `<id>-`;
-- a resource type two units claim, or one the application policy's `covers` lists, and an application policy rule for a unit's operation. `definePolicy` declares `covers`; a handwritten port without it is not checked;
-- an application state or services key equal to a unit's ID;
+- feature or plugin lists that differ from the manifest's lists in content or order, and a `requires` entry that is not composed earlier.
+- a feature and a plugin with the same ID, or two units with operations in the same namespace.
+- an operation outside its unit's namespace, or an application operation inside one. A plugin's namespace is its ID unless its manifest names another. Device link (`link`), hub link (`hub`), notifications (`notification`) and workstation sign-in (`station`) keep namespaces that predate this rule.
+- a feature module, target, source or resource type that is not the feature's ID or does not start with `<id>-`.
+- a resource type that two units claim or that the application policy's `covers` lists, and an application policy rule for a unit's operation. `definePolicy` declares `covers`. Composition does not check a handwritten policy port that has no `covers`.
+- an application state or services key equal to a unit's ID.
 - an adoption whose application version no incompatible migration step reaches, so code from before the data moved refuses the workspace.
 
 ### Composition
 
-A plugin has the same entrypoints as an application: a manifest, a server entrypoint and, when it has any, screens. The application lists its features and plugins in each of its own entrypoints, so generated artifacts follow from the application alone. A plugin's state is its own slice under its ID. Its policy decides only its own capabilities and resource types.
+A plugin has the same entrypoints as an application: a manifest, a server entrypoint and, when it has any, screens. The application lists its features and plugins in each of its own entrypoints. The generated artifacts therefore follow from the application alone. A plugin's state is its own slice under its ID. Its policy decides only its own capabilities and resource types.
 
-A plugin imports the packages of the plugins it requires, for their types, policy helpers and service accessors. The network plugin, for example, imports the site plugin's policy types. At runtime, plugins reach each other through the composed ports and the services the plugins expose. The port view resolves once every plugin has opened, so two plugins can use each other without a construction cycle. The egress guard records into the audit log, and the audit log's forwarder sends through the guard. The two plugins do not import each other.
+A plugin imports the packages of the plugins it requires, for their types, policy helpers and service accessors. The network plugin, for example, imports the site plugin's policy types. At runtime, plugins reach each other through the composed ports and the services the plugins expose. The port view resolves after every plugin opens, so two plugins can use each other without a construction cycle. For example, the egress guard records into the audit log, and the audit log's forwarder sends through the guard. The two plugins do not import each other.
 
 ### Lifecycle
 
 - `open` runs before storage, in composition order, and may refuse startup.
 - `ready` runs in every instance, including an embedded CLI or MCP instance, before the first request.
-- `start` runs in a serving host once it listens, and on the mobile host each time it returns to the foreground. It never runs in an embedded CLI or MCP instance, and it acts as the local owner narrowed by a [delegated grant](glossary.md#grant).
+- `start` runs in a serving host once it listens, and on the mobile host each time it returns to the foreground. It never runs in an embedded CLI or MCP instance. It acts as the local owner, narrowed by a [delegated grant](glossary.md#grant).
 - `close` runs in reverse order.
 
 Startup refuses the composition in these cases:
 
-- a supplied setting that no composed plugin declares;
-- a port that a plugin's configuration needs and no plugin provides;
-- two plugins that provide the same port;
-- server plugins that differ from the manifest's list or order, or a plugin composed before one it requires.
+- a supplied setting that no composed plugin declares
+- a port that a plugin's configuration needs and no plugin provides
+- two plugins that provide the same port
+- server plugins that differ from the manifest's list or order, or a plugin composed before one it requires
 
 `packages/host/test/plugins.test.ts` covers the composition rules and the lifecycle.
 
 ### Plugins in the examples
 
-`field-service` also composes [webhook](../plugins/webhook/README.md), an example plugin written as a third party would write one. Most examples compose these:
+Most examples compose these plugins:
 
 - **site** loads the deployment policy and enforces its identity floor.
 - **network** guards outbound connections.
 - **audit** keeps the tamper-evident audit log.
 - **compliance** adds auditor queries, the posture monitor and the Compliance screen.
+
+`field-service` also composes [webhook](../plugins/webhook/README.md), an example plugin written the way a third party would write one.
 
 ### Features in the examples
 
@@ -222,22 +221,28 @@ Startup refuses the composition in these cases:
 - **winding-line** mounts `approval` and `device`.
 - **asset-survey** mounts `assignment` and `approval`.
 
-Each implements the access views from its own roles in `policy.ts`, repeating the membership gate its application policy applies, and adopted the data its version 1 state kept.
+Each example implements the access views from its own roles in `policy.ts`. The access views repeat the membership gate that its application policy applies. Each example also adopted the data that its version 1 state kept.
 
 ### Telemetry
 
-The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox), so handlers and adapters include no metrics code. It exports through the network port to a collector on the same machine. The export includes operation, target, harness and channel IDs, fixed states, error codes, counts and durations, and digests of correlation, effect and run IDs. It includes no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).
+The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox). Handlers and adapters therefore include no metrics code. The plugin exports through the network port to a collector on the same machine. The export includes:
+
+- operation, target, harness and channel IDs
+- fixed states, error codes, counts and durations
+- digests of correlation, effect and run IDs
+
+The telemetry export includes no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).
 
 ## Invariants
 
 `bun run check` and the conformance suites test these:
 
 - Each capability has one handler. The screens, HTTP, MCP and the CLI reach it with the same validation, authorization, results and errors (`showcase/examples/field-service/test/transport-conformance.test.ts`).
-- Surfaces, schemas, API descriptions and agent skills are generated from the catalog. Contracts import no handlers, adapters or provider SDKs.
+- The framework generates surfaces, schemas, API descriptions and agent skills from the catalog. Contracts import no handlers, adapters or provider SDKs.
 - The host derives the principal, the workspace and the grant from the session. Input cannot choose or widen them.
 - Authorization is rechecked inside the transaction, on replay and on event delivery. Rows are filtered before they are counted or paged.
 - One instance writes each workspace. A command commits state, [revisions](glossary.md#revision), its receipt, journal entries and outbox effects in one transaction, or the command fails.
-- Handlers make no network or model calls. Other systems are changed through outbox effects and read through declared remote queries.
+- Handlers make no network or model calls. An application changes other systems through outbox effects and reads them through declared remote queries.
 - Server code reaches the network only through the network port, and starts child processes only through the [process port](glossary.md#process-port). The boundary check enforces both, and `scripts/boundary-rules.ts` lists each reviewed exemption with its reason.
 - The framework imports no workstation, plugin, starter or example code. A workstation package imports the framework only. A plugin imports no workstation package, starter or example. The starter imports none of them. An example imports no starter code, and nothing imports a driver SDK.
 
@@ -293,9 +298,9 @@ Each [example](glossary.md#example) is an application under `showcase/examples/`
 | [`winding-line`](../showcase/examples/winding-line/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
 | [`crm-capture`](../showcase/examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
 | [`asset-survey`](../showcase/examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
-| [`receiving`](../showcase/examples/receiving/README.md) | Goods receiving against an ERP through files: notices are read from an inbox folder, and receipts are posted as files and completed from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
+| [`receiving`](../showcase/examples/receiving/README.md) | Goods receiving against an ERP through files. The application reads notices from an inbox folder, posts goods receipts as files and completes them from the ERP's receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
 | [`fleet`](../showcase/examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
-| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. Asset tags are received as Android intents, work requests leave as intents, captures are shared and new assignments are announced as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
+| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. The phone receives asset tags as Android intents, sends work requests as intents, shares captures and announces new assignments as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
 
 ## References
 

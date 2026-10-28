@@ -1,12 +1,18 @@
 # @agent-native/contracts
 
-This package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts include schemas, permissions, UI bindings and declared requirements, and never handlers.
+The contracts package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts include schemas, permissions, UI bindings and declared requirements, and never handlers.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with this package in its own `contracts.ts`. Contracts are trusted code that describe untrusted input.
+Domain-neutral. A domain defines its capabilities with this package in its own `contracts.ts`. Contracts are trusted code that describe untrusted input.
 
-## Primitives
+## From a declaration to a call
+
+In the receiving application, [`contracts/delivery.ts`](../../showcase/examples/receiving/contracts/delivery.ts) declares `delivery.receive`: the ID, counted quantity, input and output schemas, required permission and screen binding. The declaration contains no write. The application's server supplies the handler and policy separately.
+
+The application collects declarations into modules, and `buildCatalog` checks that the combined declarations agree. The host and generators use the resulting catalog to describe the same operation to screens, HTTP, the CLI and MCP. A valid declaration does not itself grant access: the runtime checks the caller when the operation runs.
+
+## API reference
 
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
 - [Display metadata](../../docs/primitives.md#display-metadata): `DisplayDeclaration`, `DisplayField`, a capability's `display`; `checkDisplay`, which the catalog build runs; and `displayRecord`, the record schema an output holds.
@@ -38,7 +44,7 @@ The worked example is [`showcase/examples/field-service/contracts.ts`](../../sho
 
 | Import | Runs in | Contents |
 | --- | --- | --- |
-| `@agent-native/contracts` | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
+| `@agent-native/contracts` | browser and server | The API above, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
 | `@agent-native/contracts/*` | browser and server | One source file from `src/`. |
 
 ## Trust boundary
@@ -78,7 +84,7 @@ bun test packages/contracts
 - `test/peer.test.ts`: a peer API's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination and component, parsed effects, whose an effect is, and a feed that must be a service query.
 - `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
-## Skills
+## Task guides
 
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 - [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox completion, sync and live reads.

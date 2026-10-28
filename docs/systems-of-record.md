@@ -2,10 +2,6 @@
 
 A [system of record](glossary.md#system-of-record) owns records an [application](glossary.md#application) reads or changes, and decides which of those changes it accepts. It cannot join the application's transaction. A [command](glossary.md#command) that changes those records commits an [outbox effect](glossary.md#effect) with the local change. The [dispatcher](glossary.md#dispatcher) delivers the effect afterwards.
 
-## Concepts
-
-Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [effect completion](glossary.md#effect-completion), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file), [remote query](glossary.md#remote-query), [peer target](glossary.md#peer-target), [peer API](glossary.md#peer-api) and [peer link](glossary.md#peer-link).
-
 The application keeps its synced records, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP reach the same [capabilities](glossary.md#capability) under the same authorization. These [examples](glossary.md#example) connect a system of record:
 
 - `quality-inspection`: inspection lots, specifications and code groups are imported from an in-memory quality system. Inspectors or an agent record values and codes, and each result is delivered, then accepted or rejected.

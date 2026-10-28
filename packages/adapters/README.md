@@ -1,10 +1,10 @@
 # @agent-native/adapters
 
-This package holds the reference [adapters](../../docs/glossary.md#adapter) behind the runtime's ports and the [surface](../../docs/glossary.md#surface) adapters that expose the [instance](../../docs/glossary.md#instance). Each surface adapter translates a request onto the raw command and query entry points. None holds business logic or its own list of capabilities, so a new [capability](../../docs/glossary.md#capability) reaches every surface.
+The adapters package supplies implementations behind the runtime's ports and the [surface](../../docs/glossary.md#surface) adapters that expose the [instance](../../docs/glossary.md#instance). Each surface adapter translates a request onto the raw command and query entry points. None holds business logic or its own list of capabilities, so a new [capability](../../docs/glossary.md#capability) reaches every surface.
 
-## Layer
+## Context
 
-Framework (`packages/*`). The [host](../../docs/glossary.md#host) composes these adapters, and applications rarely import them directly. The package trusts the host for sessions and for the credentials its plugins issue.
+The [host](../../docs/glossary.md#host) composes these adapters, and applications rarely import them directly. The package trusts the host for sessions and for the credentials its plugins issue.
 
 ## Primitives
 
@@ -121,7 +121,7 @@ Postgres storage and the lease are tested in `packages/testing`, in `test/storag
 
 Surface parity is proven in content, where real capabilities exist. `showcase/examples/field-service/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
 
-## Skills
+## Task guides
 
 - [run-a-hosted-instance](../host/skills/run-a-hosted-instance/SKILL.md): Postgres storage and the workspace lease behind a hosted instance, and proving a new storage adapter with the conformance suite.
 

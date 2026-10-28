@@ -2,10 +2,6 @@
 
 The library tutorial builds a small [application](glossary.md#application) step by step, from a generated skeleton to a checked desk screen. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the technical library of a power transformer plant. Librarians lend standards, manuals and engineering books to employees, and the desk has a webcam on the librarian's PC instead of a barcode scanner.
 
-## Concepts
-
-Terms: [scaffold](glossary.md#scaffold), [collection](glossary.md#collection), [capability](glossary.md#capability), [command](glossary.md#command), [query](glossary.md#query), [policy](glossary.md#policy), [revision](glossary.md#revision), [idempotency key](glossary.md#idempotency-key), [blob](glossary.md#blob), [screen](glossary.md#screen), [UI binding](glossary.md#ui-binding), [UI session context](glossary.md#ui-session-context), [input source](glossary.md#input-source), [scanner profile](glossary.md#scanner-profile) and [requirement declaration](glossary.md#requirement-declaration).
-
 ## Setup
 
 The first step runs in the framework repository and exports a new repository with `scaffold new`. Every later step runs at the root of that export. `bun install` in the export links the skills into `.claude/skills/` for Claude Code and `.agents/skills/` for Codex, and the agent reads the export's `AGENTS.md`.
@@ -17,7 +13,7 @@ The first step runs in the framework repository and exports a new repository wit
 
 `scaffold add` runs from the export root. Its policy rules, descriptions and tests name the generated `editor` role. The library keeps the generated role names: editors are the librarians, and viewers read.
 
-`bun run check` fails in a source export at `check:readmes` and `check:skills`, because the copied READMEs and skills link to examples the export leaves out. The steps use these checks instead, from the export root:
+In a source export, `bun run check:skills` reports paths into omitted examples and patterns and a root script removed from the export. The steps use these checks instead, from the export root:
 
 ```sh
 bun run format

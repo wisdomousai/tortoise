@@ -1,12 +1,6 @@
 # Mobile host
 
-The mobile host runs an [application](glossary.md#application) on Android and iOS phones and tablets. It stores the [workspace](glossary.md#workspace) on the device. A workspace is the application's records.
-
-The host opens and closes the [instance](glossary.md#instance). An instance is the application opened on that workspace. The host pairs the phone or tablet with a [hub](glossary.md#hub). The application's files stay inside the app sandbox.
-
-## Concepts
-
-Terms: the [hub](glossary.md#hub), the [device link](glossary.md#device-link) and the paired [device](glossary.md#device).
+The mobile host runs an application on an Android or iOS phone or tablet and stores the workspace on the device. The screens call the [instance](glossary.md#instance) in the same process. The host pairs the device with a [hub](glossary.md#hub). The application's files stay inside the app sandbox.
 
 ## Packages
 

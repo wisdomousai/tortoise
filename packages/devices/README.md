@@ -1,10 +1,10 @@
 # @agent-native/devices
 
-This package turns point-of-work device input into commands. A keyboard-wedge, serial, HID POS or camera scanner produces a normalized scan. A configured route turns the scan into the same command a button or tool call would submit, with no model turn, so a scanner is one more [caller](../../docs/glossary.md#caller).
+The devices package turns point-of-work device input into commands. A keyboard-wedge, serial, HID POS or camera scanner produces a normalized scan. A configured route turns the scan into the same command a button or tool call would submit, with no model turn, so a scanner is one more [caller](../../docs/glossary.md#caller).
 
-## Layer
+## Context
 
-Framework (`packages/*`). Scanner logic and the capability [module](../../docs/glossary.md#module) are browser-safe, and handlers and policy are server-only. The package treats every scan as untrusted input.
+Scanner logic and the capability [module](../../docs/glossary.md#module) are browser-safe, and handlers and policy are server-only. The package treats every scan as untrusted input.
 
 ## Primitives
 
@@ -57,7 +57,7 @@ bun test packages/devices
 - `test/scanner.test.ts`: layout repair for a US scanner on QWERTZ or Swiss hosts with dead keys, GS1 check digits and fields, AIM identifiers and calibration inference. It also covers routing, serial line assembly, HID POS reports, camera repeat suppression, wedge bursts and the host bridge.
 - `test/config.test.ts`: through the feature, administrators configure, operators read and people with no role see nothing; stale route writers conflict; the feature conformance cases.
 
-## Skills
+## Task guides
 
 - [add-scanner-input](skills/add-scanner-input/SKILL.md): add a scanner source, profile, route or rugged Android vendor profile.
 

@@ -2,11 +2,17 @@
 
 The Bun [host](../../docs/glossary.md#host): the generic process that opens an [instance](../../docs/glossary.md#instance) for exactly one [application definition](../../docs/glossary.md#application-definition) supplied by content. It owns what an application should not rewrite: workspace ownership and storage, launch and sessions, HTTP and SSE, embedded MCP, the application CLI, agent run supervision, provider accounts, background delivery and observers. The host names no domain and no security concept. What crosses the process boundary goes through [composition](../../docs/glossary.md#composition) ports that deny by default, and the application's [host plugins](../../docs/glossary.md#host-plugin) provide more, such as `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
 
-## Layer
+## Context
 
-Framework (`packages/*`). The starter's `apps/service` calls it. Content calls only `defineManifest` and `defineApplication`, and plugins only `definePluginManifest` and `defineHostPlugin`. The host trusts the application definition and its plugins, and treats every caller as untrusted.
+The starter's `apps/service` calls it. Content calls only `defineManifest` and `defineApplication`, and plugins only `definePluginManifest` and `defineHostPlugin`. The host trusts the application definition and its plugins, and treats every caller as untrusted.
 
-## Primitives
+## Starting and serving an application
+
+The starter reads `app.config.json` to choose an application. The application provides a browser-safe manifest and a server definition; the host opens that definition on a workspace, composes its plugins and starts the serving surfaces. For example, [`receiving/application.ts`](../../showcase/examples/receiving/application.ts) supplies the receiving handlers, policy and ERP connection while the host supplies storage and sessions.
+
+When a browser, CLI or MCP client calls a capability, the host derives the caller's context from its session or grant and passes the call to the instance. A local workspace has one writer: other clients attach to the serving instance, and a competing embedded open is refused. A hosted workspace uses a Postgres lease instead. The [hosting guide](../../docs/hosting.md) describes that alternative.
+
+## API reference
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`.
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedInstance`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
@@ -157,7 +163,7 @@ bun run test:service
 
 The shell and delivery routes are tested with a fixture application in `plugins/os/test/os.test.ts`. Host behavior against real capabilities is tested in content: each example's `test/application.test.ts`, and `showcase/examples/field-service/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
 
-## Skills
+## Task guides
 
 - [write-a-feature](skills/write-a-feature/SKILL.md): a reusable domain part with its slice, policy over an access view, hooks and adoption.
 - [write-host-plugin](skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.

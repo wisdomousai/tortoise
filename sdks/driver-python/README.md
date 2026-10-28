@@ -2,9 +2,9 @@
 
 The Python package `agent-native-driver` (module `agent_native_driver`), for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in Python. The SDK implements the driver protocol, and the driver author writes the handlers that touch the equipment.
 
-## Layer
+## Context
 
-[driver SDK](../../docs/glossary.md#driver-sdk) (`sdks/*`). The package depends only on the protocol that `plugins/connector-driver` defines, and nothing in the host depends on it. The host starts the driver as a child process. The host speaks JSON-RPC 2.0 to it over stdin and stdout, one message per line.
+The package depends only on the protocol that `plugins/connector-driver` defines, and nothing in the host depends on it. The host starts the driver as a child process. The host speaks JSON-RPC 2.0 to it over stdin and stdout, one message per line.
 
 ## Primitives
 
@@ -96,7 +96,7 @@ bun test sdks/driver-python
 
 The host test runs from the repository root as part of `bun run check`. It is skipped when `python3` is not on PATH.
 
-## Skills
+## Task guides
 
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
 

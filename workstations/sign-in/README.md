@@ -2,9 +2,9 @@
 
 The [workstation sign-in](../../docs/glossary.md#workstation-sign-in) [host plugin](../../docs/glossary.md#host-plugin). An [operator](../../docs/glossary.md#operator) scans their badge at a [terminal](../../docs/glossary.md#terminal), enters a PIN and gets a short-lived [session](../../docs/glossary.md#session) of their own. The terminal's screen keeps its own session, which is used only to sign people in.
 
-## Layer
+## Context
 
-Workstation (`workstations/*`). The plugin runs on the Bun host only, because sign-in needs a serving host. The operator's session acts with the operator's own permissions under the application's [policy](../../docs/glossary.md#policy). The plugin trusts the terminal's session only to sign people in.
+The plugin runs on the Bun host only, because sign-in needs a serving host. The operator's session acts with the operator's own permissions under the application's [policy](../../docs/glossary.md#policy). The plugin trusts the terminal's session only to sign people in.
 
 ## Primitives
 
@@ -98,7 +98,7 @@ bun test workstations/sign-in
 
 `showcase/patterns/sign-in` runs the terminal and badge screens in a browser launch.
 
-## Skills
+## Task guides
 
 - [sign-in-at-a-terminal](skills/sign-in-at-a-terminal/SKILL.md): composing the plugin and its screens, the work an operator does at the terminal, and badge enrollment.
 - [bridge-station-screen](../screen-bridge/skills/bridge-station-screen/SKILL.md): a workstation application reached through its screen.

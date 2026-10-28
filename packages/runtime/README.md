@@ -2,11 +2,23 @@
 
 The [instance](../../docs/glossary.md#instance): one transactional runtime per [workspace](../../docs/glossary.md#workspace) that authorizes and executes [commands](../../docs/glossary.md#command) and [queries](../../docs/glossary.md#query) from a composed [catalog](../../docs/glossary.md#catalog). A command commits state, revisions, its idempotency [receipt](../../docs/glossary.md#receipt), [journal](../../docs/glossary.md#journal) entries and [outbox effects](../../docs/glossary.md#effect) in one transaction, and nothing commits when any part fails. A query reads one authorized [snapshot](../../docs/glossary.md#snapshot) and returns a [cursor](../../docs/glossary.md#cursor) that a [caller](../../docs/glossary.md#caller) can follow.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Application state is opaque to the runtime. Domains supply [handlers](../../docs/glossary.md#handler) and a [policy](../../docs/glossary.md#policy). The runtime trusts the host to supply the [execution context](../../docs/glossary.md#execution-context).
+Application state is opaque to the runtime. Domains supply [handlers](../../docs/glossary.md#handler) and a [policy](../../docs/glossary.md#policy). The runtime trusts the host to supply the [execution context](../../docs/glossary.md#execution-context).
 
-## Primitives
+## What happens to a command
+
+Consider posting a counted delivery line in the [receiving example](../../showcase/examples/receiving/README.md):
+
+1. The host supplies the caller's execution context; the runtime validates the command and checks the policy and grant inside the transaction.
+2. The handler checks the line, records the posting and declares the affected resource. The handler queues the ERP delivery as an effect rather than calling the ERP while the transaction is open.
+3. The runtime rechecks authorization before commit and writes the changed state, revisions, receipt, journal entries and effect together. A refused check or failed required audit append rolls the transaction back.
+4. A retry with the same idempotency key reauthorizes and returns the stored receipt instead of running the handler again. A stale expected revision or a key reused for different input is refused.
+5. Open clients can follow authorized journal changes and refetch their reads. The integration dispatcher sends the effect after the local commit; the ERP's later decision is a separate command.
+
+The receiving handler is [`handlers/erp-target.ts`](../../showcase/examples/receiving/handlers/erp-target.ts); [state and reactivity](../../docs/state-and-reactivity.md) explains the snapshot and journal path.
+
+## API reference
 
 - [Instance](../../docs/primitives.md#instance): `createApplication`, `ApplicationOptions`.
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization` and `authorizationRoute` compose independently authored [modules](../../docs/glossary.md#module) into one state and policy.
@@ -118,7 +130,7 @@ bun test packages/runtime
 
 Every `Storage` adapter must pass `storageConformance` from [`@agent-native/testing`](../testing/README.md). `showcase/examples/field-service/test/storage-conformance.test.ts` checks that one workflow has the same outcomes on memory and SQLite storage.
 
-## Skills
+## Task guides
 
 - [add-capability](skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 

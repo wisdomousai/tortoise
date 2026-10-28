@@ -2,9 +2,9 @@
 
 The OS shortcuts [host plugin](../../docs/glossary.md#host-plugin). It serves the application's `shortcut` [OS handlers](../../docs/glossary.md#os-handler), which are launcher entries such as "New task". It runs on top of the [OS plugin](../os/README.md), which it requires. Without it, startup refuses an application that declares a shortcut handler.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. The plugin runs in the [instance](../../docs/glossary.md#instance) on every platform and brings no native code. It relies on the OS plugin for every check on a shortcut request.
+The plugin runs in the [instance](../../docs/glossary.md#instance) on every platform and brings no native code. It relies on the OS plugin for every check on a shortcut request.
 
 ## Primitives
 
@@ -60,6 +60,6 @@ Other suites cover the rest:
 - `packages/mobile/test/shortcuts-plugin.test.ts`: the Android config plugin;
 - `showcase/examples/field-service/e2e/os.pw.ts`: opening the web shortcut.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

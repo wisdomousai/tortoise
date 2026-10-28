@@ -300,6 +300,8 @@ On 27 October 2026, `showcase/patterns/local-model` ran with `bun run dev:web` i
 
 A second spec ran the same day and leaves the receipt unreadable. The Held receipts screen shows the held goods receipt with the reason. Recording it as applied empties the list and counts it accepted on the ERP screen.
 
+**By hand.** On 28 October 2026, a receiving host with its exchange folders bound to temporary local directories imported the notice in the example README. The CLI counted and posted the line; a manually written JSON response was then recorded as accepted with reference `GR-1001`. This did not use an ERP or network share.
+
 **Not shown.**
 
 - **Equipment:** no real PLC, OPC UA gateway, Sparkplug edge node or plant broker, and no broker over TLS or with credentials.
@@ -431,6 +433,10 @@ Control mappings are indicative.
 
 **Opt-in run.** On 27 October 2026, `bun run test:scaffold:full` passed its 16 tests with `field-service` as the configured application. The complete source export wrote the local-model pattern's stand-in weights at run time. The framework packed into 49 tarballs for the registry install.
 
+**By hand, getting-started export.** On 28 October 2026, on macOS, a fresh source export named `inspection-desk` installed with a frozen lockfile, generated its reference, passed typecheck, built and passed its four application tests. After adding the equipment ID shown in the guide and updating the test inputs, the tests passed again; the documented CLI commands created and listed an inspection with that field. A separate source export's skill check reported the issues recorded below. No full export check or quality-system connection was run.
+
+**Browser, getting-started export.** On 28 October 2026, the generated Playwright spec created, opened and edited an inspection through the default screens. It passed both before and after adding the equipment ID and updating the test input. No site-specific inspection workflow was exercised.
+
 **By hand, mobile export.** On 17 October 2026, `bun run scaffold <dir> --name field-survey --example asset-survey-field` exported `apps/mobile`, the field application and the hub example it imports. In the export, these passed:
 
 - a frozen install;
@@ -471,6 +477,8 @@ Gaps the run left open:
 - An agent run started in a terminal's work area acts as the terminal's principal, not the signed-in operator, because the host calls include no operator token.
 - `scaffold add` target, agent and assignment-kind parts read the generated `title` and `status` fields and the `editor` role.
 - In an export, `check:readmes` and `check:skills` fail on links to the left-out examples and patterns.
+
+**Current export check, 28 October 2026.** The README check has since been removed. A fresh `scaffold new` source export still failed `check:skills` on paths and links to omitted examples and patterns, a removed `test:sandbox` script, and the root script surface change. No other export checks were run in this probe.
 
 **By hand, library tutorial.** On 27 October 2026, on macOS, each prompt of the [library tutorial](tutorial-library.md) ran in a fresh coding agent in a `scaffold new` export named `plant-library`: books and loans with a cover photo taken by the webcam as a blob, a desk screen and a loans screen. The export passed its checks and Playwright specs. The run fixed the frame, which never applied the `.dark` tokens, and skill text on blobs and read revisions.
 

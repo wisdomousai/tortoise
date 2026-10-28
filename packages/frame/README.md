@@ -2,11 +2,17 @@
 
 The [web frame](../../docs/glossary.md#web-frame): the domain-neutral browser shell around one application's [screens](../../docs/glossary.md#screen). It supplies the [launch key exchange](../../docs/glossary.md#launch-key-exchange) and session, hash routing, navigation, the capability palette, the agent run panel and accounts, and fills them from the configured application's `screens` entrypoint. Its Vite plugin binds that entrypoint to a virtual module, so the starter's source never names content. The same parts ship as a shadcn registry, so a starter can copy and own any of them.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame trusts the starter identity in `app.config.json`. It treats OS input and provenance labels as untrusted.
+Browser code, plus a build-time Vite plugin. The frame trusts the starter identity in `app.config.json`. It treats OS input and provenance labels as untrusted.
 
-## Primitives
+## Showing an application's work
+
+An application declares its routes and navigation in a `screens` entrypoint. In [receiving](../../showcase/examples/receiving/screens.tsx), that entrypoint connects delivery, approval, held-receipt and ERP screens to their capabilities. The frame loads the configured entrypoint, exchanges the one-use launch key for a session, and renders those screens inside the common navigation.
+
+A screen reads and submits the application's declared operations through its session. Live queries refetch when authorized journal changes affect their reads; a form can keep its draft while showing a conflict. An application can use the supplied registry components or replace a frame file in the starter when the work needs a different interaction.
+
+## API reference
 
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
@@ -104,6 +110,6 @@ bun run test:e2e
 
 `test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `showcase/examples/*/e2e` and `showcase/patterns/*/e2e` drive the frame in Chromium, including live updates, draft conflicts and the assignment screens with their slots.
 
-## Skills
+## Task guides
 
 - [build-screens](skills/build-screens/SKILL.md): add or change web screens, registry items or starter frame files.

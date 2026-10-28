@@ -40,7 +40,7 @@ This section is advice; depart from it when the code is better for it, and say w
   - an owner
   - a term
   - a renewal
-- Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
+- Document what a workspace is for, what it trusts, and how to test it. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
 ## Skills
@@ -77,7 +77,9 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 How skills stay current with the code:
 
 - A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
-- Every package, plugin and SDK README has a `## Skills` section that links the skills covering it, or says why none do.
+- `scripts/skill-coverage.json` maps each package, workstation, plugin and SDK to the skills covering it. List its skills by name, or use an empty `skills` array with a `reason` when none apply. Include a workspace's own skills in its entry.
+- An application that installs the framework from a registry has no framework coverage file or surface stamp. If it adds a local package, workstation, plugin or SDK, create its coverage registry and review and stamp that local surface.
+- `bun run check:skills` validates the registry, skill discovery, links and paths independently of README headings. Add or update coverage when a workspace or skill changes.
 - `scripts/reviewed-surface.json` records each of those workspaces' entrypoints and exported names, and the root package scripts, as of the last skill review. When the code changes that surface, the check names the skills to review. Update them in the same commit for what changed, then run `bun run skills:stamp <workspace>`. The stamp's diff shows reviewers what was reviewed.
 - When a workspace gains an extension point that other code uses and no skill covers it, add a skill there.
 - When two skills repeat the same steps, keep the steps in the skill of the package that owns them and link to it from the other.

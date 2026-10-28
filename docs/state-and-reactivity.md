@@ -1,10 +1,6 @@
 # State and reactivity
 
-A [command](glossary.md#command) is a write of the records in a [workspace](glossary.md#workspace). A workspace is the directory or database that holds those records. A [query](glossary.md#query) reads the workspace. Open [screens](glossary.md#screen) follow the [journal](glossary.md#journal) and show the committed change. The journal is the record of committed commands.
-
-## Concepts
-
-Terms: [snapshot](glossary.md#snapshot), [revision](glossary.md#revision), [journal](glossary.md#journal) and [live query](glossary.md#live-query).
+A commit gives each changed resource a new [revision](glossary.md#revision) and one [journal](glossary.md#journal) entry. A [query](glossary.md#query) reads one [snapshot](glossary.md#snapshot) of the workspace. Open screens follow the journal from that snapshot and refetch the reads the caller may still see.
 
 ## Commands
 

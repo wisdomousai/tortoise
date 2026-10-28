@@ -1,10 +1,10 @@
 # @agent-native/connector-mqtt
 
-This plugin observes an MQTT broker read-only: plain topics with JSON or scalar payloads, and Sparkplug B edge nodes and devices. Values become gated [observations](../../docs/glossary.md#observation), submitted through the application's ingest command as the screen and driver observers do. The plugin never publishes.
+The MQTT connector observes a broker read-only: plain topics with JSON or scalar payloads, and Sparkplug B edge nodes and devices. Values become gated [observations](../../docs/glossary.md#observation), submitted through the application's ingest command as the screen and driver observers do. The connector never publishes.
 
-## Layer
+## Context
 
-Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-safe data; everything else is server only. The MQTT 3.1.1 client, the protobuf reader and the Sparkplug B state are implemented here, with no client library. The broker and its publishers are input.
+This connector is a library without plugin entrypoints. `./contracts` is browser-safe data; everything else is server only. The MQTT 3.1.1 client, the protobuf reader and the Sparkplug B state are implemented here, with no client library. The broker and its publishers are input.
 
 ## Primitives
 
@@ -79,7 +79,7 @@ bun test plugins/connector-mqtt
 - a dropped broker making observations uncertain, with nothing published;
 - a refused connection, retried.
 
-## Skills
+## Task guides
 
 - [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md): declaring the source, writing the ingest command, starting the observer and binding the destination.
 

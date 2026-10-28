@@ -2,9 +2,9 @@
 
 The managed configuration [host plugin](../../docs/glossary.md#host-plugin) supplies settings that an administrator sets through device management. On Android these are application restrictions, set by the MDM's device policy controller. On iOS they are managed app configuration, pushed by the MDM. The plugin reads the values when the [instance](../../docs/glossary.md#instance) opens and supplies them as other plugins' settings. A hub address, an enrollment code or a [deployment policy](../../docs/glossary.md#deployment-policy) therefore reaches the plugins that declare them without the person typing anything.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Android and iOS.
+Android and iOS.
 
 ## Primitives
 
@@ -71,6 +71,6 @@ bun test plugins/managed-config
 
 The prebuild output and autolinking of both modules were checked once with `expo prebuild --platform android`. That output is the XML file and the manifest meta-data. The native modules have not been compiled or run.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

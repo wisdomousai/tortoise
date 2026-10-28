@@ -2,9 +2,9 @@
 
 The [composition](../../docs/glossary.md#composition) (`@agent-native/kernel`): the portable part of the host. It composes an [application definition](../../docs/glossary.md#application-definition) and its plugins, resolves the host ports and opens one workspace's [instance](../../docs/glossary.md#instance) on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host in [`@agent-native/host`](../host/README.md) and the mobile host share it. Everything that needs the machine comes from the platform the starter passes in: workspace ownership, storage, a listener, sockets and child processes.
 
-## Layer
+## Context
 
-Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers under its own subpaths, so content and plugins keep importing from the host.
+`@agent-native/host` re-exports the definition helpers under its own subpaths, so content and plugins keep importing from the host.
 
 ## Primitives
 
@@ -45,7 +45,7 @@ The composition never starts a process. A plugin such as `@agent-native/process`
 | `@agent-native/kernel/migrations`      | any host | `StateMigrations`, `MigrationStep`, `checkMigrations`, `currentVersion`, `migrateSlice`.                                                                                                                         |
 | `@agent-native/kernel/state-upgrade`   | any host | `stateUpgrade`: the storage upgrade for a composed definition.                                                                                                                                                   |
 
-`plugins/compose`, `plugins/ports`, `plugins/settings` and `plugins/lifecycle` are importable by path for the host's wrappers; prefer the root export.
+`plugins/ports`, `plugins/settings`, `plugins/lifecycle` and `features/check` are importable by path for the host's wrappers; prefer the root export.
 
 The Bun host adds what needs Bun: `loopbackIngress`, `readPluginSettings`, the Bun-typed `socket` and `childEnvironment`, and `bunPlatform` in `packages/host/src/platform/bun.ts`. `openEmbeddedInstance` and `startHost` both call `openInstance` with that platform.
 
@@ -118,7 +118,7 @@ bun run test:portable
 
 `bun run test:portable` runs the composition, runtime, client, integration and mobile suites with `test/without-web-globals.ts` preloaded. That file deletes the globals Hermes may lack and installs the composition's replacements, so those suites prove they run without Bun's versions.
 
-## Skills
+## Task guides
 
 - [write-a-feature](../host/skills/write-a-feature/SKILL.md): a reusable domain part with its slice, policy over an access view, hooks and adoption.
 - [write-host-plugin](../host/skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.

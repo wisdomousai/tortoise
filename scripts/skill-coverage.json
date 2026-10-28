@@ -1,0 +1,164 @@
+{
+  "packages/adapters": {
+    "skills": ["run-a-hosted-instance"]
+  },
+  "packages/agents": {
+    "skills": ["serve-a-local-model"]
+  },
+  "packages/assignments": {
+    "skills": ["assign-work"]
+  },
+  "packages/bundle": {
+    "skills": ["deploy-to-site", "decommission-an-application"]
+  },
+  "packages/client": {
+    "skills": ["build-screens"]
+  },
+  "packages/contracts": {
+    "skills": ["add-capability", "connect-system-of-record", "add-os-integration"]
+  },
+  "packages/devices": {
+    "skills": ["add-scanner-input"]
+  },
+  "packages/event-log": {
+    "skills": [],
+    "reason": "None. `plugins/audit` opens the log, and the package has no extension point of its own."
+  },
+  "packages/frame": {
+    "skills": ["build-screens"]
+  },
+  "packages/frame-native": {
+    "skills": ["extend-mobile-host"]
+  },
+  "packages/host": {
+    "skills": [
+      "write-a-feature",
+      "write-host-plugin",
+      "run-a-hosted-instance",
+      "create-agent-native-app"
+    ]
+  },
+  "packages/integration": {
+    "skills": ["connect-system-of-record", "connect-two-applications"]
+  },
+  "packages/kernel": {
+    "skills": ["write-a-feature", "write-host-plugin", "add-capability"]
+  },
+  "packages/mobile": {
+    "skills": ["extend-mobile-host"]
+  },
+  "packages/observation": {
+    "skills": ["observe-plant-signals", "bridge-station-screen", "write-hardware-driver"]
+  },
+  "packages/operator-ui": {
+    "skills": ["build-screens", "add-scanner-input"]
+  },
+  "packages/react": {
+    "skills": ["build-screens"]
+  },
+  "packages/runtime": {
+    "skills": ["add-capability"]
+  },
+  "packages/scaffold": {
+    "skills": ["create-agent-native-app"]
+  },
+  "packages/shell": {
+    "skills": ["add-os-integration"]
+  },
+  "packages/testing": {
+    "skills": ["add-capability", "connect-system-of-record", "check-a-change"]
+  },
+  "plugins/android-intents": {
+    "skills": ["add-os-integration"]
+  },
+  "plugins/audit": {
+    "skills": ["deploy-to-site"]
+  },
+  "plugins/automation": {
+    "skills": ["add-capability"]
+  },
+  "plugins/compliance": {
+    "skills": ["deploy-to-site"]
+  },
+  "plugins/connector-driver": {
+    "skills": ["write-hardware-driver"]
+  },
+  "plugins/connector-files": {
+    "skills": ["connect-system-of-record", "deploy-to-site"]
+  },
+  "plugins/connector-http": {
+    "skills": ["connect-system-of-record"]
+  },
+  "plugins/connector-mqtt": {
+    "skills": ["observe-plant-signals"]
+  },
+  "plugins/connector-opcua": {
+    "skills": ["observe-plant-signals"]
+  },
+  "plugins/device-link": {
+    "skills": ["extend-mobile-host"]
+  },
+  "plugins/execution-host": {
+    "skills": ["run-agent-tools-in-a-sandbox"]
+  },
+  "plugins/fleet-agent": {
+    "skills": ["connect-a-site-to-a-fleet"]
+  },
+  "plugins/hub-link": {
+    "skills": ["extend-mobile-host"]
+  },
+  "plugins/intent-scanner": {
+    "skills": ["add-scanner-input"]
+  },
+  "plugins/managed-config": {
+    "skills": ["extend-mobile-host"]
+  },
+  "plugins/model-server": {
+    "skills": ["serve-a-local-model"]
+  },
+  "plugins/network": {
+    "skills": ["deploy-to-site"]
+  },
+  "plugins/notifications": {
+    "skills": ["add-os-integration"]
+  },
+  "plugins/os": {
+    "skills": ["add-os-integration"]
+  },
+  "plugins/os-shortcuts": {
+    "skills": ["add-os-integration"]
+  },
+  "plugins/peer-link": {
+    "skills": ["connect-two-applications", "connect-system-of-record"]
+  },
+  "plugins/process": {
+    "skills": ["write-hardware-driver", "deploy-to-site"]
+  },
+  "plugins/share-target": {
+    "skills": ["add-os-integration"]
+  },
+  "plugins/site": {
+    "skills": ["deploy-to-site", "decommission-an-application"]
+  },
+  "plugins/telemetry": {
+    "skills": ["export-telemetry"]
+  },
+  "plugins/webhook": {
+    "skills": ["write-host-plugin"]
+  },
+  "plugins/workflows": {
+    "skills": ["declare-a-workflow", "add-capability"]
+  },
+  "sdks/driver-dotnet": {
+    "skills": ["write-hardware-driver"]
+  },
+  "sdks/driver-python": {
+    "skills": ["write-hardware-driver"]
+  },
+  "workstations/screen-bridge": {
+    "skills": ["bridge-station-screen"]
+  },
+  "workstations/sign-in": {
+    "skills": ["sign-in-at-a-terminal", "bridge-station-screen"]
+  }
+}

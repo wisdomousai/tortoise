@@ -1,10 +1,10 @@
 # @agent-native/audit
 
-This [host plugin](../../docs/glossary.md#host-plugin) keeps the host's [audit log](../../docs/glossary.md#audit-log). It opens the hash-chained log in the [deployment policy](../../docs/glossary.md#deployment-policy)'s audit mode, forwards it off the host when the policy names a collector, and attests what runs before the first request. `audit verify` checks a log, or a copy taken off the host, without opening a [workspace](../../docs/glossary.md#workspace).
+The audit [host plugin](../../docs/glossary.md#host-plugin) keeps the host's [audit log](../../docs/glossary.md#audit-log). It opens the hash-chained log in the [deployment policy](../../docs/glossary.md#deployment-policy)'s audit mode, forwards it off the host when the policy names a collector, and attests what runs before the first request. `audit verify` checks a log, or a copy taken off the host, without opening a [workspace](../../docs/glossary.md#workspace).
 
-## Layer
+## Context
 
-Plugin layer, shipped with the framework. Server only, except `plugin-manifest`. It trusts the deployment policy and the `audit-log` launcher setting, and never reads [caller](../../docs/glossary.md#caller) input.
+Server only, except `plugin-manifest`. It trusts the deployment policy and the `audit-log` launcher setting, and never reads [caller](../../docs/glossary.md#caller) input.
 
 ## Primitives
 
@@ -67,7 +67,7 @@ The package has no tests of its own. Applications that compose it exercise it:
 
 `packages/runtime/test/audit.test.ts` covers the fail-closed rollback in required mode.
 
-## Skills
+## Task guides
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
 

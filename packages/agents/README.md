@@ -1,10 +1,10 @@
 # @agent-native/agents
 
-This package runs agents as ordinary [callers](../../docs/glossary.md#caller) on the [catalog](../../docs/glossary.md#catalog). The run supervisor gives a [harness](../../docs/glossary.md#harness) only [capabilities](../../docs/glossary.md#capability) as tools and runs them under the narrowed [grant](../../docs/glossary.md#grant) of the caller who started the run. It keeps narration apart from what was committed.
+The agents package runs agents as ordinary [callers](../../docs/glossary.md#caller) on the [catalog](../../docs/glossary.md#catalog). The run supervisor gives a [harness](../../docs/glossary.md#harness) only [capabilities](../../docs/glossary.md#capability) as tools and runs them under the narrowed [grant](../../docs/glossary.md#grant) of the caller who started the run. The supervisor keeps narration apart from what was committed.
 
-## Layer
+## Context
 
-Framework (`packages/*`). Server only. The host constructs harnesses with explicitly chosen credentials, and applications do not import this package. Codex, Claude and AI SDK harnesses are [adapters](../../docs/glossary.md#adapter) behind one `Harness` port, next to a deterministic harness that needs no provider. The package also holds the provider account flows, for a ChatGPT plan and generic OIDC, and the credential vault.
+Server only. The host constructs harnesses with explicitly chosen credentials, and applications do not import this package. Codex, Claude and AI SDK harnesses are [adapters](../../docs/glossary.md#adapter) behind one `Harness` port, next to a deterministic harness that needs no provider. The package also holds the provider account flows, for a ChatGPT plan and generic OIDC, and the credential vault.
 
 ## Primitives
 
@@ -108,9 +108,9 @@ The tests use deterministic fixtures only. Paths are relative to this package.
 - `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server, with harness choice by model requirement and the model identity on the run record. It also covers named models and an entry's agents narrowing the choice, an entry's identity and a readiness check.
 - `test/requirements.test.ts`: the authorization URL is one the declared open action builds, and a different flow, endpoint or callback does not match.
 
-`scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.
+`packages/agents/scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.
 
-## Skills
+## Task guides
 
 - [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md): model entries, named models on agents and the activation gate.
 

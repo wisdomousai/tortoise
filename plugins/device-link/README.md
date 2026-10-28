@@ -2,9 +2,9 @@
 
 The hub side of [device link](../../docs/glossary.md#device-link), which pairs phones and tablets with a [hub](../../docs/glossary.md#hub). An administrator creates a one-use enrollment code on the hub. A device exchanges the code at the enrollment route for its own bearer credential and presents that credential on every later request. The device side is [`@agent-native/hub-link`](../hub-link/README.md).
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Bun only, because a hub is a serving [host](../../docs/glossary.md#host).
+Bun only, because a hub is a serving [host](../../docs/glossary.md#host).
 
 ## Primitives
 
@@ -84,7 +84,7 @@ bun test plugins/device-link
 - `test/scenarios.test.ts` runs the `link.*` [behavioral scenarios](../../docs/glossary.md#behavioral-scenario) through `directDriver`.
 - `test/ui-bindings.test.ts` checks that the devices screen references every bound capability.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.
 

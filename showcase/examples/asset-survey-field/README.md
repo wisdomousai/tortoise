@@ -1,66 +1,42 @@
-# @agent-native/asset-survey-field
+# Asset survey on a phone
 
-`asset-survey-field` is the field application of the [asset survey](../asset-survey/README.md). It runs on a phone or rugged handheld with its own workspace in [embedded mode](../../../docs/glossary.md#embedded-mode), and keeps a [worklist](../../../docs/glossary.md#worklist) of the surveys the [hub](../../../docs/glossary.md#hub) sent it. Offline, it photographs nameplates and equipment, and it delivers the captures as reports when it reaches the hub again. Through the OS it shows a notification for each new survey, opens the node of an asset tag another app read, raises work requests in the maintenance app and shares capture summaries.
+The field application receives assignments from the [asset survey hub](../asset-survey/README.md) into a local [worklist](../../../docs/primitives.md#worklist). A worker can open the assigned site structure, photograph equipment and save captures while offline. On reconnection, the device sends the reports and photos to the hub, which makes its own acceptance decision.
 
-## Layer
+The application has a local workspace and shares only the hub's browser-safe survey contracts. Device pairing and report acceptance remain decisions of the hub.
 
-Content (`showcase/examples/*`). It imports the hub's browser-safe contracts (`@agent-native/asset-survey/contracts/*`) for the survey kind and the hub's device API, so both sides validate the same records. It never imports the hub's server code.
+## Prepare a device build
 
-## Primitives
+The framework repository's `app.config.json` selects the field-service desktop application by default. From the repository root, select the field application for mobile and prepare its native entry:
 
-The example is one [application](../../../docs/primitives.md#application), targeting `mobile`. It composes:
+```sh
+export AGENT_NATIVE_MOBILE_APPLICATION=@agent-native/asset-survey-field
+bun run mobile:prepare
+bun run mobile:prebuild
+bun run dev:mobile
+```
 
-- a [worklist](../../../docs/primitives.md#worklist) in [`contracts.ts`](contracts.ts), declared with `defineWorklist` over the hub's `survey` kind with namespace `field`, target `hub` and assignee type `device`. Its module has:
-  - `field.assignment.list`, `field.assignment.get` and `field.assignment.complete`;
-  - `field.survey.report` for one capture, and `field.report.list`;
-  - the target's `field.hub.complete`, `field.hub.sync` and `field.hub.status`.
+Build and install a development client using the platform instructions in [`apps/mobile`](../../../apps/mobile/README.md); Metro alone is not an installed app. Set up a hub and pair the device before receiving work. The native screens, camera, scanner, managed configuration and pairing have not been checked on a device in the recorded evidence.
 
-  The field module adds `field.tag.get`, which finds an asset tag in the open surveys, and `assignment-notices.effect.complete`, which completes a shown survey notice.
-- a [peer target](../../../docs/primitives.md#peer-target), `hub`, from the worklist, connected with `connectWorklist`. It works in two directions:
-  - captures and done marks go out through the [outbox](../../../docs/glossary.md#outbox) to the hub's own `assignment.survey.report` and `assignment.complete`;
-  - the hub's `assignment.feed` comes back through [inbound sync](../../../docs/glossary.md#inbound-sync).
+To export this application with its hub, run `bun run scaffold <absent-target> --name field-survey --example asset-survey-field`. In that export, set `application` in `app.config.json` to `@agent-native/asset-survey` and `targets.mobile.application` to `@agent-native/asset-survey-field` before starting the hub and preparing the phone. The export otherwise selects the field application for the desktop host, which has no web screens.
 
-  A drift check reads the contract the hub serves the device and compares each API operation's schema digest. While one differs, its effects stay pending. Hub-link declares the `hub` destination, so the manifest does not list the target's peer component.
-- [blob references](../../../docs/primitives.md#blob-store): photos are stored on the device when taken. The report command attaches them, so the peer connector uploads them before the report.
-- a [state migration](../../../docs/primitives.md#state-migration) to version 2 in [`domain.ts`](domain.ts), for workspaces of the previous version.
-- [OS handlers](../../../docs/primitives.md#os-handler) and [OS actions](../../../docs/primitives.md#os-action) in [`os.ts`](os.ts):
-  - the `intent` handler `node.from-tag` takes `dev.agentnative.survey.action.FIND_TAG` with a `tag` extra from an RFID reader or the plant's maintenance app, and opens `tag:<tag>`. The application lists `tag` among its selectable resources with `field.tag.get`, so the device checks the read before a screen opens;
-  - the `intent` action `node.work-request` starts `com.example.maintenance` with the node's designation, name and the capture note;
-  - the `share` action `capture.share` shares a capture's summary as text;
-  - the `notify` action `assignment.notice` includes the `assignment-notices` outbox target. The worklist's `onReceived` hook enqueues a notice for each survey the feed brings for the first time.
-- seven [host plugins](../../../docs/primitives.md#host-plugin):
-  - `hub-link` pairs the device and is its network port;
-  - `os` serves the declarations, `share-target` the share action, `notifications` the notice, and `android-intents` the intents. Android intents is composed on iOS too, because startup refuses declared intents without it; there the work request is refused;
-  - `managed-config` turns device-management values (`hub-url`, `enrollment-code`) into settings, so a managed device pairs on first start;
-  - `intent-scanner`, on Android, takes scans from the device's imager.
-- [native screens](../../../docs/primitives.md#native-frame) with [capability bindings](../../../docs/primitives.md#capability-binding):
-  - Assignments, from the registry's `worklist-list`;
-  - a survey's tree from its brief, with designation search, where a scanned tag that matches one node opens its capture;
-  - Capture: camera, kind and condition chips, a note, and hold to save. On Android, a node's capture also raises a work request through `useOsAction`;
-  - Unlinked captures, each with a share button;
-  - Sync, from the registry's `worklist-sync`, with each capture's state at the hub, the hub's reason for a refusal and a share button.
+## Receiving and reporting work
 
-  `resources.tag` in `screens-native.tsx` resolves a tag with `tagScreen` from `ui-native/os-requests.ts`, as a scan does: one node opens its capture, nodes within one survey open its search, and anything else opens the assignment list.
+1. The manager sends a survey to a paired device. The hub's assignment feed returns that device's open surveys and their briefs; the field app shows the site tree and creates a notice for a new assignment.
+2. The worker selects a node, takes photos, adds a condition and note, and holds **Save**. The device commits the report, photo references and a delivery effect locally, even when the hub is unreachable.
+3. On reconnection, the peer connector uploads attached photos and sends each report with a stable effect ID. The hub authorizes the device against the assignment and records the report or returns a refusal. The Sync screen shows the outcome and any refusal reason.
+4. Marking a survey done queues a separate effect and stops new captures on the device. The feed later removes the completed survey. A refused done mark reopens it.
 
-## Entrypoints
+In the foreground the device polls every five seconds. An unreachable hub or refused credential leaves an effect pending for retry; an idempotency conflict is held. A contract-digest mismatch also leaves delivery pending until the applications are compatible.
 
-| Import | Runs in | Contents |
-| --- | --- | --- |
-| `@agent-native/asset-survey-field/manifest` | any host | Default export: the manifest with every plugin any build composes, which `mobile:prepare` reads. |
-| `@agent-native/asset-survey-field/field-application` | any host | `createFieldApplication({ plugins?, fetch?, services? })`: hub-link and the four OS plugins, then the given plugins. |
-| `@agent-native/asset-survey-field/application` | React Native (Hermes) | Default export: the device build, which adds managed-config and, on Android, the intent scanner. |
-| `@agent-native/asset-survey-field/screens-native` | React Native (Hermes) | Default export: `defineNativeScreens` with the field screens and the plugin screens. |
-| `@agent-native/asset-survey-field/*` | see file | `contracts`, `os`, `domain`, `handlers`, `policy`, and `ui-native/*` (React Native; `brief` and `os-requests` import no React Native). |
-
-### Scanner profile
+## Scanner and OS actions
 
 The [scanner profile](../../../docs/glossary.md#scanner-profile) in [`ui-native/shared.tsx`](ui-native/shared.tsx) is Zebra DataWedge broadcasting `dev.agentnative.SCAN`. Change it to match the device's scanner software. The profile is a constant, not a setting.
 
-### Device run
+The field app can open an asset tag sent by another Android application, share a capture summary and start a work request in the example maintenance app. An incoming intent can open a screen but does not commit a capture. The notification for a new survey may show its title on the lock screen.
 
-1. Set `targets.mobile.application` in `app.config.json` to `@agent-native/asset-survey-field`, or set `AGENT_NATIVE_MOBILE_APPLICATION` for one build.
-2. Run `bun run mobile:prepare`.
-3. Run the mobile build scripts in [`apps/mobile`](../../../apps/mobile/README.md).
+## Version 1 workspaces
+
+The state is at version 2. A workspace written by version 1 is upgraded when it is first read. It starts with an empty worklist, and the next feed brings back the surveys still open for the device. The captures the hub took are at the hub. The step refuses a workspace with a capture or a return still waiting for the hub; deliver it with version 1 first. Hub-link keeps the pairing, so the device is not paired again.
 
 ## Trust boundary
 
@@ -78,220 +54,6 @@ An intent from another app comes from an unauthenticated sender on the device. T
 
 The work request is an explicit intent: only `com.example.maintenance` receives it, with only the declared extras, and the person presses the button for each. The share sheet receives text the person chose to share. The notice shows the survey title on the lock screen, which the action declares as the `assignment-title` data class. The notifications dispatcher completes a notice as the owner under its delegated grant; no screen can.
 
-## Dependencies
-
-- Framework:
-  - `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/assignments`;
-  - `@agent-native/kernel`;
-  - `@agent-native/frame-native`;
-  - `@agent-native/devices` (scanner types).
-- Plugins: `@agent-native/hub-link`, `@agent-native/os`, `@agent-native/share-target`, `@agent-native/notifications`, `@agent-native/android-intents`, `@agent-native/managed-config`, `@agent-native/intent-scanner`.
-- Content: `@agent-native/asset-survey` (browser-safe contracts).
-- Expo config plugins: the manifest's `expoPlugins` lists `expo-camera` with the camera permission text and no microphone. The capture screen takes stills only. `mobile:prepare` adds `expo-notifications` for the notice and `@agent-native/mobile/intent-filters` for the `FIND_TAG` filter, from the OS declarations.
-- External, React Native only:
-  - `react-native`, `expo-camera`, `expo-file-system`;
-  - `@react-navigation/native`, `@tanstack/react-query`, `lucide-react-native`.
-
-## Tests
-
-```sh
-bun test showcase/examples/asset-survey-field
-bun run typecheck
-```
-
-`test/pipeline.test.ts` runs the hub on loopback (`startHost`). It runs the field application on the mobile platform with Bun's SQLite and files (`openMobileInstance`).
-
-- The first test runs the full survey:
-  1. The phone pairs from managed configuration.
-  2. It receives the survey with its brief, draws the tree and finds a node by tag.
-  3. Offline, it records a linked and an unlinked capture and marks the survey done. A later capture is refused with `CONFLICT`.
-  4. On reconnecting, it delivers all three, photos included. Delivering again changes nothing at the hub.
-  5. The hub's next feed no longer lists the survey, so the phone closes it.
-  6. At the hub, the nameplate is read, accepted and filed into the demo EAM with the photo as evidence.
-- The second test runs two phones. Each lists only its own survey. A capture on a node outside the survey is recorded at the hub unlinked. A capture under an ID the hub already holds is refused with `CONFLICT` and shown as rejected.
-- The third test serves a hub contract whose `assignment.survey.report` changed: the capture stays pending with the drift reason, and the hub receives nothing.
-
-`test/os.test.ts` runs the same hub and phone, with the phone's OS faked through `connectMobileShell` bindings:
-
-- A survey sent to the phone shows one notice with its title, and the notice completes. A second survey shows one more, and the first is not shown again.
-- A `FIND_TAG` intent delivers `tag:=G1-Q1`, and a tag with a space or an undeclared extra is refused. `tagScreen` picks the capture for one node, the search for several, and the assignment list for none or a survey marked done.
-- The work request starts the maintenance package with the declared extras only, and an undeclared extra is refused. A capture's summary goes to the share sheet as text, and a URL is refused.
-- On iOS the work request is refused, and the notice is still shown.
-
-`test/migration.test.ts` upgrades a version 1 workspace with nothing waiting to an empty worklist, and refuses one with a capture still waiting for the hub.
-
-`test/fixtures.ts` holds the hub, the phone and the pairing the pipeline and OS tests use. `test/ui-bindings.test.ts` checks that a native screen references every field capability that claims a UI binding.
-
-`tsconfig.native.json` type-checks the native screens; the tests do not render them. To check that Metro bundles them:
-
-```sh
-AGENT_NATIVE_MOBILE_APPLICATION=@agent-native/asset-survey-field bun run mobile:prepare
-cd apps/mobile
-expo export --platform android
-```
-
-The camera, scanner, managed-configuration, intent and notification paths need a device. `bunx expo config --type introspect` in `apps/mobile` after `mobile:prepare` shows the intent filter with `android.intent.category.DEFAULT` and the `expo-notifications` plugin.
-
-## Demonstrated mechanisms
-
-Paths in this table are relative to `showcase/examples/asset-survey-field`.
-
-| Mechanism | Code | Proof |
-| --- | --- | --- |
-| [Application](../../../docs/primitives.md#application) that targets mobile | `manifest.ts`: `fieldManifest` with `targets: ['mobile']` | `defineManifest` checks plugin platforms when a test loads the manifest; `apps/mobile/test/entry.test.ts` tests the `mobile:prepare` refusal |
-| Embedded instance on the mobile [host platform](../../../docs/primitives.md#host-platform) | `field-application.ts`: `createFieldApplication`; `apps/mobile` opens it with `openMobileInstance` | `openPhone` in `test/pipeline.test.ts` |
-| [Worklist](../../../docs/primitives.md#worklist) over the hub's survey kind | `contracts.ts`: `worklist`; `field-application.ts`: `worklistHandlers` | The tests in `test/pipeline.test.ts` |
-| [Outbox effect](../../../docs/primitives.md#outbox-effect) per capture and done mark | `worklistHandlers` in `packages/assignments` | First pipeline test: `retried: 3` offline, `accepted: 3` online |
-| Peer [connector](../../../docs/primitives.md#connector) and drift check | `field-application.ts`: `connectWorklist` | Second pipeline test (`CONFLICT` completes as rejected); third pipeline test (drift) |
-| [Inbound sync](../../../docs/primitives.md#inbound-sync) of the hub's feed | `connectWorklist` | First test: the survey is received, and the next feed closes it |
-| [Blob](../../../docs/primitives.md#blob-store) attached to the forwarded report | `worklistHandlers`: `ctx.attach` | First test: the hub reads the photo by digest |
-| [State migration](../../../docs/primitives.md#state-migration) to the worklist | `domain.ts`: `migrations` | `test/migration.test.ts` |
-| [Policy](../../../docs/primitives.md#policy) with one owner and an integration allowlist | `policy.ts`: `fieldPolicy` with `worklistRules` | Completion and sync in the pipeline tests; no denial test on the device |
-| [Device link](../../../docs/primitives.md#device-link) and the hub-link network port | `field-application.ts`: `createHubLinkPlugin` | `paired()` in `test/pipeline.test.ts` |
-| Managed configuration [host plugin](../../../docs/primitives.md#host-plugin) as a settings provider | `application.ts`: `managedConfigPlugin` | `openPhone` composes `createManagedConfigPlugin` with fixed values |
-| Intent scanner [input source](../../../docs/primitives.md#input-source) | `ui-native/shared.tsx`: `scannerProfile`, `useScans` | Type check only; `plugins/intent-scanner/test/source.test.ts` covers the source |
-| [Native frame](../../../docs/primitives.md#native-frame) screens | `screens-native.tsx`: `defineNativeScreens` | Type check through `tsconfig.native.json`; `test/ui-bindings.test.ts` scans the screen sources |
-| [Capability binding](../../../docs/primitives.md#capability-binding) through live queries | `ui-native/*.tsx`: `live.liveQueryOptions`, `client.command` | `test/ui-bindings.test.ts` |
-| [UI registry](../../../docs/primitives.md#ui-registry) native components | `ui-native/*.tsx`: `WorklistList`, `WorklistSync`, `HoldButton`, `StatusPill`, `ListRow` | Type check through `tsconfig.native.json` only |
-| Expo config plugin declared by the application, read by the [mobile starter](../../../apps/mobile/README.md) | `manifest.ts`: `expoPlugins` with `expo-camera` | By-hand run in [implementation status](../../../docs/implementation-status.md#mobile) |
-| `intent` [OS handler](../../../docs/primitives.md#os-handler) opening a selectable resource | `os.ts`: `node.from-tag`; `field-application.ts`: `selectableResources`; `screens-native.tsx`: `resources.tag` | Second test in `test/os.test.ts` |
-| `intent`, `share` and `notify` [OS actions](../../../docs/primitives.md#os-action) | `os.ts`; `ui-native/capture.tsx` and `ui-native/captures.tsx`: `useOsAction` | Third and fourth tests in `test/os.test.ts` |
-| Notification outbox target with its complete command | `handlers.ts`: `notifyNewSurvey` through the worklist's `onReceived` hook, and the `assignment-notices.effect.complete` handler | First test in `test/os.test.ts` |
-
-## Structure
-
-| Path | Holds |
-| --- | --- |
-| [`contracts.ts`](contracts.ts) | The worklist over the hub's survey kind and device API, the tag query and notice complete command, and the flat operations |
-| [`os.ts`](os.ts) | The OS handler and actions |
-| [`handlers.ts`](handlers.ts) | The tag query, the notice complete command, and `notifyNewSurvey` for a survey received for the first time |
-| [`domain.ts`](domain.ts) | `FieldState`: the owner, the integration principal and the worklist slice; the version 2 migration |
-| [`policy.ts`](policy.ts) | Owner role, the worklist rules, the integration allowlist and event access |
-| [`field-application.ts`](field-application.ts) | `createFieldApplication({ plugins?, fetch?, services? })`, used by Bun tests and the device build |
-| [`application.ts`](application.ts) | The device build: adds managed configuration, and the intent scanner on Android |
-| [`manifest.ts`](manifest.ts) | `fieldManifest(plugins)` per build; the default export lists every plugin for `mobile:prepare` |
-| [`screens-native.tsx`](screens-native.tsx) | Screen paths, tabs, capability screens, the status slot and plugin screens |
-| `ui-native/` | Assignments, Assignment, Capture, Unlinked and Sync screens; `shared.tsx` holds the scanner profile, `brief.ts` a brief's tree order and designation search, and `os-requests.ts` resolves tags and builds the work request and share text |
-| `test/` | The hub-and-phone fixtures, the pipeline, OS and migration tests, and the UI binding test |
-
-## Survey feed flow
-
-1. A manager sends a survey to a paired device with the hub's `assignment.survey.create` or `assignment.survey.send`. The hub computes its brief, the kinds of capture wanted and the structure slice under the survey's roots.
-2. The phone's inbound sync calls the peer port's `pull` with the stored watermark. The port posts to the hub's `assignment.feed` query through the hub-link network port, so the hub sees the caller as `device:<id>`.
-3. The hub responds with every survey sent to that device that is not yet done, with its brief. It returns an empty list when the cursor is current, and the inbound sync then stops.
-4. The inbound sync submits `field.hub.sync` as the integration principal. The worklist replaces its held copies with the hub's and closes each survey the feed no longer lists, which then takes no more captures. For a survey it did not hold, `notifyNewSurvey` enqueues a notice to the owner.
-5. Live queries that depend on the worklist's assignments refetch, so the Assignments screen shows the new work.
-
-The phone runs this pass every 5 seconds while the application is in the foreground. The test drives it with `phone.instance.integrations.sync()`.
-
-## Capture flow
-
-1. The Capture screen stores each photo as a blob with `transport.blobs.put` as soon as it is taken. Holding the save button calls `field.survey.report` with the survey, the node when one is chosen, and the capture body, under a new idempotency key.
-2. The worklist refuses an unknown survey with `NOT_FOUND`, and one that is done or no longer listed with `CONFLICT`. It gives the report a new ID, which the hub keeps.
-3. It attaches each photo to the report's resource and enqueues an effect for target `hub` with the hub's `assignment.survey.report` input as the payload. The report, the blob references and the effect commit in one transaction.
-4. `field.assignment.complete` enqueues `assignment.complete` after the waiting captures, and the survey takes no further captures.
-5. The dispatcher takes pending `hub` effects in creation order. For each, the peer port reads every blob the payload references with `readEffectBlob`, which returns only blobs attached to the effect's resource.
-6. The port uploads each blob to the hub's `/api/v1/blobs`. It then posts the payload to `/api/v1/commands/<type>` with the effect ID as idempotency key.
-7. The hub authorizes the call as `device:<id>` and runs its own report or done command.
-8. A success completes the effect as accepted. `INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN` or `CONFLICT` completes it as rejected with the hub's code and text.
-9. `IDEMPOTENCY_CONFLICT` holds the effect, because the hub holds a different command under the effect's key and the outcome is unknown. An unreachable hub, an unpaired device, a refused device credential or a server error leaves the effect pending, and the dispatcher retries it with backoff.
-10. `field.hub.complete` records the outcome on the report or the done mark. A refused done mark reopens the survey on the device.
-
-## Version 1 workspaces
-
-The state is at version 2. A workspace written by version 1 is upgraded when it is first read. It starts with an empty worklist, and the next feed brings back the surveys still open for the device. The captures the hub took are at the hub. The step refuses a workspace with a capture or a return still waiting for the hub; deliver it with version 1 first. Hub-link keeps the pairing, so the device is not paired again.
-
-## Implementation steps
-
-1. Export the field application and the hub it imports into a new directory outside the framework repository, following [create-agent-native-app](../../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
-
-   ```sh
-   bun run scaffold ../field-survey --name field-survey --example asset-survey-field
-   ```
-
-2. Install the dependencies from the exported lockfile. Run the command in the exported directory.
-
-   ```sh
-   bun install --frozen-lockfile
-   ```
-
-3. In `app.config.json`, change `application` to the hub and add `targets.mobile.application` for the field application, keeping the `name`, `displayName` and `appId` keys the export wrote. The export names the field application as the hosted application, which has no `screens` entrypoint and does not load in the desktop or web host.
-
-   ```json
-   {
-     "application": "@agent-native/asset-survey",
-     "targets": { "mobile": { "application": "@agent-native/asset-survey-field" } }
-   }
-   ```
-
-4. On the hub, declare the survey kind with the `device` assignee type and a peer API from `assignments.assignees.device`, both in browser-safe contracts, following [assign-work](../../../packages/assignments/skills/assign-work/SKILL.md). The example's are in `showcase/examples/asset-survey/contracts/kinds.ts` and `contracts/peer.ts`.
-5. Declare the worklist with `defineWorklist({ namespace, target: 'hub', assignments, issuer, assigneeType: 'device', destination })`. Name the target `hub`, which is the only target the hub-link destination serves. Export its `operations` flat, so screens bind them by name.
-6. Write the state type and a state factory that creates it from the owner ID, the integration principal ID and `createWorklistSlice()`, as `createFieldState` in `domain.ts` does. Use the integration principal ID that step 11 passes to `connectWorklist`, because the policy's integration allowlist admits only that ID.
-7. Write the policy with `definePolicy` from an owner role, `worklistRules(worklist)` and a caller rule that admits only the owner. Its integration allowlist admits `state.integrationPrincipalId` to `worklist.target.integrationOperations`, and its event rules cover `worklist.types.assignment`, `worklist.types.report` and `sync`.
-8. Write a manifest builder that calls `defineManifest` with `worklist.module`, the plugin manifests one build composes, `targets: ['mobile']` and any `expoPlugins`. Pass it the application's own plugin list, because `defineApplication` refuses a plugin list whose IDs or order differ from the manifest's.
-9. Export as default a manifest with every plugin any build composes, because `mobile:prepare` reads it for native config plugins.
-10. Compose the application with `defineApplication` from `@agent-native/kernel/application`, passing the manifest from step 8, the state factory from step 6 and `worklistHandlers(worklist, { slice, newId, now })`. List `createHubLinkPlugin()` among its plugins, because hub-link provides the network port that the peer connector uses.
-11. Return the worklist's integration from the application's `connect`, with the integration principal ID from step 6:
-
-   ```ts
-   connect: ({ application, workspaceId, network }) => ({
-     integrations: [
-       connectWorklist(worklist, {
-         application,
-         workspaceId,
-         principalId: 'integration',
-         client: () => network.client(worklist.target.target),
-       }),
-     ],
-   }),
-   ```
-
-12. Map the package's `exports` so that `./screens-native` resolves to `screens-native.tsx` and every other subpath to its `.ts` file. The entry that `mobile:prepare` generates imports the default exports of `<package>/application` and `<package>/screens-native`.
-13. Write `application.ts` whose default export is the device build, picking plugins by `Platform.OS`: `managedConfigPlugin` on both platforms and `intentScannerPlugin` on Android. A host refuses to open an application that composes a plugin its platform cannot run.
-14. Write `screens-native.tsx` whose default export is `defineNativeScreens(...)` from `@agent-native/frame-native/screens`, adding `hubLinkNativeScreens` and the Android-only `intentScannerScreens(profile)`. Follow [extend-mobile-host](../../../packages/mobile/skills/extend-mobile-host/SKILL.md) for the screen definition.
-15. Bind each screen to the session from `useSession()`, following queries with `live.liveQueryOptions` and submitting commands with an idempotency key. Use the registry's `worklist-list` and `worklist-sync` from `packages/frame-native` for the list and the sync state, and draw the brief in the application's own screen.
-16. Set the scanner profile for the device's scanner app and feed scans into the screen's search, following [add-scanner-input](../../../packages/devices/skills/add-scanner-input/SKILL.md). The example's profile is Zebra DataWedge, and Honeywell devices use `dataExtra: 'data'` instead.
-17. On the hub, compose `createDeviceLinkPlugin({ syncOperations: assignments.assignees.device.operations })`. The assignment feature's policy matches `device:<id>` as the assignee, so the hub's own policy has no rule for devices.
-18. Write a pipeline test that starts the hub with `startHost` and opens the phone with `openMobileInstance` over `createMobilePlatform`. Give the platform `bunSqlDriver`, `createFileBlobStore` and an in-memory secret store, as `test/pipeline.test.ts` does.
-19. In that test, compose `createManagedConfigPlugin(() => values)` so the phone pairs from settings. Drive delivery with `dispatcher.runOnce(undefined, { ignoreBackoff: true })` and the feed with `integrations.sync()`.
-20. Write a UI binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`. Pass the hub-link screen directory because hub-link routes its own pairing screen, and pass `deploymentComponents(manifest)` because hub-link declares the `hub` destination.
-21. Run the checks that pass in a single-example export, following [check-a-change](../../../packages/testing/skills/check-a-change/SKILL.md). `bun run check` fails there for the reasons under [Limits](#limits).
-
-   ```sh
-   bun run typecheck
-   bun test showcase/examples/asset-survey-field
-   bun run test:portable
-   bun run build
-   ```
-
-22. Check that Metro bundles the native screens, since no other check does. Run the second command in `apps/mobile`.
-
-   ```sh
-   bun run mobile:prepare
-   bunx expo export --platform android
-   ```
-
-23. Generate the native projects.
-
-   ```sh
-   bun run mobile:prebuild
-   ```
-
-24. Build and install a development client with the platform's own tools. No such build is recorded on this branch.
-25. Start Metro for the installed development client.
-
-   ```sh
-   bun run dev:mobile
-   ```
-
-26. Delete the generated mobile entry before the next `check:boundaries` run, because that check fails while the entry exists. Delete it again after each `mobile:prepare`, `mobile:prebuild` or `dev:mobile` run, since each script writes it.
-
-   ```sh
-   rm -rf apps/mobile/generated
-   ```
-
-The device side uses no fake system of record. The tests run the real hub on loopback. A peer that is not an agent-native host needs its own implementation of `SystemOfRecordPort` in place of the peer connector, with delivery and pull. It also needs a host plugin that provides the network port to that peer, since hub-link reaches only the paired hub and excludes another network provider.
-
 ## Limits
 
 - **Fixed captures.** The device cannot amend, link or discard a capture, because the effect payload is fixed when it is enqueued. Linking happens on the hub during review.
@@ -302,26 +64,17 @@ The device side uses no fake system of record. The tests run the real hub on loo
 - **Delivery order.** The dispatcher continues past an effect that is in backoff or whose delivery just failed. A done mark can then reach the hub before an earlier capture, which the hub still accepts.
 - **Device storage.** Delivered captures and their photo blobs stay on the device. No capability removes them.
 - **Foreground delivery.** Delivery and sync loops run only while the application is in the foreground. In the background the OS decides when one bounded pass runs, and iOS runs it rarely.
-- **Check in an export.** The full `bun run check` fails in a single-example export at `check:readmes` on framework README links to the omitted examples. The skills check also fails on paths into those examples and on the changed root scripts, and `check:boundaries` fails while `apps/mobile/generated/` exists. The full `bun test` also fails, because the compliance controls name evidence tests in those examples.
+- **Check in an export.** A previous single-example export check found that the skills check reports paths into omitted examples and changed root scripts, and `check:boundaries` fails while `apps/mobile/generated/` exists. The full `bun test` also failed because compliance controls named evidence tests in the omitted examples. The former `check:readmes` has since been removed.
 - **Owner only.** Anyone who unlocks the device acts as its owner. The device has no per-person identity.
 - **Device runs.** The native screens, camera, scanner, managed configuration and pairing have not run on a device.
 
-## Skills
+## Code and checks
 
-- [assign-work](../../../packages/assignments/skills/assign-work/SKILL.md)
-- [extend-mobile-host](../../../packages/mobile/skills/extend-mobile-host/SKILL.md)
-- [add-scanner-input](../../../packages/devices/skills/add-scanner-input/SKILL.md)
+[`contracts.ts`](contracts.ts) declares the worklist and hub target; [`field-application.ts`](field-application.ts) connects the peer; `ui-native/` contains the assignment, capture and sync screens.
 
-## References
+```sh
+bun test showcase/examples/asset-survey-field
+bun run typecheck
+```
 
-- [Asset survey](../asset-survey/README.md)
-- [Assignments](../../../docs/assignments.md)
-- [Mobile host](../../../docs/mobile.md)
-- [Assignments package](../../../packages/assignments/README.md)
-- [extend-mobile-host](../../../packages/mobile/skills/extend-mobile-host/SKILL.md)
-- [add-scanner-input](../../../packages/devices/skills/add-scanner-input/SKILL.md)
-- [Hub-link](../../../plugins/hub-link/README.md)
-- [Device-link](../../../plugins/device-link/README.md)
-- [Managed-config](../../../plugins/managed-config/README.md)
-- [Intent-scanner](../../../plugins/intent-scanner/README.md)
-- [Implementation status](../../../docs/implementation-status.md#mobile)
+`test/pipeline.test.ts` runs the hub on loopback and the field application on Bun mobile bindings, including offline captures and later delivery. Those tests do not prove the native device experience. Preparing the mobile entry creates `apps/mobile/generated/`; the current boundary check reports that generated directory if it remains present.

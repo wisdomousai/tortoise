@@ -2,9 +2,9 @@
 
 The network host plugin turns the [deployment policy](../../docs/glossary.md#deployment-policy)'s bindings into the host's only path off the machine. It provides the [egress guard](../../docs/glossary.md#egress-guard) as the network port, and starts the loopback proxy for declared child processes in a serving host. When the policy selects it, the plugin provides the mutual TLS listener as the ingress port. Its `network export` renders the same bindings as default-deny OS and orchestrator rules, for the paths the in-process guard cannot see.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`.
+Server only, except `plugin-manifest`.
 
 ## Primitives
 
@@ -74,7 +74,7 @@ bun test plugins/webhook showcase/examples/field-service/test/security.test.ts s
 
 The webhook suite shows a third-party plugin refused by the guard for an unbound destination. The field-service suites cover bound and refused provider destinations, the child proxy and mTLS. `bun run test:isolated` and `bun run test:sandbox` check that no path escapes the guard.
 
-## Skills
+## Task guides
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
 

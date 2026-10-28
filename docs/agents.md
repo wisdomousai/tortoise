@@ -2,10 +2,6 @@
 
 Agents act on an application's records through agent runs, with the same capabilities, validation and authorization as people. A harness executes each run.
 
-## Concepts
-
-Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [assignment](glossary.md#assignment), [trigger](glossary.md#trigger), [trigger grant](glossary.md#trigger-grant) and [model entry](glossary.md#model-entry).
-
 ## Harnesses
 
 A harness runs a model turn and lets the model call the application's tools. The harness contracts in `packages/agents` contain no vendor SDK types. Each adapter turns its provider's native events into text, progress and tool events. Domain changes are still recorded only as command [receipts](glossary.md#receipt) and [journal](glossary.md#journal) entries.

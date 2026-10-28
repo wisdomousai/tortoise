@@ -2,10 +2,6 @@
 
 Every [surface](glossary.md#surface) shares one contract. Modules own their schemas and operation IDs; the framework owns the shared protocol types.
 
-## Concepts
-
-Terms: [idempotency key](glossary.md#idempotency-key), [display metadata](glossary.md#display-metadata), [UI binding](glossary.md#ui-binding), [UI session context](glossary.md#ui-session-context) and [UI intent](glossary.md#ui-intent).
-
 ## Schemas
 
 Schemas are Zod 4, exported as JSON Schema 2020-12. Wire values are plain JSON: finite numbers, strings, booleans, null, arrays and plain objects. Defining a schema refuses coercion, defaults, transforms and custom refinements. Validation rejects a parse that would strip or change a submitted value. Use strict objects, and leave an optional protected field absent, because `undefined` is not a wire value.

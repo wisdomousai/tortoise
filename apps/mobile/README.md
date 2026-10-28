@@ -2,9 +2,9 @@
 
 The starter's Expo project for Android and iOS. It opens the configured application's [instance](../../docs/glossary.md#instance) on the device and renders the application's native [screens](../../docs/glossary.md#screen) in the native frame. The application runs offline with its own [workspace](../../docs/glossary.md#workspace) in [embedded mode](../../docs/glossary.md#embedded-mode), and a tablet paired with a [hub](../../docs/glossary.md#hub) opens the hub's own screens in [attached mode](../../docs/glossary.md#attached-mode).
 
-## Layer
+## Context
 
-[starter](../../docs/glossary.md#starter) (`apps/*`). Like `apps/web`, it never names content: the product identity and the application come from `app.config.json`. Attached mode runs through the screens of the [hub-link](../../plugins/hub-link/README.md) [host plugin](../../docs/glossary.md#host-plugin).
+Like `apps/web`, it never names content: the product identity and the application come from `app.config.json`. Attached mode runs through the screens of the [hub-link](../../plugins/hub-link/README.md) [host plugin](../../docs/glossary.md#host-plugin).
 
 ## Primitives
 
@@ -97,7 +97,7 @@ bun run check:mobile-bundle
 
 `check:mobile-bundle` prepares the fixture and runs `expo export --platform android` into `dist/mobile-bundle-check`. It fails when Metro cannot resolve an import or Uniwind cannot compile a class. It is not part of `bun run check`. Device tests run on demand, and none exist yet.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): mobile targets, native plugins and screens, and pairing with a hub.
 

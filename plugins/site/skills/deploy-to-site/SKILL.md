@@ -53,8 +53,9 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    bun test plugins/compliance
    bun test apps/desktop/test/site-policy.test.ts
    bun test showcase/patterns/site/
-   bun run test:sandbox
    ```
+
+   Also run `bun run test:sandbox` when the project has that script; a source export can omit it.
 
 2. Only after an intended exporter change, update the golden files and review the diff:
 

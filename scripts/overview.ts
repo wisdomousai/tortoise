@@ -18,6 +18,7 @@ import { importedPackages, workspaces, type Workspace } from './workspace-manife
 /** Display names for the layers the root `workspaces` field lists; others use the directory. */
 const layerTitles: Record<string, string> = {
   packages: 'Framework',
+  workstations: 'Workstations',
   plugins: 'Plugins',
   apps: 'Starter',
   'showcase/examples': 'Examples',
@@ -55,11 +56,10 @@ function readmeLead(markdown: string): string {
   );
 }
 
-/** The primitives a README's `## Primitives` section links, by anchor. */
+/** The primitives a README links, regardless of how the page is organized. */
 function readmePrimitives(markdown: string) {
-  const section = /^## Primitives\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(markdown)?.[1] ?? '';
   const found = new Map<string, string>();
-  for (const [, title, anchor] of section.matchAll(
+  for (const [, title, anchor] of markdown.matchAll(
     /\[([^\]]+)\]\([^)#]*primitives\.md#([\w-]+)\)/g,
   ))
     found.set(anchor!, title!);

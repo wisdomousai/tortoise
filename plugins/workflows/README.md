@@ -1,10 +1,10 @@
 # @agent-native/workflows
 
-This [host plugin](../../docs/glossary.md#host-plugin) runs the workflows an application's [modules](../../docs/glossary.md#module) declare with steps (`defineWorkflow` in [`packages/contracts`](../../packages/contracts/README.md)). `workflow.start` records an instance; the runner then advances it one step at a time, as the [person](../../docs/glossary.md#person) or run that started it, narrowed to the workflow's operations. A step runs a command or waits on a query. A step that fails is retried or, once it fails for good, the completed steps are undone in reverse order by their compensations.
+The workflows [host plugin](../../docs/glossary.md#host-plugin) runs the workflows an application's [modules](../../docs/glossary.md#module) declare with steps (`defineWorkflow` in [`packages/contracts`](../../packages/contracts/README.md)). `workflow.start` records an instance; the runner then advances it one step at a time, as the [person](../../docs/glossary.md#person) or run that started it, narrowed to the workflow's operations. A step runs a command or waits on a query. A step that fails is retried or, once it fails for good, the completed steps are undone in reverse order by their compensations.
 
-## Layer
+## Context
 
-Plugin layer, with the three plugin entrypoints an application lists. It trusts the workflow declarations in the application's modules, which the catalog checked when it was built. Every step is an ordinary call that the application's [policy](../../docs/glossary.md#policy) authorizes as the starter.
+The application lists the three plugin entrypoints. It trusts the workflow declarations in the application's modules, which the catalog checked when it was built. Every step is an ordinary call that the application's [policy](../../docs/glossary.md#policy) authorizes as the starter.
 
 ## Primitives
 
@@ -98,7 +98,7 @@ bun test plugins/workflows
   - one running instance per business key.
 - `test/host.test.ts`: a serving host advances an instance through every step, across a restart. The screen references every bound capability.
 
-## Skills
+## Task guides
 
 - [declare-a-workflow](skills/declare-a-workflow/SKILL.md): declaring a workflow, its start command and compensations, and testing it with the runner.
 - [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): the commands and queries its steps call.

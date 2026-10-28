@@ -2,9 +2,9 @@
 
 The starter's Electron window for the configured [application](../../docs/glossary.md#application). It attaches to the [instance](../../docs/glossary.md#instance) already serving the [workspace](../../docs/glossary.md#workspace), or starts `apps/service` as a sidecar and stops it again when the window closes.
 
-## Layer
+## Context
 
-[starter](../../docs/glossary.md#starter) (`apps/*`). The Electron main process trusts the launcher's environment and the runtime files after their digest check. Renderer input is untrusted.
+The Electron main process trusts the launcher's environment and the runtime files after their digest check. Renderer input is untrusted.
 
 ## Primitives
 
@@ -73,7 +73,7 @@ DESKTOP_EXECUTABLE=<packaged executable> bunx playwright test tests/e2e/desktop.
 
 The native Playwright tests need an already packaged build and skip without `DESKTOP_EXECUTABLE`. Record native results separately in the [implementation status](../../docs/implementation-status.md) ledger.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers and actions, and the electron-builder registrations.
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): the shipped deployment policy and its test.

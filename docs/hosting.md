@@ -1,22 +1,12 @@
 # Hosting
 
-An [instance](glossary.md#instance) is one application opened on one [workspace](glossary.md#workspace). On a server, the workspace is a Postgres database under a [workspace lease](glossary.md#workspace-lease). That process is a [hosted instance](glossary.md#hosted-instance).
+The [host](glossary.md#host) can run on a server with its [workspace](glossary.md#workspace) in shared Postgres storage. A [workspace lease](glossary.md#workspace-lease) allows one instance to commit at a time and permits another instance to take over after expiry. The application's contracts and handlers stay the same.
 
-A [site](glossary.md#site) is a plant, an office, or a customer location where a host runs under a deployment policy. A [fleet](glossary.md#fleet) is an application that sites report to. A site sends:
-
-- enrollment
-- health
-- signed releases
-- forwarded audit events
-- relayed remote access
-
-## Concepts
-
-Terms: [hosted instance](glossary.md#hosted-instance), [workspace lease](glossary.md#workspace-lease) and [fleet](glossary.md#fleet).
+A [site](glossary.md#site) can also connect its host to a [fleet](glossary.md#fleet) for health reporting, audit forwarding and release staging. The site keeps capturing and delivering records if the fleet is unreachable.
 
 ## Hosted instance
 
-`serve --hosted-workspace` starts the [host](glossary.md#host) on the hosted [host platform](glossary.md#host-platform) (`packages/host/src/platform/hosted.ts`). The platform keeps the workspace in a shared Postgres database and makes ownership a workspace lease there. Contracts and handlers do not change. Managed cloud hosting is out of scope: the platform runs on any server with Postgres and targets no provider. No Cloudflare Durable Object host exists: the host uses Bun APIs and has no Workers entry.
+`serve --hosted-workspace` starts the [host](glossary.md#host) on the hosted [host platform](glossary.md#host-platform) (`packages/host/src/platform/hosted.ts`). Managed cloud hosting is out of scope: the platform runs on any server with Postgres and targets no provider. No Cloudflare Durable Object host exists: the host uses Bun APIs and has no Workers entry.
 
 ### Workspace lease and fence
 
@@ -107,7 +97,7 @@ A relayed request reaches a capability only with a [session](glossary.md#session
 
 ### Fleet application
 
-It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted instance.
+The fleet application keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. The fleet has no outbox target or site-pinned requirement, so it can run as a hosted instance.
 
 Only workspace members pass the fleet's caller gate. Operators update sites, publish, assign and relay, and viewers read. Device link lets only the local owner create enrollments. An enrolled site is an integration allowlist that may call only the protocol and read only the release its channel assigns, so it can fetch no other blob. Relaying needs a person, so an agent run cannot reach a site through the fleet.
 
@@ -124,7 +114,7 @@ The health screen lists sites in any of these states:
 - a staged release other than their channel's release;
 - a build past its best-before date.
 
-Its thresholds are constants in `showcase/examples/fleet/handlers/sites.ts`.
+The health thresholds are constants in `showcase/examples/fleet/handlers/sites.ts`.
 
 `site.remove` deletes a decommissioned site's record and its relay requests and keeps the audit events it forwarded. It needs an operator who is a person. A site whose device link still works adds itself again with its next report, so the device is revoked first.
 

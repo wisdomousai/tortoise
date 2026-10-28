@@ -2,9 +2,9 @@
 
 The share target [host plugin](../../docs/glossary.md#host-plugin). It serves the application's `share` [OS handlers](../../docs/glossary.md#os-handler), for text, a link or a file another app shares to it. It also serves `share` [OS actions](../../docs/glossary.md#os-action), which open the system share sheet. It runs on top of the [OS plugin](../os/README.md), which it requires, and without it startup refuses an application that declares a share handler or action.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts no session on an incoming share post. It relies on the OS plugin to attribute the claimed share to the launch page session.
+Server only, except `plugin-manifest`. The plugin trusts no session on an incoming share post. It relies on the OS plugin to attribute the claimed share to the launch page session.
 
 ## Primitives
 
@@ -74,6 +74,6 @@ bun test plugins/share-target
 
 `showcase/examples/asset-survey-field/test/os.test.ts` shares a capture's summary from an application on a phone.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

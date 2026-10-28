@@ -2,9 +2,9 @@
 
 The [host platform](../../docs/glossary.md#host-platform) for Android and iOS. It runs the same kernel and runtime as the desktop host inside the mobile starter, with one [workspace](../../docs/glossary.md#workspace) per application. The starter owns the workspace while its [instance](../../docs/glossary.md#instance) is open, and stores it in the device's SQLite through the snapshot [storage](../../docs/glossary.md#storage) adapter, with blobs in its documents directory. The screens call the instance in-process through the direct transport. There is no listener, no session and no child process.
 
-## Layer
+## Context
 
-Framework (`packages/*`). The mobile starter in `apps/mobile` uses it, and content never imports it. The package trusts the device's app sandbox and the OS keystore.
+The mobile starter in `apps/mobile` uses it, and content never imports it. The package trusts the device's app sandbox and the OS keystore.
 
 ## Primitives
 
@@ -126,7 +126,7 @@ bun run test:portable
 
 `test:portable` runs the same suite with the Hermes gaps removed. The Expo bindings are exercised only on a device or emulator.
 
-## Skills
+## Task guides
 
 - [extend-mobile-host](skills/extend-mobile-host/SKILL.md): targeting Android and iOS, writing native plugins and screens, and pairing devices with a hub.
 

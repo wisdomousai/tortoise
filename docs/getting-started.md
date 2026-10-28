@@ -1,207 +1,105 @@
 # Getting started
 
-An [application](glossary.md#application) runs over one [workspace](glossary.md#workspace). A workspace is the application's data, in one directory or one database. The application is reached from:
+Build a small application around one task at one site. This guide starts an inspection desk with a generated inspection record, then shows where to add the real fields, rules and screens. The scaffold is a starting point: it does not yet know what an inspection means at your site or send a result to a quality system.
 
-- a desktop window
-- a browser page
-- a CLI
-- an MCP server
+Before you start, identify who does the work, what triggers it, what evidence they capture and whether another system must accept the result. The [library tutorial](tutorial-library.md) develops a complete local workflow; the [tool crib tutorial](tutorial.md) also connects an external system and prepares a site install.
 
-Commands run from the repository root unless a block says otherwise.
+## New application
 
-## Workspace ownership
-
-Only one [instance](glossary.md#instance) may own a [workspace](glossary.md#workspace). The desktop window starts that instance, or attaches to one that is already running. Closing a window that started the instance stops it. Closing an attached window leaves the existing instance running.
-
-The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag opens the workspace in the CLI's process and takes the OS lock on its SQLite file. One process holds that lock and writes the file. A second open fails with `CONFLICT`, so two processes cannot commit to the same file. The CLI and the MCP bridge connect to the running host in attached mode instead.
-
-Embedded calls open a local workspace only. The CLI's workspace verbs do too:
-
-- sync
-- drain
-- backup
-- restore
-- migrate
-
-A [hosted instance](hosting.md#hosted-instance) is always reached in attached mode.
-
-## First run
-
-`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `field-service`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-key-exchange) for a browser. That link signs a browser in once and expires after one minute.
-
-The host keeps the workspace in `.workspace/` by default. These environment variables change the defaults:
-
-| Variable | Effect |
-| --- | --- |
-| `WORKSPACE_PATH` | Keeps the workspace in another directory. |
-| `PORT` | 0 selects an available port instead of 4317. |
-
-`bun run dev:web` serves the browser without opening the window.
-
-In `field-service`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `showcase/examples/field-service/e2e/workspace.pw.ts` checks both through MCP and the browser.
-
-## Other examples
-
-Each [example](glossary.md#example) has its own port, its own desktop window and a workspace inside its directory. Run one from that directory:
+Install Bun 1.4.4, the version pinned in this repository. From the framework repository root, install its dependencies and export a new application. Replace the path below with an absolute path **outside this repository** that does not already exist:
 
 ```sh
-cd showcase/examples/<name>
-bun run dev
+bun install --frozen-lockfile
+bun run scaffold new /absolute/path/inspection-desk --name inspection-desk --display-name "Inspection Desk" --collection inspection
 ```
 
-In the same directory, `bun run dev:web` serves the browser instead. When an example has a `dev.ts`, it runs first and starts demo dependencies such as the fake HMI of the line station example.
+The scaffold creates a separate directory containing the framework source, the starter and an application in `showcase/examples/inspection-desk`. It refuses to overwrite a directory and does not copy workspace data or credentials. `app.config.json` selects the new application; `scaffold.manifest.json` records the exported files and their hashes.
 
-| Example | Port | Guide |
-| --- | --- | --- |
-| [`field-service`](../showcase/examples/field-service/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
-| [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | 4322 | [Systems of record](systems-of-record.md) |
-| [`winding-line`](../showcase/examples/winding-line/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
-| [`crm-capture`](../showcase/examples/crm-capture/README.md) | 4324 | [Systems of record](systems-of-record.md) |
-| [`asset-survey`](../showcase/examples/asset-survey/README.md) | 4326 | [Mobile](mobile.md) |
-| [`receiving`](../showcase/examples/receiving/README.md) | 4330 | [Systems of record](systems-of-record.md) |
-| [`fleet`](../showcase/examples/fleet/README.md) | 4340 | [Hosting](hosting.md#fleet) |
-| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | none | [Mobile](mobile.md) |
-
-`asset-survey-field` runs on a phone or emulator instead; its README has the steps.
-
-The [patterns](glossary.md#pattern) in `showcase/patterns/*` run the same way, on ports 4350 to 4363:
+In the new directory, install its pinned dependencies:
 
 ```sh
-cd showcase/patterns/base
+cd /absolute/path/inspection-desk
+bun install --frozen-lockfile
+```
+
+The generated collection has a title, an `open` or `done` status, an author and a creation time. It includes commands to create and update records, queries to read them, default list and record screens, a policy and tests. The workspace owner is an editor; other members need to be configured. This is deliberately generic, not an inspection implementation.
+
+## Shape the task
+
+Work in `showcase/examples/inspection-desk` in the new directory:
+
+- **Record and operations:** `contracts/inspection.ts` declares the record and generated commands and queries. Add the facts the inspector needs to capture, such as an equipment identifier and measurement.
+- **Behavior:** `handlers/inspection.ts` supplies the collection's handler hooks. Add validation and domain rules for those facts.
+- **Access:** `policy.ts` defines who may read and change records. Adjust it for the people and roles at the site.
+- **Screens:** `ui/inspection.tsx` binds the generated list and record screens. Replace or extend them when the actual capture task needs a different interaction.
+- **Composition and tests:** `manifest.ts` declares browser-safe parts; `application.ts` composes the server; `screens.tsx` composes the screens. Update `test/inspection.test.ts` and the application tests to exercise permitted and refused work.
+
+For example, to require an equipment ID, add this property to `inspectionSchema` in `contracts/inspection.ts`:
+
+```ts
+equipmentId: z.string().min(1).max(80),
+```
+
+Add `'equipmentId'` to the `fields` arrays of both `collectionCreate` and `collectionUpdate` in the same file. The create input now requires it, while the update input can change it. Update the test data in `test/inspection.test.ts`, `test/conformance.test.ts` and `e2e/default-screens.pw.ts`, and add cases for an empty or invalid ID. The default screens use the declared inputs; replace them if the inspector needs a scanner or a more specialized capture flow.
+
+Keep the `// scaffold:<list>` markers if you want `scaffold add` to insert later parts. For example, `bun run scaffold add capability <operation-id> --kind command --description "<what it does>"` generates a contract, handler, policy rule and test. Its initial handler still needs the domain behavior. The [capability authoring guide](capability-authoring.md) walks through those pieces.
+
+If a quality system must decide whether to accept an inspection, add a target and implement its connector and completion behavior using [systems of record](systems-of-record.md). The generated target begins with an in-memory fake; generating it alone does not connect a real system.
+
+## Run and check the application
+
+From the new application's root, start its browser host:
+
+```sh
 bun run dev:web
 ```
 
-### Quality inspection run
+Open the one-use launch link printed by the host; it expires after one minute. The default **Inspections** screen can create a record from the declared inputs and open it for editing. Try a title and the equipment ID you added above. For a desktop window instead, run `bun run dev` from the same directory.
 
-`quality-inspection` captures measurements and delivers them to a deterministic fake quality system. Set `DEMO_QUALITY_LOCKED_LOTS` to make the fake system reject results for a lot.
+The host keeps its local workspace in `.workspace/` by default; set `WORKSPACE_PATH` to use a different directory. Only one instance may write a local workspace at a time. The desktop can attach to a running instance; a second embedded writer receives `CONFLICT`. The CLI and MCP can attach to the serving host through its connection file. A [hosted instance](hosting.md#hosted-instance) is reached in attached mode and stores its workspace in Postgres.
+
+Run the generated application's deterministic tests and build from its root:
 
 ```sh
-cd showcase/examples/quality-inspection
-DEMO_QUALITY_LOCKED_LOTS=4000002 bun run dev
+bun run format
+bun run generate
+bun run typecheck
+bun test showcase/examples/inspection-desk
+bun run build
 ```
 
-1. Open **Lots**. The lots are imported from the fake quality system through [inbound sync](glossary.md#inbound-sync).
-2. Choose a lot and capture values with the keyboard. Enter records a value and moves to the next measurement.
-3. Watch each result. The [dispatcher](glossary.md#dispatcher) delivers it from the [outbox](glossary.md#outbox), and the quality system's reference or its rejection appears without a refresh.
-4. Capture a value for lot 4000002. The fake system rejects it with `LOT_LOCKED`.
-5. Open **Needs attention** and send a correction for the rejected result.
-
-`showcase/examples/quality-inspection/e2e/inspection.pw.ts` runs these steps in a browser.
+The source export's `bun run check:skills` currently reports references to omitted examples and patterns and a removed root script, so the full `bun run check` cannot pass unchanged. The focused commands above do not establish a browser, device or live quality-system run. For the generated browser test, install the Playwright browser and run `bunx playwright test showcase/examples/inspection-desk`.
 
 ## Command line
 
-Unless a [deployment policy](glossary.md#deployment-policy) sets another identity, the host writes a connection file, `.connection.json`, in the workspace directory. Its startup message shows a CLI command with that path. The file holds a local credential with owner-only permissions; keep it private. The CLI and MCP bridge read its path from `AGENT_NATIVE_CONNECTION`.
+While the host is running, its startup output gives the connection file path. The file contains a local credential with owner-only permissions; keep it private. From the new application's root, point the CLI at it and list the application's catalog:
 
 ```sh
 export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
 bun run cli list
-bun run cli work-order create --name "Pump station 4" --site "Harbor Road 12" --key create-pump-4
-bun run cli work-order list
+bun run cli inspection create --title "Check pump 4" --equipment-id PUMP-4 --key inspection-pump-4
+bun run cli inspection list
 ```
 
-`bun run cli` runs the application `app.config.json` names, and `list` prints its [catalog](glossary.md#catalog). Every [capability](glossary.md#capability) is also a generated subcommand with typed flags. A capability subcommand takes these arguments:
+The example assumes you added `equipmentId` above and use the default workspace path. If you set `WORKSPACE_PATH`, use the connection file shown in the host's output instead. `--key` supplies a command's [idempotency key](glossary.md#idempotency-key); queries do not need one. `bun run cli help <capability>` describes a generated command. The CLI uses the application selected by `app.config.json`.
 
-| Argument | Effect |
-| --- | --- |
-| `--key <key>` | Sets a command's [idempotency key](glossary.md#idempotency-key); a query does not take it. |
-| `--output text` | Prints text instead of JSON. |
+`bun run mcp` serves the same catalog as MCP tools over stdio, forwarding calls to the host named by `AGENT_NATIVE_CONNECTION`. Configure an MCP client to launch it with that environment variable. Commands take `input`, an `idempotencyKey` and optional `expectedRevisions`; queries take `input`. The caller's identity and grant come from the session or grant file, not tool arguments. An embedded MCP bridge can open a local workspace without a listening port, subject to the same single-writer rule.
 
-`help <capability>` describes one capability.
+`bun run generate` writes the capability reference, OpenAPI document and application skill to `dist/reference/<id>/`. These are generated outputs for reading; do not commit them.
 
-`AGENT_NATIVE_APPLICATION` selects another example:
+## Explore an example
+
+The framework repository also contains working reference applications. They help you inspect a particular implementation before adapting the ideas to your own task. From the framework repository, for example:
 
 ```sh
-export AGENT_NATIVE_APPLICATION=@agent-native/quality-inspection
-export AGENT_NATIVE_CONNECTION="$(pwd)/showcase/examples/quality-inspection/.workspace/.connection.json"
-bun run cli inspection lot list --output text
-bun run cli help inspection result record
+cd showcase/examples/quality-inspection
+bun run dev:web
 ```
 
-`bun run build:cli` compiles the same CLI into one executable at `dist/bin/<name>`. An image that runs an agent in isolation copies only that file and uses these verbs:
+That example captures measurements against a **fake** quality system. Its [README](../showcase/examples/quality-inspection/README.md) explains the capture and rejection flows. [Receiving](../showcase/examples/receiving/README.md) shows a file exchange with an ERP; [winding-line](../showcase/examples/winding-line/README.md) shows a workstation bridge; [asset-survey](../showcase/examples/asset-survey/README.md) and [asset-survey-field](../showcase/examples/asset-survey-field/README.md) show a hub and mobile application. The [patterns](patterns.md) isolate individual framework concerns on a shared oil-lab example.
 
-- `mcp --embedded --grant-file <file>` serves the agent over MCP under the [grant](glossary.md#grant) in the file, without listening on the network.
-- `drain` delivers pending [outbox effects](glossary.md#effect) and exits with code 75 while any remain.
+## Other export options
 
-An embedded call without a grant file acts as the local workspace [owner](glossary.md#owner) unless the deployment policy refuses the local owner.
+A source export copies the framework into the new project. To install its packages from a configured registry instead, pass `--registry <url>` to `scaffold new`; `--published` selects npm. A registry export has no lockfile yet, so its first installation uses `bun install` without `--frozen-lockfile`. No framework version has been published to a public registry; `bun run release:serve` offers a loopback registry for trying the flow.
 
-## MCP
-
-`bun run mcp` serves MCP over stdio and forwards each call to the running host named in the connection file. Configure an MCP client to run that command with `AGENT_NATIVE_CONNECTION` set.
-
-```sh
-bun run mcp
-```
-
-Each capability is one MCP tool, with dots and hyphens replaced by underscores: `task.create` becomes `task_create`.
-
-| Tool | Arguments |
-| --- | --- |
-| Command | `input`, an `idempotencyKey` and optional `expectedRevisions` |
-| Query | `input` |
-
-The [principal](glossary.md#principal) and grant come from the [session](glossary.md#session) or the grant file, never from tool arguments (`packages/adapters/src/mcp.ts`, `packages/host/src/cli/mcp.ts`). Membership capabilities may name another principal and a role, but those inputs do not change the caller's own grant.
-
-## Generated reference
-
-```sh
-bun run generate
-```
-
-`bun run generate` writes each application's capability reference, OpenAPI document and application skill, among the other [generator](glossary.md#generator) outputs, to `dist/reference/<id>/`. The output is for reading and is not committed.
-
-## New application
-
-`scaffold new` exports the [starter](glossary.md#starter) and the framework source with a generated application as the only content. Run it from the root of this repository, then work in the new directory:
-
-```sh
-bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection inspection
-cd /path/to/new-app
-bun install --frozen-lockfile
-bun run scaffold add capability inspection.approve --kind command --description "Approve an inspection. Editors only."
-bun run scaffold add target qms --collection inspection
-bun run format
-bun run generate
-bun run dev
-```
-
-The new directory must not exist. The generated application in `showcase/examples/<name>` has:
-
-- one [collection](glossary.md#collection) with default list and record screens;
-- the site, network, audit and compliance plugins;
-- a cross-surface conformance test, a UI-binding test and a behavioral test.
-
-`scaffold add` generates one part into that application:
-
-- `collection`: its contract, handlers, policy rules, default screens and test.
-- `capability`: its contract, handler, policy rule and behavioral test.
-- `target`: a [target](glossary.md#target) with its contract, handlers, integration allowlist, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the deployment policy binds it.
-- `agent`: an [agent definition](glossary.md#agent-definition) that requests approval, with a test. The first agent also adds the [approval request](glossary.md#approval-request) capabilities and a screen of pending approval requests.
-
-With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:
-
-```sh
-bun run release:serve
-```
-
-Without the `new` verb, the scaffold exports the examples instead:
-
-```sh
-bun run scaffold /path/to/new-app --name new-app
-```
-
-With `--example <name>`, it exports one example as the application the starter hosts. Every export writes a versioned list of file hashes to `scaffold.manifest.json`.
-
-The scaffold installs no global agent configuration. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex.
-
-## References
-
-- [Architecture](architecture.md)
-- [Systems of record](systems-of-record.md)
-- [Desktop](desktop.md)
-- [Mobile](mobile.md)
-- [Hosting](hosting.md)
-- [Development and testing](development-and-testing.md)
-- [Architecture](architecture.md#embedded-and-attached-modes)
-- [Architecture](architecture.md#examples)
-- [Patterns](patterns.md)
-- [Tutorial](tutorial.md)
+To start from an existing reference application, use `bun run scaffold /absolute/path/to/new-app --name new-app --example field-service`. An export does not initialize Git or install dependencies. A coding agent can follow [create-agent-native-app](../packages/scaffold/skills/create-agent-native-app/SKILL.md); the other task guides are listed in [AGENTS.md](../AGENTS.md#skills).

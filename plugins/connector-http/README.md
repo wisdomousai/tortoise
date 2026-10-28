@@ -1,10 +1,10 @@
 # @agent-native/connector-http
 
-This [connector](../../docs/glossary.md#connector) reaches a generic REST [system of record](../../docs/glossary.md#system-of-record) through the network port. The application describes the system as data: the request for each effect, the rejection statuses with their code and message, the lookup by key and the change feed.
+The HTTP [connector](../../docs/glossary.md#connector) reaches a generic REST [system of record](../../docs/glossary.md#system-of-record) through the network port. The application describes the system as data: the request for each effect, the rejection statuses with their code and message, the lookup by key and the change feed.
 
-## Layer
+## Context
 
-Plugin layer, as a connector library without plugin entrypoints. Server only. It trusts the [deployment policy](../../docs/glossary.md#deployment-policy) to bind the address and credentials, and treats response bodies as input.
+This connector is a library without plugin entrypoints. Server only. It trusts the [deployment policy](../../docs/glossary.md#deployment-policy) to bind the address and credentials, and treats response bodies as input.
 
 ## Primitives
 
@@ -79,6 +79,6 @@ bun test plugins/connector-http
 - pending statuses and pending lookup bodies;
 - pointer escapes.
 
-## Skills
+## Task guides
 
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md): wiring a target, its outbox and inbound sync, with a REST system as one of the ports.

@@ -86,7 +86,10 @@ test('a published-framework export depends on framework versions instead of copy
   expect(await readdir(target)).not.toContain('bun.lock');
   // Skills come from the installed packages; the framework's review record stays behind.
   expect(await readdir(join(target, 'scripts'))).not.toContain('reviewed-surface.json');
+  expect(await readdir(join(target, 'scripts'))).not.toContain('skill-coverage.json');
+  expect(await readdir(join(target, 'scripts'))).not.toContain('check-skills.test.ts');
   expect(await readdir(join(target, 'scripts'))).toContain('skills-link.ts');
+  expect(await readdir(join(target, 'scripts'))).toContain('skills-stamp.ts');
   const root = JSON.parse(await read(join(target, 'package.json')));
   expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*']);
   expect(root.dependencies).toMatchObject({
@@ -100,6 +103,7 @@ test('a published-framework export depends on framework versions instead of copy
   expect(root.scripts.check).toContain('bun run check:framework');
   expect(root.scripts.check).not.toContain('check:manifests');
   expect(root.scripts.check).not.toContain('check:registry:operator');
+  expect(root.scripts['skills:stamp']).toBe('bun scripts/skills-stamp.ts');
   const tsconfig = JSON.parse(await read(join(target, 'tsconfig.json')));
   expect(tsconfig.include).not.toContain('packages');
   expect(tsconfig.compilerOptions.paths['@/*']).toContain(

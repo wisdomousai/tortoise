@@ -2,9 +2,9 @@
 
 The [execution host](../../docs/glossary.md#execution-host) plugin runs the tools an agent uses in Linux bubblewrap sandboxes. Such a tool is a coding agent's shell command, a provider CLI, or a script that calls the application's CLI or MCP server. A sandbox sees only the tools and paths its task names, and reaches the network only through the egress proxy. It holds one credential: a token bound to its [agent run](../../docs/glossary.md#agent-run) and its delegated [grant](../../docs/glossary.md#grant), which this plugin issues and revokes.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`. Linux only. On other platforms every sandbox reports itself unavailable and says why.
+Server only, except `plugin-manifest` and `contracts`. Linux only. On other platforms every sandbox reports itself unavailable and says why.
 
 ## Primitives
 
@@ -118,7 +118,7 @@ bun run test:execution-host:linux
 
 `test:execution-host:linux` also takes test paths and runs those in the same container instead. `showcase/patterns/sandbox` runs its own sandbox tests this way.
 
-## Skills
+## Task guides
 
 - [run-agent-tools-in-a-sandbox](skills/run-agent-tools-in-a-sandbox/SKILL.md): declaring a sandbox, binding bubblewrap and running a task under a grant.
 

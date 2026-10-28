@@ -4,9 +4,9 @@ The OS [host plugin](../../docs/glossary.md#host-plugin). It provides the [shell
 
 The plugin serves link and file handlers and `open`, `reveal` and `open-file` actions. Capability plugins that require it serve the other kinds through `services.os`: share target, notifications, Android intents and shortcuts.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin takes the principal from the session that submitted a request and trusts no identity in the request itself.
+Server only, except `plugin-manifest`. The plugin takes the principal from the session that submitted a request and trusts no identity in the request itself.
 
 The plugin runs on the Bun host, Android and iOS. On a device, the adapter attaches in-process through `connectMobileShell` in `@agent-native/mobile`. The mobile starter passes `os-scheme` and `os-link-hosts` from its generated entry.
 
@@ -80,6 +80,6 @@ bun test plugins/os
 
 The [share target plugin](../share-target/README.md) uses `hold` for web share target posts, and the [notifications plugin](../notifications/README.md) uses `relay` and `attached`. Their tests cover both.
 
-## Skills
+## Task guides
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

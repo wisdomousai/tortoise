@@ -2,9 +2,9 @@
 
 An example [host plugin](../../docs/glossary.md#host-plugin), written the way a third party would write one. It posts a change notification to one declared webhook [destination](../../docs/glossary.md#destination) whenever an observed [capability](../../docs/glossary.md#capability) commits. `field-service` composes it.
 
-## Layer
+## Context
 
-Plugins (`plugins/*`). The plugin uses no private framework API, so it stands in for a third party's plugin. It trusts the host's network port to apply the [deployment policy](../../docs/glossary.md#deployment-policy).
+The plugin uses no private framework API, so it stands in for a third party's plugin. It trusts the host's network port to apply the [deployment policy](../../docs/glossary.md#deployment-policy).
 
 ## Primitives
 
@@ -68,6 +68,6 @@ bun test plugins/webhook
 
 `showcase/examples/field-service/test/ui-bindings.test.ts` checks the status screen's binding.
 
-## Skills
+## Task guides
 
 - [write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
