@@ -271,7 +271,7 @@ partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/sh
 
 ### OS action
 
-_A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
+_A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it includes._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/agents`](../packages/agents/README.md) [`apps/desktop`](../apps/desktop/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
@@ -413,7 +413,7 @@ partial · [`plugins/device-link`](../plugins/device-link/README.md) [`plugins/h
 
 ### Requirement declaration
 
-_What a module or host component needs outside the process, as data: network destinations, exchange folders, devices and child processes, with the outbox targets each carries._
+_What a module or host component needs outside the process, as data: network destinations, exchange folders, devices and child processes, with the outbox targets each includes._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/kernel`](../packages/kernel/README.md)
 

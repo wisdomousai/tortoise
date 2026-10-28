@@ -61,7 +61,7 @@ A terminal is the local owner or a principal listed in `station-sign-in-terminal
 ### Operator tokens
 
 - `station.session.resolve` looks up an operator token on every request. A sign-out, an expiry or a revoked badge applies at the next request.
-- The resolved context carries no grant and does not pass the identity port's admission. Like device credentials, operator sessions are for a host whose listener the deployment policy already admits.
+- The resolved context includes no grant and does not pass the identity port's admission. Like device credentials, operator sessions are for a host whose listener the deployment policy already admits.
 
 ### Audit records
 

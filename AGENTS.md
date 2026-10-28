@@ -34,7 +34,12 @@ This section is advice; depart from it when the code is better for it, and say w
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts; use an outbox effect when another system decides.
-- An application serves one site's task for a limited time. Keep its code to the domain, deliver what it captures through a target, give the manifest a shelf life, and add no owner, term or renewal records.
+- An application does one task at one site. Keep its code to that task.
+- Deliver what it captures through a target. Set a shelf life on the manifest.
+- Do not add any of these records:
+  - an owner
+  - a term
+  - a renewal
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 

@@ -23,7 +23,7 @@ Inject an `EventLogPort` into the runtime, the egress guard, the dispatcher and 
 
 ### Event contents
 
-Events carry the principal and channel, the operation ID, a safe reason code, correlation IDs and an input digest. Input values appear only for fields a capability allow-lists in `audit.fields`. Egress events never contain bodies.
+Events include the principal and channel, the operation ID, a safe reason code, correlation IDs and an input digest. Input values appear only for fields a capability allow-lists in `audit.fields`. Egress events never contain bodies.
 
 The runtime appends `command.accepted` inside the transaction. In required mode, a failed append therefore rolls the command back. At startup, `unresolvedCommands` resolves accepted commands that a crash left open.
 

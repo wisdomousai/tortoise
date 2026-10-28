@@ -36,7 +36,7 @@ The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in th
 
 ## Application tools
 
-Tools are derived from the [catalog](glossary.md#catalog), one per [capability](glossary.md#capability). A tool call carries domain input and, for a command, optional expected [revisions](glossary.md#revision). The host turns the provider's call ID into an [idempotency key](glossary.md#idempotency-key) scoped to the run. The run captures the [principal](glossary.md#principal), workspace and grant when it is created, and tool arguments cannot replace them.
+Tools are derived from the [catalog](glossary.md#catalog), one per [capability](glossary.md#capability). A tool call includes domain input and, for a command, optional expected [revisions](glossary.md#revision). The host turns the provider's call ID into an [idempotency key](glossary.md#idempotency-key) scoped to the run. The run captures the [principal](glossary.md#principal), workspace and grant when it is created, and tool arguments cannot replace them.
 
 Every tool call goes through the [instance](glossary.md#instance) like any other [caller](glossary.md#caller). The instance validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more. A run cannot start another run, so runs cannot delegate further.
 

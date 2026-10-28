@@ -78,7 +78,7 @@ The SDK enforces these rules whatever the handlers do:
 - **Journal file.** A contract with `once` actions needs `journal=`, so lookups survive a restart.
 - **Failures.** A handler that raises anything other than `Refusal` reads as `uncertain`, because the driver cannot tell how far the equipment got. Raise `Refusal("transient", ...)` when you know nothing happened.
 - **Events.** An event declared with `maxRateHz` is dropped above that rate before it gets a sequence number, so the host sees no gap.
-- **Output.** `print` goes to stderr while the driver runs, and stdout carries only protocol messages. The host drains stderr and never shows it.
+- **Output.** `print` goes to stderr while the driver runs, and stdout has only protocol messages. The host drains stderr and never shows it.
 
 ## Dependencies
 

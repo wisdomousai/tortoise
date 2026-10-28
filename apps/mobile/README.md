@@ -63,7 +63,7 @@ The config plugins follow the declared [OS handlers](../../docs/glossary.md#os-h
 - intent handlers add `@agent-native/mobile/intent-filters`, which writes their actions and categories with the declared names;
 - shortcut handlers add `@agent-native/mobile/shortcuts`, which writes static Android app shortcuts.
 
-Verified links are registered only for the hosts in `AGENT_NATIVE_OS_LINK_HOSTS`. `app.config.ts` applies the registrations to the Expo configuration. The generated entry carries the scheme and the settings the composed plugins declare (`os-scheme`, `os-link-hosts`). `src/app.tsx` connects the OS bindings to the instance once and passes the deliveries to `NativeFrame`.
+Verified links are registered only for the hosts in `AGENT_NATIVE_OS_LINK_HOSTS`. `app.config.ts` applies the registrations to the Expo configuration. The generated entry includes the scheme and the settings the composed plugins declare (`os-scheme`, `os-link-hosts`). `src/app.tsx` connects the OS bindings to the instance once and passes the deliveries to `NativeFrame`.
 
 For verified links, this command writes `apple-app-site-association` and `assetlinks.json` for each link host to serve:
 

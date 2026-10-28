@@ -49,7 +49,7 @@ The plugin reads the site plugin's resolved policy. It never reads caller input 
 
 Without an audit log provider, decisions go unrecorded and never block. With one in fail-closed mode, a connection that cannot be recorded is refused. `childEnvironment` points a declared process at the loopback proxy, which is limited to that process's declared destinations. An embedded instance does not start the proxy, so children are refused there.
 
-Rule exports are default-deny and carry the policy digest. They list each bound destination they could not enforce by address, instead of widening it. Like startup, they refuse a policy with error findings.
+Rule exports are default-deny and include the policy digest. They list each bound destination they could not enforce by address, instead of widening it. Like startup, they refuse a policy with error findings.
 
 Gaps: the guard is in-process. Real containment needs the exported rules applied. The tests compare the exports as text and do not load them into a firewall or cluster.
 

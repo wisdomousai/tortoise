@@ -28,7 +28,7 @@ Plugin layer, as a connector library without plugin entrypoints. `./contracts` i
 
 ### Application wiring
 
-- **Manifest:** list `fileExchange({ id, target, description, folders: { drop, receipts, archive, inbox }, dataClasses })` in `components`. It declares one folder requirement per folder: the drop folder as `write`, carrying `target`, and the others as `read`. The catalog then accepts the outbox target without a network destination.
+- **Manifest:** list `fileExchange({ id, target, description, folders: { drop, receipts, archive, inbox }, dataClasses })` in `components`. It declares one folder requirement per folder: the drop folder as `write`, with `target`, and the others as `read`. The catalog then accepts the outbox target without a network destination.
 - **Deployment policy:** bind each folder ID to a directory under `folders`, or disable it with a reason. Code never names a path.
 - **`connect`:** build `fileTargetPort({ target, folders: context.folders, drop: { drop, receipts?, archive?, format, encode }, feed: { inbox, format, map } })`. Pass it to the target integration like any other `SystemOfRecordPort`.
 

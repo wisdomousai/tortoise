@@ -38,7 +38,7 @@ The cursor lives in the plugin's slice, so a restart resumes where delivery stop
 
 ## Trust boundary
 
-The loop is a [caller](../../docs/glossary.md#caller) like an agent run. It acts as the local owner, narrowed by a delegated [grant](../../docs/glossary.md#grant) to the observed capabilities and the plugin's own two. That grant also filters the journal the loop reads. The loop writes only through `webhook.delivery.record` and never touches application state. A post carries journal entries (operation ID, resource ID, revision) and no business data.
+The loop is a [caller](../../docs/glossary.md#caller) like an agent run. It acts as the local owner, narrowed by a delegated [grant](../../docs/glossary.md#grant) to the observed capabilities and the plugin's own two. That grant also filters the journal the loop reads. The loop writes only through `webhook.delivery.record` and never touches application state. A post includes journal entries (operation ID, resource ID, revision) and no business data.
 
 The loop reaches the network only through `ports.network.client('webhook-target')`. Without the network plugin, the composition refuses every post. With it, the [egress guard](../../docs/glossary.md#egress-guard) refuses until the deployment policy binds `webhook-target`. The loop records a repeated refusal once, as `lastError`.
 

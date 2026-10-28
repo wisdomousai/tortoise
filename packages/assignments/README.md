@@ -38,7 +38,7 @@ The contracts are data. A kind is refused at definition time when:
 
 - its ID or target name is invalid or one the generic operations use;
 - it lists an unknown or repeated assignee type, or the `target` type without a target name;
-- it sends brief blobs to a device or a peer, whose pull carries no blobs;
+- it sends brief blobs to a device or a peer, whose pull includes no blobs;
 - its accept input has its own `id`.
 
 `defineWorklist` refuses an issuer API that does not list every operation of the assignee type.
@@ -70,7 +70,7 @@ bun test packages/assignments
 - `test/conformance.test.ts`: the feature conformance suite: deny-all refuses every command, allow-all admits each operation, accepting is person-only, and events route to the feature's policy.
 - `test/lifecycle.test.ts`: a person assignee from create to close on a fixture application; drafts; refusals by assignee type, scope and subject; an accept hook that refuses and writes nothing; repeated and conflicting reports; withdrawal; discard.
 - `test/worklist.test.ts`: a tablet application with the worklist against the fixture served over HTTP as a paired device: the feed, a report with a photo and the done mark at the issuer, work the issuer withdrew refused there and reopened here, and a drifted report command held.
-- `test/assignees.test.ts`: an assignment target through the feature's `connect`: the offer with its brief blob, the result applied for review, a refused offer, a result for a withdrawn assignment, and a withdrawn offer cancelled before delivery. An agent assignee through the deterministic harness: the offer's event type, a run of another agent refused, and the assigned agent's report carrying its run.
+- `test/assignees.test.ts`: an assignment target through the feature's `connect`: the offer with its brief blob, the result applied for review, a refused offer, a result for a withdrawn assignment, and a withdrawn offer cancelled before delivery. An agent assignee through the deterministic harness: the offer's event type, a run of another agent refused, and the assigned agent's report, which includes its run.
 
 `bun run test:portable` runs the same tests without the web globals.
 

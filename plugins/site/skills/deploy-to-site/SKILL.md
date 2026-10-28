@@ -14,7 +14,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 - Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.
 - A secret never goes into the policy or a process environment by hand.
-- `showcase/patterns/site` carries a connected `site-hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
+- `showcase/patterns/site` includes a connected `site-hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
 
 ## Steps
 

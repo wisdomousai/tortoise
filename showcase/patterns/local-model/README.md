@@ -29,7 +29,7 @@ Its own files:
 | `responder.ts` | Stand-in process | The stand-in model's responses: read the request, then request approval for its method |
 | `dev.ts` | Dev launch | Writes the site policy for the stand-in, or for llama-server on `LOCAL_MODEL_GGUF` |
 
-The model comes from the deployment. `methodModelFrom` reads the JSON file `LAB_METHOD_MODEL` names, with `entry`, `files` and an optional `activation`. Without it, the pattern serves the stand-in entry. `standInModel` writes the stand-in weights, a fixed text whose digest the entry names, to the temporary directory, because a source export carries no weight files.
+The model comes from the deployment. `methodModelFrom` reads the JSON file `LAB_METHOD_MODEL` names, with `entry`, `files` and an optional `activation`. Without it, the pattern serves the stand-in entry. `standInModel` writes the stand-in weights, a fixed text whose digest the entry names, to the temporary directory, because a source export includes no weight files.
 
 The stand-in model is `llamaServerStandIn` from `@agent-native/model-server/testing`, with `FIXTURE_RESPONDER` naming `responder.ts`. It takes llama-server's flags and serves the same OpenAI-compatible API, so the plugin, the harness and the trigger run unchanged.
 

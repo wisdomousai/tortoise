@@ -1,6 +1,8 @@
 # Mobile host
 
-The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the instance lifecycle, pairs with a hub and keeps the device's trust boundary.
+The mobile host runs an [application](glossary.md#application) on Android and iOS phones and tablets. It stores the [workspace](glossary.md#workspace) on the device. A workspace is the application's records.
+
+The host opens and closes the [instance](glossary.md#instance). An instance is the application opened on that workspace. The host pairs the phone or tablet with a [hub](glossary.md#hub). The application's files stay inside the app sandbox.
 
 ## Concepts
 
@@ -19,7 +21,7 @@ The Expo project in `apps/mobile` runs one application on Android and iOS. The a
 
 The mobile [host platform](glossary.md#host-platform) runs the same composition and runtime as the desktop host. It keeps secrets in the Keychain or Keystore, and the app lifecycle takes the place of a host process. It declares no capabilities: no raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
 
-A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot [storage](glossary.md#storage) adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. Ownership is an exclusive transaction on `<name>.lock.sqlite`, held while the instance is open, and a second open is refused (`packages/mobile/src/platform.ts`).
+A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot [storage](glossary.md#storage) adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. Ownership is an exclusive transaction on `<name>.lock.sqlite`, held while the instance is open. A second open is refused, so two processes cannot write the same SQLite file (`packages/mobile/src/platform.ts`).
 
 ## Instance lifecycle
 

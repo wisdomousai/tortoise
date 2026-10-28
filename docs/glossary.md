@@ -91,7 +91,7 @@ A reusable test of one capability: permitted and denied access, a stale revision
 
 ### Best-before date
 
-The last day a build is within its [shelf life](#shelf-life): the build date plus the shelf life, in UTC. The host reports it, and the frame shows a notice once it has passed. A [site bundle](#site-bundle) carries it signed, and a new release resets it. Nothing is refused after it. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
+The last day a build is within its [shelf life](#shelf-life): the build date plus the shelf life, in UTC. The host reports it, and the frame shows a notice once it has passed. A [site bundle](#site-bundle) signs the date. A new release records a new date. Commands, installs and the running service continue after the date. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
 
 Do not use: expiry date, expiration date, end of life.
 
@@ -215,7 +215,7 @@ What one delivery attempt returns to the dispatcher. The target accepts or rejec
 
 ### Deployment policy
 
-The policy one host runs under. It names the hardening floor, the identity floor, destination and folder bindings, process pins and ingress. A site runs under one. A desktop-local host can run under one. That host is not a site. The launcher setting is `--site-policy`. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#deployment-policy).
+The policy one host runs under. It names the hardening floor, the identity floor, destination and folder bindings, process pins and ingress. A site runs under one policy. A desktop install on one person's computer can run under one policy. The launcher setting is `--site-policy`. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#deployment-policy).
 
 Do not use: site policy, deployment config, environment file, settings (for the deployment policy).
 
@@ -313,11 +313,11 @@ Do not use: component (for a feature), extension, mixin.
 
 ### Feed
 
-The inbound side of a target: the item schema, the most items one batch may carry, and the records a batch changes. Inbound sync applies feed batches. Lives in [`packages/contracts`](../packages/contracts/README.md).
+The inbound side of a target: the item schema, the most items one batch may include, and the records a batch changes. Inbound sync applies feed batches. Lives in [`packages/contracts`](../packages/contracts/README.md).
 
 ### Fencing token
 
-A number that grows with each new holder of a worker claim or a workspace lease. A write that carries an older token fails, so a stalled holder cannot overwrite the one that took over. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
+A number that grows with each new holder of a worker claim or a workspace lease. A write that has an older token fails, so a stalled holder cannot overwrite the one that took over. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
 
 ### Fleet
 
@@ -507,7 +507,7 @@ A person who works at a workstation or a point of work, usually under an `operat
 
 ### OS action
 
-A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries. Lives in [`packages/shell`](../packages/shell/README.md); explained in [desktop](desktop.md).
+A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it includes. Lives in [`packages/shell`](../packages/shell/README.md); explained in [desktop](desktop.md).
 
 ### OS handler
 
@@ -583,7 +583,7 @@ Do not use: identity (for the principal), account (for the principal), user ID.
 
 ### Procedure
 
-A declared sequence of screen steps in a station profile, run for one effect type. It carries preconditions, a risk level, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
+A declared sequence of screen steps in a station profile, run for one effect type. It includes preconditions, a risk level, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Process port
 
@@ -679,7 +679,7 @@ The host port that receives OS requests under declared OS handlers and performs 
 
 ### Site
 
-A plant, office or customer location where a host runs under one deployment policy. A desktop-local host is not a site.
+A plant, office or customer location where a host runs under one deployment policy.
 
 Do not use: location (for a site), deployment (for a site), customer (for a site).
 
@@ -833,7 +833,7 @@ The assignee side of assignments in another application, such as a phone or a pe
 
 ### Workspace
 
-The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One instance holds it at a time, through an OS lock or a workspace lease. A package of this repository is a framework package, a workstation package, a plugin, an app, an example or an SDK, not a workspace.
+The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One instance holds it at a time. On one computer an OS lock stops a second process from writing the SQLite file. A hosted workspace uses a workspace lease. A directory of code in this repository is a package: a framework package, a workstation package, a plugin, an app, an example or an SDK.
 
 Do not use: database (for a workspace), tenant, project (for a workspace), data directory (for the concept).
 

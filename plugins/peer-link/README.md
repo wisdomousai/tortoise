@@ -1,6 +1,6 @@
 # @agent-native/peer-link
 
-Calls between two agent-native applications. The called application publishes a peer API (`definePeerApi` in `@agent-native/contracts`) and serves it through this plugin. An administrator creates a one-use enrollment code there. The calling application exchanges the code at the enrollment route for its peer credential, registering an Ed25519 public key. Every later request that presents the credential acts as the peer's service [principal](../../docs/glossary.md#principal), `peer:<id>`. A request that also carries a signed subject assertion acts as the person the subject is mapped to. On the calling application the same plugin connects each declared peer target with a code, keeps the credential and key, and gives the integration package's peer port and peer source their clients.
+Calls between two agent-native applications. The called application publishes a peer API (`definePeerApi` in `@agent-native/contracts`) and serves it through this plugin. An administrator creates a one-use enrollment code there. The calling application exchanges the code at the enrollment route for its peer credential, registering an Ed25519 public key. Every later request that presents the credential acts as the peer's service [principal](../../docs/glossary.md#principal), `peer:<id>`. A request that also includes a signed subject assertion acts as the person the subject is mapped to. On the calling application the same plugin connects each declared peer target with a code, keeps the credential and key, and gives the integration package's peer port and peer source their clients.
 
 ## Layer
 
@@ -47,7 +47,7 @@ The application declares each peer target with `definePeerTarget` from `@agent-n
 
 ### Subject assertion
 
-`Agent-Native-Subject: v1.<claims>.<signature>` carries base64url JSON claims and an Ed25519 signature over `v1.<claims>` by the enrolled key:
+`Agent-Native-Subject: v1.<claims>.<signature>` is base64url JSON claims and an Ed25519 signature over `v1.<claims>` by the enrolled key:
 
 | Claim  | Value                                                                  |
 | ------ | ---------------------------------------------------------------------- |

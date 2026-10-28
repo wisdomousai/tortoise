@@ -43,7 +43,7 @@ The connection follows the documented dynamic public-client flow. The instance s
 - **The session** that began an attempt must stay live through the code exchange. A profile connected after it was revoked is logged out again.
 - **The callback** checks the state, the exact loopback target and the client ID. A returning sign-in must match the stored subject.
 - **Token verification** runs on the server after the code exchange and checks the ID token's signature, issuer, audience, expiry and nonce.
-- **Authorization URLs** are never logged and carry no ID-token hint, so no stored token reaches browser code.
+- **Authorization URLs** are never logged and include no ID-token hint, so no stored token reaches browser code.
 - **Inference** needs both the `resource.invoke` and `chatgpt.tokens.use.direct` scopes. A verified identity without them is kept as a disabled profile.
 
 Profile listing and status return metadata without tokens. Only the instance reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized.

@@ -5,14 +5,14 @@ description: Hand work to a person, an agent, a paired device, a peer applicatio
 
 # Assign work
 
-An [assignment](../../../../docs/glossary.md#assignment) carries a [brief](../../../../docs/glossary.md#brief) to an [assignee](../../../../docs/glossary.md#assignee), and the assignee sends [reports](../../../../docs/glossary.md#assignment-report) back. The `assignment` [feature](../../../../docs/glossary.md#feature) generates the operations from [assignment kinds](../../../../docs/glossary.md#assignment-kind); the application supplies the access view, the hooks and the screens. An application that takes work from another keeps a [worklist](../../../../docs/glossary.md#worklist).
+An [assignment](../../../../docs/glossary.md#assignment) sends a [brief](../../../../docs/glossary.md#brief) to an [assignee](../../../../docs/glossary.md#assignee), and the assignee sends [reports](../../../../docs/glossary.md#assignment-report) back. The `assignment` [feature](../../../../docs/glossary.md#feature) generates the operations from [assignment kinds](../../../../docs/glossary.md#assignment-kind); the application supplies the access view, the hooks and the screens. An application that takes work from another keeps a [worklist](../../../../docs/glossary.md#worklist).
 
 ## Before writing
 
 - A change that a system of record decides is an outbox effect; follow the `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`).
 - A command an agent asks a person to approve before it runs is an approval request; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) to mount `approvalFeature`.
 - Decide per kind what the planner fills in, what the assignee needs to work offline, what one report holds and which record it is about, and what the reviewer may change on accepting.
-- Decide the assignee types. A brief for a device or a peer carries no blobs.
+- Decide the assignee types. A brief for a device or a peer includes no blobs.
 
 ## Steps
 

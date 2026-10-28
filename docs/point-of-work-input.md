@@ -75,7 +75,7 @@ Each transport is a source that is registered explicitly.
 
 Serial, HID and camera sources need a user gesture to connect, so the setup block offers a connect button. Each source except the wedge and the intent is declared as a device requirement, so the security manifest lists it.
 
-An intent profile names the broadcast action, the string extra that carries the data and an optional sender permission. Any app on the device can send the action unless the profile sets a sender permission that only the scanner app holds.
+An intent profile names the broadcast action, the string extra that holds the data and an optional sender permission. Any app on the device can send the action unless the profile sets a sender permission that only the scanner app holds.
 
 ## Decoding
 
@@ -106,7 +106,7 @@ A scan router maps a scan to an intent without a model turn. A route matches a G
 
 ## Device configuration
 
-The `device` [feature](glossary.md#feature) reads and saves scanner profiles and scan routes per station. Writes carry expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The mounting application decides who may change the configuration through a station relation. In `winding-line`, a station's supervisors administer it, and others with a role at that station read it.
+The `device` [feature](glossary.md#feature) reads and saves scanner profiles and scan routes per station. Writes include expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The mounting application decides who may change the configuration through a station relation. In `winding-line`, a station's supervisors administer it, and others with a role at that station read it.
 
 ## Use
 

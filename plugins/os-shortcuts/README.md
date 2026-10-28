@@ -25,7 +25,7 @@ The framework registers the launchers from the shortcut handlers, so a forked st
 
 - **macOS**: the dock menu, set by the Electron shell (`apps/desktop/src/os-shell.ts`) once it has read the declarations. A click hands it the shortcut link.
 - **Windows**: the jump list's tasks, each starting the app with `--` before the link, like the scheme registration. A running instance receives the link as second-instance data.
-- **Android**: static app shortcuts, written at prebuild by `@agent-native/mobile/shortcuts`, which `nativeOsConfig` lists. Each is a VIEW intent to the main activity carrying the link, which `Linking` reports.
+- **Android**: static app shortcuts, written at prebuild by `@agent-native/mobile/shortcuts`, which `nativeOsConfig` lists. Each is a VIEW intent to the main activity. The intent includes the link, which `Linking` reports.
 - **Web**: the manifest's `shortcuts`, which an installed Chromium app offers.
 - **Linux**: no desktop actions, because the `dir` target writes no desktop file.
 - **iOS**: no quick actions. They need a native handler for the chosen item, which is not built.
@@ -34,7 +34,7 @@ The framework registers the launchers from the shortcut handlers, so a forked st
 
 Any app or web page can open the shortcut link, as any web page can open the launch page. A shortcut is therefore an unsolicited OS request. It only opens or prefills, and the person confirms through the form it opens.
 
-A shortcut link carries an ID and nothing else. A host, a path, a fragment, credentials or any other parameter make it an ordinary link. An undeclared ID is refused as `no-handler`. The OS plugin parses, matches, rate-limits and audits a shortcut like any request.
+A shortcut link has an ID and nothing else. A host, a path, a fragment, credentials or any other parameter make it an ordinary link. An undeclared ID is refused as `no-handler`. The OS plugin parses, matches, rate-limits and audits a shortcut like any request.
 
 The [catalog](../../docs/glossary.md#catalog) refuses a shortcut title longer than 64 characters or with a control character. Launchers write the title into a menu, a jump list and Android string resources.
 

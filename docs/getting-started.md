@@ -1,12 +1,29 @@
 # Getting started
 
-An [application](glossary.md#application) runs as a desktop window, a browser page, a CLI and an MCP server over one [workspace](glossary.md#workspace). Commands run from the repository root unless a block says otherwise.
+An [application](glossary.md#application) runs over one [workspace](glossary.md#workspace). A workspace is the application's data, in one directory or one database. The application is reached from:
+
+- a desktop window
+- a browser page
+- a CLI
+- an MCP server
+
+Commands run from the repository root unless a block says otherwise.
 
 ## Workspace ownership
 
 Only one [instance](glossary.md#instance) may own a [workspace](glossary.md#workspace). The desktop window starts that instance, or attaches to one that is already running. Closing a window that started the instance stops it. Closing an attached window leaves the existing instance running.
 
-The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag puts a capability call or the CLI's own MCP verb in [embedded mode](glossary.md#embedded-mode), which opens the workspace in the CLI's process. An embedded call fails with `CONFLICT` while a live instance owns the workspace. Embedded calls and the CLI's workspace verbs for sync, drain, backup, restore and migrate open a local workspace only, so a [hosted instance](hosting.md#hosted-instance) is always reached attached.
+The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag opens the workspace in the CLI's process and takes the OS lock on its SQLite file. One process holds that lock and writes the file. A second open fails with `CONFLICT`, so two processes cannot commit to the same file. The CLI and the MCP bridge connect to the running host in attached mode instead.
+
+Embedded calls open a local workspace only. The CLI's workspace verbs do too:
+
+- sync
+- drain
+- backup
+- restore
+- migrate
+
+A [hosted instance](hosting.md#hosted-instance) is always reached in attached mode.
 
 ## First run
 

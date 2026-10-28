@@ -36,7 +36,7 @@ The oil lab decides every report and done mark as this application's peer princi
 
 The worklist applies the feed only through the integration principal. A member cannot change what the oil lab sent, and the transformer of a report is checked there, not here.
 
-The peer credential stays in the peer link. Calls carry no person: the oil lab sees `peer:<id>` as the reporter, whoever recorded the report here.
+The peer credential stays in the peer link. Calls include no person: the oil lab sees `peer:<id>` as the reporter, whoever recorded the report here.
 
 ## Dependencies
 

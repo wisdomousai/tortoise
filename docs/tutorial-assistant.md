@@ -262,7 +262,7 @@ classes.
   button in the header.
 - Turns: each message starts a run with POST /api/v1/runs, the assistant's agentId, the panel's
   UI session ID and, after the first, the conversationId of the first run. The local harness keeps
-  no history between runs, so a follow-up's prompt carries the earlier turns as text. New
+  no history between runs, so a follow-up's prompt includes the earlier turns as text. New
   conversation clears the panel. Read the runs with useRuns.
 - Messages: the person's message right-aligned on primary, the assistant's text joined from the
   run's text events left-aligned on muted, with the time.

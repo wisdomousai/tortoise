@@ -102,7 +102,7 @@ Before a purge deletes the data directory, `install/outbox.ts` runs the installe
 ### Known gaps
 
 - Workforce sessions live in memory, so a restart signs everyone out.
-- Workforce sessions carry no roles. The application's policy decides what each principal may do.
+- Workforce sessions include no roles. The application's policy decides what each principal may do.
 - Provider endpoints must be on the issuer's origin, because one destination reaches one origin.
 - The plugin checks certificates for validity but does not issue or renew them. That stays with the site's own PKI.
 - Install needs the application to compose the network plugin, which renders the service files.

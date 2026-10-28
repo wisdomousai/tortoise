@@ -44,7 +44,7 @@ The plugin builds an action from its declaration. Without an attached adapter, `
 
 The plugin records every request and action on the `shell` channel of the [audit log](../../docs/glossary.md#audit-log). A record holds IDs, reason codes, the platform and a digest of the raw request. Content, file names and full URLs are never logged, and an open action records only the URL's origin.
 
-`relay` runs an instruction that a capability plugin built itself, through the adapter attached for the given principal. An example is a notification carrying the reply nonces the notifications plugin issued. The instruction must name a declared action of the same kind that the site has not disabled, and the per-action rate applies. Without an adapter, `relay` refuses it as `unattached`, so the caller can keep it queued. `attached` tells whether such an adapter is there.
+`relay` runs an instruction that a capability plugin built itself, through the adapter attached for the given principal. An example is a notification that includes the reply nonces the notifications plugin issued. The instruction must name a declared action of the same kind that the site has not disabled, and the per-action rate applies. Without an adapter, `relay` refuses it as `unattached`, so the caller can keep it queued. `attached` tells whether such an adapter is there.
 
 Reveal and open-file actions need a root directory setting. No plugin declares one yet, so the plugin refuses them.
 

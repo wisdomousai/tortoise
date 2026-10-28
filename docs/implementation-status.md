@@ -65,7 +65,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Limits.**
 
-- The relay polls the fleet, every two seconds by default, and forwards one request at a time with bodies up to 1 MiB. It carries no event streams.
+- The relay polls the fleet, every two seconds by default, and forwards one request at a time with bodies up to 1 MiB. It includes no event streams.
 - A site credential is not rotated. A fleet that loses one re-enrolls the site with a new code.
 - Staging fetches each release file whole. There is no resumed download.
 - The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it. A site is enrolled with that kind.
@@ -268,9 +268,9 @@ On 27 October 2026, `showcase/patterns/local-model` ran with `bun run dev:web` i
 - No mTLS client certificate binds a peer at the transport, and a peer's key cannot be rotated.
 - The `jti` cache is in memory ([security and compliance](security-and-compliance.md#peer-applications)).
 - The Peers screen does not show drift status. Only an effect's pending message and an unavailable read report a drifted operation.
-- An assertion says `act: agent` only when the effect or the read carries a run ID.
+- An assertion says `act: agent` only when the effect or the read includes a run ID.
 - A peer target with no connection makes `integrations.sync()` and the CLI `sync` fail at that target, after the targets before it have synced.
-- Receiving's lot search returns the first 50 lots. Inspection requests carry no plant, so everyone who captures at some plant sees all of them.
+- Receiving's lot search returns the first 50 lots. Inspection requests include no plant, so everyone who captures at some plant sees all of them.
 - `asset-survey` and `asset-survey-field` keep the device link: a phone has no egress guard, and Ed25519 signing on Hermes is unproven.
 
 ### Assignments
@@ -391,7 +391,7 @@ Control mappings are indicative.
 
 **Shown, browser.** `showcase/examples/field-service/e2e/os.pw.ts`:
 
-- The served web manifest carries the protocol and file handlers.
+- The served web manifest includes the protocol and file handlers.
 - A `?os=` launch URL with a task link opens that task's work order, shows where it came from and clears the address.
 - A submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
 - An uploaded image shows its attachment in the prefill. The added task links to bytes the page can download.
@@ -468,7 +468,7 @@ Gaps the run left open:
 - No hook checks an assignment report's body when it is reported, and `byKind` hooks get untyped bodies.
 - Inbound sync fails a whole batch on a feed item with an undefined optional key, without naming the field.
 - The resolved context does not mark a terminal sign-in, so policy cannot require a command at the terminal.
-- An agent run started in a terminal's work area acts as the terminal's principal, not the signed-in operator, because the host calls carry no operator token.
+- An agent run started in a terminal's work area acts as the terminal's principal, not the signed-in operator, because the host calls include no operator token.
 - `scaffold add` target, agent and assignment-kind parts read the generated `title` and `status` fields and the `editor` role.
 - In an export, `check:readmes` and `check:skills` fail on links to the left-out examples and patterns.
 

@@ -1,6 +1,8 @@
 # Security and compliance
 
-An application declares what it may reach, the host enforces that, actions are recorded, and an auditor checks the result before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin).
+The security and compliance controls are [host plugins](glossary.md#host-plugin). A host plugin is a part an [application](glossary.md#application) composes for one concern.
+
+An application declares what it may reach. The [host](glossary.md#host) enforces that declaration. The [audit log](glossary.md#audit-log) records what the application did. An audit log is the hash-chained record of commands, queries and denials. An auditor checks that record before deployment and while the application runs.
 
 ## Concepts
 
@@ -65,7 +67,7 @@ export const auditCollectorComponent = defineHostComponent({
 Building the catalog applies these rules (`packages/contracts/src/requirements.ts`):
 
 - **Fixed hosts.** A declaration names a host only for a fixed vendor endpoint. The deployment policy names site systems.
-- **Outbox targets.** Every [target](glossary.md#target) is reached through a declared destination, exchange folder or child process. A destination that carries [outbox effects](glossary.md#effect) must queue while offline.
+- **Outbox targets.** Every [target](glossary.md#target) is reached through a declared destination, exchange folder or child process. A destination that includes [outbox effects](glossary.md#effect) must queue while offline.
 - **Child processes.** A child process lists the only destinations it may reach.
 - **Exchange folders.** A folder that another system reads or writes is declared by ID with its access (`read`, `write` or `read-write`), data classes and outbox targets. Code reaches a folder only through the folder port, so a module never names a path.
 - **Audit fields.** A capability lists the input fields that are safe to record in plain text. The audit log records the rest of the input as a digest.
@@ -117,7 +119,7 @@ A hardening profile is a floor. Startup refuses a policy below its floor (`plugi
 | Audit log | Fail-closed or best-effort | Fail-closed | Fail-closed and forwarded off the host |
 | Delegated grants | Within `grants.maxTtlSeconds` when set | `grants.maxTtlSeconds` required | At most one hour |
 
-A destination declared `https` or `wss` may be bound to plain text on loopback, such as a second instance on the same machine; the site check warns with `LOOPBACK_PLAINTEXT`. An `authenticated` destination, which carries a bearer credential or a signed assertion, is refused with `PLAINTEXT_CREDENTIAL` when it is bound to plain text off loopback, whatever the profile.
+A destination declared `https` or `wss` may be bound to plain text on loopback, such as a second instance on the same machine; the site check warns with `LOOPBACK_PLAINTEXT`. An `authenticated` destination, which includes a bearer credential or a signed assertion, is refused with `PLAINTEXT_CREDENTIAL` when it is bound to plain text off loopback, whatever the profile.
 
 `site-hub` is for a [hub](glossary.md#hub) that paired phones and tablets reach over the site network. It has the sandbox's floors, except that the person running the hub may act as the local [owner](glossary.md#owner). Devices authenticate with the credentials that the [device-link plugin](../plugins/device-link/README.md) issues.
 
@@ -162,7 +164,7 @@ The desktop window lets its renderer reach only the local instance ([desktop](de
 
 ### Generated rules
 
-Generated rules cover what the guard cannot see: a child that ignores proxy settings, a dependency that opens its own socket, or a compromised process. Hand-written rules drift from the code, so `network export` renders them from the same declarations and policy. Every format denies by default, carries the policy digest, and lists any binding it could not enforce.
+Generated rules cover what the guard cannot see: a child that ignores proxy settings, a dependency that opens its own socket, or a compromised process. Hand-written rules drift from the code, so `network export` renders them from the same declarations and policy. Every format denies by default, includes the policy digest, and lists any binding it could not enforce.
 
 | Format | Enforces |
 | --- | --- |
@@ -227,7 +229,7 @@ The audit log records these events in one chain:
 - OS requests and actions;
 - host startup and posture checks.
 
-`packages/contracts/src/audit.ts` lists the event kinds. Each event carries the caller's principal, workspace, run and [channel](glossary.md#channel), the operation ID, a safe reason code and correlation IDs. It carries an input digest and only the input fields the capability allows.
+`packages/contracts/src/audit.ts` lists the event kinds. Each event includes the caller's principal, workspace, run and [channel](glossary.md#channel), the operation ID, a safe reason code and correlation IDs. It includes an input digest and only the input fields the capability allows.
 
 The composition's audit log port keeps no log. Once `plugins/audit` is composed, the log runs in the policy's audit mode, which defaults to fail-closed. A supplied policy therefore needs the audit plugin unless it sets `best-effort`. The file log chains events with SHA-256 across rotated segments and writes checkpoints. It syncs every append, keeps its files private to the owner, and allows one writer per directory. It lives in the workspace unless the `audit-log` setting moves it.
 

@@ -24,7 +24,7 @@ The runtime checks a command in this order (`packages/runtime/src/application/co
 
 The context, cancellation included, is checked again after every awaited step and before the commit. Any failure rolls the whole command back.
 
-A [nested call](glossary.md#nested-call) (`ctx.invoke`, `ctx.query`, `continueWith`) takes steps 1 to 5 for its own operation under the same context. The grant must list that operation, and the calling capability must list it in `invokes`. The policy request carries `via`, the enclosing operations, outermost first, at the `invoke`, `commit` and `replay` phases. A refusal fails the whole command, even when the calling handler catches it. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
+A [nested call](glossary.md#nested-call) (`ctx.invoke`, `ctx.query`, `continueWith`) takes steps 1 to 5 for its own operation under the same context. The grant must list that operation, and the calling capability must list it in `invokes`. The policy request includes `via`, the enclosing operations, outermost first, at the `invoke`, `commit` and `replay` phases. A refusal fails the whole command, even when the calling handler catches it. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
 
 ## Policy port
 
@@ -70,13 +70,13 @@ Membership changes serialize with business changes. An authorization event incre
 
 ## Live updates
 
-Replay and live delivery both follow current access. [Journal](glossary.md#journal) entries carry references and revisions, not record contents. Delivery is filtered inside the storage read boundary, so a membership change cannot commit in between. The HTTP surface revalidates the session at delivery and binds cursors to it ([adapters](adapters.md#http)).
+Replay and live delivery both follow current access. [Journal](glossary.md#journal) entries include references and revisions, not record contents. Delivery is filtered inside the storage read boundary, so a membership change cannot commit in between. The HTTP surface revalidates the session at delivery and binds cursors to it ([adapters](adapters.md#http)).
 
 When the authorization revision changes, the stream resets without revealing newly forbidden IDs. A [live query](glossary.md#live-query) drops old data, keeps processing revocations while it refreshes, and ignores stale responses. Bytes already delivered cannot be withdrawn, so screens hide sensitive drafts after a revocation.
 
 ## UI session context
 
-A [UI session context](glossary.md#ui-session-context) carries ephemeral navigation and selection, separate from business commands. The host creates each one and binds it to the live credential, principal and workspace. A selection is checked against authorized queries, and capturing it for a run freezes its IDs and revisions. Updates are versioned, so a late validation cannot overwrite a newer selection.
+A [UI session context](glossary.md#ui-session-context) includes ephemeral navigation and selection, separate from business commands. The host creates each one and binds it to the live credential, principal and workspace. A selection is checked against authorized queries, and capturing it for a run freezes its IDs and revisions. Updates are versioned, so a late validation cannot overwrite a newer selection.
 
 [UI intents](glossary.md#ui-intent) are bounded, expire, are offered until acknowledged, and end as accepted, rejected or expired. A run sends an intent only to the session it captured, as the session's own principal in the same workspace. Each named resource is read under the run's grant, so a run cannot show a person a record the run may not read. A leaked session ID alone grants nothing, and no intent commits business records.
 

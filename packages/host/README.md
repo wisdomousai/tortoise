@@ -111,7 +111,7 @@ An adapter in another process attaches by long-polling `GET /api/v1/shell/action
 
 ### Cross-site requests
 
-Every cross-site request is refused except two public routes: the provider OAuth callback, and the launch page for OS links (`serveOsLaunchPage`). The launch page serves only `index.html`, for a top-level document navigation to `/` with exactly one `os` or `os-shortcut` parameter. A top-level document navigation carries `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`. The launch page is exempt from the cross-site refusal because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
+Every cross-site request is refused except two public routes: the provider OAuth callback, and the launch page for OS links (`serveOsLaunchPage`). The launch page serves only `index.html`, for a top-level document navigation to `/` with exactly one `os` or `os-shortcut` parameter. A top-level document navigation includes `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`. The launch page is exempt from the cross-site refusal because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
 
 ### Environment
 

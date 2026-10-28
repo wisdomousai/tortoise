@@ -1,6 +1,6 @@
 # @agent-native/contracts
 
-This package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts carry schemas, permissions, UI bindings and declared requirements, and never handlers.
+This package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts include schemas, permissions, UI bindings and declared requirements, and never handlers.
 
 ## Layer
 
@@ -29,7 +29,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`, and `BlobLimits`, a command's `blobs`.
 - [Audit log](../../docs/primitives.md#audit-log): the audit envelope and port, `EventLogPort`, `AuditEvent`, `auditEventKinds` and `failClosedAuditMode`.
 - [OS handler](../../docs/primitives.md#os-handler): `OsHandler`, `OsTarget`, `CatalogOs`, `osRequestFields`, and `OsDeclarations`, a module's or component's `os`. The path and template syntax is `linkPathSegments`, `linkPathShape`, `templatePlaceholders` and `isWholePlaceholder`.
-- [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions carry.
+- [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions include.
 - [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame. They are `OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome` and `OsActionResult`.
 
 The worked example is [`showcase/examples/field-service/contracts.ts`](../../showcase/examples/field-service/contracts.ts).
@@ -58,7 +58,7 @@ The requirement errors are an outbox target without a queuing destination or que
 
 An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request is received. The catalog only proves that the declaration is coherent.
 
-Audit events carry references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
+Audit events include references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
 
 ## Dependencies
 

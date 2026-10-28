@@ -32,7 +32,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it responds outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.
 11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The [approval dataset](../../../../docs/glossary.md#approval-dataset) holds only decided approval requests the caller may see.
-12. Redact free-text fields that can carry personal data, and the rationale and rejection reason, as the deployment requires.
+12. Redact free-text fields that can include personal data, and the rationale and rejection reason, as the deployment requires.
 13. Put the dataset's `digest` into the adapter's `dataset`. Training happens outside the host with the deployment's own tooling.
 14. Before the model serves, start the server with `evaluation: true`.
 15. Run `gateModel({ entry, candidate: models.evaluationHarness, baseline, scenarios, application })` from `@agent-native/testing/activation` with the agents' scenarios. The `add-capability` skill covers writing them.

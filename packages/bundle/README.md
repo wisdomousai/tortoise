@@ -19,7 +19,7 @@ Framework (`packages/*`). Server only. It trusts only the keys a site lists and 
   - signing: `generateSigningKey`, `signManifest`, `verifyManifestSignature`, `SigningKey`, `TrustedKey`, `BundleSignature`;
   - admission: `admissionRefusals`, `requirementChanges`, `RequirementChange`, `requirementsDigest`, `SiteApproval`, `SiteTarget`.
 
-The root script `bun run bundle` (`scripts/bundle.ts`) works on the configured application with the verbs `keygen`, `create`, `verify` and `admit`. The script builds the security manifest, contract and SBOM from the catalog and lockfile at that moment. `create` stamps the binary and the bundle with one build time, so both carry the same best-before date, and `verify` prints the date. This package therefore never imports the compliance plugin.
+The root script `bun run bundle` (`scripts/bundle.ts`) works on the configured application with the verbs `keygen`, `create`, `verify` and `admit`. The script builds the security manifest, contract and SBOM from the catalog and lockfile at that moment. `create` stamps the binary and the bundle with one build time, so both have the same best-before date, and `verify` prints the date. This package therefore never imports the compliance plugin.
 
 ## Entrypoints
 
@@ -74,4 +74,4 @@ It also requires an approval of the exact requirements for a first install or a 
 ## Skills
 
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
-- [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md): the best-before date a bundle carries, and removal.
+- [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md): the best-before date a bundle includes, and removal.

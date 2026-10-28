@@ -60,7 +60,7 @@ The root script `bun run mcp` runs the MCP adapter as a stdio bridge to a runnin
 
 Surface adapters derive identity from the host session, the [connection file](../../docs/glossary.md#connection-file) or the [grant file](../../docs/glossary.md#grant-file). They never read it from the request body or tool arguments. MCP keeps transport metadata, the idempotency key and the expected revisions, outside the domain input. A model therefore cannot forge trusted context. A per-request signal only adds to the context's cancellation.
 
-Direct and HTTP cursors carry the authorization revision they were issued under. A [live query](../../docs/glossary.md#live-query) resets when access changed after the snapshot. Errors keep their meaning across surfaces: the HTTP status, the MCP tool error and the CLI exit code map from the same error code. MCP marks a tool open-world when its capability delivers to another system through the outbox or reads one as a remote query. An agent then knows that a search leaves the process, even though it is read-only.
+Direct and HTTP cursors include the authorization revision they were issued under. A [live query](../../docs/glossary.md#live-query) resets when access changed after the snapshot. Errors keep their meaning across surfaces: the HTTP status, the MCP tool error and the CLI exit code map from the same error code. MCP marks a tool open-world when its capability delivers to another system through the outbox or reads one as a remote query. An agent then knows that a search leaves the process, even though it is read-only.
 
 ### HTTP credentials
 
@@ -76,7 +76,7 @@ A session that stands for such a credential (`HostSession.credential`) can issue
 
 ### Blobs
 
-A blob upload is read only up to the largest size any capability declares. Its media type comes from `Content-Type`. A blob download carries `Content-Security-Policy: sandbox`, `nosniff` and `no-store`. An uploaded document therefore cannot run script on the instance's origin, and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
+A blob upload is read only up to the largest size any capability declares. Its media type comes from `Content-Type`. A blob download includes `Content-Security-Policy: sandbox`, `nosniff` and `no-store`. An uploaded document therefore cannot run script on the instance's origin, and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
 
 ### Postgres and the lease
 

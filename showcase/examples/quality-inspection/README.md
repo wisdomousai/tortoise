@@ -195,7 +195,7 @@ Paths under the packages and scripts directories are relative to the repository 
 ## Capture flow
 
 1. The capture station binds `inspection.result.record` with `useCapabilityForm` in `ui/capture-station/use-capture.tsx`. The form validates against the contract schema and keeps one idempotency key until the command commits.
-2. The form input carries the lot, characteristic, `sample` number, value or code, and `occurredAt` set to the time the person confirmed. It also carries capture timing from `useCaptureLoop` and the input kind from `useScannerInput`.
+2. The form input includes the lot, characteristic, `sample` number, value or code, and `occurredAt` set to the time the person confirmed. It also includes capture timing from `useCaptureLoop` and the input kind from `useScannerInput`.
 3. The policy in `policy.ts` resolves the lot's plant and requires the inspector or supervisor role there. When the caller's grant lists resources, the policy also requires it to name `lot:<id>`.
 4. The handler in `handlers/capture.ts` loads the lot and refuses a lot that is not open. It then calls `appendResult` in `server/append-result.ts`.
 5. `appendResult` checks the characteristic, the decimal places or the code group, and that `occurredAt` is at most 24 hours old and at most 5 minutes ahead. It picks the requested or first open `sample` and evaluates the value against the limits.
@@ -204,7 +204,7 @@ Paths under the packages and scripts directories are relative to the repository 
 8. The dispatcher that `connectTarget` builds in `application.ts` claims the effect after the commit and receives a fencing token. At the first claim the runtime checks again that the recording principal may still run the command.
 9. The dispatcher delivers the effect through the port. `FakeQualitySystem.deliver` accepts with a `QM-` reference, rejects with `LOT_LOCKED` or `LOT_CLOSED`, or throws `DeliveryFailure`.
 10. A transient failure is recorded as an attempt and retried after a backoff. An outcome is submitted as `inspection.effect.complete` under the integration principal, with the fencing token.
-11. The complete handler from `targetHandlers` checks that the effect belongs to the target. `completeDelivery` then writes `sync`, `sorRef` or `rejection` on the record that carries that effect ID.
+11. The complete handler from `targetHandlers` checks that the effect belongs to the target. `completeDelivery` then writes `sync`, `sorRef` or `rejection` on the record that includes that effect ID.
 12. The live queries for the lot, the sync badge and the Needs attention screen refetch.
 13. A rejected result is resolved with `inspection.result.correct`, which appends a superseding result. The correction enqueues a `result.correct` effect with the reason, and with the original's reference when the quality system gave one.
 
@@ -222,7 +222,7 @@ Defects follow the same path with the effect type `defect.post`. A usage decisio
 
 1. The process plugin starts `instrument-driver` only when the deployment policy binds it. The `observe` hook of `connect` in `application.ts` checks the binding with `processes.availability` and starts nothing without it.
 2. `instrument_driver.py` reads lines from the serial port and sends a `measurement.taken` event for each measurement, which the inspector triggers with the instrument's data button.
-3. The ingest from `createInstrumentIngest` in `application.ts` runs `inspection.instrument.ingest` as the instrument principal (`INSTRUMENT_PRINCIPAL`). The reading carries the driver's identity and the instrument's ID as reported at the handshake. Its idempotency key `driver:<contract id>:<session>:<seq>` makes a replayed event record once.
+3. The ingest from `createInstrumentIngest` in `application.ts` runs `inspection.instrument.ingest` as the instrument principal (`INSTRUMENT_PRINCIPAL`). The reading includes the driver's identity and the instrument's ID as reported at the handshake. Its idempotency key `driver:<contract id>:<session>:<seq>` makes a replayed event record once.
 4. The ingest handler in `handlers/instrument.ts` stores the instrument reading.
 5. `InstrumentReadingOffer` in `ui/capture-station/instrument-reading.tsx` follows `inspection.instrument.readings` and offers the newest instrument reading.
 6. The Use reading button sends `inspection.result.record` with `instrumentReading`. The handler checks the instrument reading with `confirmReading` in `handlers/instrument.ts`.

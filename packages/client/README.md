@@ -4,7 +4,7 @@ This package is the typed client every non-React [caller](../../docs/glossary.md
 
 ## Layer
 
-Framework (`packages/*`). Browser-safe. It trusts its transport to carry the caller's identity.
+Framework (`packages/*`). Browser-safe. It trusts its transport to send the caller's identity.
 
 ## Primitives
 
@@ -20,7 +20,7 @@ Framework (`packages/*`). Browser-safe. It trusts its transport to carry the cal
 
 ## Trust boundary
 
-The transport carries no identity of its own. A trusted process injects a bearer token with `createHttpTransport({ token })`. A browser relies on the HttpOnly session cookie and passes no token. A `LiveQuery` is scoped by its transport to one instance, principal and grant. It must never be shared across authenticated sessions.
+The transport has no identity of its own. A trusted process injects a bearer token with `createHttpTransport({ token })`. A browser relies on the HttpOnly session cookie and passes no token. A `LiveQuery` is scoped by its transport to one instance, principal and grant. It must never be shared across authenticated sessions.
 
 A reset batch, sent on an authorization change, clears cached data at once, even while a refresh is pending. A generation fence stops an older or failed request from restoring revoked or superseded data. A receipt's `effects` prove the local commit only. Delivery is reported later through effect state.
 

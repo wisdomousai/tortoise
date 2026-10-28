@@ -84,7 +84,7 @@ The SDK enforces the same rules as the [Python SDK](../driver-python/README.md),
 - **Journal file.** A contract with `once` actions needs `Journal`. The file format is the Python SDK's.
 - **Failures.** A handler that throws anything other than `Refusal` reads as `uncertain`, because the driver cannot tell how far the equipment got. Throw `new Refusal(RefusalKind.Transient, ...)` when you know nothing happened.
 - **Events.** An event declared with `maxRateHz` is dropped above that rate before it gets a sequence number, so the host sees no gap.
-- **Output.** `Console` output goes to stderr while the driver runs, and stdout carries only protocol messages. The host drains stderr and never shows it.
+- **Output.** `Console` output goes to stderr while the driver runs, and stdout has only protocol messages. The host drains stderr and never shows it.
 
 ## Dependencies
 

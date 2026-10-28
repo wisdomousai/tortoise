@@ -45,7 +45,7 @@ The dispatcher delivers pending effects outside any transaction and records each
 
 Delivery is at least once. A target either deduplicates by effect ID or offers a lookup, which the dispatcher consults before every send. The dispatcher refuses a target with neither.
 
-A record that carries an effect also carries its effect ID and these fields:
+A record that has an effect also has its effect ID and these fields:
 
 - `sync`: pending, accepted or rejected. A held effect reads as pending here; the reconciliation list and `drain` report it as held.
 - `sorRef`: the target's reference, once accepted.
@@ -67,7 +67,7 @@ The integration principal can therefore only complete, sync and read status, and
 
 ## Worker claims
 
-The dispatcher takes a [worker claim](glossary.md#worker-claim) on each effect before sending it. The claim names the worker, expires after 120 seconds by default, and carries a [fencing token](glossary.md#fencing-token) that grows with each claim. Two dispatchers for one target must use different worker names.
+The dispatcher takes a [worker claim](glossary.md#worker-claim) on each effect before sending it. The claim names the worker, expires after 120 seconds by default, and includes a [fencing token](glossary.md#fencing-token) that grows with each claim. Two dispatchers for one target must use different worker names.
 
 An attempt or completion under an older token than the current claim is refused with a conflict. A worker that stalled past its claim's expiry therefore cannot overwrite the worker that took over. Its late attempt goes to the [audit log](glossary.md#audit-log) as denied and changes nothing in the workspace. `packages/integration/test/reliability.test.ts` covers a paused worker against its successor.
 
@@ -160,15 +160,15 @@ A [data provider](glossary.md#data-provider) declares search and lookup queries 
 
 ### Credentials and paging
 
-The source uses the caller's own credential first. A delegated agent's context carries the principal of the person who delegated, so the agent searches with that person's access. The source uses a service credential only where the query declares that fallback, and otherwise asks the caller to connect the caller's account. The system of record applies its own sharing, and local [policy](glossary.md#policy) then projects the result.
+The source uses the caller's own credential first. A delegated agent's context includes the principal of the person who delegated, so the agent searches with that person's access. The source uses a service credential only where the query declares that fallback, and otherwise asks the caller to connect the caller's account. The system of record applies its own sharing, and local [policy](glossary.md#policy) then projects the result.
 
-Page numbers shift as the source changes, so paging uses the source's opaque cursors. Each result carries the cursor while there is more, and the next request sends it back. A connector must bind each cursor to the search and the credential that produced it, and refuse it otherwise; the fake CRM does. Local scoping can shorten or empty a page, so only a missing cursor ends the list.
+Page numbers shift as the source changes, so paging uses the source's opaque cursors. Each result includes the cursor while there is more, and the next request sends it back. A connector must bind each cursor to the search and the credential that produced it, and refuse it otherwise; the fake CRM does. Local scoping can shorten or empty a page, so only a missing cursor ends the list.
 
 ### Failures and followed records
 
 A missing, slow or failing source returns an unavailable status with a safe message. Only a message the connector marked caller-safe is passed on, cut to 200 characters. Followed records stay usable.
 
-Nothing is stored until a caller follows a result, and results carry the time they were read. Following is a domain command. In `crm-capture` it records the account as requested and enqueues a follow effect. On delivery, the CRM checks the requesting person's access, and the feed then brings the record in through inbound sync. Record content therefore comes from the integration principal, never from caller input, and is then an ordinary local record.
+Nothing is stored until a caller follows a result, and results include the time they were read. Following is a domain command. In `crm-capture` it records the account as requested and enqueues a follow effect. On delivery, the CRM checks the requesting person's access, and the feed then brings the record in through inbound sync. Record content therefore comes from the integration principal, never from caller input, and is then an ordinary local record.
 
 ## Peer applications
 

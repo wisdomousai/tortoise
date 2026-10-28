@@ -29,7 +29,7 @@ Where a share comes from depends on the platform:
 
 ## Trust boundary
 
-The share target's POST is a top-level navigation from whichever app or web page shared. It carries no session the host could trust, so the route runs before the host's origin and session checks. The route submits nothing. It holds what was posted, and the launch page session claims it.
+The share target's POST is a top-level navigation from whichever app or web page shared. It has no session the host could trust, so the route runs before the host's origin and session checks. The route submits nothing. It holds what was posted, and the launch page session claims it.
 
 The claim attributes the request to the launch page session. A file is staged in the [blob](../../docs/glossary.md#blob) store under that session. Only that session can attach it, and only through a command whose blob limits accept it. Any web page can post a share and send the browser to its launch URL. A share is therefore an unsolicited OS request, and it only prefills a form that the person confirms.
 

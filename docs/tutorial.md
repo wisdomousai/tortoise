@@ -1,6 +1,6 @@
 # Tutorial
 
-The tutorial builds one [application](glossary.md#application) step by step, from a generated skeleton to a staged site install. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the tool crib of a power transformer plant. Attendants at the crib window lend torque wrenches, crimpers, insulation testers and gauges to employees, and each tool carries an etched asset tag.
+The tutorial builds one [application](glossary.md#application) step by step, from a generated skeleton to a staged site install. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the tool crib of a power transformer plant. Attendants at the crib window lend torque wrenches, crimpers, insulation testers and gauges to employees, and each tool has an etched asset tag.
 
 ## Concepts
 

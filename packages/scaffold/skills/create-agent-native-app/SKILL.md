@@ -14,7 +14,12 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
   - record ownership;
   - the difference between capture and acceptance;
   - the exception path.
-- An application serves one site's task for a limited time. Keep its code to that domain, deliver what it captures through a target, and add no owner, term or renewal records.
+- An application does one task at one site. Keep its code to that task.
+- Deliver what it captures through a target. Set a shelf life on the manifest.
+- Do not add any of these records:
+  - an owner
+  - a term
+  - a renewal
 - Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
 
 ## Steps

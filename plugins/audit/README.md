@@ -41,7 +41,7 @@ The `audit-log` setting (`--audit-log` or `AGENT_NATIVE_AUDIT_LOG`) is a trusted
 
 The forwarder connects through the composed network port, so its connection is declared, bound and recorded like any other. Without the network plugin the connection is refused, and the forwarder counts the failure.
 
-The [plugin service](../../docs/glossary.md#plugin-service) `services.audit` gives later plugins the log directory, the writer head, forwarder statistics and the attested digests. It carries no credentials. It is trusted code like the plugin.
+The [plugin service](../../docs/glossary.md#plugin-service) `services.audit` gives later plugins the log directory, the writer head, forwarder statistics and the attested digests. It has no credentials. It is trusted code like the plugin.
 
 Limits:
 

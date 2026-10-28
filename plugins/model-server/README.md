@@ -12,7 +12,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
 - [Process port](../../docs/primitives.md#process-port): `modelServer({ id, runtime })` declares the server as a process. The deployment policy binds and pins its executable and gives the arguments that set its listening address.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `modelServer` declares the process and no [destinations](../../docs/glossary.md#destination). Agents reach the server on `local-inference`, which the host's provider components declare.
 - [Agent run](../../docs/primitives.md#agent-run): `harness` is a `localHarness` for the entry, available only while the server is ready. The plugin also offers it to the host's run route (`PluginInstance.harnesses`), so an agent run a person starts without naming a harness runs on it.
-- [Audit log](../../docs/primitives.md#audit-log): `model.started`, `model.refused` and `model.exited`, each with the entry and its digests. A refusal carries `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`.
+- [Audit log](../../docs/primitives.md#audit-log): `model.started`, `model.refused` and `model.exited`, each with the entry and its digests. A refusal includes `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`.
 
 ## Entrypoints
 
@@ -74,7 +74,7 @@ The load arguments for each runtime:
 
 ## Trust boundary
 
-The deployment chooses the entry, the files and the activation. At every start, this plugin proves only that the files on disk are the ones the entry names, and that a fine-tune passed its gate. Run records then carry `verified: true` with the measured digests.
+The deployment chooses the entry, the files and the activation. At every start, this plugin proves only that the files on disk are the ones the entry names, and that a fine-tune passed its gate. Run records then include `verified: true` with the measured digests.
 
 The server process is trusted to serve what it loaded, and the deployment policy pins its executable. It declares no destinations. The network plugin's exported rules block its egress where the deployment applies them, and in-process it never gets the proxy.
 

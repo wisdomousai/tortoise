@@ -10,7 +10,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 
 - [OS action](../../docs/primitives.md#os-action): enabling `notify` actions. `createNotificationPort` builds the notify instruction from an effect and relays it through `services.os.relay`.
 - [OS handler](../../docs/primitives.md#os-handler): enabling `reply` handlers. `replyConsumer` receives the replies that name `notifications` as their consumer.
-- [Connector](../../docs/primitives.md#connector): `createNotificationPort`, the outbox port of one [target](../../docs/glossary.md#target) that a notify action carries.
+- [Connector](../../docs/primitives.md#connector): `createNotificationPort`, the outbox port of one [target](../../docs/glossary.md#target) that a notify action includes.
 - [Dispatcher](../../docs/primitives.md#dispatcher): `openNotifications` starts one [dispatcher](../../docs/glossary.md#dispatcher) per such target. `completeOperationOf` names the complete command each one uses.
 - [Host plugin](../../docs/primitives.md#host-plugin):
   - `notificationsPlugin`, `createNotificationsPlugin` and `notificationsPluginManifest`, whose operations keep the namespace `notification`;
@@ -59,7 +59,7 @@ Each platform shows the notification as follows:
 
 ## Trust boundary
 
-A reply is an OS request like any other. Whoever can submit to the shell port can send one, carrying any nonce. A reply counts only as the principal the nonce was issued to, and only once:
+A reply is an OS request like any other. Whoever can submit to the shell port can send one, with any nonce. A reply counts only as the principal the nonce was issued to, and only once:
 
 - The consumer looks the nonce up by its SHA-256 digest, as the submitting [session](../../docs/glossary.md#session).
 - The consumer redeems the nonce under a [grant](../../docs/glossary.md#grant) of exactly `notification.redeem` and the continuation found, within the session's own grant. The [idempotency key](../../docs/glossary.md#idempotency-key) is `reply:<digest>`, so a choice the OS reports twice commits once.

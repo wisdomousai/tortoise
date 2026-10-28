@@ -56,7 +56,7 @@ The shell's two-column breakpoint is 64rem. Below it, on phones and on tablets i
 
 The frame imports no application, feature or plugin. Their screens are passed in through `defineScreens({ features, plugins })`, and `virtual:agent-native/screens` is resolved from `app.config.json` at build time.
 
-The launch credential is sent in the URL fragment and never reaches a server log. The frame removes it from the address bar first and exchanges it once for an HttpOnly session cookie. The transport carries no token. Cache and bindings live as long as the document, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
+The launch credential is sent in the URL fragment and never reaches a server log. The frame removes it from the address bar first and exchanges it once for an HttpOnly session cookie. The transport has no token. Cache and bindings live as long as the document, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
 
 ### Palette and components
 

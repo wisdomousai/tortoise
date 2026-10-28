@@ -103,9 +103,9 @@ bunx playwright test showcase/patterns/assignments showcase/patterns/worklist
 
 ## Limits
 
-- A brief sent to a device or a peer carries no blobs, because the feed pull downloads none. A kind that declares brief blobs for these assignee types is refused.
+- A brief sent to a device or a peer includes no blobs, because the feed pull downloads none. A kind that declares brief blobs for these assignee types is refused.
 - A sent assignment keeps its assignee. The planner withdraws it and sends a new one to someone else.
-- The feed carries an assignee's whole open set in one batch, without paging.
+- The feed includes an assignee's whole open set in one batch, without paging.
 - A report that an assignment target's sync skips is not recorded.
 
 ## References

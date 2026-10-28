@@ -4,7 +4,7 @@ This [host plugin](../../docs/glossary.md#host-plugin) connects an [application]
 
 ## Layer
 
-Plugin layer, shipped with the framework. The TypeScript runs in the [instance](../../docs/glossary.md#instance) on every platform. The Kotlin module `AgentNativeOsIntents` carries intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
+Plugin layer, shipped with the framework. The TypeScript runs in the [instance](../../docs/glossary.md#instance) on every platform. The Kotlin module `AgentNativeOsIntents` passes intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
 
 ## Primitives
 
@@ -26,7 +26,7 @@ Plugin layer, shipped with the framework. The TypeScript runs in the [instance](
 The framework owns the rest of the path, so a forked starter keeps it without naming this plugin:
 
 - `nativeOsConfig` in `@agent-native/shell` adds `@agent-native/mobile/intent-filters` to the Expo config plugins when an intent handler is declared. That config plugin writes one intent filter per handler on the main activity, with the declared action and categories plus `DEFAULT`.
-- Expo's own `android.intentFilters` prefixes every name with `android.intent.action.`, so it cannot carry an application's own actions.
+- Expo's own `android.intentFilters` prefixes every name with `android.intent.action.`, so it cannot include an application's own actions.
 - `expoOsBindings` in `@agent-native/mobile/expo` binds `intents` and `startIntent` through `expoIntentBindings` when the build has `AgentNativeOsIntents`. Without the module it leaves them out. `OsIntentsNativeModule` is the module's type.
 - `connectMobileShell` reports an Android build that declares intent handlers but lacks the module.
 

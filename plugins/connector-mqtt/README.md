@@ -56,7 +56,7 @@ Limits:
 
 - MQTT 3.1.1 only, no MQTT 5;
 - read-only: no publishing, no commands to edge nodes, no rebirth requests;
-- Sparkplug arrays, bytes, files, data sets, templates and property sets are not decoded, so such a metric carries no value;
+- Sparkplug arrays, bytes, files, data sets, templates and property sets are not decoded, so such a metric has no value;
 - a plain topic keeps only its latest message.
 
 ## Dependencies

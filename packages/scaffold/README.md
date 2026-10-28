@@ -1,6 +1,6 @@
 # @agent-native/scaffold
 
-The [scaffold](../../docs/glossary.md#scaffold) exports the [framework](../../docs/glossary.md#framework), the [starter](../../docs/glossary.md#starter) and content as a standalone [application](../../docs/glossary.md#application) in a new directory. It also generates new applications and their parts. An export carries a versioned file-hash manifest, installs with the pinned lockfile and passes its own checks.
+The [scaffold](../../docs/glossary.md#scaffold) exports the [framework](../../docs/glossary.md#framework), the [starter](../../docs/glossary.md#starter) and content as a standalone [application](../../docs/glossary.md#application) in a new directory. It also generates new applications and their parts. An export includes a versioned file-hash manifest, installs with the pinned lockfile and passes its own checks.
 
 ## Layer
 
@@ -13,7 +13,7 @@ Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checko
 
 Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` and `collection-tree` [UI registry](../../docs/primitives.md#ui-registry) items.
 
-Skills live in each package's `skills/` directory and ship with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
+Skills live in each package's `skills/` directory and ship with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither includes the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
 ## Entrypoints
 

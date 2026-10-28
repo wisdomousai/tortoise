@@ -12,7 +12,7 @@ Content (`showcase/examples/*`). The default extractor and the EAM are demo fake
 - [`connectors/fake-eam.ts`](connectors/fake-eam.ts) is an in-memory asset register.
 - [`connectors/model-extractor.ts`](connectors/model-extractor.ts) reads photos with a vision model instead, when explicitly configured.
 
-[`fixtures/nameplates`](fixtures/nameplates.ts) holds six generated photos of nameplates by fictional manufacturers: a motor, pump, transformer, breaker, valve and compressor. `ground-truth.json` records what each photo shows. The valve's serial and the compressor's model and power are hard to read on purpose. Each photo carries its values as a JPEG comment, which the demo extractor reads.
+[`fixtures/nameplates`](fixtures/nameplates.ts) holds six generated photos of nameplates by fictional manufacturers: a motor, pump, transformer, breaker, valve and compressor. `ground-truth.json` records what each photo shows. The valve's serial and the compressor's model and power are hard to read on purpose. Each photo includes its values as a JPEG comment, which the demo extractor reads.
 
 ## Primitives
 
@@ -22,12 +22,12 @@ The example is one [application](../../../docs/primitives.md#application). It co
   - `survey`: the scope is a set of subtrees and capture kinds, the brief is that slice of the structure, and each report is one capture about a node. Its assignee types are device and person.
   - `extraction`: the scope is one capture, the brief is its photos, and the report is the values read with a confidence each. Its assignee types are the `model` target and a person.
 - the [approval](../../../docs/primitives.md#approval-request) feature for `structure.node.create`, so an agent requests nodes and a manager approves them.
-- three [modules](../../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, review, and filing. Each carries a workflow text for agents.
+- three [modules](../../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, review, and filing. Each includes a workflow text for agents.
 - [collections](../../../docs/primitives.md#collection) for nodes and documents, with generated writes and the node tree. Hooks in `handlers/structure.ts` normalize and check designations.
-- [blob references](../../../docs/primitives.md#blob-store): captures and documents carry photos and files as `BlobRef`s with declared limits. Extraction briefs and filings attach the photos they send, so the connectors can read them.
+- [blob references](../../../docs/primitives.md#blob-store): captures and documents include photos and files as `BlobRef`s with declared limits. Extraction briefs and filings attach the photos they send, so the connectors can read them.
 - three [targets](../../../docs/primitives.md#target), wired with `connectTarget`. The assignment feature owns `assignment-model`, which sends extraction offers through the [outbox](../../../docs/glossary.md#outbox) and takes readings back through its feed. `eam` sends filings and returns asset snapshots, and `export` sends filings as folders with no feed.
 - a [data provider](../../../docs/primitives.md#data-provider), `eam.asset`, for live EAM search and lookup with the integration's service account.
-- [requirement declarations](../../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`. The optional `filing-export` process carries the `export` target.
+- [requirement declarations](../../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`. The optional `filing-export` process includes the `export` target.
 - the `site`, `network`, `process`, `audit`, `compliance`, `device-link` and `workflows` [host plugins](../../../docs/primitives.md#host-plugin). Device link pairs phones and authenticates them as `device:<id>`. The application passes `FIELD_SYNC_OPERATIONS`, the device assignee operations of the assignments, as its default grant.
 - a peer API, `hubApi` in [`contracts/peer.ts`](contracts/peer.ts), listing the device assignee operations: `assignment.survey.report`, `assignment.complete` and `assignment.feed`. The field application's [worklist](../../../docs/primitives.md#worklist) declares the hub as a [peer target](../../../docs/primitives.md#peer-target) through it and checks the hub's served contract against it.
 - [capability bindings](../../../docs/primitives.md#capability-binding) on every screen, and a `compact` variant of the review queue for tablets.
@@ -300,7 +300,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
 
 5. Declare the work handed out as assignment kinds with `defineAssignmentKind` and `defineAssignments`, as `contracts/kinds.ts` does, following the [assign-work skill](../../../packages/assignments/skills/assign-work/SKILL.md). A kind with the `target` assignee type replaces a hand-written target for a service that does the work, such as the model.
 6. Declare each other capability with `defineCapability`, as `contracts/operation.ts` does, following the [add-capability skill](../../../packages/runtime/skills/add-capability/SKILL.md). In an application created with `scaffold new`, run the command below.
-   - `blobs` limits on capabilities that carry photos;
+   - `blobs` limits on capabilities that include photos;
    - `integration: { target, delivery: 'outbox' }` on each command that enqueues an effect for a target from step 4;
    - `ui.exception` on capabilities without a screen binding.
 
@@ -416,7 +416,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
 - **Feed of a manager.** A manager's own `assignment.feed` lists only work sent to that manager, which is empty unless a survey names the manager. A viewer's feed is refused.
 - **Held effects.** None of the connectors reports an uncertain outcome, and the example composes no [reconciliation capabilities](../../../docs/systems-of-record.md). A replacement connector that reports uncertainty leaves effects held, with no capability here to complete or release them.
 - **Roles.** Members and roles are set when a workspace is created, with the owner as the only manager by default. No capability adds a person or changes a role.
-- **Agent definitions.** The three modules carry workflow text, but the example declares no agent definition and has no agent scenario.
+- **Agent definitions.** The three modules include workflow text, but the example declares no agent definition and has no agent scenario.
 - **Scheme tables.** `contracts/schemes.ts` labels common class letters and device numbers only. An unknown letter or number is valid syntax without a label.
 - **Export directory.** The export folder has been written by the worker in `test/export.test.ts` only, not on a site.
 

@@ -61,7 +61,7 @@ The plugin emits:
 - one span per completed delivery (`deliver <target>`), a child of the command that enqueued it;
 - one span per run (`run`), the parent of the commands the run issued.
 
-Trace and span IDs are SHA-256 digests of correlation, effect and run IDs. The resource carries `service.name`, which is the application ID, and `service.instance.id`.
+Trace and span IDs are SHA-256 digests of correlation, effect and run IDs. The resource includes `service.name`, which is the application ID, and `service.instance.id`.
 
 ### Data rules
 

@@ -12,7 +12,7 @@ A [terminal](../../../../docs/glossary.md#terminal) is a principal whose screen 
 - Decide which principals are terminals. The local owner always is. A tablet's principal is listed in `station-sign-in-terminals`.
 - Decide how long a session lasts (`station-sign-in-minutes`, 15 by default) and how long the terminal may sit idle before it signs the operator out (`idleMs`, two minutes by default).
 - Make every person who signs in a member under the application's policy, with the role their work needs. The operator acts with their own permissions, never the terminal's. A scaffolded application sets members only when its workspace is created, so give the application a default member list, as `benchMembers` does in the sign-in pattern, and delete a development `.workspace` made before it.
-- A badge value that is also a business identifier, such as an employee number stored on a record, is no secret, so the PIN and the lockout carry the sign-in.
+- A badge value that is also a business identifier, such as an employee number stored on a record, is no secret, so the PIN and the lockout are the secret parts of sign-in.
 - Write the badge format as a regular expression. A scan that does not match it shows "Not a badge".
 - `showcase/patterns/sign-in` composes the plugin and its screens at a lab bench, with a technician and a viewer.
 

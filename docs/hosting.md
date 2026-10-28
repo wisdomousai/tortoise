@@ -1,6 +1,14 @@
 # Hosting
 
-An [instance](glossary.md#instance) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay.
+An [instance](glossary.md#instance) is one application opened on one [workspace](glossary.md#workspace). On a server, the workspace is a Postgres database under a [workspace lease](glossary.md#workspace-lease). That process is a [hosted instance](glossary.md#hosted-instance).
+
+A [site](glossary.md#site) is a plant, an office, or a customer location where a host runs under a deployment policy. A [fleet](glossary.md#fleet) is an application that sites report to. A site sends:
+
+- enrollment
+- health
+- signed releases
+- forwarded audit events
+- relayed remote access
 
 ## Concepts
 
@@ -12,7 +20,7 @@ Terms: [hosted instance](glossary.md#hosted-instance), [workspace lease](glossar
 
 ### Workspace lease and fence
 
-An instance takes the workspace's lease when it is free or expired. Each new holder's fence is one larger than the last holder's. While another holder's lease is live, a second instance is refused with `CONFLICT`. The lease lasts 30 seconds without a renewal, and the instance renews it every third of that time. Expiry uses the database's clock, so hosts with skewed clocks agree on it.
+An instance takes the workspace's lease when it is free or expired. Each new holder's fence is one larger than the last holder's. While another holder's lease is live, a second instance is refused with `CONFLICT`. The second instance does not commit to that workspace. The lease lasts 30 seconds without a renewal, and the instance renews it every third of that time. Expiry uses the database's clock, so hosts with skewed clocks agree on it.
 
 Every commit checks the fence inside its own transaction. The Postgres [storage](glossary.md#storage) adapter first takes a transaction-scoped advisory lock on the workspace key, so commits to one workspace run one at a time across every connection. It then checks the fence, and only then whether another host committed since its cached snapshot. The fence check takes a share lock on the lease row, so a takeover waits for a commit in progress.
 
@@ -93,9 +101,9 @@ The fleet credential goes only to the fleet. The network port's `fleet` client r
 
 ### Relay
 
-The relay forwards a remote-access request to the host's own address, under `/api/v1/` only. It passes an allow-list of headers each way: cookies never go in, and `set-cookie` never comes out. The relay adds no credential and never follows a redirect. It polls the fleet instead of holding a stream open, forwards one request at a time with bodies up to 1 MiB, and carries no event streams.
+The relay forwards a remote-access request to the host's own address, under `/api/v1/` only. It passes an allow-list of headers each way: cookies never go in, and `set-cookie` never comes out. The relay adds no credential and never follows a redirect. It polls the fleet instead of holding a stream open, forwards one request at a time with bodies up to 1 MiB, and includes no event streams.
 
-A relayed request reaches a capability only with a [session](glossary.md#session) the site issued, for example through workforce sign-in. The site's identity port and policy check that session like any other caller's. The site refuses the fleet credential as a session, and the fleet agent test gets 403 for a request carrying it. `scripts/boundary-rules.ts` lists the relay as a reviewed exemption from the [egress guard](glossary.md#egress-guard), because its only target is the host itself.
+A relayed request reaches a capability only with a [session](glossary.md#session) the site issued, for example through workforce sign-in. The site's identity port and policy check that session like any other caller's. The site refuses the fleet credential as a session, and the fleet agent test gets 403 for a request that includes it. `scripts/boundary-rules.ts` lists the relay as a reviewed exemption from the [egress guard](glossary.md#egress-guard), because its only target is the host itself.
 
 ### Fleet application
 
@@ -105,7 +113,7 @@ Only workspace members pass the fleet's caller gate. Operators update sites, pub
 
 The fleet checks that a release's manifest is a bundle manifest and that the uploaded blobs are exactly its files, by digest and size. Each site checks the signature against its own trusted keys before staging, and the fleet does not judge it. A compromised fleet can withhold releases but cannot install one.
 
-Each forwarded audit event must carry the next sequence number, link to the hash of the event before it, and match its own hash. The first event that fails stops collection for that site and records the reason, which the health screen shows. No capability resumes collection from the site's current head, so a broken chain stays broken. The fleet keeps the newest 1,000 events per site, and the site's own log keeps them all.
+Each forwarded audit event must include the next sequence number, link to the hash of the event before it, and match its own hash. The first event that fails stops collection for that site and records the reason, which the health screen shows. No capability resumes collection from the site's current head, so a broken chain stays broken. The fleet keeps the newest 1,000 events per site, and the site's own log keeps them all.
 
 The health screen lists sites in any of these states:
 

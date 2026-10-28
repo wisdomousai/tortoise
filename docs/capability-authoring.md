@@ -1,6 +1,13 @@
 # Capability authoring
 
-Domain behavior enters an application as a capability, written from the contract through the handler and policy rule to the tests. The `field-service` example is the worked reference.
+A [capability](glossary.md#capability) is a command or query declared once. Authoring one capability follows this order:
+
+1. the contract
+2. the handler
+3. the policy rule
+4. the tests
+
+The `field-service` example is the worked reference.
 
 ## Concepts
 
@@ -168,7 +175,7 @@ A module declares what it reaches outside the process as [requirement declaratio
 - exchange folders, each with a purpose, access and data classes;
 - devices and child processes, each with a purpose and availability.
 
-A network destination that carries an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows.
+A network destination that includes an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows.
 
 ## Screen binding
 

@@ -27,7 +27,7 @@ The example is one [application](../../../docs/primitives.md#application), targe
   - the `intent` handler `node.from-tag` takes `dev.agentnative.survey.action.FIND_TAG` with a `tag` extra from an RFID reader or the plant's maintenance app, and opens `tag:<tag>`. The application lists `tag` among its selectable resources with `field.tag.get`, so the device checks the read before a screen opens;
   - the `intent` action `node.work-request` starts `com.example.maintenance` with the node's designation, name and the capture note;
   - the `share` action `capture.share` shares a capture's summary as text;
-  - the `notify` action `assignment.notice` carries the `assignment-notices` outbox target. The worklist's `onReceived` hook enqueues a notice for each survey the feed brings for the first time.
+  - the `notify` action `assignment.notice` includes the `assignment-notices` outbox target. The worklist's `onReceived` hook enqueues a notice for each survey the feed brings for the first time.
 - seven [host plugins](../../../docs/primitives.md#host-plugin):
   - `hub-link` pairs the device and is its network port;
   - `os` serves the declarations, `share-target` the share action, `notifications` the notice, and `android-intents` the intents. Android intents is composed on iOS too, because startup refuses declared intents without it; there the work request is refused;
@@ -298,7 +298,7 @@ The device side uses no fake system of record. The tests run the real hub on loo
 - **Refused captures.** A capture the hub refuses stays on the device with the hub's reason. No capability sends it again.
 - **Scanner profile.** The profile is a constant in `ui-native/shared.tsx`. Another scanner app needs a code change and a new build.
 - **Scan match.** A scan opens the Capture screen only when it matches exactly one node. Otherwise it only fills the search field.
-- **Brief photos.** A survey's brief carries no photos or documents, because the feed pull downloads no blobs.
+- **Brief photos.** A survey's brief includes no photos or documents, because the feed pull downloads no blobs.
 - **Delivery order.** The dispatcher continues past an effect that is in backoff or whose delivery just failed. A done mark can then reach the hub before an earlier capture, which the hub still accepts.
 - **Device storage.** Delivered captures and their photo blobs stay on the device. No capability removes them.
 - **Foreground delivery.** Delivery and sync loops run only while the application is in the foreground. In the background the OS decides when one bounded pass runs, and iOS runs it rarely.

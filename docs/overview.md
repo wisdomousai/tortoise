@@ -1,6 +1,31 @@
 # Overview
 
-The framework builds applications that run at the [point of work](glossary.md#point-of-work): on a workstation PC, a site server or a phone next to the equipment. An application takes input from operators, scanners, instruments, plant signals and workstation applications, and commits each change to a local [workspace](glossary.md#workspace). The application delivers the changes to the [systems of record](glossary.md#system-of-record) that own the enterprise data, such as an ERP, an MES or a quality system. Each [capability](glossary.md#capability) is declared once and reached from the application's screens, HTTP, MCP and the CLI. The repository is a reference architecture.
+The [framework](glossary.md#framework) builds an [application](glossary.md#application) that runs at the [point of work](glossary.md#point-of-work). The point of work is one of these places:
+
+- a station PC
+- a server at a [site](glossary.md#site)
+- a phone next to the equipment
+
+The input recorded there comes from one of:
+
+- an operator
+- a device
+- station software
+
+A site is a plant, an office, or a customer location. The [host](glossary.md#host) there runs under one [deployment policy](glossary.md#deployment-policy).
+
+An application commits each change to a local [workspace](glossary.md#workspace). A workspace is the directory or database that holds the application's records. The application then delivers the change to a [system of record](glossary.md#system-of-record). A system of record decides whether it accepts the change. It is one of:
+
+- an ERP
+- an MES
+- a quality system
+
+A [capability](glossary.md#capability) is a command or query declared once. These call it:
+
+- the application's screens
+- HTTP
+- MCP
+- the CLI
 
 ## Concepts
 

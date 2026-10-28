@@ -1,6 +1,6 @@
 # State and reactivity
 
-Commands change a workspace, queries read it, and screens stay current through the journal.
+A [command](glossary.md#command) is a write of the records in a [workspace](glossary.md#workspace). A workspace is the directory or database that holds those records. A [query](glossary.md#query) reads the workspace. Open [screens](glossary.md#screen) follow the [journal](glossary.md#journal) and show the committed change. The journal is the record of committed commands.
 
 ## Concepts
 
@@ -22,7 +22,7 @@ Any failure rolls everything back. A handler that changes state without declarin
 
 ## Revisions
 
-A command increments the revision of each resource it declares changed. A commit gives each resource one revision and one journal entry, even when several [nested calls](glossary.md#nested-call) of the command declared it; the entry carries the type and operation of the innermost one. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
+A command increments the revision of each resource it declares changed. A commit gives each resource one revision and one journal entry, even when several [nested calls](glossary.md#nested-call) of the command declared it; the entry includes the type and operation of the innermost one. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
 
 ## Snapshots and storage
 
@@ -34,7 +34,7 @@ Receipts and journal entries commit with the state, so a crash after commit but 
 
 ## Live queries
 
-A live query follows the journal from the cursor its query returned, so nothing is missed between the read and the follow. A journal entry carries the resource, type, revision and operation ID, never record contents. Delivery includes an entry only when the caller's grant and read policy allow it. Cursors are per-workspace integers. Over HTTP each cursor becomes an encrypted string bound to the session. Clients pass the string back and do not compare or construct the string.
+A live query follows the journal from the cursor its query returned, so nothing is missed between the read and the follow. A journal entry includes the resource, type, revision and operation ID, never record contents. Delivery includes an entry only when the caller's grant and read policy allow it. Cursors are per-workspace integers. Over HTTP each cursor becomes an encrypted string bound to the session. Clients pass the string back and do not compare or construct the string.
 
 The stream sends a reset instead of changes when:
 

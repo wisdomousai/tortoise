@@ -14,7 +14,7 @@ The [execution host](../../../../docs/glossary.md#execution-host) runs an agent'
 - List the [destinations](../../../../docs/glossary.md#destination) the tools must reach, such as a model API. The manifest declares each one, and the [deployment policy](../../../../docs/glossary.md#deployment-policy) binds it.
 - A sandbox without destinations has no network except the host API.
 - `showcase/patterns/sandbox` runs a tool that reads and records through the application CLI, started from a plugin route as the signed-in caller.
-- Decide who the sandbox acts as. Its context must carry a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`. The sandbox can then call only what the agent definition allows.
+- Decide who the sandbox acts as. Its context must include a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`. The sandbox can then call only what the agent definition allows.
 
 ## Steps
 

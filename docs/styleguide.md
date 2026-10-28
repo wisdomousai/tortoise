@@ -22,7 +22,7 @@ The subject of a sentence is a component, a file, a command, or a role the softw
 - Call the repository the repository or the project, never "this checkout".
 - A procedure is a numbered list of imperatives: Run, Set, Open. The imperative names no addressee.
 - Link a skill by name. Do not write "Coding agents follow".
-- The root README's first paragraph states why the project exists. Every other paragraph follows these rules.
+- The root README's first paragraph says what the software is. The first sentence names it. The following sections name the parts in the order a reader meets them: application, host, workspace, commands, other systems, site and builds.
 
 ## Pronouns
 
@@ -33,7 +33,7 @@ The subject of a sentence is a component, a file, a command, or a role the softw
 
 ## Page types
 
-Every page has one of the types below and keeps that type's section order. The root README is the site home. `AGENTS.md` holds the project instructions. Both keep the current sections.
+Every page has one of the types below and keeps that type's section order. The root README is the site home and keeps the sections named under [Voice](#voice), then layers, first run, verification, scope, guides and references. `AGENTS.md` holds the project instructions and keeps its current sections.
 
 ### Guide
 
@@ -74,7 +74,7 @@ A skill is a task guide. It keeps its frontmatter and these sections: a first pa
 
 ### Ledger
 
-`implementation-status.md` records evidence that `bun run check` cannot produce: browser, device, live and by-hand runs. Each entry names its evidence kind, carries a date, and states what ran and what it showed. The ledger has no narrative and no design discussion.
+`implementation-status.md` records evidence that `bun run check` cannot produce: browser, device, live and by-hand runs. Each entry names its evidence kind, has a date, and states what ran and what it showed. The ledger has no narrative and no design discussion.
 
 ## Sentences
 
@@ -92,16 +92,25 @@ After:
 
 > A command enqueues an effect on a resource it changed. The effect commits in the same transaction as the state change, the receipt and the journal entry. A replayed command returns its stored receipt and does not run the handler again, so it enqueues no second effect. The system of record can deduplicate on the effect ID, which stays the same across delivery attempts.
 
+## Restrictions
+
+A restriction names the condition, the result, and what that result prevents.
+
+`CONFLICT` on opening a workspace means a second process tried to write the file. One process holds the OS lock and writes the SQLite file. Other programs connect to that process.
+
+The restriction sits in the section about that mechanism. The heading names the mechanism.
+
 ## Paragraphs
 
 - The first sentence states the point. The rest support it.
 - Five sentences at most.
 - A paragraph explains one thing. Two topics are two paragraphs.
+- A paragraph states one mechanism. Separate decisions are separate sentences, or a bullet list. Do not join them with a semicolon.
 - Short sentences do not mean more words. A page states each fact once and does not restate the glossary. A rewrite that grows past the original by more than a third has added facts or repeated itself. The diff shows which.
 
 ## Lists and tables
 
-- Four or more items in one sentence become a list when the sentence is longer than 30 words. Four or five short nouns in a short sentence stay in the sentence.
+- Three or more items in one sentence become a bullet list.
 - A list item is at most two sentences. In a definition list, each item starts with the term it defines, in bold.
 - Items in a list are parallel: all nouns, all imperatives or all sentences.
 - A table has at most four columns. A cell holds a phrase or one sentence of at most 20 words.
@@ -126,7 +135,7 @@ After:
 - A heading has no count, contrast, question, verb, slogan or subtitle after a colon or dash.
 - A heading names the topic of the section below it and nothing else.
 - Headings are unique on a page.
-- Procedures are numbered lists under one heading. Headings carry no numbers.
+- Procedures are numbered lists under one heading. A heading has no number.
 
 Before:
 
@@ -142,7 +151,7 @@ After:
 
 - The [glossary](glossary.md) defines the terms. Use the canonical form on every page.
 - A bare word on a glossary `Do not use:` line is wrong in every sense this repository uses. An entry with a qualifier in parentheses is wrong only in that sense.
-- The first use of a term on a page links to its glossary entry or to the page that owns the concept.
+- The first use of a term on a page links to its glossary entry or to the page that owns the concept. The sentence that introduces the term says what it means. A link does not replace that sentence. A later page links to the entry and does not restate the definition. The sentence still names the file, command, or role.
 - A code identifier is in backticks and does not replace the concept's name. Write "the dispatcher claims the effect" instead of "`claimEffect` runs".
 - Abbreviations are written out on first use on a page, except the ones the glossary lists:
   - interfaces and protocols: CLI, MCP, API, UI, HTTP, SSE, TLS, mTLS, OIDC, PKCE, OPC UA, MQTT, OTLP;
@@ -169,6 +178,18 @@ Delete:
 - an aphorism, a slogan, or a sentence whose work is a contrast, and state what does the work;
 - a scene or a motive, including "suits", "often", "proves nothing", "neither", and "looks enforced while it is ignored".
 
+Before:
+
+> Such an application runs at the edge in two senses: at the last step before the physical work, and far from corporate IT governance. Tortoise is a framework for applications that each serve one task for a limited time. Each build carries a best-before date.
+
+After:
+
+> Tortoise is the framework in this repository. The starter runs the one application named in `app.config.json`.
+>
+> A site is a plant, an office, or a customer location where the host runs under a deployment policy.
+>
+> The manifest sets a shelf life in days. The best-before date is the build date plus the shelf life. The host shows that date.
+
 The exact phrases, matched without regard to case:
 
 ```text
@@ -176,8 +197,10 @@ shapes the design, in other words, put differently, note that, it is worth notin
 it is worth mentioning, importantly, crucially, the point is, simply, of course,
 needless to say, at its core, at its heart, under the hood, battle-tested, seamless,
 robust, powerful, elegant, leverage, delve, tapestry, journey, first-class,
-out of the box, ", or nothing", never stands in for
+out of the box, ", or nothing", never stands in for, carries
 ```
+
+- Do not write "carries", "carry", or "carrying" for a field, a date, or a payload. Write has, includes, contains, or records.
 
 Identifiers, capability IDs, UI copy and prose use the word the industry or plain engineering uses for the thing. A coined metaphor is renamed. These words are banned in names and prose, matched as whole words without regard to case:
 

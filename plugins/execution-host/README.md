@@ -12,7 +12,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`. Li
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `executionSandbox({ id, description, network? })` declares one sandbox as a process whose executable is `bwrap`, with the [destinations](../../docs/glossary.md#destination) it may reach.
 - [Process port](../../docs/primitives.md#process-port): every sandbox starts through it. The [deployment policy](../../docs/glossary.md#deployment-policy) therefore binds and can pin the bwrap executable, and the start is audited like any child.
 - [Egress guard](../../docs/primitives.md#egress-guard): a sandbox that declares destinations gets the CONNECT proxy, with the per-process credential the network port issues.
-- [Execution context](../../docs/primitives.md#execution-context): a task's context must carry a delegated grant. The run's token ends when the grant or the run ends.
+- [Execution context](../../docs/primitives.md#execution-context): a task's context must include a delegated grant. The run's token ends when the grant or the run ends.
 - [Host plugin](../../docs/primitives.md#host-plugin): the plugin's `authenticate` hook handles the tokens it issued.
 - [Audit log](../../docs/primitives.md#audit-log): `sandbox.started` and `sandbox.exited` records with the run's [principal](../../docs/glossary.md#principal) and run ID.
 

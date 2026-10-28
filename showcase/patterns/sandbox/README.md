@@ -49,7 +49,7 @@ The `result-analysis` routes act as the signed-in caller. The run route builds t
 
 The sandbox holds the tool, Bun and the paths `analysisReadOnly` lists: the installed packages, `packages/` and the pattern's `tools/` directory. It does not see the rest of the checkout, because the workspaces of patterns and examples hold their owners' connection files. An owner's token would act outside the run's grant. The sandbox declares no destinations, so it reaches only the host's API.
 
-`analysisRun` comes from the caller's context, which the token carries, so the tool cannot claim a run. Statistics a technician enters by hand record no run.
+`analysisRun` comes from the caller's context, which the token includes, so the tool cannot claim a run. Statistics a technician enters by hand record no run.
 
 ## Dependencies
 

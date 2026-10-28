@@ -50,7 +50,7 @@ This plugin puts hardware [drivers](../../docs/glossary.md#driver) in any langua
 
 An application declares its driver contracts once and passes the same list to the manifest and the application definition:
 
-- **Manifest:** `driverPluginManifest(contracts)` adds the `driver.status.get` query, one agent workflow per driver and one host component per driver. Each workflow names each action's delivery mode and risk level. Each component declares the driver's process, devices and network, and the process carries the outbox target named after the contract.
+- **Manifest:** `driverPluginManifest(contracts)` adds the `driver.status.get` query, one agent workflow per driver and one host component per driver. Each workflow names each action's delivery mode and risk level. Each component declares the driver's process, devices and network, and the process includes the outbox target named after the contract.
 - **Application definition:** it lists `processPlugin` and `createDriverPlugin({ contracts })`. The driver plugin requires the process plugin.
 - **Screens:** it lists `driverScreens`, the status screen at `/drivers`.
 - **`connect`:** it wires each driver with the steps below.
@@ -98,7 +98,7 @@ The host gates every action before the driver sees it:
 - an `operator-present` action needs `presence.confirmedBy` in its input;
 - while the contract's control field shows local control, actions wait.
 
-The connector reads the [bridge mode](../../docs/glossary.md#bridge-mode) from the application's `control` for each action, and that `action.invoke` carries the mode. A driver built with an SDK refuses too, so both sides enforce the mode. A driver starts in monitor-only at its handshake.
+The connector reads the [bridge mode](../../docs/glossary.md#bridge-mode) from the application's `control` for each action, and that `action.invoke` includes the mode. A driver built with an SDK refuses too, so both sides enforce the mode. A driver starts in monitor-only at its handshake.
 
 An action in flight when the driver exits, times out or is cancelled fails transiently and does not count as rejected. Its delivery mode then decides what happens:
 

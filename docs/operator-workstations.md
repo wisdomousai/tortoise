@@ -88,7 +88,7 @@ Each procedure declares a risk level:
 | --- | --- |
 | `none` | No machine motion. |
 | `low` | Changes settings, with no motion. |
-| `operator-present` | The effect payload must carry a confirmation that a person is at the station. |
+| `operator-present` | The effect payload must include a confirmation that a person is at the station. |
 
 Driver actions use the same bridge modes and risk levels, as the hardware drivers [interlock](hardware-drivers.md#interlock) describes. In `winding-line`, only a supervisor at the station may change the bridge mode. A supervisor can pause actuation at any time, and pending effects then wait visibly.
 
@@ -133,7 +133,7 @@ Each source of an [observation](glossary.md#observation) implements the [extract
 3. OCR and vision on screen pixels, through local models.
 4. Audio, for example to classify alarm horns or spoken notes.
 
-Every reading carries its value, confidence, extractor, model identity, observation time and frame digest. A reading becomes current only after it agrees across the field's configured number of consecutive frames. A stable reading below the field's minimum confidence creates an attention item and does not update state. The operator confirms or corrects it with a large button, and its provenance becomes `operator-verified`.
+Every reading includes its value, confidence, extractor, model identity, observation time and frame digest. A reading becomes current only after it agrees across the field's configured number of consecutive frames. A stable reading below the field's minimum confidence creates an attention item and does not update state. The operator confirms or corrects it with a large button, and its provenance becomes `operator-verified`.
 
 Local inference keeps frames on site. These [screen recognizers](glossary.md#screen-recognizer) ship:
 
@@ -159,7 +159,7 @@ When the vendor updates the workstation application or a model changes, the [gol
 
 ## Automation route
 
-A workstation application that has an automation interface can be reached through a driver instead of its screen. The [driver contract](glossary.md#driver-contract) carries the fields the station profile reads and the same procedures, with the same preconditions, readback and risk levels. Its bridge runs as the same station principal, with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route.
+A workstation application that has an automation interface can be reached through a driver instead of its screen. The [driver contract](glossary.md#driver-contract) includes the fields the station profile reads and the same procedures, with the same preconditions, readback and risk levels. Its bridge runs as the same station principal, with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route.
 
 The driver's `control` field takes the place of the screen's local input check. The bridge mode and the control holder are checked for the driver as for the screen. `winding-line` configures each workstation on one route. Its automation driver is written in C# against the workstation application's COM server, as the hardware drivers [examples](hardware-drivers.md#examples) describe.
 

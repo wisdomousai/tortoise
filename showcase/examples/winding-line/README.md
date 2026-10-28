@@ -66,7 +66,7 @@ Counters on the fake HMI are pixel-only. They need one of these:
 
 ### Automation route
 
-A station whose software has an automation interface, such as a vendor COM server, can be reached through it instead of its screen. The `station-automation` contract carries the screen profile's fields and the same `recipe.load` procedure, with the same precondition, readback and risk level. The driver bridge uses the screen bridge's principal, grant, target, commands and control query. Domain handlers, contracts and screens are the same on both routes.
+A station whose software has an automation interface, such as a vendor COM server, can be reached through it instead of its screen. The `station-automation` contract includes the screen profile's fields and the same `recipe.load` procedure, with the same precondition, readback and risk level. The driver bridge uses the screen bridge's principal, grant, target, commands and control query. Domain handlers, contracts and screens are the same on both routes.
 
 - The observer reads the driver's state into `line.observation.ingest`. The contract stands where the screen profile stands, `screen` is null, and the `control` field becomes `localInput`.
 - The connector delivers `legacy-hmi:<station>` effects to the driver. It sends nothing while the operator holds control or the station is under local control, and the mode must allow the risk level.
@@ -232,7 +232,7 @@ Starting an order changes the workstation application, so the effect goes to the
 
 1. An operator scans or picks a released order and holds the start button in `ui/station/order-task.tsx`. The client calls `line.order.start`.
 2. The policy requires an operator or supervisor at the station and refuses delegated callers. The handler in `handlers/production.ts` refuses an order that is not released there, a load already pending, or a fresh reading that the machine is not stopped.
-3. The handler records the desired recipe on the station and enqueues a `recipe.load` effect on target `legacy-hmi:<station>`. The payload carries the recipe, the order and the caller as `presence.confirmedBy`.
+3. The handler records the desired recipe on the station and enqueues a `recipe.load` effect on target `legacy-hmi:<station>`. The payload includes the recipe, the order and the caller as `presence.confirmedBy`.
 4. The station bridge's dispatcher in `bridge.ts` delivers effects for that target to the screen connector. The connector rejects the effect at once if the procedure needs a person present and the payload names none.
 5. The connector reads `line.control.get`. Effects stay pending while the operator holds control, in `monitor-only` mode, or in `assist` mode for a procedure above risk level `none`.
 6. The connector accepts at once if the screen already shows the recipe. It requires the start screen, and it rejects with `PRECONDITION` when the machine is not stopped.

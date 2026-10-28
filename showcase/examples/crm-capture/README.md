@@ -15,7 +15,7 @@ The example is one [application](../../../docs/primitives.md#application). It co
 - two [data providers](../../../docs/primitives.md#data-provider), `crm.account` and `crm.contact`, declared in [`contracts/providers.ts`](contracts/providers.ts). Each becomes a `search` and a `lookup` [remote query](../../../docs/primitives.md#remote-query) in the [catalog](../../../docs/primitives.md#catalog), so the screen, MCP, the CLI and HTTP call the same capability.
 - a [module](../../../docs/primitives.md#module) of local `crm.*` [capabilities](../../../docs/primitives.md#capability) for followed accounts, activities and sync status.
 - follow requests and activity forwarding through [outbox effects](../../../docs/primitives.md#outbox-effect), a [dispatcher](../../../docs/primitives.md#dispatcher) and [inbound sync](../../../docs/primitives.md#inbound-sync). They are declared once as a [target](../../../docs/primitives.md#target) in `contracts/target.ts` and wired with `connectTarget`.
-- a [requirement declaration](../../../docs/primitives.md#requirement-declaration) for the `crm-api` destination, which carries both the outbox target and the remote reads.
+- a [requirement declaration](../../../docs/primitives.md#requirement-declaration) for the `crm-api` destination, which includes both the outbox target and the remote reads.
 - the `site`, `network`, `audit` and `compliance` [host plugins](../../../docs/primitives.md#host-plugin). The screens compose the compliance plugin's Compliance screen, and the plugin adds the `compliance.*` queries.
 - [capability bindings](../../../docs/primitives.md#capability-binding): `remoteInfiniteQueryOptions` for the paged search box, `liveQueryOptions` for followed accounts and `useCapabilityForm` for activities.
 
@@ -58,7 +58,7 @@ Both providers declare `caller-or-service`. A caller with a CRM login searches w
 
 Policy projection runs on the result in both cases. The runtime authorizes again after the CRM responds, so a revocation during the call drops the result.
 
-Page cursors are bound to the search text and the CRM login that produced them. The owner's login cannot continue a page the service account fetched, and no cursor carries over to another search. The CRM refuses both with `INVALID_INPUT`. Region scoping runs on every page. A service-account page can therefore come back short or empty while `next` still points further.
+Page cursors are bound to the search text and the CRM login that produced them. The owner's login cannot continue a page the service account fetched, and no cursor applies to another search. The CRM refuses both with `INVALID_INPUT`. Region scoping runs on every page. A service-account page can therefore come back short or empty while `next` still points further.
 
 Search input goes to the CRM. Results go to the caller and are never stored or journaled. The [audit log](../../../docs/glossary.md#audit-log) records the target, status, identity and item count, and leaves out the query and the rows. CRM error text does not reach the caller, except an `UNAVAILABLE` message the source marked as safe.
 
@@ -155,7 +155,7 @@ Paths in this section are relative to the example directory unless they start wi
 1. The search screen debounces the input by 250 ms, keeps the previous result on screen while the next one loads, aborts the superseded request down to the source on every keystroke, and calls `crm.account.search` or `crm.contact.search` through `live.remoteInfiniteQueryOptions` (`ui/search.tsx`). MCP, the CLI and HTTP call the same queries.
 2. The runtime authorizes the query in a read snapshot and builds the source request from the input (`packages/runtime/src/application/remote-queries.ts`). Policy admits members to the provider queries and limits the integration principal to its allowlist (`policy.ts`).
 3. Outside any transaction, the runtime calls the `crm` source with the caller's context. The caller's cancellation or a 10-second deadline aborts the call.
-4. The remote source uses the principal's own CRM login, else a service credential, because both providers declare `caller-or-service` (`packages/integration/src/remote-source.ts`). A delegated agent's context carries the principal of the person who delegated it.
+4. The remote source uses the principal's own CRM login, else a service credential, because both providers declare `caller-or-service` (`packages/integration/src/remote-source.ts`). A delegated agent's context includes the principal of the person who delegated it.
 5. The fake CRM keeps what that credential may see: owned or public accounts for a login, all accounts for a service credential (`fake-crm.ts`). It returns five matches per page by default, and its `next` cursor names the query, the search text and the CRM identity behind the credential (`fake-crm/cursor.ts`).
 6. In a fresh snapshot, the runtime authorizes again and runs the item mapper (`handlers/providers.ts`). The mapper drops malformed records and records outside the caller's regions and sets `local`, and the runtime then projects, validates and authorizes once more.
 7. The result holds `items`, `next` and a `source` status with the target, the time of the response and the identity, and nothing is stored. `ui/search/source-line.tsx` shows where and when the result came from and which identity the search ran as. The audit record keeps the target, status, identity, item count and whether more pages exist (`packages/runtime/src/application/queries.ts`).
@@ -164,7 +164,7 @@ Paths in this section are relative to the example directory unless they start wi
 
 ## Follow and activity flow
 
-Following is a domain command, because what following a record means depends on the domain, and the data provider does not generate it. Record content always comes from the [integration principal](../../../docs/glossary.md#integration-principal). The caller cannot supply it, and an `EffectOutcome` never has to carry a record.
+Following is a domain command, because what following a record means depends on the domain, and the data provider does not generate it. Record content always comes from the [integration principal](../../../docs/glossary.md#integration-principal). The caller cannot supply it, and an `EffectOutcome` never has to include a record.
 
 1. `crm.account.follow` returns the stored status without a new effect when the account is already requested or following (`handlers/capture.ts`). Otherwise it enqueues an `account.follow` effect on `account:<id>` and stores the account as `requested`.
 2. Any member may follow any CRM ID, and a delegated caller whose grant lists resources must name `account:<id>` (`policy.ts`). The CRM decides visibility when it receives the follow request.

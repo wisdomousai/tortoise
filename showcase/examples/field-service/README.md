@@ -184,7 +184,7 @@ Example paths are relative to `showcase/examples/field-service`. Framework paths
 | `contracts.ts` | The fourteen capabilities, one workflow, the module's OS declarations, and the planner agent's module. |
 | `domain.ts` | State types and the empty slice, with tombstones for deleted tasks. |
 | `policy.ts` | Work order roles, the CASL ability, command, query and event rules, output projection. |
-| `server.ts`, `server/context.ts` | The handler list, lookups, paging and the revision-carrying result shape. |
+| `server.ts`, `server/context.ts` | The handler list, lookups, paging and the result shape that includes the revision. |
 | `handlers/` | Work orders and membership, tasks and reminders. |
 | `os.ts`, `attachments.ts` | OS declarations and the blob limits a task's file must meet. |
 | `job.ts` | The start-of-shift job, which calls the host over HTTP. |
@@ -214,7 +214,7 @@ A reminder is an outbox effect that the notifications plugin delivers to the des
 2. The handler enqueues an effect to the `task-reminders` target. Its notification payload names the caller, the category, the task title and one reply that sets the task to done.
 3. The handler records which task the effect is about and sets the task's reminder to pending. The effect commits with the command or not at all.
 4. The notifications plugin's dispatcher claims the effect as the workspace owner under a narrow delegated grant. While no desktop window or phone is attached for the notified person, the effect stays pending.
-5. The Electron main process polls the host for OS instructions with the connection-file session, which the window shares. It receives a notify instruction with a Mark done button that carries a single-use code.
+5. The Electron main process polls the host for OS instructions with the connection-file session, which the window shares. It receives a notify instruction with a Mark done button that includes a single-use code.
 6. After the relay, the dispatcher calls `task-reminders.effect.complete` with the outcome. The handler completes the effect and copies the outcome onto the task.
 7. Choosing Mark done sends a reply request to the host's shell port. The notifications plugin redeems the code once and continues with `task.set-status` as the replying person.
 8. A second report of the same choice changes nothing. The task's revision stays the same, as the reminder test in `test/os.test.ts` checks.
@@ -300,7 +300,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 21. Drop the reference with `ctx.detach` in the delete handler.
 22. Declare OS handlers and actions as an `OsDeclarations` object on the module.
 23. Append the plugins that serve the declared kinds to the lists in `application.ts` and `manifest.ts`, with `osPlugin` before `notificationsPlugin`, which requires it. The composition's `checkPlugins` refuses lists that differ in plugins or order, or that place a plugin before one it requires.
-24. Set `integration: { target, delivery: 'outbox' }` on the capability that sends a notification. A target that a queueing notify action carries needs no network destination.
+24. Set `integration: { target, delivery: 'outbox' }` on the capability that sends a notification. A target that a queueing notify action includes needs no network destination.
 25. Enqueue the notification with `ctx.enqueue`, passing `target`, `type`, `resource` and an `OsNotificationPayload` as `payload`. The payload holds the principal, the category, a title, an optional body and optional replies, as the [notifications plugin README](../../../plugins/notifications/README.md) lists.
 26. Declare a notify OS action whose `targets` list the outbox target and whose offline mode is `queue`. Give it `dataClasses` for the payload's fields and a category whose buttons name a reply handler.
 27. Declare that reply handler with `consumer: 'notifications'`.
@@ -345,7 +345,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
     bunx playwright test showcase/examples/my-app/e2e
     ```
 
-    Leave out `bun run check` and the full `bun test` in an application exported from source. The README and skill checks fail on links to examples and package scripts the export leaves out, and one compliance test fails on evidence the export does not carry.
+    Leave out `bun run check` and the full `bun test` in an application exported from source. The README and skill checks fail on links to examples and package scripts the export leaves out, and one compliance test fails on evidence the export does not include.
 
 ## Limits
 

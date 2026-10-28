@@ -39,7 +39,7 @@ The Playwright transport is typed structurally, so this package does not depend 
 
 ### Readings
 
-The screen bridge reaches the workstation application only through its ports. Each reading carries its source, model identity and digest, frame digest, time and confidence. A reading becomes current only after it is stable across consecutive reads. A low-confidence reading is submitted as `uncertain`, for a person to confirm. Unchanged content is resubmitted at most once per heartbeat window. Each submission's idempotency key fingerprints its exact payload.
+The screen bridge reaches the workstation application only through its ports. Each reading includes its source, model identity and digest, frame digest, time and confidence. A reading becomes current only after it is stable across consecutive reads. A low-confidence reading is submitted as `uncertain`, for a person to confirm. Unchanged content is resubmitted at most once per heartbeat window. Each submission's idempotency key fingerprints its exact payload.
 
 ### Controller gate
 

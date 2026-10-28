@@ -2,38 +2,94 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-Global process change is slow, so a site builds software for one task at one place. Such an application runs at the edge in two senses: at the last step before the physical work, and far from corporate IT governance, where software becomes shadow IT. It costs little to build, pays back quickly and is removed once it stops paying. A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers.
+Tortoise is the [framework](docs/glossary.md#framework) in this repository. The [starter](docs/glossary.md#starter) runs the one [application](docs/glossary.md#application) named in `app.config.json`.
 
-Tortoise is a reference architecture and [framework](docs/glossary.md#framework) for agent-native applications that each serve one task for frontline workers. The framework is the part under active maintenance; each application built on it serves one task for a limited time. People and agents operate each application together. An application declares what it reaches, records what it does in an audit log and delivers its work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. Each build carries a [best-before date](docs/glossary.md#best-before-date).
+## Application
 
-## Name
+An application is that program. It has:
 
-Tortoise is named for the animal:
+- screens
+- commands
+- the records those commands change
 
-- **Shell.** The [host](docs/glossary.md#host) wraps one application. Server code reaches the network, child processes and [exchange folders](docs/glossary.md#exchange-folder) only through the host's ports, and the host refuses whatever the [deployment policy](docs/glossary.md#deployment-policy) does not bind.
-- **Headless.** `app serve`, the CLI and the MCP bridge run the same application with no window. In [embedded mode](docs/glossary.md#embedded-mode), the MCP bridge runs the instance over stdio and listens on no network port.
-- **Sandbox.** The `sandbox` [hardening profile](docs/glossary.md#hardening-profile) refuses plain HTTP off the host and requires a fail-closed audit log. An embedded instance can run in a sandbox container whose only egress is the system of record.
-- **Stationary.** One instance owns the [workspace](docs/glossary.md#workspace), and another process that opens it fails with `CONFLICT`. The workspace is not synchronized across devices.
+## Host
 
-## Capabilities and surfaces
+The [host](docs/glossary.md#host) is the process that runs the application. It accepts the same commands from:
 
-Each [command](docs/glossary.md#command) or [query](docs/glossary.md#query) is declared once as a [capability](docs/glossary.md#capability). HTTP, MCP, the CLI and the typed React calls from the [screens](docs/glossary.md#screen) are generated from the composed [catalog](docs/glossary.md#catalog). Each of these is a [surface](docs/glossary.md#surface). The [generators](docs/glossary.md#generator) read the same catalog to write the reference documents.
+- the desktop window
+- the browser
+- the CLI
+- MCP
+- HTTP
 
-People, agents, scripts and devices call the same capabilities with the same validation and authorization. A change committed through any surface reaches every open screen through the [journal](docs/glossary.md#journal).
+Server code reaches the network only through the host. It starts a child process only through the host. It reads and writes an [exchange folder](docs/glossary.md#exchange-folder) only through the host. An exchange folder is a directory shared with another system.
 
-## Hosts
+`app serve`, the CLI and the MCP bridge run the application with no window. In [embedded mode](docs/glossary.md#embedded-mode), the MCP bridge runs the application over stdio. It listens on no network port.
 
-The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#workspace) in SQLite by default and serves the React screens. Electron wraps it on the desktop. The mobile host, built with Expo, runs an [application](docs/glossary.md#application) on Android and iOS.
+The Bun host serves the React screens. Electron wraps that host on the desktop. The mobile host, built with Expo, runs an application on Android and iOS.
+
+## Workspace
+
+A [workspace](docs/glossary.md#workspace) is the application's data. The host stores it by default as a SQLite database in one directory.
+
+One process holds an OS lock on that file and writes it. That process is the [instance](docs/glossary.md#instance). Other programs connect to the instance.
+
+A second process that opens the file for writing is refused with `CONFLICT`. Two processes cannot commit to one SQLite file.
+
+## Commands
+
+A [command](docs/glossary.md#command) is a write. A [query](docs/glossary.md#query) is a read. The application declares each one once, as a [capability](docs/glossary.md#capability).
+
+Each caller uses that declaration. The host checks validation and authorization the same way for each call.
+
+The [catalog](docs/glossary.md#catalog) is the set of those declarations. The host generates these [surfaces](docs/glossary.md#surface) from the catalog:
+
+- HTTP
+- MCP
+- the CLI
+- typed React calls from the [screens](docs/glossary.md#screen)
+
+The [generators](docs/glossary.md#generator) read the catalog and write the reference documents.
+
+A committed change reaches every open screen through the [journal](docs/glossary.md#journal). The journal is the record of committed commands.
+
+## Other systems
+
+A [system of record](docs/systems-of-record.md) decides whether it accepts a change. A system of record is one of:
+
+- an ERP
+- a quality system
+- an MES
+
+A command that updates one of them writes the local record and an [outbox effect](docs/glossary.md#effect) in one transaction. An outbox effect is the record of that change, kept for sending. The [dispatcher](docs/glossary.md#dispatcher) sends the effect after the commit.
+
+## Site
+
+A [site](docs/glossary.md#site) is a plant, an office, or a customer location where the host runs under a [deployment policy](docs/glossary.md#deployment-policy).
+
+The deployment policy is a file. It lists what the host may use:
+
+- destinations
+- folders
+- programs
+
+The host refuses anything the file does not list.
+
+A desktop install runs on one person's computer. It can use a local policy.
+
+## Builds
+
+The [manifest](docs/glossary.md#manifest) sets a [shelf life](docs/glossary.md#shelf-life) as a number of days. A production build records the time it was built. The [best-before date](docs/glossary.md#best-before-date) is the build date plus the shelf life. The host shows that date. Commands still run after the date.
 
 ## Layers and packages
 
-- the framework in `packages/*`;
-- workstation packages in `workstations/*`;
-- host plugins in `plugins/*`;
-- the starter in `apps/*`, which hosts the one application named in `app.config.json`;
-- the examples in `showcase/examples/*`, whole applications for real-world cases;
-- the patterns in `showcase/patterns/*`, one technical concern each on an oil lab's test requests for power transformers in service;
-- driver SDKs for other languages in `sdks/*`.
+- the framework in `packages/*`
+- workstation packages in `workstations/*`
+- host plugins in `plugins/*`
+- the starter in `apps/*`, which runs the one application named in `app.config.json`
+- the examples in `showcase/examples/*`, whole applications for real-world cases
+- the patterns in `showcase/patterns/*`, one technical concern each on an oil lab's test requests for power transformers in service
+- driver SDKs for other languages in `sdks/*`
 
 ## First run
 
@@ -54,15 +110,42 @@ bun run test:e2e
 bun run test:scaffold
 ```
 
-The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. `bun run check` does not run live sign-in and inference, provider eligibility or signed platform distribution.
+The framework includes:
+
+- ChatGPT plan connection code
+- Claude execution with an API key
+- AI SDK execution
+
+`bun run check` does not run:
+
+- live sign-in and inference
+- provider eligibility
+- signed platform distribution
 
 ## Scope
 
-The framework is local-first. A [hosted instance](docs/hosting.md#hosted-instance) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per instance, publication to a public registry and signed distribution are outside the framework.
+The host stores the workspace on one computer. The file stays on that computer. The framework does not copy a workspace to another device.
 
-The site decides when an application is built, kept or removed. The framework records no owner, term or approval for an application, and a release past its best-before date keeps running.
+A [hosted instance](docs/hosting.md#hosted-instance) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease).
 
-Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state.
+These are outside the framework:
+
+- managed cloud hosting
+- more than one application per instance
+- publication to a public registry
+- signed distribution
+
+The framework records none of these for an application:
+
+- an owner
+- a term
+- an approval
+
+A release past its best-before date keeps running.
+
+The `sandbox` [hardening profile](docs/security-and-compliance.md#hardening-profiles) refuses plain HTTP off the host. It requires a fail-closed [audit log](docs/glossary.md#audit-log). An audit log is the record of commands and denials. An embedded instance can run in a sandbox container. That container's only egress is the system of record.
+
+Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory. The CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state.
 
 ## Guides
 
@@ -71,19 +154,24 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 - [Architecture](docs/architecture.md)
 - [Primitives](docs/primitives.md)
 - [Glossary](docs/glossary.md)
-- [Capability authoring](docs/capability-authoring.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md) and [state and reactivity](docs/state-and-reactivity.md)
+- [Capability authoring](docs/capability-authoring.md)
+- [Interaction contract](docs/interaction-contract.md)
+- [Authorization](docs/authorization.md)
+- [State and reactivity](docs/state-and-reactivity.md)
 - [Adapters](docs/adapters.md)
 - [Systems of record](docs/systems-of-record.md)
 - [Operator workstations](docs/operator-workstations.md)
 - [Point-of-work input](docs/point-of-work-input.md)
 - [Hardware drivers](docs/hardware-drivers.md)
-- [Agents](docs/agents.md) and [providers](docs/providers.md)
+- [Agents](docs/agents.md)
+- [Providers](docs/providers.md)
 - [Hosting](docs/hosting.md)
 - [Application lifecycle](docs/application-lifecycle.md)
 - [Desktop](docs/desktop.md)
 - [Mobile](docs/mobile.md)
 - [Security and compliance](docs/security-and-compliance.md)
-- [Implementation status](docs/implementation-status.md) and its [known defects](docs/implementation-status.md#known-defects)
+- [Implementation status](docs/implementation-status.md)
+- [Known defects](docs/implementation-status.md#known-defects)
 
 ## References
 

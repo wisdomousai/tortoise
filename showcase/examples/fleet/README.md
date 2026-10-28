@@ -171,7 +171,7 @@ bun test showcase/examples/fleet
 7. An operator points a channel at the release with `channel.assign` and assigns the site to it with `site.update`. An unknown channel returns `NOT_FOUND`.
 8. When the site has trusted release keys set, it queries `fleet.site.desired`. The handler returns the release the site's channel assigns, through `desiredRelease` in [domain.ts](domain.ts).
 9. The site downloads each file from `/api/v1/blobs/sha256:<digest>`. The runtime serves a blob only when the caller may read a resource it is attached to, and the allowlist's `events` rule admits only the release the site's channel assigns.
-10. The site verifies every file and the signature against its trusted keys and stages the release ([releases.ts](../../../plugins/fleet-agent/src/releases.ts)). Its next report carries the staged release ID.
+10. The site verifies every file and the signature against its trusted keys and stages the release ([releases.ts](../../../plugins/fleet-agent/src/releases.ts)). Its next report includes the staged release ID.
 11. The `fleet.health` query computes each site's issues on every read, and the Health screen binds it as a live query. The issue kinds are these:
     - **Stale.** No report for 15 minutes.
     - **Held.** Effects held for reconciliation on the site.
@@ -244,7 +244,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
    - **Screens.** `deviceLinkScreens` from `@agent-native/device-link/plugin-screens` in the plugins of `defineScreens`.
    - **UI-binding test.** Add the device-link plugin's `ui` directory to the directories the generated test scans. Without it the test fails on the device-link capabilities from this step on.
 8. Write the policy with `definePolicy`. Add an integration allowlist whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type.
-9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that carries a session.
+9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that includes a session.
 10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`.
 11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do.
     - **Fleet.** Start it with `startHost` and a temporary deployment policy.

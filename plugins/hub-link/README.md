@@ -10,7 +10,7 @@ Plugins (`plugins/*`). Runs on Android, iOS and Bun; `src/` is portable source.
 
 - [Device link](../../docs/primitives.md#device-link): pairing, the stored credential and the `hub.pairing.*` [capabilities](../../docs/glossary.md#capability).
 - [Host plugin](../../docs/primitives.md#host-plugin): `createHubLinkPlugin`, `hubLinkPlugin`, `hubLinkPluginManifest`, `hubDestinationComponent` and `hubLinkServiceOf`. The plugin provides the network port and needs the platform's secret store. Its manifest keeps the operation namespace `hub`, because the operation IDs are the pairing protocol.
-- [Connector](../../docs/primitives.md#connector): `hubNetworkPort` and `hubOrigin` carry the peer [connector](../../docs/glossary.md#connector) (`createPeerPort` in `@agent-native/integration`) to the hub.
+- [Connector](../../docs/primitives.md#connector): `hubNetworkPort` and `hubOrigin` pass the peer [connector](../../docs/glossary.md#connector) (`createPeerPort` in `@agent-native/integration`) to the hub.
 - [Native frame](../../docs/primitives.md#native-frame): `hubLinkNativeScreens`, the pairing [screen](../../docs/glossary.md#screen) at `/hub`.
 
 ## Entrypoints

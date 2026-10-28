@@ -1,6 +1,15 @@
 # Patterns
 
-The [patterns](glossary.md#pattern) in `showcase/patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `showcase/examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `showcase/patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
+A [pattern](glossary.md#pattern) in `showcase/patterns/*` is a small application that shows one technical concern. An [example](glossary.md#example) in `showcase/examples/*` is a whole application for one real-world case.
+
+The patterns share one case. A manufacturer of power transformers has an oil lab. The lab tests samples drawn from transformers in service. `showcase/patterns/base` is the base application. A technician submits a test request for an oil sample. The request names the transformer and a description. A technician assigns the test method. Viewers read the requests.
+
+Each other pattern imports the base unchanged and adds one concern. The imported parts are:
+
+- the module
+- the handlers
+- the policy
+- the screens
 
 ## Concepts
 

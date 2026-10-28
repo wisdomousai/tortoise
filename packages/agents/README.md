@@ -15,7 +15,7 @@ Framework (`packages/*`). Server only. The host constructs harnesses with explic
   - audit: the supervisor's `onRun` observer and `runAuditRecord`, which turn a run's start and end into `run.started` and `run.ended` audit records;
   - placement: `satisfiesModel` and `chooseHarness`;
   - `RunBudget`: the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition), which the supervisor enforces.
-- [Model entry](../../docs/primitives.md#model-entry): `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation` and `activates`. `ModelDemand` carries an agent's named models into `satisfiesModel` and `chooseHarness`.
+- [Model entry](../../docs/primitives.md#model-entry): `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation` and `activates`. `ModelDemand` passes an agent's named models into `satisfiesModel` and `chooseHarness`.
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model only the captured selection and the revisions the person saw.
 - [OS action](../../docs/primitives.md#os-action): `openAiComponent` declares `openai.authorize`, the ChatGPT sign-in page the desktop opens in the system browser.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`, `OidcAccountConnection` and `ChatGptAccountConnection`.
@@ -55,7 +55,7 @@ In the AI SDK harness, some failures go back to the model as that call's result:
 
 ### Run output
 
-Text and progress stream separately from commits. Streamed text is recorded in pieces of at least 200 characters, so a reply streamed a token at a time keeps its beginning within the 256 retained events. A `tool-finish` event carries the records a command changed, from its receipt, or the code of a refusal. A refusal the harness handed back to its model does not fail the run. Partial output never turns a failed run into a success. Secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits. A restart marks unfinished runs interrupted instead of replaying them.
+Text and progress stream separately from commits. Streamed text is recorded in pieces of at least 200 characters, so a reply streamed a token at a time keeps its beginning within the 256 retained events. A `tool-finish` event includes the records a command changed, from its receipt, or the code of a refusal. A refusal the harness handed back to its model does not fail the run. Partial output never turns a failed run into a success. Secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits. A restart marks unfinished runs interrupted instead of replaying them.
 
 ### ChatGPT sign-in
 

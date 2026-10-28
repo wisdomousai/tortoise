@@ -1,6 +1,13 @@
 # Architecture
 
-Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns.
+A [capability](glossary.md#capability) is a command or query declared once. The [host](glossary.md#host) is the process that runs one [application](glossary.md#application). It serves every capability through the same [surfaces](glossary.md#surface):
+
+- HTTP
+- MCP
+- the CLI
+- the screens
+
+An [instance](glossary.md#instance) is one application opened on one [workspace](glossary.md#workspace). The instance commits each change to [storage](glossary.md#storage). A [host plugin](glossary.md#host-plugin) is a part the application composes for one cross-cutting concern.
 
 ## Concepts
 
@@ -65,7 +72,7 @@ flowchart LR
   Live --> Screens
 ```
 
-A handler receives the trusted [execution context](glossary.md#execution-context) and injected services, never a transport request. Literal operation IDs carry their types through composition into the typed client. Surface adapters still validate input at runtime.
+A handler receives the trusted [execution context](glossary.md#execution-context) and injected services, never a transport request. Literal operation IDs keep their types through composition into the typed client. Surface adapters still validate input at runtime.
 
 ## Instances and hosts
 
@@ -100,7 +107,7 @@ A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted p
 
 A CLI call or an MCP bridge with `--embedded` runs in embedded mode, and so does a phone that opens its own workspace. A CLI call with a connection file, the MCP bridge without `--embedded`, the desktop window and an attached tablet run in attached mode.
 
-An embedded CLI or MCP process takes the same OS lock as a serving host. It fails with `CONFLICT` while a live instance owns the workspace.
+An embedded CLI or MCP process takes the same OS lock as a serving host. One process holds that lock and writes the SQLite file. A second process that opens the file for writing fails with `CONFLICT`. The CLI and the MCP client connect to the running process instead.
 
 ## Storage
 
@@ -219,7 +226,7 @@ Each implements the access views from its own roles in `policy.ts`, repeating th
 
 ### Telemetry
 
-The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox), so handlers and adapters carry no metrics code. It exports through the network port to a collector on the same machine. The export carries operation, target, harness and channel IDs, fixed states, error codes, counts and durations, and digests of correlation, effect and run IDs. It carries no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).
+The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox), so handlers and adapters include no metrics code. It exports through the network port to a collector on the same machine. The export includes operation, target, harness and channel IDs, fixed states, error codes, counts and durations, and digests of correlation, effect and run IDs. It includes no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).
 
 ## Invariants
 

@@ -56,7 +56,7 @@ bun test showcase/patterns/site/
 
 - `test/site.test.ts`:
   - The real fleet application and the lab site on loopback, linked through the real network guard. The site enrolls with a one-use code and submits a test request. The next cycle reports an empty outbox, the forwarded audit events include the submission, and the fleet reports no health issues.
-  - A signed bundle carrying a 40 MiB stand-in binary, published with `publishRelease` to `lab-stable`. It is staged only after the site is on the channel, and the fleet then reports no drift. A site trusting another key stages nothing and records the signature refusal. A site whose binding keeps the guard's 32 MiB cap records `RESPONSE_TOO_LARGE`.
+  - A signed bundle that includes a 40 MiB stand-in binary, published with `publishRelease` to `lab-stable`. It is staged only after the site is on the channel, and the fleet then reports no drift. A site trusting another key stages nothing and records the signature refusal. A site whose binding keeps the guard's 32 MiB cap records `RESPONSE_TOO_LARGE`.
   - The committed policy passes the site check with only `FOLDER_MISSING`, and `network export` renders nftables rules that allow `10.30.0.10` on port 443 and drop the rest.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern or the base.
 

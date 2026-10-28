@@ -10,7 +10,7 @@ The called application publishes a peer API and serves it with `@agent-native/pe
 ## Before writing
 
 - List each operation the caller needs. Commands that announce or hand over work, and feeds, run as the service principal. Commands and reads that a specific person does, and that the called application's policy must decide for that person, run on behalf of the person.
-- `definePeerApi` refuses a command on behalf of a person that takes blobs. Such a call carries a grant, so a rule marked `person: true` refuses it, as it refuses any delegated caller.
+- `definePeerApi` refuses a command on behalf of a person that takes blobs. Such a call includes a grant, so a rule marked `person: true` refuses it, as it refuses any delegated caller.
 - Calls on behalf of a person that an agent or job run made on the caller are refused unless the called application passes `agents: 'allow'`. Effects record the run that enqueued them.
 - Decide how people are matched: one by one through `peer.subject.map`, or by the same principal ID when both applications sign in the same workforce (`subjects: 'same'` on the enrollment).
 

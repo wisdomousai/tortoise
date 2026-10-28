@@ -21,7 +21,7 @@ A station is reached through its screen, or through its automation interface wit
 
 ## Process binding
 
-The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration), carrying the target named after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. It gets no `PATH` or `PYTHONPATH`, and the policy may not set them, so a driver takes the programs it runs as absolute paths in the binding's environment. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
+The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration). The declaration names the target after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. It gets no `PATH` or `PYTHONPATH`, and the policy may not set them, so a driver takes the programs it runs as absolute paths in the binding's environment. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
 
 ## Protocol
 
@@ -42,7 +42,7 @@ A unit is the serial number, firmware and model the driver reports. A new sessio
 
 ## Failure kinds
 
-A driver error carries a kind, which decides what happens to the [outbox effect](glossary.md#effect). An error without a kind counts as `transient`.
+A driver error includes a kind, which decides what happens to the [outbox effect](glossary.md#effect). An error without a kind counts as `transient`.
 
 | Kind | Meaning | Outcome for the effect |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ Driver actions pass the same interlock as the screen bridge's procedures. The co
 
 The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `showcase/examples/winding-line` refuses while the operator holds [control](glossary.md#control-holder) of the station.
 
-A driver starts in `monitor-only` at its handshake. Every `action.invoke` carries the mode, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
+A driver starts in `monitor-only` at its handshake. Every `action.invoke` includes the mode, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
 
 ## Timing and rates
 
@@ -144,7 +144,7 @@ app driver list
 - **Safety:** drivers never operate safety functions. Machine guarding and safety stay with the machine and its builder, and nothing here is safety-rated.
 - **Child-process network:** the proxy environment confines HTTP and HTTPS clients only. Raw sockets that a driver opens itself, for Modbus TCP or OPC UA, are contained only by the exported OS rules; a TypeScript adapter can use the network port instead.
 - **Secrets:** a process that declares secrets needs a platform secret store. The Bun platform has none, so such a driver is unavailable there.
-- **Signing:** driver executables are pinned by hash only. A site bundle does not carry the executables. The executables get no signature and no staged activation.
+- **Signing:** driver executables are pinned by hash only. A site bundle does not include the executables. The executables get no signature and no staged activation.
 
 Not built:
 

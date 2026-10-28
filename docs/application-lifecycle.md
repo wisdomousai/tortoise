@@ -1,6 +1,17 @@
 # Application lifecycle
 
-An [application](glossary.md#application) built on the [framework](glossary.md#framework) serves one task at one [site](glossary.md#site) until the site removes it. Each build carries a best-before date that the host, `app status`, the compliance posture and the fleet show, and nothing is refused after it. Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not completed.
+An [application](glossary.md#application) is the program a [host](glossary.md#host) runs. A [site](glossary.md#site) is a plant, an office, or a customer location where that host runs under a deployment policy.
+
+The [manifest](glossary.md#manifest) sets a [shelf life](glossary.md#shelf-life) as a number of days. A production build records when it was built. The [best-before date](glossary.md#best-before-date) is the build date plus the shelf life. These show that date:
+
+- the host
+- `app status`
+- the compliance posture
+- the fleet
+
+Commands still run after the date.
+
+Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not completed.
 
 ## Concepts
 
@@ -12,7 +23,7 @@ The manifest declares the shelf life as a whole number of days, and `defineManif
 
 A build stamps the time it was made. `scripts/application-entry.ts` writes the entry that `bun run build:cli`, the desktop sidecar build and `bun run bundle create` compile, and the entry stamps the definition with the build time (`packages/kernel/src/build.ts`). A run from source has no stamp and no date. The best-before date is the build date plus the shelf life, in UTC, and it is the last day within the shelf life.
 
-`bun run bundle create` stamps the binary and the [site bundle](glossary.md#site-bundle) with the same time and signs the date into `bundle.json`. A new release therefore carries a new date, and a changed date fails verification.
+`bun run bundle create` stamps the binary and the [site bundle](glossary.md#site-bundle) with the same time and signs the date into `bundle.json`. A new release records a new date. A changed date fails verification.
 
 The date shows in these places:
 
@@ -73,7 +84,7 @@ A hosted instance delivers while it serves, and its fleet report counts what rem
 ## Limits
 
 - The framework records no owner, term, approval or renewal for an application.
-- Mobile builds carry no build stamp and no best-before date.
+- Mobile builds have no build stamp and no best-before date.
 - No desktop uninstaller removes the workspace.
 - `drain` and the purge check open a workspace directory, not a hosted workspace.
 - Records that no target receives leave the application only in a workspace backup or a copy of the data directory, with no export format of their own.
