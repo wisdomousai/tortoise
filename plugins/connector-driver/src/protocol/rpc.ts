@@ -1,4 +1,4 @@
-import { createInterface } from 'node:readline';
+import { StringDecoder } from 'node:string_decoder';
 
 /** Why a driver refused or failed a request, from the error's `data.kind`. */
 export type DriverErrorKind = 'rejected' | 'precondition' | 'transient' | 'uncertain' | 'refused';
@@ -54,6 +54,46 @@ export interface RequestOptions {
   readonly timeoutMs: number;
 }
 
+/** A longer line is dropped as malformed, so a driver cannot grow the host's memory without bound. */
+export const maxLineLength = 1 << 20;
+
+/**
+ * Newline-delimited lines from a stream, each at most `maxLineLength` characters. The rest of an
+ * oversized line is skipped up to its newline and reported once through `onOverflow`.
+ */
+function readLines(
+  input: NodeJS.ReadableStream,
+  onLine: (line: string) => void,
+  onOverflow: () => void,
+) {
+  const decoder = new StringDecoder('utf8');
+  let buffered = '';
+  let skipping = false;
+  const emit = (line: string) => onLine(line.endsWith('\r') ? line.slice(0, -1) : line);
+  input.on('data', (chunk: Buffer | string) => {
+    let text = typeof chunk === 'string' ? chunk : decoder.write(chunk);
+    for (let newline = text.indexOf('\n'); newline !== -1; newline = text.indexOf('\n')) {
+      const line = buffered + text.slice(0, newline);
+      text = text.slice(newline + 1);
+      buffered = '';
+      if (skipping) skipping = false;
+      else if (line.length > maxLineLength) onOverflow();
+      else emit(line);
+    }
+    if (skipping) return;
+    buffered += text;
+    if (buffered.length > maxLineLength) {
+      buffered = '';
+      skipping = true;
+      onOverflow();
+    }
+  });
+  input.on('end', () => {
+    const rest = buffered + decoder.end();
+    if (!skipping && rest) emit(rest);
+  });
+}
+
 interface Pending {
   resolve(value: unknown): void;
   reject(error: DriverError): void;
@@ -62,7 +102,8 @@ interface Pending {
 /**
  * JSON-RPC 2.0 over newline-delimited JSON. One request per line, replied to by id; notifications
  * have no id. Aborting a request sends `$/cancel` and rejects it at once; a late response is
- * dropped. A line that is not a JSON-RPC message goes to `onMalformed`, never to a caller.
+ * dropped. A line that is not a JSON-RPC message, or is longer than `maxLineLength`, goes to
+ * `onMalformed`, never to a caller.
  * `close` rejects everything in flight with the given error.
  */
 export function createRpcConnection(
@@ -78,7 +119,11 @@ export function createRpcConnection(
   const write = (message: object) =>
     streams.output.write(`${JSON.stringify({ jsonrpc: '2.0', ...message })}\n`);
 
-  createInterface({ input: streams.input }).on('line', (line) => {
+  readLines(streams.input, receive, () =>
+    handlers.onMalformed(`A line longer than ${maxLineLength} characters`),
+  );
+
+  function receive(line: string) {
     let message: {
       id?: unknown;
       method?: unknown;
@@ -98,7 +143,7 @@ export function createRpcConnection(
     pending.delete(message.id as number);
     if (message.error) waiting.reject(fromWire(message.error));
     else waiting.resolve(message.result);
-  });
+  }
 
   function request<T>(method: string, params: unknown, options: RequestOptions): Promise<T> {
     if (closed) return Promise.reject(closed);

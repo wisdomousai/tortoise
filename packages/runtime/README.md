@@ -19,7 +19,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant). The grant names the definition in `agent`, and a resource-scoped grant also covers the resource types the definition `creates`.
 - [Approval request](../../docs/primitives.md#approval-request):
-  - `approvalFeature` (`ApprovalFeatureOptions`): the `approval` [feature](../../docs/glossary.md#feature), with its slice (`ApprovalSlice`), an `ApprovalAccess` view the application supplies, `newId` and `now` hooks (`ApprovalHooks`), and a policy in which approve and reject are person-only;
+  - `approvalFeature` (`ApprovalFeatureOptions`): the `approval` [feature](../../docs/glossary.md#feature), with its slice (`ApprovalSlice`), an `ApprovalAccess` view the application supplies, `newId`, `now` and `request` hooks (`ApprovalHooks`), where `request` refuses a requested command's input at submission, and a policy in which approve and reject are person-only;
   - `approvalHandlers` (`ApprovalOptions`): the handlers the feature uses, over any store and visibility rule;
   - approving continues with the requested command as the approver.
 - [Approval dataset](../../docs/primitives.md#approval-dataset): `exportApprovalDataset` reads the closed approval requests a caller may see through `approval.list` and applies the `DatasetRedaction`. It returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.

@@ -21,11 +21,11 @@ A station is reached through its screen, or through its automation interface wit
 
 ## Process binding
 
-The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration), carrying the target named after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
+The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration), carrying the target named after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. It gets no `PATH` or `PYTHONPATH`, and the policy may not set them, so a driver takes the programs it runs as absolute paths in the binding's environment. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
 
 ## Protocol
 
-The host and the driver exchange JSON-RPC 2.0 messages, one per line, over the driver's standard input and output. The host drains the driver's standard error and never shows it.
+The host and the driver exchange JSON-RPC 2.0 messages, one per line, over the driver's standard input and output. A line longer than 1,048,576 characters is dropped and reported as malformed, so a driver that never ends a line cannot grow the host's memory. The host drains the driver's standard error and never shows it.
 
 | Method | Sent by | Request | Response |
 | --- | --- | --- | --- |

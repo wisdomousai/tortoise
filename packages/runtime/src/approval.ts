@@ -28,6 +28,16 @@ export interface ApprovalOptions<State, Services> {
   readonly now: (context: HandlerContext<State, Services>) => number;
   /** How long an approval request stays pending; 24 hours when omitted. */
   readonly ttlMs?: number;
+  /**
+   * Check a requested command's input against the application's records at submission, after
+   * the schema; throw `INVALID_INPUT` to refuse it, so no person is asked to approve a command
+   * the application would refuse. The command checks its input again when it runs.
+   */
+  readonly check?: (
+    operation: string,
+    input: unknown,
+    context: HandlerContext<State, Services>,
+  ) => void;
 }
 
 type Context<State, Services> = HandlerContext<State, Services>;
@@ -80,6 +90,7 @@ function submitHandler<State, Services>(
           'FORBIDDEN',
           'Delegation does not permit the requested resource',
         );
+      options.check?.(target.id, input.input, ctx);
       const now = options.now(ctx);
       const id = options.newId(ctx);
       const approval: ApprovalRequest = {

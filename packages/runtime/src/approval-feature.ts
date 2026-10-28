@@ -35,6 +35,11 @@ export interface ApprovalHooks {
   newId?(): string;
   /** The current time in milliseconds; `Date.now()` when omitted. */
   now?(): number;
+  /**
+   * Check a requested command's input against the application's records when the approval
+   * request is submitted; throw `INVALID_INPUT` to refuse it. Every request passes when omitted.
+   */
+  request?(operation: string, input: unknown): void;
 }
 
 /** The approval feature's state slice, under `approval` in the application's state. */
@@ -86,8 +91,8 @@ function decide(
 /**
  * Approval requests as a feature: an agent or person asks for a command, and a person approves,
  * which runs the command under the approver in the same transaction, or rejects it. The slice
- * keeps the requests; the application supplies `ApprovalAccess` and, optionally, ID and clock
- * hooks. Approve and reject are person-only for every application.
+ * keeps the requests; the application supplies `ApprovalAccess` and, optionally, ID, clock
+ * and request-check hooks. Approve and reject are person-only for every application.
  */
 export function approvalFeature(
   options: ApprovalFeatureOptions = {},
@@ -109,6 +114,7 @@ export function approvalFeature(
           (ctx as Context).hooks.newId?.() ?? crypto.randomUUID(),
         now: (ctx: HandlerContext<ApprovalSlice, unknown>) =>
           (ctx as Context).hooks.now?.() ?? Date.now(),
+        check: (operation, input, ctx) => (ctx as Context).hooks.request?.(operation, input),
         ...(options.ttlMs === undefined ? {} : { ttlMs: options.ttlMs }),
       }),
     authorization: {

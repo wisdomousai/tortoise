@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 import {
+  ApplicationError,
   approvalModule,
   defineCapability,
   defineModule,
@@ -53,7 +54,7 @@ const access = (state: Root): ApprovalAccess => ({
   },
 });
 
-function setup() {
+function setup(request?: (operation: string, input: unknown) => void) {
   const feature = approvalFeature({ ttlMs: 1000 });
   const storage = createMemoryStorage<Root>({
     members: { ann: 'editor', vic: 'viewer' },
@@ -89,7 +90,11 @@ function setup() {
           key: 'approval',
           feature,
           access,
-          hooks: { newId: (() => `r${++id}`) as never, now: (() => 0) as never },
+          hooks: {
+            newId: (() => `r${++id}`) as never,
+            now: (() => 0) as never,
+            ...(request ? { request: request as never } : {}),
+          },
         },
         { modules: [items, ...feature.manifest.modules], applicationModules: [items] },
       ),
@@ -156,6 +161,25 @@ describe('approval feature', () => {
     await expect(app.invoke(request('item:secret'), person('ann'))).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
+  });
+
+  test("the application's request hook refuses an approval request before anyone sees it", async () => {
+    const checked: unknown[] = [];
+    const { app, state } = setup((operation, input) => {
+      checked.push([operation, input]);
+      if ((input as { id: string }).id !== 'a')
+        throw new ApplicationError('INVALID_INPUT', 'No such item');
+    });
+    const unknown = { ...request(), input: { ...request().input, input: { id: 'zz' } } };
+    await expect(app.invoke(unknown, person('ann'))).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+    });
+    await app.invoke(request(), person('ann'));
+    expect(checked).toEqual([
+      [finish.id, { id: 'zz' }],
+      [finish.id, { id: 'a' }],
+    ]);
+    expect(Object.keys((await state()).approval.requests)).toEqual(['r1']);
   });
 
   test('only visible requests are listed, and their events reach only members', async () => {

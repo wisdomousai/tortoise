@@ -456,6 +456,7 @@ Control mappings are indicative.
 - `HeldEffect`, which `reconciliation-review` did not export;
 - `useUiSession`, which took one resource, so a list screen could not share its selection;
 - provider tool descriptions, which left out the capability ID that the encoded tool name hides (found by the CB radio tutorial's live run);
+- the driver channel, which buffered a line without limit, and approval requests, which had no hook to refuse input the application knows is impossible (both found by the CB radio tutorial);
 - site install tests that hit the default test timeout on a cold run;
 - skill text in the scaffold, capability, screen, feature, scanner, sign-in, system-of-record, assignment and deployment skills.
 

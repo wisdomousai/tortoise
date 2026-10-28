@@ -41,6 +41,8 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in any language
 9. Build a self-contained executable with PyInstaller, Nuitka or a .NET single-file build.
 10. Print the process IDs and contract digests to bind with `app driver list`.
 11. Bind the driver's process ID to the executable's absolute path and hash in the deployment policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+   - The driver starts with no `PATH` or `PYTHONPATH`, and the policy may not set them, because they change what code the child loads. Pass the absolute path of each program the driver runs as a variable in the binding's `env`.
+   - A driver bound to an interpreter instead of a built executable needs the SDK installed in that interpreter's environment, such as a virtual environment's `python`.
 
 `showcase/examples/quality-inspection` reads a measuring instrument with a Python driver, observe only. `showcase/examples/winding-line` loads recipes through a .NET driver as a convergent action, in actuate mode.
 
