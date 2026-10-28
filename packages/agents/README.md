@@ -49,11 +49,13 @@ A caller may pass the run ID to `start`. A run repeated after a restart then kee
 
 Tools are capabilities, plus the host's `ui.*` tools for a run started from a UI session, which a `ToolPort` offers through `definitionsFor`. Tool implementations derive identity and grant from the run, never from model arguments. They recheck cancellation at their commit boundary. A duplicate invocation ID executes once.
 
+In a run started from a screen, the AI SDK harness, and so the local harness, adds an `ask_person` tool. The model asks the person a question with optional choices, and the run waits for the answer as an `awaiting-question` run. A run without a screen gets no such tool.
+
 In the AI SDK harness, some failures go back to the model as that call's result: an application refusal (an `ApplicationError`) and a call the model could not form. The model may then correct the call within its turn and tool-call budgets, as an MCP client reads `isError`. Any other tool failure, a spent budget or a cancellation ends the run.
 
 ### Run output
 
-Text and progress stream separately from commits. Partial output never turns a failed run into a success. Secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits. A restart marks unfinished runs interrupted instead of replaying them.
+Text and progress stream separately from commits. Streamed text is recorded in pieces of at least 200 characters, so a reply streamed a token at a time keeps its beginning within the 256 retained events. A `tool-finish` event carries the records a command changed, from its receipt, or the code of a refusal. A refusal the harness handed back to its model does not fail the run. Partial output never turns a failed run into a success. Secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits. A restart marks unfinished runs interrupted instead of replaying them.
 
 ### ChatGPT sign-in
 
@@ -98,9 +100,9 @@ bun run test:harness
 
 The tests use deterministic fixtures only. Paths are relative to this package.
 
-- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions and interrupted-run recovery. An observer hears each run start and end once, without its prompt or output.
+- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions and interrupted-run recovery. An observer hears each run start and end once, without its prompt or output. A finished command names its records and a refusal its code, and a reply streamed a token at a time keeps its beginning.
 - `test/budget.test.ts`: a run fails with `BUDGET_EXCEEDED` instead of making one tool call past its budget or running past its wall time, and it releases a waiting question. The harness receives the turn limit.
-- `test/adapters.test.ts`: each harness against shared fixtures, where every model sees the captured selection and never the run's identity or grant. The AI SDK harness returns a refusal and a malformed call to the model, and ends the run on any other tool failure.
+- `test/adapters.test.ts`: each harness against shared fixtures, where every model sees the captured selection and never the run's identity or grant. The AI SDK harness returns a refusal and a malformed call to the model, and ends the run on any other tool failure. It asks the person at a screen a question and reads the answer, and offers no ask tool without a screen.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation and subprocess-tree cancellation.
 - `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server, with harness choice by model requirement and the model identity on the run record. It also covers named models and an entry's agents narrowing the choice, an entry's identity and a readiness check.

@@ -121,6 +121,8 @@ test('add extends the application at its markers and refuses to overwrite a part
   );
   expect(added).toMatchObject({ directory: 'showcase/examples/field-notes' });
   expect(added.written).toContain('contracts/note-archive.ts');
+  // The capability acts on the note collection its ID names.
+  expect(await read(join(app, 'contracts/note-archive.ts'))).toContain("resourceType: 'Note'");
   await scaffoldAdd({ kind: 'collection', name: 'site', tree: true }, { root: target });
   const sites = await read(join(app, 'contracts/site.ts'));
   for (const key of [

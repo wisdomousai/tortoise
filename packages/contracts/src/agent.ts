@@ -55,6 +55,14 @@ export interface AgentDefinition<Ops extends readonly string[] = readonly string
    */
   readonly models?: readonly string[];
   readonly output: AgentOutput;
+  /**
+   * For a `direct` agent: commands it may request approval for instead of running, such as a
+   * cancellation, or a command it runs itself whose policy refuses it some input, such as a
+   * discount above its limit. Its grant then adds `approval.request`, and its instructions list
+   * these commands with their input schemas. A requesting agent requests approval for all its
+   * commands and takes no list.
+   */
+  readonly requests?: readonly string[];
   readonly budgets: AgentBudgets;
 }
 
@@ -93,7 +101,8 @@ function checkBudgets(agent: AgentDefinition): void {
 
 /**
  * Validate one agent against the catalog's operations: a well-formed unique ID, known
- * operations, bounded budgets, and for a `direct` agent a UI binding on every command it may run.
+ * operations, bounded budgets, for a `direct` agent a UI binding on every command it may run,
+ * and requests only on a `direct` agent and only for commands outside the approval module.
  */
 export function checkAgent(
   agent: AgentDefinition,
@@ -122,6 +131,15 @@ export function checkAgent(
     // A direct write must be one a person can make and see through a screen.
     if (agent.output === 'direct' && operation.kind === 'command' && !operation.ui.binding)
       throw new Error(`Direct agent ${agent.id} runs ${id}, which has no UI binding`);
+  }
+  if (agent.requests !== undefined) {
+    if (agent.output !== 'direct')
+      throw new Error(`Agent ${agent.id} requests approval for all its commands; drop requests`);
+    if (!agent.requests.length || new Set(agent.requests).size !== agent.requests.length)
+      throw new Error(`Agent ${agent.id} requests must list distinct commands`);
+    for (const id of agent.requests)
+      if (operations.get(id)?.kind !== 'command' || id.startsWith('approval.'))
+        throw new Error(`Agent ${agent.id} requests ${id}, which is not a requestable command`);
   }
   for (const type of [...(agent.resourceTypes ?? []), ...(agent.creates ?? [])])
     if (!/^[A-Za-z][A-Za-z0-9-]*$/.test(type))

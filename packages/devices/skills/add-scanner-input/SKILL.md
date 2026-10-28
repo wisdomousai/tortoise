@@ -20,14 +20,15 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 2. To suggest a profile, run calibration (`calibrate`) on a single scan of the calibration barcode.
 3. Map scans to intents with `createScanRouter`. A route matches a GS1 application identifier or a regular expression, optionally limited to symbologies. The first match wins.
 4. List `deviceFeatureManifest` from `@agent-native/devices/contracts` in `defineManifest({ features })`.
-5. Mount `deviceFeature()` from `@agent-native/devices/server` with `mountFeature`, with an access view whose `relation(context, station)` returns `administer`, `read` or nothing from the application's own station roles. It must refuse non-members and integration principals; `deviceAccess` in `showcase/examples/winding-line/policy.ts` is one. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers mounting and adopting existing configuration.
+5. Mount `deviceFeature()` from `@agent-native/devices/server` with `mountFeature`, with an access view whose `relation(context, station)` returns `administer`, `read` or nothing from the application's own station roles. It must refuse non-members and integration principals; `deviceAccess` in `showcase/examples/winding-line/policy.ts` is one. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers mounting and adopting existing configuration. The feature's commands bind to the `scanner-setup` screen, so the application's screens must register a screen with that binding, or the UI-binding test fails.
 6. Remove any application policy rule for `device.*` operations and any event rule for `device`.
 7. Declare each source other than the wedge with `scannerDevicesComponent`, so the security manifest lists serial, HID and camera access. Web Serial, WebHID and camera access start only from a person's click or key press, as browsers require.
 8. Write a new transport as a `ScannerSource` that decodes through `decodeScan`. Prefixes, AIM identifiers and GS1 parsing then follow the profile.
 9. Keep `packages/devices/src/scanner` portable, with no Node or Bun imports, because it also runs in React Native.
 10. For rugged Android, compose `plugins/intent-scanner`. Give the profile `transport: 'intent'` with the action, the data extra, and a sender permission where injected scans matter.
 11. Build the screen parts from the operator [UI registry](../../../../docs/glossary.md#ui-registry): `scan-prompt`, `scanner-setup` and the `use-scanner` hook. Add the capture hooks from `@agent-native/react/capture`. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers both.
-12. Make sure a scanner's keystroke burst, including its final Enter, never fires a hotkey.
+12. Make sure a scanner's keystroke burst, including its final Enter, never fires a hotkey or submits the focused form. Filter the burst with `KeyBurstFilter` from the operator registry's `use-operator-keys` hook before it reaches the form.
+13. In a Playwright spec, type an upper-case scan with Shift held, because `keyboard.type` sends capitals without Shift and the wedge decoder reads the key events.
 
 ## Checks
 

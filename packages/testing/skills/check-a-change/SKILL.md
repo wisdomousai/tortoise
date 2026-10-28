@@ -41,7 +41,7 @@ description: Choose and run the checks for a change in this repository and repor
 | A framework package | `bun test packages/<name>`, `bun run check:boundaries`; `bun run test:portable` for kernel, runtime, client, integration or mobile code |
 | A host plugin | `bun test plugins/<name>`, `bun run check:boundaries` |
 | A feature, or how an application mounts one | `bun test` on the feature's package, with `featureConformance` from `@agent-native/testing/features` in its tests, then `bun test showcase/examples/<app>` for each application that mounts it |
-| An agent definition, or a capability an agent calls | `bun test showcase/examples/<app>/test/agent-scenarios.test.ts`; a run against a model only with a configured harness and `AGENT_SCENARIOS=live`, reported as live evidence |
+| An agent definition, or a capability an agent calls | `bun test showcase/examples/<app>/test/<name>-agent.test.ts`; a run against a model only with a configured harness and `AGENT_SCENARIOS=live`, reported as live evidence |
 | A connector, outbox or sync | `bun run test:integration`, `bun run test:conformance` |
 | The CLI, MCP or the sandbox binary | `bun run test:sandbox`, `bun run test:service` |
 | The execution host, the process port or the seccomp filter | `bun test plugins/execution-host plugins/process`, then `bun run test:execution-host:linux` (Docker) for the bubblewrap tests, which skip off Linux |

@@ -18,7 +18,8 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [State migration](../../docs/primitives.md#state-migration): `migrate [--dry-run]`, described under [Migrate command](#migrate-command).
 - [Shelf life](../../docs/primitives.md#shelf-life): a definition stamped by its build entry gives `startHost` its build facts. They are in the `listening` record, in each plugin's open context, and at `GET /api/v1/build` for a signed-in session. A run from source returns `{}`.
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source returns `unavailable`.
-- [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`.
+- [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select`, `ui.prepare` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`, and each prepared form against the catalog's UI-bound commands.
+- [Agent run](../../docs/primitives.md#agent-run): `POST /api/v1/runs` starts a run as the session's person. With `agentId` it runs under that [agent definition](../../docs/primitives.md#agent-definition): `agentGrant` narrows the grant, `agentInstructions` starts the prompt, and the definition's budgets and model requirement apply. Without `harnessId` the host picks the first harness that meets the requirement among those the embedding process and the plugins (`PluginInstance.harnesses`) offer. `conversationId` continues a conversation of the caller's own runs under the same agent.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
 Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`showcase/examples/field-service/application.ts`](../../showcase/examples/field-service/application.ts).
@@ -142,6 +143,8 @@ bun run test:service
   - duplicate ports, null defaults and claimed settings;
   - `ready` in an embedded instance and `start` as a delegated caller.
 - `test/features.test.ts`: feature composition.
+- `test/ui-sessions.test.ts`: a selection whose observed revision the read cannot confirm, or that is ahead of it, is refused.
+- `test/agent-runs.test.ts`: a run under an agent definition is refused a command outside it and names the record it changed. Without a harness the host picks the one the agent may run on and gives it the instructions and only the granted tools. A follow-up continues only the caller's own conversation under the same agent. A run prepares the form of a bound command and is refused an unbound one, and a plugin offers its harnesses.
   - manifest merge order and refusals for shared ids and namespaces, `requires` and operations outside a namespace;
   - the slice, access view, hooks and policy in one transaction, and refusals for shadowed application rules, service and state keys;
   - a plugin resource type that shadows an application event rule;

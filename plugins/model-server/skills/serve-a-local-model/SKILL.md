@@ -26,7 +26,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 3. Declare `modelServer({ id, runtime })` from `@agent-native/model-server/contracts` in the manifest's `components`.
 4. Add `modelServerPluginManifest` to the manifest, after the site, network and process manifests.
 5. Call `createModelServer({ process, runtime, entry, files, activation })`. Add its `plugin` to `plugins`.
-6. Give its `harness` to the automation plugin's `agentHarnesses`, or to whatever starts the runs.
+6. Give its `harness` to the automation plugin's `agentHarnesses` for trigger runs. The plugin also offers it to the host's run route, so a run a person starts with an `agentId` and no `harnessId` runs on it when the agent's model requirement admits it.
 7. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `local-inference` to a loopback URL.
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it responds outlasts the egress guard's default of 30 seconds.
@@ -48,7 +48,7 @@ In tests and development launches, bind the process to Bun with `llamaServerStan
    ```sh
    bun test plugins/model-server
    bun test showcase/patterns/local-model/
-   bun test showcase/examples/<app>/test/agent-scenarios.test.ts
+   bun test showcase/examples/<app>/test/<name>-agent.test.ts
    LOCAL_MODEL_GGUF=<weights.gguf> bun test plugins/model-server/test/live.test.ts
    ```
 

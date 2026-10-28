@@ -8,7 +8,7 @@ import { client, live } from '@/lib/session';
 
 type Query = AnyCapability & { kind: 'query' };
 type Command = AnyCapability & { kind: 'command' };
-interface HeldEffect {
+export interface HeldEffect {
   id: string;
   target: string;
   type: string;

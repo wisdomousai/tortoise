@@ -60,7 +60,7 @@ export const requestOperations = {
   requestGet: collectionGet(testRequestCollection, {
     id: 'test-request',
     description:
-      'Read one test request by id. Use its revision as test-request:<id> in expectedRevisions.',
+      'Read one test request by id. A command receipt that changed it carries its revision as test-request:<id> for expectedRevisions.',
   }),
   requestSubmit: defineCapability({
     id: 'test-request.submit',

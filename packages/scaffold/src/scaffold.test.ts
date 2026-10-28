@@ -3,7 +3,9 @@ import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { excludedExamples } from './examples';
+import { allowedFile } from './file-rules';
 import { scaffold } from './index';
+import { names } from './templates/names';
 
 test('source export is deterministic, independent and excludes private/runtime artifacts', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-scaffold-fixture-'));
@@ -429,4 +431,24 @@ test('exports a certificate but refuses a file holding a private key', async () 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('exports every tracked framework file', () => {
+  const root = join(import.meta.dir, '../../..');
+  const tracked = Bun.spawnSync(
+    ['git', 'ls-files', 'packages', 'plugins', 'workstations', 'sdks', 'apps', 'scripts', 'docs'],
+    { cwd: root },
+  );
+  // An exported application has no Git history to compare against.
+  if (!tracked.success) return;
+  const skipped = tracked.stdout
+    .toString()
+    .split('\n')
+    .filter((path) => path && !allowedFile(path));
+  expect(skipped).toEqual([]);
+});
+
+test('generated copy puts the right article before a collection name', () => {
+  expect(names('inquiry').a).toBe('an inquiry');
+  expect(names('work-order').a).toBe('a work order');
 });

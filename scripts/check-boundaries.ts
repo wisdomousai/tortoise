@@ -26,7 +26,14 @@ async function files(directory: string): Promise<string[]> {
     // `mobile:prepare` writes a git-ignored copy of the host there; it is not source.
     if (path.endsWith('/apps/mobile/generated')) continue;
     if (entry.isDirectory()) result.push(...(await files(path)));
-    else if (/\.[cm]?[jt]sx?$/.test(path) && !path.includes('.test.') && !path.endsWith('.pw.ts'))
+    // Playwright specs and the helpers beside them in `e2e/` are test code: they start the
+    // service and reach it over the network, as a browser does.
+    else if (
+      /\.[cm]?[jt]sx?$/.test(path) &&
+      !path.includes('.test.') &&
+      !path.endsWith('.pw.ts') &&
+      !/(?:^|\/)e2e\//.test(relative(root, path))
+    )
       result.push(path);
   }
   return result;

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../../tests/e2e/service';
 
-test('the default {{many.words}} screens create, list, open and edit a {{one.words}}', async ({ page }) => {
+test('the default {{many.words}} screens create, list, open and edit {{one.a}}', async ({ page }) => {
   const workspace = await mkdtemp(join(tmpdir(), '{{app.kebab}}-screens-'));
   const host = await startService('{{packageName}}', workspace);
   try {

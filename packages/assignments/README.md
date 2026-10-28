@@ -45,7 +45,7 @@ The contracts are data. A kind is refused at definition time when:
 
 The feature's policy decides every assignment operation inside the transaction, from the application's `AssignmentAccess` and the feature's own state. The application's policy never sees these operations, so `allows` applies the application's membership gate itself.
 
-- `plan` creates, sends and withdraws; `read` sees every assignment of a kind and its reports; `review` links, discards and accepts reports and closes assignments; `integrate` completes and syncs an assignment target, and only the principal configured for that target does.
+- `plan` creates, sends and withdraws, and marks an assignment done for its assignee; `read` sees every assignment of a kind and its reports; `review` links, discards and accepts reports and closes assignments; `integrate` completes and syncs an assignment target, and only the principal configured for that target does.
 - `work` lets a caller report on and complete only the assignments sent to it. The feature matches the assignee itself: a person is the principal with no grant and no peer; an agent is a run whose grant names that agent definition; a device is `device:<id>` with no peer; a peer is the peer application's service principal. A target is never a caller.
 - Accepting a report is person-only. The accept hook writes the application's records in the same transaction, so its refusal writes nothing.
 - An assignment or report the caller cannot see reads as `NOT_FOUND`, so a refusal does not confirm that it exists. A grant's resource scope applies to reads too.

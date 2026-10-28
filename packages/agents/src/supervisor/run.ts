@@ -95,11 +95,22 @@ export async function emit(
   for (const subscriber of run.subscribers) subscriber.push(entry);
 }
 
+/**
+ * Streamed text is released in pieces of at least this many characters. A model streams a token
+ * per delta, and a run keeps its last 256 events, so a long reply in single tokens would push
+ * out its own beginning and the tool calls before it.
+ */
+const TEXT_EVENT_CHARS = 200;
+
 export async function emitText(kernel: SupervisorKernel, run: Active, text: string) {
   const combined = run.textCarry + text;
   const cut = kernel.redactor.safeCut(combined);
+  if (cut < TEXT_EVENT_CHARS) {
+    run.textCarry = combined;
+    return;
+  }
   run.textCarry = combined.slice(cut);
-  if (cut > 0) await emit(kernel, run, { type: 'text', text: combined.slice(0, cut) });
+  await emit(kernel, run, { type: 'text', text: combined.slice(0, cut) });
 }
 
 export async function flushText(kernel: SupervisorKernel, run: Active) {

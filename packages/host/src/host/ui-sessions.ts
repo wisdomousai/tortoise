@@ -24,8 +24,15 @@ async function validateResources(
     if (!operation || !id)
       throw new ApplicationError('INVALID_INPUT', 'Unknown selected resource type');
     const snapshot = await application.queryRaw({ operation, input: { id } }, context);
-    const revision = (snapshot.data as { revision: number }).revision;
-    if ((input.observedRevisions[resource] ?? 0) > revision)
+    const revision = (snapshot.data as { revision?: unknown }).revision;
+    const observed = input.observedRevisions[resource] ?? 0;
+    // A read without a revision cannot confirm an observed one, so only 0 passes for it.
+    if (typeof revision !== 'number') {
+      if (observed > 0)
+        throw new ApplicationError('INVALID_INPUT', `The read of ${kind} returns no revision`);
+      continue;
+    }
+    if (observed > revision)
       throw new ApplicationError('CONFLICT', 'Observed revision is ahead of instance');
   }
 }
@@ -42,7 +49,15 @@ export function createUiSessions(
     isActive: (token) => !!sessions.get(token),
     validateContext: validate,
     // Every resource an intent names must be one the sender may read now, as for a selection.
+    // A prepared form must belong to a command the application offers in its UI; its values
+    // are untrusted, and the command validates them again when the person submits.
     async validateIntent(context, intent) {
+      if (intent.type === 'prepare') {
+        const operation = application.catalog.operations.find((o) => o.id === intent.operation);
+        if (operation?.kind !== 'command' || !operation.ui?.binding)
+          throw new ApplicationError('INVALID_INPUT', 'Unknown prepared command');
+        return;
+      }
       const resources = 'resource' in intent ? [intent.resource] : (intent.resources ?? []);
       await validate(context, {
         selectedResources: [...resources],

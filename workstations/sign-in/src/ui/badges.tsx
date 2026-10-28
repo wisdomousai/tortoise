@@ -79,11 +79,11 @@ function Enroll({ onError }: { onError: (message: string) => void }) {
         >
           <div className="space-y-1">
             <Label htmlFor="badge-principalId">Person</Label>
-            <Input {...field('principalId')} maxLength={256} placeholder="ana" />
+            <Input {...field('principalId')} maxLength={256} placeholder="principal ID" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="badge-label">Label</Label>
-            <Input {...field('label')} maxLength={80} placeholder="Ana Lima, bench 2" />
+            <Input {...field('label')} maxLength={80} placeholder="Name and station" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="badge-badge">Badge</Label>

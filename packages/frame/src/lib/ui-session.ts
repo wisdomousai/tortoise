@@ -1,14 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import type { UiIntent } from '@agent-native/contracts';
-import { resourcePath } from '@agent-native/frame/screens';
+import type { JsonObject, UiIntent } from '@agent-native/contracts';
+import { resourcePath, screenForCapability } from '@agent-native/frame/screens';
 import { useScreens } from '@/screens-context';
 import { hostJson } from './host-client';
-import { applyUiIntent, type UiIntentHandlers, type UiReview } from './ui-intents';
+import {
+  applyUiIntent,
+  uiSelection,
+  type UiIntentHandlers,
+  type UiResource,
+  type UiReview,
+} from './ui-intents';
+import { holdRunPrefill } from './os-deliveries';
 
 export type { UiReview } from './ui-intents';
 
-type Resource = { id: string; revision: number } | undefined;
+/** What the screen has selected: nothing, one resource or several. */
+type Selected = UiResource | readonly UiResource[] | undefined;
+const listOf = (value: Selected): readonly UiResource[] =>
+  value === undefined ? [] : 'id' in value ? [value] : value;
 type Binding = { sessionId: string; version: number; key: string };
 
 /** How a screen applies an agent's intents; see `useUiSession`. */
@@ -17,8 +27,13 @@ export interface UiSessionHandlers {
   readonly select?: (resource: string) => Promise<void>;
   /** Open the resource; by default its `screens.resources` path. */
   readonly open?: (resource: string) => Promise<void>;
+  /**
+   * Fill a command's form; by default the prefill is held for the form that binds the command
+   * (`usePreparedInput`, which `CapabilityForm` reads) and its capability screen opens.
+   */
+  readonly prepare?: (operation: string, input: JsonObject) => Promise<void>;
 }
-type Selection = { selectedResources: string[]; observedRevisions: Record<string, number> };
+type Selection = ReturnType<typeof uiSelection>;
 
 /** Create the session, or move the bound one to `context` at its expected version. */
 async function bindSession(
@@ -54,12 +69,13 @@ async function receiveIntents(sessionId: string, handlers: UiIntentHandlers, sig
 }
 
 /**
- * One ephemeral frontend session for the screen showing `resource`; updates serialize and run
- * starts pin an exact version. A run started from it sends intents back: `openResource` opens
- * the resource's screen, `selectResource` calls `handlers.select` and is rejected without it,
- * and `requestReview` sets `review` until `acknowledgeReview`.
+ * One ephemeral frontend session for the screen showing `resource`, or the resources a list
+ * screen has selected; updates serialize and run starts pin an exact version. A run started
+ * from it sends intents back: `openResource` opens the resource's screen, `selectResource`
+ * calls `handlers.select` and is rejected without it, `prepare` fills a command's form for the
+ * person to submit, and `requestReview` sets `review` until `acknowledgeReview`.
  */
-export function useUiSession(resource: Resource, handlers: UiSessionHandlers = {}) {
+export function useUiSession(resource: Selected, handlers: UiSessionHandlers = {}) {
   const [sessionId, setSessionId] = useState<string>();
   const [review, setReview] = useState<UiReview>();
   const screens = useScreens();
@@ -72,6 +88,13 @@ export function useUiSession(resource: Resource, handlers: UiSessionHandlers = {
       }),
     ...(handlers.select ? { select: handlers.select } : {}),
     review: setReview,
+    prepare: handlers.prepare
+      ? (operation, input) => handlers.prepare!(operation, input)
+      : async (operation, input, id) => {
+          holdRunPrefill(id, operation, input);
+          const to = screenForCapability(screens, operation);
+          if (to) await router.navigate({ to } as never);
+        },
   };
   // The polling loop starts once; it reads the handlers of the latest render.
   const intentHandlers = useRef(latest);
@@ -80,11 +103,8 @@ export function useUiSession(resource: Resource, handlers: UiSessionHandlers = {
   current.current = resource;
   const binding = useRef<Binding | undefined>(undefined);
   const tail = useRef<Promise<unknown>>(Promise.resolve());
-  function synchronize(value: Resource, signal?: AbortSignal): Promise<Binding> {
-    const context = {
-      selectedResources: value ? [value.id] : [],
-      observedRevisions: value ? { [value.id]: value.revision } : {},
-    };
+  function synchronize(value: Selected, signal?: AbortSignal): Promise<Binding> {
+    const context = uiSelection(listOf(value));
     const key = JSON.stringify(context);
     const next = tail.current
       .catch(() => {})

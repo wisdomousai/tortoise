@@ -46,6 +46,10 @@ A guide in `docs/` explains one topic. Sections, in order, each present when it 
 5. Limits: what the code does not do at all. A caveat about one mechanism stays with that mechanism.
 6. References.
 
+### Tutorial
+
+A tutorial is a guide whose mechanism is a sequence of steps that build one application. It keeps the guide's section order, with Setup before the steps. Each step has a heading named for what it adds, the skill it uses, and the prompt for a coding agent in a fenced `text` block. A prompt is written in imperatives, names the skill first and ends by asking for the checks the skill names.
+
 ### Reference
 
 A reference page is an index with a fixed entry shape and no narrative: the [glossary](glossary.md) and [primitives](primitives.md). The first paragraph says what the entries are. Every entry has the same parts in the same order, and entries are sorted by a stated rule.

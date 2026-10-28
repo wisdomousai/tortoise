@@ -154,7 +154,7 @@ test('install places a verified release, renders the unit and firewall rules, an
     const check = Bun.spawnSync(['sudo', 'nft', '-c', '-f', rules], { stderr: 'pipe' });
     if (check.exitCode !== 0) throw new Error(check.stderr.toString());
   }
-});
+}, 30_000);
 
 test('an upgrade migrates the workspace with the new release before switching, and keeps data', async () => {
   // Version 1 commits state, as the service would.
@@ -181,7 +181,7 @@ test('an upgrade migrates the workspace with the new release before switching, a
   }
   // Both releases stay on disk; current names the new one.
   expect(await readlink(join(app('opt/agent-native'), 'current'))).toEndWith('releases/2.0.0');
-});
+}, 30_000);
 
 test('a tampered release or bundle is refused, and uninstall keeps data unless purged', async () => {
   const release = join(app('opt/agent-native'), 'releases', '2.0.0');

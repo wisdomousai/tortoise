@@ -87,6 +87,16 @@ const sourceExtensions = new Set([
   '.slnx',
   // Certificate fixtures; a `.pem` holding a private key is refused when exported.
   '.pem',
+  // Native modules of the mobile plugins.
+  '.kt',
+  '.gradle',
+  '.xml',
+  '.swift',
+  '.podspec',
+  // Golden files of the generated network rules.
+  '.nft',
+  '.service',
+  '.ps1',
 ]);
 // Images such as test fixtures and golden screenshots; copied byte for byte, never rewritten.
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg']);
@@ -103,6 +113,7 @@ export function allowedFile(path: string): boolean {
   return (
     rootFiles.has(path) ||
     name === '.gitignore' ||
+    name === 'Dockerfile' ||
     sourceExtensions.has(extname(name)) ||
     binaryFile(name)
   );

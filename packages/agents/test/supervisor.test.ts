@@ -344,3 +344,61 @@ test('the observer hears each run start once and end once, with no prompt or out
   expect(records[0]).toMatchObject({ outcome: 'aborted', reason: 'HOST_RESTARTED' });
   expect(JSON.stringify(records)).not.toContain('secret output');
 });
+
+describe('run events for a chat view', () => {
+  test('a finished command names the records it changed, and a refusal its code', async () => {
+    const supervisor = createRunSupervisor({
+      harnesses: [
+        harness(async function* (turn) {
+          yield { type: 'tool-start', operation: 'quote.create', callId: 'c1' };
+          await turn.tools.execute('quote.create', {}, { ...turn, idempotencyKey: 'c1' });
+          yield { type: 'tool-finish', operation: 'quote.create', callId: 'c1' };
+          yield { type: 'tool-start', operation: 'quote.cancel', callId: 'c2' };
+          // A harness that hands the refusal back to its model goes on.
+          await turn.tools
+            .execute('quote.cancel', {}, { ...turn, idempotencyKey: 'c2' })
+            .catch(() => undefined);
+          yield { type: 'tool-finish', operation: 'quote.cancel', callId: 'c2' };
+        }),
+      ],
+      tools: {
+        execute: async (operation) => {
+          if (operation === 'quote.cancel')
+            throw Object.assign(new Error('Not in the grant'), { code: 'FORBIDDEN' });
+          return { operation, result: {}, revisions: { 'quote:q1': 1 } };
+        },
+      },
+    });
+    const run = await supervisor.start({ harnessId: 'test', prompt: 'quote' });
+    const done = await until(supervisor, run.id, 'succeeded');
+    const finished = done.events.filter((event) => event.type === 'tool-finish');
+    expect(finished.map(({ resources, code }) => ({ resources, code }))).toEqual([
+      { resources: ['quote:q1'], code: undefined },
+      { resources: undefined, code: 'FORBIDDEN' },
+    ]);
+  });
+
+  test('a reply streamed a token at a time keeps its beginning and the calls before it', async () => {
+    const reply = Array.from({ length: 1500 }, (_, index) => `w${index} `);
+    const supervisor = createRunSupervisor({
+      harnesses: [
+        harness(async function* (turn) {
+          yield { type: 'tool-start', operation: 'part.list', callId: 'c1' };
+          await turn.tools.execute('part.list', {}, { ...turn, idempotencyKey: 'c1' });
+          yield { type: 'tool-finish', operation: 'part.list', callId: 'c1' };
+          for (const token of reply) yield { type: 'text', text: token };
+        }),
+      ],
+      tools,
+    });
+    const run = await supervisor.start({ harnessId: 'test', prompt: 'parts' });
+    const done = await until(supervisor, run.id, 'succeeded');
+    expect(done.events.some((event) => event.type === 'tool-start')).toBe(true);
+    expect(
+      done.events
+        .filter((event) => event.type === 'text')
+        .map((event) => event.text)
+        .join(''),
+    ).toBe(reply.join(''));
+  });
+});

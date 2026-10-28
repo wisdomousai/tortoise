@@ -31,7 +31,7 @@ export const ${t.camel}Send = defineCapability({
   id: '${t.kebab}.send',
   kind: 'command',
   description:
-    'Send one ${one.words} to ${t.words}. It is delivered after this commit; sync status shows when ${t.words} accepts or rejects it. Editors only; a ${one.words} still waiting conflicts.',
+    'Send one ${one.words} to ${t.words}. It is delivered after this commit; sync status shows when ${t.words} accepts or rejects it. Editors only; ${one.a} still waiting conflicts.',
   input: jsonSchema(z.strictObject({ id: recordKeySchema })),
   output: jsonSchema(z.strictObject({ id: recordKeySchema, sync: deliveryStatusSchema })),
   permission: { action: 'send', resourceType: '${t.pascal}Sync' },

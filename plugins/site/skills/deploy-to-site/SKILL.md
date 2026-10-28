@@ -18,7 +18,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 
 ## Steps
 
-1. Write the policy, starting from `showcase/examples/quality-inspection/site-policy.sandbox.json`. Set:
+1. Write the policy, starting from `showcase/examples/quality-inspection/site-policy.sandbox.json`, or from `apps/desktop/site-policy.json` in an exported application. Set:
    - `profile` and `mode`;
    - `destinations` with `url` and `addresses`, the CIDRs needed for DNS-rebinding checks and firewall exports;
    - `timeoutMs` on a destination that responds slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
@@ -35,11 +35,11 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 6. Bind each declared process ID under `processes` to an absolute `executable`, fixed `args`, an absolute `cwd`, `env`, and a `sha256` pin. A driver's ID and contract digest come from `app driver list`, as the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`) describes.
 7. Check the policy offline with `app site check --site <file>`. It exits 2 on any error finding. In a checkout, the application CLI is `bun run cli`.
 8. Export rules for the paths the in-process egress guard cannot see: `app network export --site <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
-9. Create a signing key with `bun run bundle keygen --out key.json`.
-10. Build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` writes the contract, security manifest and SBOM from the catalog into the bundle.
+9. Create a signing key with `bun run bundle keygen --out <dir>/key.json`, in a directory outside the repository, so the private key is never committed.
+10. Run `bun run build:web`, then build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` compiles the application CLI into `<dir>/files/bin/<app>` and writes the contract, security manifest and SBOM from the catalog into the bundle.
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
-12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`.
-13. Install with the bundled binary: `app install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
+12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`. Without `--approval`, a bundle whose requirements widen is refused and the output prints the `approval` object; the site saves that object as the approval file.
+13. Install with the bundled binary, `<bundle>/files/bin/<app> install <bundle> --trust key.pub.json --site-policy <file> --approval <file> --service systemd|windows|none`. `--prefix` defaults to `/`, so stage under a temporary `--prefix` first to read what install writes. Then install without `--prefix`, with `--apply` to run the service and firewall commands. A staged tree is for reading and is not promoted. On macOS the service is `none` and nothing is applied. A refused admission, policy check, render or migration leaves the previous release current.
 14. Use `app status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
 15. Remove a release with `app uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/site/skills/decommission-an-application/SKILL.md`).
 16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.

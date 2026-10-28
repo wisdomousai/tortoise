@@ -10,8 +10,8 @@ import { scanRouteSchema } from './scanner/router';
 
 /**
  * Reusable capability module for per-station device configuration. It is domain-neutral: the
- * composing application decides who may read or administer a station by supplying an access view
- * to `createDevicePolicy`. Profiles are configuration, not secrets; vendor SDK credentials, if
+ * composing application decides who may read or administer a station through the access view it
+ * gives `mountFeature` for `deviceFeature()`. Profiles are configuration, not secrets; vendor SDK credentials, if
  * any, stay in the host.
  */
 const station = z

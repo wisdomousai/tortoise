@@ -10,11 +10,15 @@ import { hostJson } from './host-client';
 
 export { describeProvenance } from '@agent-native/shell/provenance';
 
-/** A form prefill an OS request asked for, until the person submits or dismisses it. */
+/**
+ * A form prefill an OS request or an agent run asked for, until the person submits or dismisses
+ * it. `provenance` names the OS request; a run's prefill has none and says `run`.
+ */
 export interface PreparedInput {
   readonly id: string;
   readonly input: JsonObject;
-  readonly provenance: OsProvenance;
+  readonly provenance?: OsProvenance;
+  readonly run?: true;
 }
 
 const prepared = new Map<string, PreparedInput>();
@@ -53,6 +57,15 @@ export function useShownProvenance() {
       notify();
     },
   };
+}
+
+/**
+ * Hold a prefill an agent run prepared for `operation`, for the form that binds it, as an OS
+ * request's prefill is held. Nothing submits on its own.
+ */
+export function holdRunPrefill(id: string, operation: string, input: JsonObject) {
+  prepared.set(operation, { id, input, run: true });
+  notify();
 }
 
 type Navigate = (path: string, search?: Readonly<Record<string, string>>) => Promise<void>;

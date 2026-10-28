@@ -21,7 +21,7 @@ Do not use: driver (for a port implementation), provider (for a port implementat
 
 ### Agent definition
 
-A named agent in the catalog: its instructions, the capabilities it may call, the resource types it works on, its model requirement, its output mode and its budgets. Declared with `defineAgent`. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/runtime`](../packages/runtime/README.md).
+A named agent in the catalog: its instructions, the capabilities it may call, the commands it requests approval for, the resource types it works on, its model requirement, its output mode and its budgets. Declared with `defineAgent`. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/runtime`](../packages/runtime/README.md).
 
 ### Agent run
 
@@ -783,7 +783,7 @@ The screen control a capability declares it is reached from, or the stated reaso
 
 ### UI intent
 
-A request from an agent run to the screen it started from: open a resource, select one, or ask for a review. It is checked under the run's grant, expires, and changes no records. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/adapters`](../packages/adapters/README.md); explained in the [interaction contract](interaction-contract.md#ui-intents).
+A request from an agent run to the screen it started from: open a resource, select one, fill a command's form for the person to submit, or ask for a review. It is checked under the run's grant, expires, and changes no records. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/adapters`](../packages/adapters/README.md); explained in the [interaction contract](interaction-contract.md#ui-intents).
 
 ### UI registry
 

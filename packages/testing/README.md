@@ -89,6 +89,7 @@ An `AgentScenario` names an agent definition, the task a person gives it, who is
 - **`approvals`**: every `approval.request` the run made, by the requested capability's operation ID, a subset of its input and its record.
 - **`refused`**: calls the application must have refused, with the error code.
 - **`outcome`**: whether the run succeeded or failed.
+- **`questions`**: how many questions the run asked the person. `answers` lists the replies in order; a scenario with answers starts its run as from a screen, so a model harness offers its ask tool, and a question past the last answer cancels the run. A deterministic `script` asks with `question`.
 - **`check(result, application)`**: anything further, such as a record read afterwards.
 
 `runAgentScenario(scenario, { application, harness })`:
@@ -98,7 +99,7 @@ An `AgentScenario` names an agent definition, the task a person gives it, who is
 3. offers the tools the grant names, in the `{ input, expectedRevisions }` envelope;
 4. records every call with its receipt or refusal.
 
-The text the run produced is not read. The function returns `{ passed, failures, calls, commits, approvals, state }` instead of throwing. `scenarioRegressions(candidate, baseline)` then lists the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
+The text the run produced is not read. The function returns `{ passed, failures, calls, commits, approvals, questions, state }` instead of throwing. `scenarioRegressions(candidate, baseline)` then lists the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
 
 With the deterministic [harness](../../docs/glossary.md#harness), the prompt is the scenario's `script`. With any other harness, it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`). No credential is looked up.
 
@@ -151,6 +152,7 @@ bun run test:conformance
 - `test/features.test.ts`: the feature cases against a conforming ledger fixture, and against a missing handler, a policy that ignores the access view and a slice JSON cannot keep.
 - `test/agent-scenarios.test.ts`: agent scenarios over a lots fixture, with the deterministic harness and a scripted model harness:
   - an approval request judged as passing;
+  - a question answered from the scenario and counted, and one past the last answer cancelling the run;
   - a direct write and an approval request outside the selection refused;
   - extra commits and a wrong outcome failing;
   - the model's prompt, tools and budget, and regressions;

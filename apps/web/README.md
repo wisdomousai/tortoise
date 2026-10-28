@@ -18,7 +18,7 @@ This package exports nothing; it is built.
 | File | Runs in | Holds |
 | --- | --- | --- |
 | [`vite.config.ts`](vite.config.ts) | build time | Frame wiring, the browser-boundary plugin, React and Tailwind, with flat output in `dist/web/<application id>`. |
-| [`src/main.tsx`](src/main.tsx) | browser | Exchanges the launch credential, then renders `App`. |
+| [`src/main.tsx`](src/main.tsx) | browser | Sets the `dark` class from the operating system's color scheme and follows its changes, exchanges the launch credential, then renders `App`. |
 | [`src/app.tsx`](src/app.tsx) | browser | `App`: `<Frame screens={screens} />`. |
 | [`src/styles.css`](src/styles.css) | browser | Tailwind entry and theme tokens. |
 | `src/components/ui/*` | browser | Stock shadcn primitives, unmodified; add more with `shadcn add` (see [`components.json`](components.json)). |

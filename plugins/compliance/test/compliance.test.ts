@@ -327,7 +327,12 @@ describe('generated compliance artifacts', () => {
       const { iso27001, nist80053, csf } = control.mappings;
       expect(iso27001.length + nist80053.length + csf.length).toBeGreaterThan(0);
       expect(control.evidence.tests.length + control.evidence.artifacts.length).toBeGreaterThan(0);
-      for (const file of control.evidence.tests) expect(existsSync(join(root, file))).toBe(true);
+      for (const file of control.evidence.tests) {
+        // A scaffold export leaves the examples out, and with them their tests named as evidence.
+        const example = /^showcase\/examples\/[^/]+/.exec(file)?.[0];
+        if (example && !existsSync(join(root, example))) continue;
+        expect(existsSync(join(root, file))).toBe(true);
+      }
       for (const kind of control.evidence.events) expect(kind in auditEventKinds).toBe(true);
     }
     expect(controlsMarkdown()).toContain('### IEC 62443-4-2');
@@ -592,4 +597,19 @@ describe('compliance capabilities', () => {
       'UNAVAILABLE',
     );
   });
+});
+
+test('every compliance query describes its inputs for a model that reads the schema', () => {
+  for (const capability of complianceModule.capabilities) {
+    const properties = (capability.input.jsonSchema.properties ?? {}) as Record<
+      string,
+      { description?: string }
+    >;
+    for (const [field, property] of Object.entries(properties))
+      expect([capability.id, field, typeof property.description]).toEqual([
+        capability.id,
+        field,
+        'string',
+      ]);
+  }
 });

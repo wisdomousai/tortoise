@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { applyUiIntent, type UiReview } from './ui-intents';
+import { applyUiIntent, uiSelection, type UiReview } from './ui-intents';
 
 function recorder(select?: (resource: string) => Promise<void>) {
   const calls: string[] = [];
@@ -64,4 +64,33 @@ test('a review is shown with its resources and left for the person to complete',
       resources: ['approval-request:a1'],
     },
   ]);
+});
+
+test('a selection of several resources registers each with the revision the screen shows', () => {
+  expect(
+    uiSelection([
+      { id: 'tool:t1', revision: 3 },
+      { id: 'tool:t2', revision: 0 },
+    ]),
+  ).toEqual({
+    selectedResources: ['tool:t1', 'tool:t2'],
+    observedRevisions: { 'tool:t1': 3, 'tool:t2': 0 },
+  });
+  expect(uiSelection([])).toEqual({ selectedResources: [], observedRevisions: {} });
+});
+
+test('a prepared form goes to the prepare handler, and is rejected without one', async () => {
+  const prepared: unknown[] = [];
+  const { handlers } = recorder();
+  const intent = { type: 'prepare', operation: 'note.create', input: { title: 'Gasket' } } as const;
+  expect(
+    await applyUiIntent('8', intent, {
+      ...handlers,
+      prepare: async (operation, input, id) => {
+        prepared.push([operation, input, id]);
+      },
+    }),
+  ).toBe('accepted');
+  expect(prepared).toEqual([['note.create', { title: 'Gasket' }, '8']]);
+  expect(await applyUiIntent('9', intent, handlers)).toBe('rejected');
 });

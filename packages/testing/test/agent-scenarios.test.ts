@@ -190,6 +190,28 @@ describe('agent scenarios with the deterministic harness', () => {
     ]);
   });
 
+  test('a question is answered from the scenario and counted; one past the last answer cancels', async () => {
+    const asking: AgentScenario = {
+      ...advisorScenario,
+      name: 'advisor asks which lot first',
+      script: { ...advisorScenario.script!, question: 'Which lot passed?' },
+      answers: ['l1'],
+      expect: { ...advisorScenario.expect, questions: 1 },
+    };
+    const result = await runAgentScenario(asking, {
+      application: application(),
+      harness: deterministicHarness,
+    });
+    expect(result.failures).toEqual([]);
+    expect(result.questions).toEqual(['Which lot passed?']);
+    const unanswered = await runAgentScenario(
+      { ...asking, answers: [], check: undefined },
+      { application: application(), harness: deterministicHarness },
+    );
+    expect(unanswered.state).toBe('cancelled');
+    expect(unanswered.passed).toBe(false);
+  });
+
   test('a direct write by a requesting agent is refused, recorded and judged', async () => {
     const result = await runAgentScenario(
       {

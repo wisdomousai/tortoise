@@ -1,6 +1,7 @@
 import type { Sessions } from '@agent-native/adapters/http';
 import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
+import type { Harness } from '@agent-native/agents/types';
 import { createRunSupervisor, runAuditRecord } from '@agent-native/agents/supervisor';
 import { childEnvironment } from '../plugin';
 import { createProviderAccess } from '../providers';
@@ -33,8 +34,11 @@ export async function startAgents(
     childEnvironment: (processId) => childEnvironment(ports.network, processId),
   });
   cleanup.push(() => providers.close());
+  // Harnesses that need no provider selection: the embedding process's and the plugins', such as
+  // a model server's. An agent run started without a harness takes the first one that fits.
+  const harnesses = [...(options.harnesses ?? []), ...pluginHarnesses(instance)];
   const supervisor: ReturnType<typeof createRunSupervisor> = createRunSupervisor({
-    harnesses: [new DeterministicHarness(), ...providers.harnesses, ...(options.harnesses ?? [])],
+    harnesses: [new DeterministicHarness(), ...providers.harnesses, ...harnesses],
     store: instance.runStore,
     tools: createAgentTools(application, (id) => supervisor.get(id), host.uiSessions),
     // Run starts and ends go to the audit log after the fact. A log that cannot write never
@@ -47,5 +51,19 @@ export async function startAgents(
       : {}),
   });
   await supervisor.recoverInterrupted();
-  return { providers, supervisor };
+  return { providers, supervisor, harnesses };
+}
+
+/** The harnesses plugins offer, each checked for the members a supervisor calls. */
+function pluginHarnesses(instance: Instance): Harness[] {
+  return instance.plugins.harnesses().map((candidate) => {
+    const harness = candidate as Partial<Harness>;
+    if (
+      typeof harness.id !== 'string' ||
+      typeof harness.run !== 'function' ||
+      typeof harness.availability !== 'function'
+    )
+      throw new Error('A plugin offered a harness without an id, run and availability');
+    return harness as Harness;
+  });
 }

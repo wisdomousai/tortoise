@@ -33,4 +33,4 @@ Framework packages and the four host plugins, through the root workspace.
 bun test showcase/examples/{{app.kebab}}
 ```
 
-`test/conformance.test.ts` reads one list through the instance, HTTP, the CLI and MCP; `test/ui-bindings.test.ts` checks that every bound operation is referenced by a screen; `e2e/default-screens.pw.ts` creates, opens and edits a {{one.words}} through the default screens in a browser (`bunx playwright test showcase/examples/{{app.kebab}}`); each generated part has its own behavioral test.
+`test/conformance.test.ts` reads one list through the instance, HTTP, the CLI and MCP; `test/ui-bindings.test.ts` checks that every bound operation is referenced by a screen; `e2e/default-screens.pw.ts` creates, opens and edits {{one.a}} through the default screens in a browser (`bunx playwright test showcase/examples/{{app.kebab}}`); each generated part has its own behavioral test.

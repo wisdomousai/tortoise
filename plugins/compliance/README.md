@@ -68,7 +68,7 @@ bun test plugins/compliance
 
 - `test/compliance.test.ts` covers:
   - manifest ownership, the OS handler and action section, and a deterministic SBOM;
-  - controls whose evidence exists;
+  - controls whose evidence exists, skipping the tests of examples a scaffold export leaves out;
   - posture findings and `posture.checked`, including certificate expiry judged at each check and the best-before check;
   - audit-event paging;
   - [behavioral scenarios](../../docs/glossary.md#behavioral-scenario) through the direct driver.

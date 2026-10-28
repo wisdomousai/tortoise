@@ -197,6 +197,12 @@ export interface PluginInstance {
    * only through its commands; `context` is the caller's, not a widened one.
    */
   route?(request: Request, context: ExecutionContext): Promise<Response | undefined>;
+  /**
+   * Serving host only: agent harnesses (`Harness` from `@agent-native/agents/types`) the host's
+   * run route may use, such as a model server's. The kernel only passes them on; the host checks
+   * their shape and offers them as the harnesses it picks for an agent run.
+   */
+  readonly harnesses?: readonly object[];
   /** Facts for the `listening` record, such as the active profile. */
   describe?(): Record<string, JsonValue>;
   /** Release what `open` acquired. Called once, in reverse opening order. */

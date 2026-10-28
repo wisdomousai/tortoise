@@ -17,7 +17,7 @@ export const ${agent.camel}Agent = defineAgent({
   id: '${app.app.kebab}.${agent.kebab}',
   title: '${agent.title}',
   instructions:
-    'List open ${many.words} and read each one. When a ${one.words} is finished, request approval for ${one.kebab}.update with its id and status done, a short rationale, resource ${one.kebab}:<id> and the revision you read as baseRevisions. A person approves or rejects each request. Never request approval for other commands.',
+    'List open ${many.words} and read each one. When ${one.a} is finished, request approval for ${one.kebab}.update with its id and status done, a short rationale, resource ${one.kebab}:<id> and the revision you read as baseRevisions. A person approves or rejects each request. Never request approval for other commands.',
   operations: ['${one.kebab}.list', '${one.kebab}.get', '${one.kebab}.update', 'approval.list'],
   model: 'any',
   output: 'request-approval',

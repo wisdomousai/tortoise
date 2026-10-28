@@ -3,7 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { MockLanguageModelV4 } from 'ai/test';
 import { ApplicationError } from '@agent-native/contracts';
-import { AiSdkHarness } from '../src/ai-sdk';
+import { AiSdkHarness, ASK_TOOL } from '../src/ai-sdk';
 import { ClaudeHarness } from '../src/claude';
 import { CodexHarness } from '../src/codex';
 import { toolName, type HarnessTurn } from '../src/types';
@@ -110,6 +110,8 @@ describe('provider adapters with local protocol fixtures', () => {
     const start: any = requests.find((request: any) => request[0] === 'thread/start');
     expect(start[1].sandbox).toBe('read-only');
     expect(start[1].approvalPolicy).toBe('never');
+    // The encoded tool name hides the capability ID, so the description carries it.
+    expect(start[1].dynamicTools[0].description).toBe('app.ping: Deterministic application query');
   });
   test('Codex native failure after text is still failure and process is closed', async () => {
     let closed = false;
@@ -339,6 +341,83 @@ describe('provider adapters with local protocol fixtures', () => {
     expect(malformed).toContainEqual({ type: 'text', text: 'corrected' });
     expect(prompts).toHaveLength(2);
   });
+});
+
+test('AI SDK asks the person at the screen a question and reads the answer; a run without a screen has no ask tool', async () => {
+  const usage = {
+    inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+    outputTokens: { total: 1, text: 1, reasoning: 0 },
+  };
+  const finish = (reason: string) => ({
+    type: 'finish',
+    usage,
+    finishReason: { unified: reason, raw: reason },
+  });
+  const streamed = (parts: unknown[]) =>
+    ({
+      stream: new ReadableStream({
+        start(controller) {
+          for (const part of [{ type: 'stream-start', warnings: [] }, ...parts])
+            controller.enqueue(part);
+          controller.close();
+        },
+      }),
+    }) as any;
+  const offered: string[][] = [];
+  const prompts: unknown[] = [];
+  const model = () => {
+    let step = 0;
+    return new MockLanguageModelV4({
+      doStream: async (options: { prompt: unknown; tools?: { name: string }[] }) => {
+        offered.push((options.tools ?? []).map((tool) => tool.name));
+        prompts.push(options.prompt);
+        return step++ === 0
+          ? streamed([
+              {
+                type: 'tool-call',
+                toolCallId: 'ask-1',
+                toolName: ASK_TOOL,
+                input: '{"question":"Which transformer?","choices":["T-1","T-2"]}',
+              },
+              finish('tool-calls'),
+            ])
+          : streamed([
+              { type: 'text-start', id: 't' },
+              { type: 'text-delta', id: 't', delta: 'ok' },
+              { type: 'text-end', id: 't' },
+              finish('stop'),
+            ]);
+      },
+    });
+  };
+  const asked: unknown[] = [];
+  const events = await collect(
+    new AiSdkHarness({ model: model() }).run({
+      ...turn(),
+      context: { uiContext: { sessionId: 's', selectedResources: [] } },
+      question: async (message, choices) => {
+        asked.push([message, choices]);
+        return 'T-2';
+      },
+    }),
+  );
+  expect(asked).toEqual([['Which transformer?', ['T-1', 'T-2']]]);
+  expect(JSON.stringify(prompts[1])).toContain('T-2');
+  // The question is the run's question event, never a tool call of its own.
+  expect(events).toEqual([{ type: 'text', text: 'ok' }]);
+  expect(offered[0]).toContain(ASK_TOOL);
+  offered.length = 0;
+  await collect(new AiSdkHarness({ model: model() }).run(turn())).catch(() => undefined);
+  expect(offered[0]).not.toContain(ASK_TOOL);
+  // A trigger's run names its resource as UI context, but no screen waits on it.
+  offered.length = 0;
+  await collect(
+    new AiSdkHarness({ model: model() }).run({
+      ...turn(),
+      context: { uiContext: { selectedResources: ['lot:l1'] } },
+    }),
+  ).catch(() => undefined);
+  expect(offered[0]).not.toContain(ASK_TOOL);
 });
 
 for (const fixture of ['tool-envelope', 'turn-status', 'thread-response'] as const)

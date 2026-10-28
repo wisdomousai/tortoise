@@ -84,12 +84,17 @@ const resourceList = (value: unknown, limit: number) =>
 /** A copy of `intent` with only the fields its type allows, each within its limits. */
 function checkedIntent(intent: UiIntent): UiIntent {
   const copied = structuredClone(intent);
-  if (!copied || !['openResource', 'selectResource', 'requestReview'].includes(copied.type))
+  if (
+    !copied ||
+    !['openResource', 'selectResource', 'requestReview', 'prepare'].includes(copied.type)
+  )
     throw new ApplicationError('INVALID_INPUT', 'Unknown UI intent');
   const fields =
     copied.type === 'requestReview'
       ? ['type', 'title', 'operations', 'resources']
-      : ['type', 'resource'];
+      : copied.type === 'prepare'
+        ? ['type', 'operation', 'input']
+        : ['type', 'resource'];
   if (Object.keys(copied).some((key) => !fields.includes(key)))
     throw new ApplicationError('INVALID_INPUT', 'Unknown UI intent field');
   if (
@@ -104,6 +109,20 @@ function checkedIntent(intent: UiIntent): UiIntent {
       (copied.resources !== undefined && !resourceList(copied.resources, 20)))
   )
     throw new ApplicationError('INVALID_INPUT', 'Invalid review intent');
+  if (copied.type === 'prepare') {
+    const input = copied.input as unknown;
+    if (
+      typeof copied.operation !== 'string' ||
+      copied.operation.length > 128 ||
+      !input ||
+      typeof input !== 'object' ||
+      Object.getPrototypeOf(input) !== Object.prototype ||
+      Object.keys(input).length > 64 ||
+      JSON.stringify(input).length > 262_144
+    )
+      throw new ApplicationError('INVALID_INPUT', 'Invalid prepare intent');
+    return copied;
+  }
   if (
     copied.type !== 'requestReview' &&
     (typeof copied.resource !== 'string' || !uiResourcePattern.test(copied.resource))

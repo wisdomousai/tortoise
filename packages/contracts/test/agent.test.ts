@@ -123,3 +123,20 @@ test('a requesting agent reads the commands it may request approval for with the
   expect(text).not.toContain('`lot.list`');
   expect(() => agentInstructions(catalog, 'lot.missing')).toThrow('Unknown agent lot.missing');
 });
+
+test('a direct agent with requests reads the commands it must request approval for', () => {
+  const catalog = catalogWith(
+    agent({ id: 'lot.desk', requests: ['lot.recompute', 'lot.release'] }),
+  );
+  const text = agentInstructions(catalog, 'lot.desk');
+  expect(text).toContain('You run your other commands yourself.');
+  expect(text).toContain('- `lot.recompute`');
+  expect(text).toContain('- `lot.release`');
+  expect(() =>
+    catalogWith(agent({ id: 'lot.bad', output: 'request-approval', requests: ['lot.release'] })),
+  ).toThrow('requests approval for all its commands');
+  expect(() => catalogWith(agent({ id: 'lot.bad', requests: ['lot.list'] }))).toThrow(
+    'not a requestable command',
+  );
+  expect(() => catalogWith(agent({ id: 'lot.bad', requests: [] }))).toThrow('distinct commands');
+});

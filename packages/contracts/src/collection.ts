@@ -7,6 +7,13 @@ import { jsonSchema } from './schema';
 /** Record keys: non-empty, bounded, and used verbatim in journal resources (`<type>:<key>`). */
 export const recordKeySchema = z.string().min(1).max(128);
 
+/**
+ * The key of one record of a collection, described for a model or client that reads the input
+ * schema; the generated reads and commands take it as `id`.
+ */
+export const recordKeyOf = (collection: { readonly label: { readonly one: string } }) =>
+  recordKeySchema.describe(`The ${collection.label.one}'s ID, as its list returns it.`);
+
 export interface CollectionSpec<Type extends string, Item extends z.ZodObject> {
   /** Journal resource prefix: every record is the resource `<type>:<key>`. No `:` allowed. */
   readonly type: Type;
@@ -117,7 +124,7 @@ export function collectionGet<
     id: `${spec.id}.get` as `${Id}.get`,
     kind: 'query',
     description: spec.description,
-    input: jsonSchema(z.strictObject({ id: recordKeySchema })),
+    input: jsonSchema(z.strictObject({ id: recordKeyOf(collection) })),
     output: jsonSchema(collection.item as unknown as z.ZodType<z.output<Item>>),
     permission: readPermission(collection),
     dependencies: [collection.type, ...(spec.dependencies ?? [])],
@@ -151,9 +158,32 @@ export function collectionList<
     input: jsonSchema(
       z.strictObject({
         ...filterShape,
-        ...(spec.search ? { search: z.string().max(100).optional() } : {}),
-        offset: z.number().int().min(0).optional(),
-        limit: z.number().int().min(1).max(MAX_PAGE).optional(),
+        ...(spec.search
+          ? {
+              search: z
+                .string()
+                .max(100)
+                .optional()
+                .describe(
+                  `Text matched case-insensitively against each ${collection.label.one}'s searchable fields.`,
+                ),
+            }
+          : {}),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe('Matching records to skip before the page starts; 0 when left out.'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_PAGE)
+          .optional()
+          .describe(
+            `Most records on the page, 1 to ${MAX_PAGE}. The output's total counts every match.`,
+          ),
       }) as unknown as z.ZodType<CollectionListInput<z.output<Item>, Filters>>,
     ),
     output: jsonSchema(

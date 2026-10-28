@@ -67,6 +67,12 @@ function submitHandler<State, Services>(
         throw new ApplicationError('INVALID_INPUT', 'Requested input does not match the command');
       }
       const { context } = ctx;
+      // A requesting agent's run asks only for the commands its definition names.
+      if (context.grant?.requests && !context.grant.requests.includes(target.id))
+        throw new ApplicationError(
+          'FORBIDDEN',
+          `Delegation does not permit requesting ${target.id}`,
+        );
       // A resource-scoped run requests approval only for the records it was started on.
       const scope = context.grant?.resources;
       if (scope && !(input.resource && scope.includes(input.resource)))

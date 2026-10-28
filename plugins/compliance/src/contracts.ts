@@ -139,12 +139,32 @@ export const complianceOperations = {
       'Page through the audit log in sequence order. Filter by event kinds (for example egress.denied or command.denied) and outcome; pass the returned nextAfterSeq to continue. Inputs appear only as digests unless a capability allow-lists a field.',
     input: jsonSchema(
       z.strictObject({
-        afterSeq: count.optional(),
-        limit: z.number().int().min(1).max(200).optional(),
-        kinds: z.array(z.string().min(1).max(64)).max(20).optional(),
-        outcome: outcome.optional(),
-        /** Return the most recent matching events (still in sequence order) instead of paging. */
-        newest: z.boolean().optional(),
+        afterSeq: count
+          .optional()
+          .describe(
+            'Sequence number to page after: the previous page’s nextAfterSeq; 0 when left out.',
+          ),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe('Most events to return, 1 to 200.'),
+        kinds: z
+          .array(z.string().min(1).max(64))
+          .max(20)
+          .optional()
+          .describe('Event kinds to include, such as egress.denied; every kind when left out.'),
+        outcome: outcome
+          .optional()
+          .describe('Only events with this outcome; every outcome when left out.'),
+        newest: z
+          .boolean()
+          .optional()
+          .describe(
+            'Return the most recent matching events, still in sequence order, instead of paging.',
+          ),
       }),
     ),
     output: jsonSchema(

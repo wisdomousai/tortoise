@@ -8,6 +8,12 @@ import '@fontsource/ibm-plex-mono/500.css';
 import '@fontsource/ibm-plex-mono/600.css';
 import './styles.css';
 
+// The `.dark` tokens in styles.css apply under this class; follow the OS color scheme.
+const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+const applyScheme = () => document.documentElement.classList.toggle('dark', darkScheme.matches);
+applyScheme();
+darkScheme.addEventListener('change', applyScheme);
+
 async function start() {
   await exchangeLaunch();
   createRoot(document.getElementById('root')!).render(<App />);

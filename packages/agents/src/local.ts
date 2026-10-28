@@ -89,7 +89,7 @@ export function localHarness(options: LocalHarnessOptions): Harness {
       };
   return {
     id: entry ? `local-${entry.id}` : 'local',
-    features: { questions: false, approvals: false, resume: false },
+    features: { questions: true, approvals: false, resume: false },
     inference: 'local',
     model,
     ...(entry?.agents ? { agents: entry.agents } : {}),

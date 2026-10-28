@@ -13,6 +13,8 @@ export interface Names {
   readonly words: string;
   /** `Work order`: headings and labels. */
   readonly title: string;
+  /** `a work order`, `an inquiry`: the words with their indefinite article. */
+  readonly a: string;
 }
 
 /** Spell `name` for code and copy; throws unless it is lowercase words joined by hyphens. */
@@ -28,6 +30,8 @@ export function names(name: string, what = 'Name'): Names {
     pascal,
     words,
     title: words[0]!.toUpperCase() + words.slice(1),
+    // By the first letter; a name such as `unit` reads "an unit" and is rare enough to accept.
+    a: `${/^[aeiou]/.test(words) ? 'an' : 'a'} ${words}`,
   };
 }
 

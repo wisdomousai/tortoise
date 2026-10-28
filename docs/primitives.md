@@ -211,7 +211,7 @@ implemented · [`packages/agents`](../packages/agents/README.md)
 
 ### Agent definition
 
-_A named agent in the catalog: its instructions, the capabilities it may call, the resource types it works on, its model requirement, its output mode and its budgets._
+_A named agent in the catalog: its instructions, the capabilities it may call, the commands it requests approval for, the resource types it works on, its model requirement, its output mode and its budgets._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/agents`](../packages/agents/README.md) [`packages/adapters`](../packages/adapters/README.md)
 

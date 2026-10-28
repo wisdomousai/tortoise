@@ -117,8 +117,8 @@ function CompactBar({ onFind }: { onFind: () => void }) {
 
 /**
  * Application frame: the hosted application's name and context, its navigation with live badges,
- * an optional sidebar section, the status slot, the capability palette (⌘K) and where a screen the
- * OS opened came from. On a narrow viewport the sidebar becomes a bar and a menu sheet. Every slot
+ * an optional sidebar section, the status slot, an optional panel docked at the right (`aside`),
+ * the capability palette (⌘K) and where a screen the OS opened came from. On a narrow viewport the sidebar becomes a bar and a menu sheet. Every slot
  * is a component the application declares, so it reads authorized queries like any screen. Shadow
  * this file in the starter (`src/components/app-shell.tsx`) to restyle it.
  */
@@ -138,8 +138,14 @@ export function AppShell() {
     return () => window.removeEventListener('keydown', listener);
   }, []);
   const find = () => setPalette(true);
+  const { aside: Aside } = useScreens();
   return (
-    <div className="grid min-h-screen grid-cols-1 content-start lg:grid-cols-[16rem_1fr] lg:content-stretch">
+    <div
+      className={cn(
+        'grid min-h-screen grid-cols-1 content-start lg:content-stretch',
+        Aside ? 'lg:grid-cols-[16rem_minmax(0,1fr)_auto]' : 'lg:grid-cols-[16rem_1fr]',
+      )}
+    >
       {compact ? (
         <CompactBar onFind={find} />
       ) : (
@@ -165,6 +171,7 @@ export function AppShell() {
         ) : null}
         <Outlet />
       </main>
+      {Aside ? <Aside /> : null}
       <CommandPalette open={palette} onOpenChange={setPalette} />
     </div>
   );

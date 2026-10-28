@@ -20,7 +20,8 @@ const intersect = (allowed: readonly string[], limit: readonly string[] | undefi
  * resources are the run's starting resources of the definition's types within the issuer's
  * resources, and it expires at the earlier of the issuer's expiry and the definition's wall-time
  * budget. A resource-scoped run may also create records of the definition's `creates` types, and a
- * resource-scoped requesting run approval requests. It is bound to the issuer's principal and
+ * resource-scoped requesting run approval requests. A requesting run may request approval only for
+ * the definition's commands (`requests`). It is bound to the issuer's principal and
  * workspace, to the run and to the agent (`agent`), which policy may match. Policy still
  * authorizes every call; the grant cannot widen it. Throws `NOT_FOUND` for an agent the catalog
  * does not define.
@@ -36,7 +37,11 @@ export function agentGrant(
   const kinds = new Map(catalog.operations.map((operation) => [operation.id, operation.kind]));
   const own =
     agent.output === 'direct'
-      ? invokesClosure(catalog, agent.operations)
+      ? [
+          ...invokesClosure(catalog, agent.operations),
+          // A direct agent with requests asks for those commands as approval requests.
+          ...(agent.requests?.length && kinds.has('approval.request') ? ['approval.request'] : []),
+        ]
       : [
           // A query invokes only queries, so the closure keeps a requesting agent to reads.
           ...invokesClosure(
@@ -73,6 +78,10 @@ export function agentGrant(
     ...(resources ? { resources } : {}),
     ...(creates.length ? { creates } : {}),
     ...(options.runId ? { runId: options.runId } : {}),
+    // A requesting run asks only for its own commands; the approver's grant still decides the run.
+    ...(agent.output === 'request-approval'
+      ? { requests: agent.operations.filter((id) => kinds.get(id) === 'command') }
+      : {}),
     agent: agent.id,
   };
 }

@@ -41,17 +41,18 @@ A screen registers the resources a person selected and the [revision](glossary.m
 
 ## UI intents
 
-A run that captured a UI session context gets three run tools beside the application tools. Each sends one UI intent to that session:
+A run that captured a UI session context gets four run tools beside the application tools. Each sends one UI intent to that session:
 
 | Run tool | Intent | Screen behavior |
 | --- | --- | --- |
 | `ui.open` | `openResource` | Navigates to the screen `screens.resources` gives for the resource kind |
 | `ui.select` | `selectResource` | Selects the resource on the current screen, or rejects a kind the screen does not show |
+| `ui.prepare` | `prepare` | Fills the form of a command for the person to check and submit |
 | `ui.request-review` | `requestReview` | Shows a review with a title, operations and the records to look at |
 
-The UI session store accepts an intent from a run only for the session the run captured. The run's principal and workspace must match the session's, the run must not be cancelled, and the session must still be live. The host then checks that the run may read every named resource and that its kind is a selectable resource. A review's operations must be in the catalog. An intent that fails a check is refused, and the run sees the error.
+The UI session store accepts an intent from a run only for the session the run captured. The run's principal and workspace must match the session's, the run must not be cancelled, and the session must still be live. The host then checks that the run may read every named resource and that its kind is a selectable resource. A review's operations must be in the catalog. A prepared form must belong to a command with a UI binding; its values are untrusted, and the command validates them when the person submits it as themselves. An intent that fails a check is refused, and the run sees the error.
 
-Intents change no records and are not journaled. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired.
+Intents change no records and are not journaled. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired. By default a prepared form is held for the form that binds the command, as an OS request's prefill is, and `CapabilityForm` shows it with a notice.
 
 ## Results
 

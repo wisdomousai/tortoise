@@ -3,7 +3,7 @@ import { defineCapability, jsonSchema } from '@agent-native/contracts';
 
 const descriptions: Readonly<Record<string, string>> = {
   'inspection.lot.get':
-    'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. Use its revision as lot:<id> in a decision expectedRevisions map.',
+    'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. A command receipt that changed the lot carries its revision as lot:<id> for the expectedRevisions of a decision.',
   'inspection.worklist':
     'Return the next characteristic and sample to measure for an open lot, and how many samples remain. Call it after each recorded result to get the next one.',
   'inspection.code.list':

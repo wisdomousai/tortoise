@@ -302,7 +302,7 @@ async function open() {
   return { app, run };
 }
 
-test('a ${kind.words} sent to a member comes back as reports, and accepting one sets its ${one.words}', async () => {
+test('${kind.a} sent to a member comes back as reports, and accepting one sets its ${one.words}', async () => {
   const { app, run } = await open();
   const first = (await run('${one.kebab}.create', { title: 'First' }, owner, 'first')).id;
   const second = (await run('${one.kebab}.create', { title: 'Second' }, owner, 'second')).id;
@@ -323,7 +323,7 @@ test('a ${kind.words} sent to a member comes back as reports, and accepting one 
     subject,
     body: { status: 'done', note: 'Finished.' },
   });
-  // A member's report on a ${one.words} outside the assignment is refused.
+  // A member's report on ${one.a} outside the assignment is refused.
   await expect(
     run('assignment.${kind.kebab}.report', report('report-2', second), worker, 'outside'),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });

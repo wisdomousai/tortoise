@@ -182,6 +182,10 @@ export async function openPlugins(
       }
       return undefined;
     },
+    /** The harnesses the plugins offer the host's run route, in composition order. */
+    harnesses(): readonly object[] {
+      return opened.flatMap(({ instance }) => instance.harnesses ?? []);
+    },
     /** The plugins' facts for the `listening` record, keyed by plugin id. */
     describe(): Record<string, JsonValue> {
       return Object.fromEntries(

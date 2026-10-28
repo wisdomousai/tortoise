@@ -15,8 +15,8 @@ A [harness](glossary.md#harness) reaches business data only through the applicat
 | `deterministic` | None                       | No            | Both, with timeouts                                        |
 | `codex`         | A ChatGPT plan profile     | Thread ID     | Native questions; shell and file approvals always declined |
 | `claude`        | An Anthropic API key       | Session ID    | Neither                                                    |
-| `ai-sdk`        | An OpenAI API key          | No            | Neither                                                    |
-| `local`         | None                       | No            | Neither                                                    |
+| `ai-sdk`        | An OpenAI API key          | No            | Questions in a run started from a screen                   |
+| `local`         | None                       | No            | Questions in a run started from a screen                   |
 
 Each adapter is limited to application tools. Codex runs the app-server with shell, edit and search disabled and a read-only sandbox. Its protocol version is pinned because its dynamic tools are still experimental. Claude sees only the application's MCP tools, with no built-in tools and no settings sources. The AI SDK adapter refuses a string model alias, so it cannot pick up an ambient gateway credential.
 
@@ -116,7 +116,7 @@ A new adapter documents its runtime version, credential source, tool boundary, s
 
 ## Limits
 
-- The web frame's accounts panel offers the deterministic, Codex, Claude and AI SDK harnesses. It does not offer the local harness.
+- The web frame's accounts panel offers the deterministic, Codex, Claude and AI SDK harnesses. It does not offer the local harness; an agent run started without a harness uses the model server's.
 - Only tests use the generic OIDC connection.
 - The model server does not manage Ollama, which keeps models in its own store, so an Ollama run is unverified.
 

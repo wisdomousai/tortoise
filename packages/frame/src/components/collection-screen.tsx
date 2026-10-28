@@ -46,6 +46,18 @@ function shownFields(capability: AnyCapability, list: boolean, limit?: number) {
   return (limit ? names.slice(0, limit) : names).map((name) => ({ name, label: humanize(name) }));
 }
 
+/**
+ * A field value as plain text: a list of scalars joined, a list of records counted, and a record
+ * as JSON, never "[object Object]".
+ */
+export function plainValue(value: unknown): string {
+  if (Array.isArray(value))
+    return value.every((item) => item === null || typeof item !== 'object')
+      ? value.join(', ')
+      : `${value.length} ${value.length === 1 ? 'item' : 'items'}`;
+  return typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
+}
+
 /** A forwarded record's delivery state; anything else as plain text. */
 function Value({ name, value }: { name: string; value: unknown }) {
   if (value === undefined || value === null)
@@ -60,7 +72,7 @@ function Value({ name, value }: { name: string; value: unknown }) {
         {humanize(String(value))}
       </Badge>
     );
-  return <>{String(value)}</>;
+  return <>{plainValue(value)}</>;
 }
 
 /**

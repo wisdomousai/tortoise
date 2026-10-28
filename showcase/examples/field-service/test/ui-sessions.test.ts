@@ -39,7 +39,7 @@ test('UI capture resolves authorized resources and binds to live host identity a
       }
     },
     async validateIntent(context, intent) {
-      if (intent.type !== 'requestReview') {
+      if (intent.type === 'openResource' || intent.type === 'selectResource') {
         const [type, id] = intent.resource.split(':');
         await app.queryRaw({ operation: `${type}.get`, input: { id } }, context);
       }
@@ -170,7 +170,12 @@ test('a run sends intents only to the live UI session of its own principal, for 
     isActive: (token) => !!sessions.get(token),
     validateContext: async () => {},
     async validateIntent(_, intent) {
-      const named = 'resource' in intent ? [intent.resource] : (intent.resources ?? []);
+      const named =
+        'resource' in intent
+          ? [intent.resource]
+          : intent.type === 'requestReview'
+            ? (intent.resources ?? [])
+            : [];
       if (named.some((resource) => !readable.has(resource)))
         throw new ApplicationError('FORBIDDEN', 'Resource unavailable');
     },

@@ -197,7 +197,6 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     const routes: HostRouteContext = {
       ...ui,
       ...agents,
-      harnesses: options.harnesses,
       ...(build ? { build } : {}),
       shutdown: { ownerSession, instance: ownership.instance, close },
     };

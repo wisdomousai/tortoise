@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import type { AnyCapability, InputOf, JsonObject, OutputOf } from '@agent-native/contracts';
 import type { Receipt } from '@agent-native/client';
 import { useCapabilityForm } from '@agent-native/react/form';
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,8 +30,15 @@ type Field = {
 const humanize = (name: string) =>
   name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (first) => first.toUpperCase());
 
-/** Derive form fields from the top level of a capability's JSON Schema. */
-export function fieldsOf(schema: JsonObject, hidden: readonly string[] = []): Field[] {
+/**
+ * Derive form fields from the top level of a capability's JSON Schema. A field named in the
+ * capability's display fields takes its label from there.
+ */
+export function fieldsOf(
+  schema: JsonObject,
+  hidden: readonly string[] = [],
+  labels: ReadonlyMap<string, string> = new Map(),
+): Field[] {
   const properties = (schema.properties ?? {}) as Record<string, Property>;
   const required = new Set((schema.required ?? []) as string[]);
   return Object.entries(properties)
@@ -55,7 +63,7 @@ export function fieldsOf(schema: JsonObject, hidden: readonly string[] = []): Fi
               : 'json';
       return {
         name,
-        label: humanize(name),
+        label: labels.get(name) ?? humanize(name),
         kind,
         choices: (value.enum ?? []).map(String),
         required: required.has(name),
@@ -169,7 +177,12 @@ function FormBody<C extends AnyCapability>({
   dismiss: () => void;
 }) {
   const [saved, setSaved] = useState('');
-  const fields = fieldsOf(capability.input.jsonSchema, Object.keys(fixed));
+  const labels = new Map(
+    (capability.display?.fields ?? []).flatMap((field) =>
+      field.label ? [[field.name, field.label] as const] : [],
+    ),
+  );
+  const fields = fieldsOf(capability.input.jsonSchema, Object.keys(fixed), labels);
   const { form } = useCapabilityForm(transport, capability, {
     defaultValues: preparedValues(fields, prepared?.input),
     toInput: (values) => ({ ...toTyped(fields, values), ...fixed }) as InputOf<C>,
@@ -227,6 +240,21 @@ function FormBody<C extends AnyCapability>({
   );
 }
 
+/** A prefill an agent run prepared: committed only when the person submits. */
+function RunPrefillNotice({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <Alert>
+      <AlertTitle role="status">An agent prepared this form</AlertTitle>
+      <AlertDescription>Check the prefilled fields before you submit.</AlertDescription>
+      <AlertAction>
+        <Button size="sm" variant="ghost" onClick={onDismiss}>
+          Discard
+        </Button>
+      </AlertAction>
+    </Alert>
+  );
+}
+
 /**
  * A complete form for any command capability, generated from its contract. Use it to scaffold a
  * screen in one line, then replace it with a purpose-built capture surface where seconds matter.
@@ -238,8 +266,10 @@ export function CapabilityForm<C extends AnyCapability>(props: FormProps<C>) {
   const { prepared, dismiss } = usePreparedInput(props.capability.id);
   return (
     <div className="space-y-3">
-      {prepared ? (
+      {prepared?.provenance ? (
         <OsProvenanceNotice provenance={prepared.provenance} prepared onDismiss={dismiss} />
+      ) : prepared ? (
+        <RunPrefillNotice onDismiss={dismiss} />
       ) : null}
       {/* A new prefill remounts the form so its values become the defaults. */}
       <FormBody key={prepared?.id ?? 'blank'} {...props} prepared={prepared} dismiss={dismiss} />

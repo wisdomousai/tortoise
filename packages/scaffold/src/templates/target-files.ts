@@ -34,7 +34,7 @@ export function ${t.pascal}Screen() {
         ))}
       </dl>
       <section aria-label="Send to ${t.words}" className="space-y-3">
-        <h2 className="text-base font-medium">Send a ${one.words}</h2>
+        <h2 className="text-base font-medium">Send ${one.a}</h2>
         <CapabilityForm capability={operations.${t.camel}Send} submitLabel="Send" />
       </section>
     </div>

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { assertBlobLimits, type BlobLimits } from './blob';
 import { defineCapability } from './capability';
 import { readDisplay, readPermission, type UiDeclaration } from './collection-display';
-import { recordKeySchema, type Collection } from './collection';
+import { recordKeyOf, recordKeySchema, type Collection } from './collection';
 import { jsonSchema } from './schema';
 
 export interface CollectionCommandSpec<Id extends string> {
@@ -102,7 +102,13 @@ export function collectionCreate<
 ) {
   const shape = picked(collection, spec.fields, true);
   const input = z.strictObject({
-    ...(spec.clientKey ? { id: recordKeySchema } : {}),
+    ...(spec.clientKey
+      ? {
+          id: recordKeySchema.describe(
+            `The new ${collection.label.one}'s ID, chosen by the caller.`,
+          ),
+        }
+      : {}),
     ...shape,
   }) as unknown as z.ZodType<CollectionCreateInput<z.output<Item>, Fields, ClientKey>>;
   return command(
@@ -134,7 +140,7 @@ export function collectionUpdate<
     Object.entries(shape).map(([field, schema]) => [field, schema.optional()]),
   );
   const input = z.strictObject({
-    id: recordKeySchema,
+    id: recordKeyOf(collection),
     ...optional,
   }) as unknown as z.ZodType<CollectionUpdateInput<z.output<Item>, Fields>>;
   return command(
@@ -166,7 +172,7 @@ export function collectionRetire<
     collection,
     `${spec.id}.retire` as `${Id}.retire`,
     spec,
-    z.strictObject({ id: recordKeySchema }),
+    z.strictObject({ id: recordKeyOf(collection) }),
     item(collection),
     `Retire ${collection.label.one}`,
   );
@@ -185,8 +191,10 @@ export function collectionMove<
   const parent = collection.parent;
   if (!parent) throw new Error(`Collection ${collection.type} declares no parent to move under`);
   const input = z.strictObject({
-    id: recordKeySchema,
-    [parent]: recordKeySchema.nullable(),
+    id: recordKeyOf(collection),
+    [parent]: recordKeySchema
+      .nullable()
+      .describe(`The new parent's ID, or null to move the ${collection.label.one} to the root.`),
   }) as unknown as z.ZodType<{ readonly id: string } & Record<string, string | null>>;
   return command(
     collection,
@@ -224,10 +232,31 @@ export function collectionTree<
   if ('depth' in collection.item.shape)
     throw new Error(`Collection ${collection.type} has a depth field, which a tree read adds`);
   const input = z.strictObject({
-    root: recordKeySchema.optional(),
-    depth: z.number().int().min(0).max(64).optional(),
-    ...(collection.retiredField ? { includeRetired: z.boolean().optional() } : {}),
-    limit: z.number().int().min(1).max(MAX_TREE).optional(),
+    root: recordKeySchema
+      .optional()
+      .describe('The ID of the record to start at; the roots when left out.'),
+    depth: z
+      .number()
+      .int()
+      .min(0)
+      .max(64)
+      .optional()
+      .describe('Levels below the start to include; every level when left out.'),
+    ...(collection.retiredField
+      ? {
+          includeRetired: z
+            .boolean()
+            .optional()
+            .describe('Whether to include retired records; false when left out.'),
+        }
+      : {}),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .max(MAX_TREE)
+      .optional()
+      .describe(`Most records to return, 1 to ${MAX_TREE}.`),
   }) as unknown as z.ZodType<CollectionTreeInput>;
   const output = z.strictObject({
     items: z.array(collection.item.extend({ depth: z.number().int().min(0) })),

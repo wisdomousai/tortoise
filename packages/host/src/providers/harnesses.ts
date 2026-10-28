@@ -133,7 +133,7 @@ export function createProviderHarnesses(state: ProviderState): Harness[] {
     lazyHarness(
       state,
       'ai-sdk',
-      { questions: false, approvals: false, resume: false },
+      { questions: true, approvals: false, resume: false },
       aiSdk(state),
     ),
   ];

@@ -1,6 +1,6 @@
 import { StdioJsonRpc, protocolRecord } from '../process';
 import type { ToolDefinition } from '../types';
-import { toolName } from '../types';
+import { toolDescription, toolName } from '../types';
 import type { CodexOptions } from '../codex';
 
 /** The app-server child: trusted startup configuration only, HOME pinned to the run's home. */
@@ -76,7 +76,7 @@ export async function openThread(
         dynamicTools: definitions.map((definition) => ({
           type: 'function',
           name: toolName(definition.operation),
-          description: definition.description,
+          description: toolDescription(definition),
           inputSchema: definition.inputSchema,
         })),
         developerInstructions:

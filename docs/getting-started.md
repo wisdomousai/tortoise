@@ -95,7 +95,7 @@ bun run cli work-order list
 
 ```sh
 export AGENT_NATIVE_APPLICATION=@agent-native/quality-inspection
-export AGENT_NATIVE_CONNECTION="$(pwd)/examples/quality-inspection/.workspace/.connection.json"
+export AGENT_NATIVE_CONNECTION="$(pwd)/showcase/examples/quality-inspection/.workspace/.connection.json"
 bun run cli inspection lot list --output text
 bun run cli help inspection result record
 ```
@@ -187,3 +187,4 @@ The scaffold installs no global agent configuration. A coding agent shapes the g
 - [Architecture](architecture.md#embedded-and-attached-modes)
 - [Architecture](architecture.md#examples)
 - [Patterns](patterns.md)
+- [Tutorial](tutorial.md)

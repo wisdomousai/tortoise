@@ -44,6 +44,13 @@ export interface RunEvent {
   message?: string;
   operation?: string;
   callId?: string;
+  /**
+   * On `tool-finish`: the records the command changed (`<kind>:<id>`, from its receipt's
+   * revisions), so a run view can link a call to its record.
+   */
+  resources?: readonly string[];
+  /** On `tool-finish`: the error code when the application refused the call. */
+  code?: string;
   requestId?: string;
   choices?: readonly string[];
 }
@@ -154,7 +161,7 @@ export function modelPrompt(turn: Pick<HarnessTurn, 'prompt' | 'context'>): stri
     { sessionId?: unknown; selectedResources?: unknown; observedRevisions?: unknown } | undefined;
   const screen =
     typeof ui?.sessionId === 'string'
-      ? '\n\nThis request was made from an application screen. ui.open and ui.select show a resource there, and ui.request-review asks the person to review records such as your approval requests; they change no records.'
+      ? '\n\nThis request was made from an application screen. ui.open and ui.select show a resource there, ui.prepare fills a command’s form there for the person to check and submit, and ui.request-review asks the person to review records such as your approval requests; they change no records.'
       : '';
   const selected = Array.isArray(ui?.selectedResources)
     ? ui.selectedResources.filter((resource): resource is string => typeof resource === 'string')
@@ -179,4 +186,12 @@ export function toolName(operation: string): string {
   if (name.length > 64)
     throw new Error(`Capability ID is too long for provider tool naming: ${operation}`);
   return name;
+}
+
+/** The provider tool description. It starts with the capability ID, because the encoded tool name
+ * hides it and an agent's instructions name capabilities by ID. */
+export function toolDescription(definition: { operation: string; description: string }): string {
+  return definition.description === definition.operation
+    ? definition.operation
+    : `${definition.operation}: ${definition.description}`;
 }

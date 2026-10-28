@@ -27,7 +27,7 @@ A kind declares its data as schemas:
 
 The browser-safe `defineAssignments` turns the kinds into the feature's manifest and operations. Each kind gets a create, send, report and accept command. Every kind shares the commands to withdraw, complete and close an assignment, the reads and the feed, and the commands that link and discard reports.
 
-The application mounts the feature with an access view and hooks. The application's [policy](glossary.md#policy) never sees the feature's operations, so the access view repeats the application's membership gate. The hooks check a scope, compute a brief, decide whether an assignment covers a subject, and write the application's records when a report is accepted. The `byKind` helper builds them from one implementation per kind.
+The application mounts the feature with an access view and hooks. The application's [policy](glossary.md#policy) never sees the feature's operations, so the access view repeats the application's membership gate. The hooks check a scope and an assignee, compute a brief, decide whether an assignment covers a subject, and write the application's records when a report is accepted. The `byKind` helper builds them from one implementation per kind.
 
 ## Lifecycle
 
@@ -84,6 +84,8 @@ Add an assignment kind for person assignees over a collection to an application 
 ```sh
 bun run scaffold add assignment-kind inspection --collection note
 ```
+
+The generated kind reads the collection's generated `title` and `status` fields and names the generated `editor` role; a reshaped collection or a renamed role needs the same change in the kind.
 
 Run the tests of the package, the patterns and the asset survey:
 

@@ -21,7 +21,7 @@ export interface HostRouteContext {
   readonly shellRelay: ShellRelay;
   readonly supervisor: ReturnType<typeof createRunSupervisor>;
   readonly providers: Awaited<ReturnType<typeof createProviderAccess>>;
-  /** Harnesses the embedding process added; they need no provider selection. */
+  /** Harnesses the embedding process and the plugins added; they need no provider selection. */
   readonly harnesses?: readonly Harness[];
   /** When the running binary was built and its best-before date; absent for a run from source. */
   readonly build?: BuildFacts;

@@ -249,6 +249,32 @@ describe('approvals', () => {
       await expect(submit(operation, input)).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
 
+  test("a requesting agent's run requests approval only for the commands its grant lists", async () => {
+    const { app } = setup();
+    const limited: ExecutionContext = {
+      ...annAgent,
+      grant: { ...annAgent.grant!, requests: ['lot.touch'] },
+    };
+    await expect(
+      invoke(
+        app,
+        'approval.request',
+        { operation: 'lot.release', input: { id: 'l1' }, rationale: 'x' },
+        limited,
+      ),
+    ).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: 'Delegation does not permit requesting lot.release',
+    });
+    const allowed = await invoke(
+      app,
+      'approval.request',
+      { operation: 'lot.touch', input: { id: 'l1' }, rationale: 'x' },
+      limited,
+    );
+    expect(allowed.result).toMatchObject({ operation: 'lot.touch', status: 'pending' });
+  });
+
   test('an approval expires: approving conflicts and expire closes it only after its expiry', async () => {
     const { app, approval, advance } = setup();
     await requestApproval(app);

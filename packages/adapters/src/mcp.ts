@@ -123,7 +123,7 @@ function agentText(catalog: Catalog, agent: CatalogAgent): string {
   );
   // A requesting agent's instructions list the commands it may request approval for and their inputs.
   const body =
-    agent.output === 'direct'
+    agent.output === 'direct' && !agent.requests?.length
       ? `${agent.instructions}\n\nYou run these commands yourself.`
       : agentInstructions(catalog, agent.id);
   return `# ${agent.title}\n\n${body}\n\nTools: ${tools.map((name) => `\`${name}\``).join(', ')}.\n\nBudgets per run: ${agent.budgets.turns} turns, ${agent.budgets.toolCalls} tool calls, ${agent.budgets.wallTimeMs / 1000} seconds.\n`;

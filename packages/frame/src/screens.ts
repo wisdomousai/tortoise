@@ -58,6 +58,12 @@ export interface ApplicationScreens {
   readonly sidebar?: ComponentType;
   /** Rendered in the sidebar footer, for example synchronization state. */
   readonly status?: ComponentType;
+  /**
+   * A panel docked at the right of every shell screen, such as an assistant. It renders inside
+   * the router and query context, stays mounted across navigation and sets its own width; on a
+   * compact viewport it decides itself how to show, for example behind a button.
+   */
+  readonly aside?: ComponentType;
   /** Screens of the features the manifest lists. `defineScreens` merges them into the above. */
   readonly features?: readonly FeatureScreens[];
   /** Screens of the plugins the manifest lists. `defineScreens` merges them into the above. */

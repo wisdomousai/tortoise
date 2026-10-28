@@ -445,6 +445,45 @@ Control mappings are indicative.
 
 **By hand, assignment kinds.** On 27 October 2026, in a `scaffold new` export with collection `note`, `add agent closer --collection note`, `add assignment-kind inspection --collection note`, `add collection site --tree` and `add assignment-kind site-check --collection site` produced an application that installed frozen and passed format, typecheck and its 13 unit tests. `bun run generate` wrote the reference with the `assignment.*` operations of both kinds. No build or Playwright spec ran on that export.
 
+**By hand, tutorial.** On 27 October 2026, on macOS, each prompt of the [tutorial](tutorial.md) ran in a fresh coding agent in a `scaffold new` export named `tool-crib`, from the export to the site deployment. Every step passed the checks its skill names. At the end the export passed format, generation, typecheck, build, its 1112 tests and the application's 8 Playwright specs. In Chrome on the running service, a badge typed as a scan and the PIN keypad signed an attendant in at the terminal. A typed asset tag opened the tool at the counter, and a damaged return set the tool in repair with the fake EAM's repair order number. The deployment step staged the install under a prefix with no service. Its firewall and service exports were not loaded. On 28 October 2026 the calibration and UI intent steps ran on the finished export: Claude Code over the MCP bridge moved the two available tools due for calibration and left the lent one, and the CLI list showed its changes. The UI intent step's browser flow ran in Playwright only. The run fixed:
+
+- the export, which left out native module, golden and Dockerfile files;
+- the compliance test, which named the tests of left-out examples as evidence;
+- generated capabilities, whose resource type was the application;
+- form labels, which ignored display fields;
+- the UI session check, which accepted any observed revision of a read without one;
+- approval requests, which a requesting agent could submit for commands outside its definition;
+- `HeldEffect`, which `reconciliation-review` did not export;
+- `useUiSession`, which took one resource, so a list screen could not share its selection;
+- provider tool descriptions, which left out the capability ID that the encoded tool name hides (found by the CB radio tutorial's live run);
+- site install tests that hit the default test timeout on a cold run;
+- skill text in the scaffold, capability, screen, feature, scanner, sign-in, system-of-record, assignment and deployment skills.
+
+Gaps the run left open:
+
+- `CollectionScreen` has no filter controls, and the generic form cannot clear an optional field, takes no expected revisions or transport, and takes a time only as typed ISO text.
+- `useUiSession` swallows a refused selection and always uses the browser's session.
+- The PIN keypad takes no typed digits, and the badge field on the badge screen has no scan handling.
+- No hook checks an assignment report's body when it is reported, and `byKind` hooks get untyped bodies.
+- Inbound sync fails a whole batch on a feed item with an undefined optional key, without naming the field.
+- The resolved context does not mark a terminal sign-in, so policy cannot require a command at the terminal.
+- An agent run started in a terminal's work area acts as the terminal's principal, not the signed-in operator, because the host calls carry no operator token.
+- `scaffold add` target, agent and assignment-kind parts read the generated `title` and `status` fields and the `editor` role.
+- In an export, `check:readmes` and `check:skills` fail on links to the left-out examples and patterns.
+
+**By hand, library tutorial.** On 27 October 2026, on macOS, each prompt of the [library tutorial](tutorial-library.md) ran in a fresh coding agent in a `scaffold new` export named `plant-library`: books and loans with a cover photo taken by the webcam as a blob, a desk screen and a loans screen. The export passed its checks and Playwright specs. The run fixed the frame, which never applied the `.dark` tokens, and skill text on blobs and read revisions.
+
+**By hand, in-app assistant tutorial.** On 27 and 28 October 2026, on macOS, each prompt of the [in-app assistant tutorial](tutorial-assistant.md) ran in a coding agent in a `scaffold new` export named `parts-desk`. At the end it passed 61 tests and 9 Playwright specs, with the scripted conversation running end to end. The live run on Gemma 4 E4B Q4_0 in llama-server passed the first of five turns: it found the transformer, then asked which transformer or quote was meant instead of searching parts, and no quote was created. Voice input was checked only with recognition reported unavailable. The run fixed:
+
+- `ask_person`, which trigger runs with no person at a screen were offered;
+- generated copy, which put "a" before a vowel;
+- list and record fields, which showed nested values as `[object Object]`;
+- generated collection inputs and the compliance event query inputs, which had no descriptions a model could read;
+- the host, which had no route to start a run under an agent definition from a screen;
+- `check:boundaries`, which flagged Playwright helpers as server code.
+
+Gaps it left open: the supervisor's approve step is not exercised in the browser, `CapabilityForm` shows array fields as raw JSON, and headless Chromium crashes on `SpeechRecognition.available()`.
+
 **Limits.**
 
 - An application cannot compose the `device-link` plugin and the `device` feature: both claim the `device` resource type.

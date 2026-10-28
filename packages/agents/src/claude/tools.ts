@@ -1,7 +1,7 @@
 import { createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
 import type { HarnessTurn, ToolDefinition } from '../types';
-import { toolName } from '../types';
+import { toolDescription, toolName } from '../types';
 
 /** The SDK name of an application tool on the in-process `application` MCP server. */
 export const applicationToolName = (definition: ToolDefinition) =>
@@ -23,7 +23,7 @@ export function applicationMcpServer(turn: HarnessTurn, definitions: readonly To
         throw new Error('Application tool input schema must describe an object');
       return tool(
         toolName(definition.operation),
-        definition.description,
+        toolDescription(definition),
         schema.shape,
         async (input, extra) => {
           turn.signal.throwIfAborted();

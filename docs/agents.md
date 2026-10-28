@@ -28,9 +28,9 @@ The application binary supplies the tool side: an embedded MCP server under a la
 
 ## Runs
 
-The run supervisor executes runs that share a conversation ID one after another, and other runs concurrently. A run is queued, running, awaiting a question, awaiting approval, succeeded, failed, cancelled or interrupted. Success needs a terminal result from the provider. Partial text followed by a provider failure is a failed run.
+The host's run route starts a run for the person whose session calls it. With `agentId`, the run executes under that agent definition: its grant is narrowed by `agentGrant` to the definition and the selection the run started on, its prompt starts with `agentInstructions`, and the definition's budgets and model requirement apply. Without `harnessId`, the host picks the first harness it was given, by the embedding process or a plugin such as the [model server](../plugins/model-server/README.md), that meets the requirement. With `conversationId`, the run continues a conversation of the caller's own runs under the same agent. The run supervisor executes runs that share a conversation ID one after another, and other runs concurrently. A harness without native resume keeps no history between them, so the screen sends the earlier turns it shows with the follow-up. A run is queued, running, awaiting a question, awaiting approval, succeeded, failed, cancelled or interrupted. Success needs a terminal result from the provider. Partial text followed by a provider failure is a failed run.
 
-Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks.
+Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks. Streamed text is recorded in pieces of at least 200 characters, so a long reply keeps its beginning within the 256 events a run retains. A `tool-finish` event names the records a command changed (`resources`, from its receipt) or the error code of a refusal (`code`), so a run view can link each call to its record.
 
 The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in the workspace directory. At startup, runs that had not completed become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
 
@@ -40,13 +40,13 @@ Tools are derived from the [catalog](glossary.md#catalog), one per [capability](
 
 Every tool call goes through the [instance](glossary.md#instance) like any other [caller](glossary.md#caller). The instance validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more. A run cannot start another run, so runs cannot delegate further.
 
-When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it. Such a run also gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send [UI intents](glossary.md#ui-intent) to that screen only.
+When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it. Such a run also gets the `ui.open`, `ui.select`, `ui.prepare` and `ui.request-review` tools, which send [UI intents](glossary.md#ui-intent) to that screen only. On the AI SDK and local harnesses it also gets an `ask_person` tool: the model asks the person a question, with optional choices, and the run waits in `awaiting-question` for the answer. A run without a screen, such as a trigger's, gets neither. A run under an agent definition sees only the tools its grant lists.
 
 Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request.
 
 ## Agent definitions
 
-A [module](glossary.md#module) declares an agent definition with `defineAgent`, and building the catalog checks it. A direct agent runs its commands itself, so each of those commands needs a [UI binding](glossary.md#ui-binding). A requesting agent runs its queries and submits its commands as approval requests. Budgets set model turns, tool calls and wall time per run. The supervisor fails a run with `BUDGET_EXCEEDED` instead of exceeding the tool-call or wall-time budget.
+A [module](glossary.md#module) declares an agent definition with `defineAgent`, and building the catalog checks it. A direct agent runs its commands itself, so each of those commands needs a [UI binding](glossary.md#ui-binding). A requesting agent runs its queries and submits its commands as approval requests. A direct agent's `requests` lists commands it submits as approval requests instead, such as a cancellation, or a command it runs itself whose policy refuses it some input, such as a discount above its limit. Its grant then adds `approval.request`, and `agentInstructions` lists those commands with their input schemas. Budgets set model turns, tool calls and wall time per run. The supervisor fails a run with `BUDGET_EXCEEDED` instead of exceeding the tool-call or wall-time budget.
 
 A run under a definition acts under a [delegated grant](glossary.md#grant) that `agentGrant` in `packages/runtime` narrows from its issuer's. It lists the definition's capabilities within the issuer's grant, with approval request submission in place of a requesting agent's commands. A definition that names resource types limits the grant to the run's starting records of those types, such as a person's selection. The grant expires at the earlier of the issuer's expiry and the wall-time budget, and is bound to the issuer and the run. Policy still authorizes every call (`packages/runtime/test/agent-grant.test.ts`).
 
@@ -62,7 +62,7 @@ An approval request lets an agent ask for a command it may not run itself. `appr
 | `approval.expire`               | A job                  | Closes an approval request past its expiry, 24 hours by default |
 | `approval.list`, `approval.get` | Anyone who may see it  | Reads approval requests, filtered by visibility before paging   |
 
-Submission refuses an unknown command, input its schema rejects, and a request for an approval operation. The requester's principal and run ID come from the [execution context](glossary.md#execution-context), never from the input. A model name the requester states is its own label; the run's recorded model is the trusted one. A resource-scoped run requests approval only for the records it started on ([authorization](authorization.md#delegation-and-replay)).
+Submission refuses an unknown command, input its schema rejects, a request for an approval operation, and, for a run under a requesting agent definition, a command the definition does not name. The requester's principal and run ID come from the [execution context](glossary.md#execution-context), never from the input. A model name the requester states is its own label; the run's recorded model is the trusted one. A resource-scoped run requests approval only for the records it started on ([authorization](authorization.md#delegation-and-replay)).
 
 Approving marks the approval request approved and continues with its command as a [continuation](glossary.md#continuation) under the approver's context. The command's grant check, [policy](glossary.md#policy) and commit recheck apply to the approver. The revisions the requester read act as expected revisions, so a record changed since then conflicts. A refusal or a conflict rolls the approval back and leaves the approval request pending. A requesting agent's grant leaves the command out, so it cannot approve its own approval request. The feature's policy refuses approve and reject to any delegated caller (`packages/runtime/test/approval.test.ts`, `packages/runtime/test/approval-feature.test.ts`).
 
@@ -100,7 +100,7 @@ The fine-tune becomes a new entry. It serves only after `gateModel` in `packages
 
 ## Evaluation
 
-An [agent scenario](glossary.md#agent-scenario) gives an agent definition a task and fixture state. It checks what the run committed and what it requested approval for: the receipts, the approval requests and the refusals, never the text. The same scenario runs on the deterministic harness in CI. It runs on a configured model only when a test is given one and `AGENT_SCENARIOS=live` is set. `scenarioRegressions` lists what a candidate model fails that the current one passes.
+An [agent scenario](glossary.md#agent-scenario) gives an agent definition a task and fixture state. It checks what the run committed and what it requested approval for: the receipts, the approval requests and the refusals, never the text. A scenario's `answers` reply to the run's questions in order, and `expect.questions` counts them. The same scenario runs on the deterministic harness in CI. It runs on a configured model only when a test is given one and `AGENT_SCENARIOS=live` is set. `scenarioRegressions` lists what a candidate model fails that the current one passes.
 
 ## Background jobs
 
@@ -120,19 +120,20 @@ Run the deterministic tests:
 bun run test:harness
 bun test plugins/automation
 bun test plugins/model-server
-bun test showcase/examples/<app>/test/agent-scenarios.test.ts
+bun test showcase/examples/<app>/test/<name>-agent.test.ts
 ```
 
 Run the scenarios against a configured model, or the model server against real weights:
 
 ```sh
-AGENT_SCENARIOS=live bun test showcase/examples/<app>/test/agent-scenarios.test.ts
+AGENT_SCENARIOS=live bun test showcase/examples/<app>/test/<name>-agent.test.ts
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
 ```
 
 ## Limits
 
-No host route starts an agent run from an agent definition. Definitions run through triggers and agent scenarios.
+- The AI SDK and local harnesses keep no history between the runs of a conversation; the earlier turns reach the model only as text the screen sends.
+- The host keeps no prompts, so a screen that shows a conversation after a reload has the replies and calls but not what the person typed.
 
 ## References
 

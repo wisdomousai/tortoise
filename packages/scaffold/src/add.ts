@@ -73,7 +73,14 @@ async function readAppNames(directory: string): Promise<AppNames> {
 async function partFor(request: AddRequest, app: AppNames, directory: string): Promise<Generated> {
   if (request.kind === 'collection')
     return collection(app, names(request.name, 'Collection type'), request.tree === true);
-  if (request.kind === 'capability') return capability(app, request);
+  if (request.kind === 'capability') {
+    // `loan.overdue` acts on loans when the application has a loan collection.
+    const first = request.id.split('.')[0]!;
+    const owner = (await exists(join(directory, 'contracts', `${first}.ts`)))
+      ? names(first, 'Collection type').pascal
+      : undefined;
+    return capability(app, request, owner);
+  }
   if (request.kind === 'feature')
     return featurePart(app, names(request.name, 'Feature ID'), request.screens === true);
   const one = names(request.collection, 'Collection type');

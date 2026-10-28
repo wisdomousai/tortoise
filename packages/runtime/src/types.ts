@@ -32,6 +32,12 @@ export interface DelegationGrant {
    * example to let the run report on work handed to that agent; it never widens the grant.
    */
   readonly agent?: string;
+  /**
+   * The commands a requesting agent's run may submit approval requests for: its definition's
+   * commands, set by `agentGrant`. Without it, `approval.request` takes any command the approval
+   * feature offers.
+   */
+  readonly requests?: readonly string[];
 }
 /** Supplied by a trusted host; transports must never construct this from tool arguments. */
 export interface ExecutionContext {

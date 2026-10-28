@@ -1,4 +1,4 @@
-import type { UiIntent } from '@agent-native/contracts';
+import type { JsonObject, UiIntent } from '@agent-native/contracts';
 
 /** A review an agent asked for, shown until the person acknowledges or dismisses it. */
 export interface UiReview {
@@ -7,6 +7,22 @@ export interface UiReview {
   readonly operations: readonly string[];
   /** Records to look at, such as approval requests; each opens through `screens.resources`. */
   readonly resources: readonly string[];
+}
+
+/** One selected resource, as `<kind>:<id>`, and the revision the screen shows for it. */
+export interface UiResource {
+  readonly id: string;
+  readonly revision: number;
+}
+
+/** The context a UI session registers for the resources a screen has selected. */
+export function uiSelection(resources: readonly UiResource[]) {
+  return {
+    selectedResources: resources.map((resource) => resource.id),
+    observedRevisions: Object.fromEntries(
+      resources.map((resource) => [resource.id, resource.revision]),
+    ),
+  };
 }
 
 export interface UiIntentHandlers {
@@ -18,11 +34,13 @@ export interface UiIntentHandlers {
    */
   readonly select?: (resource: string) => Promise<void>;
   readonly review: (review: UiReview) => void;
+  /** Fill the command's form for the person to check and submit; throw to reject. */
+  readonly prepare?: (operation: string, input: JsonObject, id: string) => Promise<void>;
 }
 
 /**
- * Apply one intent. An open or a selection completes as accepted or rejected; a review completes
- * when the person acknowledges it, so it returns nothing here.
+ * Apply one intent. An open, a selection or a prepared form completes as accepted or rejected; a
+ * review completes when the person acknowledges it, so it returns nothing here.
  */
 export async function applyUiIntent(
   id: string,
@@ -37,6 +55,15 @@ export async function applyUiIntent(
       resources: intent.resources ?? [],
     });
     return undefined;
+  }
+  if (intent.type === 'prepare') {
+    if (!handlers.prepare) return 'rejected';
+    try {
+      await handlers.prepare(intent.operation, intent.input, id);
+      return 'accepted';
+    } catch {
+      return 'rejected';
+    }
   }
   const apply = intent.type === 'openResource' ? handlers.open : handlers.select;
   if (!apply) return 'rejected';

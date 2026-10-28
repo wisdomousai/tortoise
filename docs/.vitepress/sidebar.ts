@@ -12,6 +12,9 @@ export const repoRoot = resolve(import.meta.dirname, '../..');
 export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
   ['overview', 'Overview'],
   ['getting-started', 'Getting started'],
+  ['tutorial-library', 'Library tutorial'],
+  ['tutorial', 'Tutorial'],
+  ['tutorial-assistant', 'In-app assistant'],
   ['patterns', 'Patterns'],
   ['architecture', 'Architecture'],
   ['primitives', 'Primitives'],

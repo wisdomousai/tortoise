@@ -11,7 +11,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
 - [Model entry](../../docs/primitives.md#model-entry): `createModelServer({ entry, files, activation })` serves one entry and refuses files or an activation that do not match it.
 - [Process port](../../docs/primitives.md#process-port): `modelServer({ id, runtime })` declares the server as a process. The deployment policy binds and pins its executable and gives the arguments that set its listening address.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `modelServer` declares the process and no [destinations](../../docs/glossary.md#destination). Agents reach the server on `local-inference`, which the host's provider components declare.
-- [Agent run](../../docs/primitives.md#agent-run): `harness` is a `localHarness` for the entry, available only while the server is ready.
+- [Agent run](../../docs/primitives.md#agent-run): `harness` is a `localHarness` for the entry, available only while the server is ready. The plugin also offers it to the host's run route (`PluginInstance.harnesses`), so an agent run a person starts without naming a harness runs on it.
 - [Audit log](../../docs/primitives.md#audit-log): `model.started`, `model.refused` and `model.exited`, each with the entry and its digests. A refusal carries `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`.
 
 ## Entrypoints

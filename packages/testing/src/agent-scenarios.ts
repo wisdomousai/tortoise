@@ -46,6 +46,8 @@ export interface DeterministicScript {
     readonly expectedRevisions?: Readonly<Record<string, number>>;
   }[];
   readonly text?: string;
+  /** A question the harness asks before its calls; the scenario's first answer replies. */
+  readonly question?: string;
 }
 
 export interface AgentScenario {
@@ -62,6 +64,12 @@ export interface AgentScenario {
   readonly setup?: readonly (Invocation & { readonly context?: ExecutionContext })[];
   /** Played by the deterministic harness; a model harness ignores it. */
   readonly script?: DeterministicScript;
+  /**
+   * What the person answers to the run's questions, in order. A scenario with answers starts its
+   * run as from a screen, where a person waits, so a model harness offers its ask tool. A
+   * question past the last answer cancels the run.
+   */
+  readonly answers?: readonly string[];
   readonly expect: {
     /**
      * Every command the run committed, in order, other than approval requests. A commit not listed fails
@@ -74,6 +82,8 @@ export interface AgentScenario {
     readonly refused?: readonly { readonly operation: string; readonly code?: string }[];
     /** How the run ended. Unchecked when absent. */
     readonly outcome?: 'succeeded' | 'failed';
+    /** How many questions the run asked the person. Unchecked when absent. */
+    readonly questions?: number;
   };
   /** Further checks over the result and the application, for example a record read afterwards. */
   check?(result: AgentScenarioResult, application: ScenarioApplication): void | Promise<void>;
@@ -107,6 +117,8 @@ export interface AgentScenarioResult {
     readonly input: unknown;
     readonly resource?: string;
   }[];
+  /** The questions the run asked, in order. */
+  readonly questions: readonly string[];
   readonly failures: readonly string[];
   readonly passed: boolean;
 }
@@ -114,6 +126,10 @@ export interface AgentScenarioResult {
 export interface RunAgentScenarioOptions {
   readonly application: ScenarioApplication;
   readonly harness: Harness;
+  /**
+   * The clock the run's grant expiry is computed from. The instance checks expiry on its kernel
+   * clock, so pass that clock, not a fixture clock the handlers read through their services.
+   */
   readonly now?: () => number;
 }
 
@@ -164,6 +180,7 @@ function judge(
   scenario: AgentScenario,
   state: string,
   calls: readonly AgentScenarioCall[],
+  questions: readonly string[],
   failure?: { code: string; message: string },
 ) {
   const failures: string[] = [];
@@ -194,6 +211,8 @@ function judge(
       failures.push(
         `Expected ${want.operation} to be refused${want.code ? ` with ${want.code}` : ''}`,
       );
+  if (expect.questions !== undefined && questions.length !== expect.questions)
+    failures.push(`Expected ${expect.questions} questions, the run asked ${questions.length}`);
   if (expect.outcome && state !== expect.outcome)
     failures.push(
       `Expected the run to have ${expect.outcome}, it ended ${state}${failure ? ` (${failure.code}: ${failure.message})` : ''}`,
@@ -259,13 +278,14 @@ function promptFor(scenario: AgentScenario, harness: Harness, instructions: stri
   if (harness.id === 'deterministic') {
     if (!scenario.script)
       throw new Error(`Scenario ${scenario.name} has no script for the deterministic harness`);
-    const { commands, text } = scenario.script;
+    const { commands, text, question } = scenario.script;
     return JSON.stringify({
       commands: commands.map(({ operation, input, expectedRevisions }) => ({
         operation,
         input: { input, ...(expectedRevisions ? { expectedRevisions } : {}) },
       })),
       ...(text ? { text } : {}),
+      ...(question ? { question } : {}),
     });
   }
   return `${instructions}\n\n${scenario.task}`;
@@ -314,8 +334,8 @@ export async function runAgentScenario(
       budget: { ...agent.budgets },
       model: agent.model,
       demand: { agent: agent.id, ...(agent.models ? { models: agent.models } : {}) },
-      ...(scenario.resources
-        ? { context: { uiContext: { selectedResources: [...scenario.resources] } } }
+      ...(scenario.resources || scenario.answers
+        ? { context: { uiContext: { selectedResources: [...(scenario.resources ?? [])] } } }
         : {}),
     })
     .then(
@@ -333,14 +353,23 @@ export async function runAgentScenario(
       calls,
       commits: [],
       approvals: [],
+      questions: [],
       failures,
       passed: false,
     };
   }
-  for await (const _event of supervisor.events(runId));
+  // The person's side: each question gets the next answer, and one past the last cancels.
+  const questions: string[] = [];
+  for await (const event of supervisor.events(runId))
+    if (event.type === 'question' && event.requestId) {
+      const answer = scenario.answers?.[questions.length];
+      questions.push(event.message ?? '');
+      if (answer === undefined) await supervisor.cancel(runId);
+      else await supervisor.respondQuestion(runId, event.requestId, answer);
+    }
   const snapshot = await supervisor.get(runId);
   const state = snapshot?.state ?? 'lost';
-  const judged = judge(scenario, state, calls, snapshot?.failure);
+  const judged = judge(scenario, state, calls, questions, snapshot?.failure);
   const failures = [...judged.failures];
   const partial = {
     scenario: scenario.name,
@@ -349,6 +378,7 @@ export async function runAgentScenario(
     state,
     ...(snapshot?.model ? { model: snapshot.model } : {}),
     calls,
+    questions,
   };
   if (scenario.check)
     try {

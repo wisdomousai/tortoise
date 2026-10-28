@@ -8,11 +8,22 @@ import { hostJson } from '@/lib/host-client';
 export type Run = {
   id: string;
   state: string;
+  /** Runs that continue one conversation share it; a new conversation's ID is its first run's. */
+  conversationId: string;
+  createdAt: string;
+  /** The agent definition the run executes under, when it was started with one. */
+  context?: { agentId?: string };
   events: {
+    sequence: number;
     type: string;
     text?: string;
     message?: string;
     operation?: string;
+    callId?: string;
+    /** On `tool-finish`: the records a command changed. */
+    resources?: string[];
+    /** On `tool-finish`: the error code of a refused call. */
+    code?: string;
     requestId?: string;
     choices?: string[];
   }[];

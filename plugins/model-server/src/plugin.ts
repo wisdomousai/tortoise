@@ -256,6 +256,8 @@ export function createModelServer(options: ModelServerOptions) {
       };
       return {
         service,
+        // The host's run route may start agent runs on it; the entry's agents still bind.
+        harnesses: [harness],
         async start(started) {
           // Ports are complete only once every plugin opened, so they are taken here.
           ports = started.ports;

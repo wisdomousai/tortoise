@@ -49,7 +49,7 @@ export const ${one.camel}Operations = {
   }),
   ${one.camel}Get: collectionGet(${many.camel}, {
     id: '${one.kebab}',
-    description: 'Read one ${one.words} by id. Use its revision as ${one.kebab}:<id> in expectedRevisions.',
+    description: 'Read one ${one.words} by id. A command receipt that changed it carries its revision as ${one.kebab}:<id> for expectedRevisions.',
   }),
 ${only(
   tree,
@@ -64,18 +64,18 @@ ${only(
   }),
   ${one.camel}Update: collectionUpdate(${many.camel}, {
     id: '${one.kebab}',
-    description: 'Change the title or status of a ${one.words}. Editors only.',
+    description: 'Change the title or status of ${one.a}. Editors only.',
     fields: ['title', 'status'],
   }),
 ${only(
   tree,
   `  ${one.camel}Move: collectionMove(${many.camel}, {`,
   `    id: '${one.kebab}',`,
-  `    description: 'Move a ${one.words} and its subtree under another ${one.words}, or to the root with parentId null. Editors only.',`,
+  `    description: 'Move ${one.a} and its subtree under another ${one.words}, or to the root with parentId null. Editors only.',`,
   `  }),`,
   `  ${one.camel}Retire: collectionRetire(${many.camel}, {`,
   `    id: '${one.kebab}',`,
-  `    description: 'Retire a ${one.words}; its children must be retired or moved first. Editors only.',`,
+  `    description: 'Retire ${one.a}; its children must be retired or moved first. Editors only.',`,
   `  }),`,
 )}} as const;
 `;

@@ -1,13 +1,48 @@
 import { isStepCount, jsonSchema, streamText, tool, type LanguageModel, type ToolSet } from 'ai';
 import { ApplicationError, errorEnvelope } from '@agent-native/contracts';
 import type { Harness, HarnessEvent, HarnessTurn } from './types';
-import { modelPrompt, toolName } from './types';
+import { modelPrompt, toolDescription, toolName } from './types';
+
+/** The tool a model asks the person with; outside the `app_` names catalog tools take. */
+export const ASK_TOOL = 'ask_person';
+
+/**
+ * A run started from a screen has a person waiting at it, so its model may ask them one question
+ * at a time and wait for the answer. A run without a UI session gets no such tool, since nobody
+ * would answer; a trigger's run carries its resource as UI context but no session ID.
+ */
+const attended = (turn: HarnessTurn) =>
+  typeof (turn.context.uiContext as { sessionId?: unknown } | undefined)?.sessionId === 'string';
+
+function askTool(turn: HarnessTurn) {
+  return tool({
+    description:
+      'Ask the person who made this request one short question and wait for their answer, when the request is ambiguous or names something you cannot find. Offer choices when there are a few likely answers. Changes nothing.',
+    inputSchema: jsonSchema<{ question: string; choices?: string[] }>({
+      type: 'object',
+      properties: {
+        question: { type: 'string', minLength: 1, maxLength: 1000 },
+        choices: {
+          type: 'array',
+          items: { type: 'string', minLength: 1, maxLength: 200 },
+          maxItems: 6,
+        },
+      },
+      required: ['question'],
+      additionalProperties: false,
+    }),
+    execute: async ({ question, choices }) => ({
+      answer: await turn.question(question, choices?.length ? choices : undefined),
+    }),
+  });
+}
 
 /** The host constructs the model with explicitly chosen credentials. No string model
  * aliases or default gateway are accepted because those may discover ambient keys. */
 export class AiSdkHarness implements Harness {
   readonly id = 'ai-sdk';
-  readonly features = { questions: false, approvals: false, resume: false };
+  /** Questions only for a run started from a screen; see `ASK_TOOL`. */
+  readonly features = { questions: true, approvals: false, resume: false };
   constructor(
     private readonly options: { model: LanguageModel; maxSteps?: number; maxOutputTokens?: number },
   ) {
@@ -24,7 +59,7 @@ export class AiSdkHarness implements Harness {
       definitions.map((definition) => [
         toolName(definition.operation),
         tool({
-          description: definition.description,
+          description: toolDescription(definition),
           inputSchema: jsonSchema<Record<string, unknown>>(definition.inputSchema),
           execute: async (input, { toolCallId }) => {
             turn.signal.throwIfAborted();
@@ -45,6 +80,7 @@ export class AiSdkHarness implements Harness {
         }),
       ]),
     );
+    if (attended(turn)) tools[ASK_TOOL] = askTool(turn);
     const byName = new Map(
       definitions.map((definition) => [toolName(definition.operation), definition.operation]),
     );
@@ -64,6 +100,12 @@ export class AiSdkHarness implements Harness {
       turn.signal.throwIfAborted();
       if (part.type === 'text-delta') yield { type: 'text', text: part.text };
       else if (part.type === 'tool-call' && part.invalid) invalid.add(part.toolCallId);
+      // A question shows as the run's question event, not as a tool call.
+      else if (
+        (part.type === 'tool-call' || part.type === 'tool-result') &&
+        part.toolName === ASK_TOOL
+      )
+        continue;
       else if (part.type === 'tool-call')
         yield {
           type: 'tool-start',

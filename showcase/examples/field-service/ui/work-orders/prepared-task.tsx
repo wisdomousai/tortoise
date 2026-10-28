@@ -109,7 +109,9 @@ export function PreparedTask({
   if (!prepared || workOrder.closed) return null;
   return (
     <section aria-label="Prefilled task" className="mx-6 mb-4 space-y-3 rounded-xl border p-4">
-      <OsProvenanceNotice provenance={prepared.provenance} prepared onDismiss={dismiss} />
+      {prepared.provenance ? (
+        <OsProvenanceNotice provenance={prepared.provenance} prepared onDismiss={dismiss} />
+      ) : null}
       <PreparedFields
         key={prepared.id}
         workOrder={workOrder}

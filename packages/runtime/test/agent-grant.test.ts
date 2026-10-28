@@ -95,6 +95,7 @@ test('an agent grant never widens the issuer grant', () => {
 test('a requesting agent runs its queries and records approvals instead of its commands', () => {
   const grant = agentGrant(catalog, 'lot.advisor', person, { now: 0 });
   expect(grant.operations).toEqual(['lot.list', 'approval.request']);
+  expect(grant.requests).toEqual(['lot.release']);
   expect(grant.resources).toBeUndefined();
   // Not scoped to resources, so it needs no `creates` to record its approval requests.
   expect(grant.creates).toBeUndefined();
@@ -210,6 +211,37 @@ test('an agent grant covers what its operations invoke, within the issuer grant'
   expect(agentGrant(composite, 'lot.reporter', person, { now: 0 }).operations).toEqual([
     'lot.summary',
     'lot.list',
+    'approval.request',
+  ]);
+});
+
+test('a direct agent with requests also gets approval.request, never the requested commands', () => {
+  const desk = buildCatalog([
+    defineModule({
+      id: 'lots',
+      capabilities: [
+        operation('lot.get', 'query'),
+        operation('lot.release', 'command'),
+        operation('lot.scrap', 'command'),
+        operation('approval.request', 'command'),
+      ],
+      agents: [
+        defineAgent({
+          id: 'lot.desk',
+          title: 'Desk',
+          instructions: 'Release lots; ask before scrapping one.',
+          operations: ['lot.get', 'lot.release'],
+          requests: ['lot.scrap'],
+          model: 'any',
+          output: 'direct',
+          budgets,
+        }),
+      ],
+    }),
+  ]);
+  expect(agentGrant(desk, 'lot.desk', person, { now: 0 }).operations).toEqual([
+    'lot.get',
+    'lot.release',
     'approval.request',
   ]);
 });

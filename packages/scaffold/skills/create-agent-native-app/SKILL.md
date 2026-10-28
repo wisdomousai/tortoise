@@ -26,7 +26,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 5. Extend the application with `scaffold add`.
 6. Shape the generated parts into the requested domain.
 7. Set `shelfLifeDays` in the manifest to how long one build should serve before it is rebuilt or removed. The scaffold writes 180.
-8. Pick the skill for each further change from the second table below.
+8. Pick the skill for each further change from the second table below. The tutorial orders those skills into one build, with a prompt per step.
 
 | Example | Shows |
 | --- | --- |
@@ -74,4 +74,7 @@ Run the checks the `check-a-change` skill names and report what actually passed.
 
 - [Setup reference](references/new-application.md)
 - [Getting started](../../../../docs/getting-started.md#new-application)
+- [Tutorial](../../../../docs/tutorial.md)
+- [Library tutorial](../../../../docs/tutorial-library.md)
+- [In-app assistant tutorial](../../../../docs/tutorial-assistant.md)
 - [Implementation status](../../../../docs/implementation-status.md)

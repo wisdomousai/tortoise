@@ -2,8 +2,13 @@ import { expect, test } from 'bun:test';
 import { z } from 'zod';
 import {
   buildCatalog,
+  collectionCreate,
   collectionGet,
   collectionList,
+  collectionMove,
+  collectionRetire,
+  collectionTree,
+  collectionUpdate,
   defineCapability,
   defineCollection,
   defineDataProvider,
@@ -98,4 +103,42 @@ test('a data provider shows found records with its display fields and no resourc
   });
   expect(provider.search.display).toEqual({ label: 'Search accounts', titleField: 'name' });
   expect(provider.lookup.display).toEqual({ titleField: 'name' });
+});
+
+test('the inputs a collection generates are described for a model that reads the schema', () => {
+  const sites = defineCollection({
+    type: 'site',
+    resourceType: 'Site',
+    item: z.strictObject({
+      id: z.string(),
+      name: z.string().describe('The site name.'),
+      parentId: z.string().nullable(),
+      retired: z.boolean(),
+    }),
+    label: { one: 'site', many: 'sites' },
+    parent: 'parentId',
+    retiredField: 'retired',
+  });
+  const spec = { id: 'site', description: 'Sites.' } as const;
+  const capabilities = [
+    collectionGet(sites, spec),
+    collectionList(sites, { ...spec, search: true, filters: ['name'] }),
+    collectionCreate(sites, { ...spec, fields: ['name'], clientKey: true }),
+    collectionUpdate(sites, { ...spec, fields: ['name'] }),
+    collectionRetire(sites, spec),
+    collectionMove(sites, spec),
+    collectionTree(sites, spec),
+  ];
+  for (const capability of capabilities) {
+    const properties = capability.input.jsonSchema.properties as Record<
+      string,
+      { description?: string }
+    >;
+    for (const [field, property] of Object.entries(properties))
+      expect([capability.id, field, typeof property.description]).toEqual([
+        capability.id,
+        field,
+        'string',
+      ]);
+  }
 });

@@ -12,7 +12,11 @@ export interface CapabilitySpec {
 
 const OPERATION = /^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$/;
 
-const contract = (app: AppNames, spec: CapabilitySpec, slug: Names) => `import { z } from 'zod';
+const contract = (
+  spec: CapabilitySpec,
+  slug: Names,
+  resourceType: string,
+) => `import { z } from 'zod';
 import { defineCapability, jsonSchema } from '@agent-native/contracts';
 
 /** ${spec.description} */
@@ -22,7 +26,7 @@ export const ${slug.camel} = defineCapability({
   description: ${JSON.stringify(spec.description)},
   input: jsonSchema(z.strictObject({})),
   output: jsonSchema(z.strictObject({})),
-  permission: { action: '${spec.operationKind === 'command' ? 'write' : 'read'}', resourceType: '${app.app.pascal}' },
+  permission: { action: '${spec.operationKind === 'command' ? 'write' : 'read'}', resourceType: '${resourceType}' },
   ui: { exception: 'headless until a screen binds it' },
 });
 `;
@@ -85,7 +89,12 @@ test('${spec.id} is ${command ? 'for editors only' : 'open to members'}', async 
  * a command, members a query) and a behavioral test. It declares a UI exception until a screen
  * binds it; widen its schemas and handler from here.
  */
-export function capability(app: AppNames, spec: CapabilitySpec): Generated {
+export function capability(
+  app: AppNames,
+  spec: CapabilitySpec,
+  /** The resource type of the collection the operation acts on; the application's name else. */
+  resourceType = app.app.pascal,
+): Generated {
   if (!OPERATION.test(spec.id) || spec.id.length > 64)
     throw new Error(
       `Operation ID must be dotted lowercase words, for example note.archive: ${spec.id}`,
@@ -99,7 +108,7 @@ export function capability(app: AppNames, spec: CapabilitySpec): Generated {
   const slug = names(spec.id.replaceAll('.', '-'), 'Operation ID');
   return {
     files: {
-      [`contracts/${slug.kebab}.ts`]: contract(app, spec, slug),
+      [`contracts/${slug.kebab}.ts`]: contract(spec, slug, resourceType),
       [`handlers/${slug.kebab}.ts`]: handler(spec, slug),
       [`test/${slug.kebab}.test.ts`]: behavioralTest(app, spec, slug),
     },

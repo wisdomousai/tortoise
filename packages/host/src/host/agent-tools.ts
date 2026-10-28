@@ -1,4 +1,9 @@
-import { ApplicationError, operationToolSchema, type UiIntent } from '@agent-native/contracts';
+import {
+  ApplicationError,
+  operationToolSchema,
+  type JsonObject,
+  type UiIntent,
+} from '@agent-native/contracts';
 import type { DelegationGrant, ExecutionContext } from '@agent-native/runtime';
 import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
 import type {
@@ -28,6 +33,17 @@ function runContext(
   run: RunSnapshot & { context: { principalId: string; workspaceId: string } },
   signal: AbortSignal,
 ): ExecutionContext {
+  // A run under an agent definition carries the grant `agentGrant` narrowed for it, bound to it.
+  const delegation = run.context.delegation as DelegationGrant | undefined;
+  if (delegation)
+    return {
+      principalId: run.context.principalId,
+      workspaceId: run.context.workspaceId,
+      runId: run.id,
+      channel: 'harness',
+      signal,
+      grant: { ...delegation, runId: run.id },
+    };
   const initiatingGrant = run.context.grant as DelegationGrant | undefined;
   return {
     principalId: run.context.principalId,
@@ -60,7 +76,8 @@ const envelope = (properties: Record<string, unknown>, required: string[]) => ({
 });
 
 /**
- * Tools that send a UI intent to the screen the run was started from. They are not catalog
+ * Tools that send a UI intent to the screen the run was started from: open, select, prepare a
+ * form and request a review. They are not catalog
  * operations: they change no records and are not journaled, so every record change stays a
  * command.
  */
@@ -78,6 +95,23 @@ const uiTools: readonly (ToolDefinition & { intent: (input: any) => UiIntent })[
       'Select one resource on the screen the person has open, without leaving it. Rejected by the screen when it does not show that kind.',
     inputSchema: envelope({ resource: resourceSchema }, ['resource']),
     intent: (input: { resource: string }) => ({ type: 'selectResource', resource: input.resource }),
+  },
+  {
+    operation: 'ui.prepare',
+    description:
+      'Fill the form of one command on the person’s screen with input for them to check and submit, for example a quote. Nothing runs until the person submits it, as themselves. Refused for a command no screen offers.',
+    inputSchema: envelope(
+      {
+        operation: { type: 'string', description: 'The command ID, for example `quote.create`.' },
+        input: { type: 'object', description: 'The command’s input, as its schema describes.' },
+      },
+      ['operation', 'input'],
+    ),
+    intent: (input: { operation: string; input: JsonObject }) => ({
+      type: 'prepare',
+      operation: input.operation,
+      input: input.input,
+    }),
   },
   {
     operation: 'ui.request-review',
@@ -129,7 +163,19 @@ export function createAgentTools(
   ];
   return {
     definitions,
-    definitionsFor: (context) => (uiSessions && capturedSession(context) ? withUi : definitions),
+    // A run under an agent definition sees only the operations its grant lists, which keeps a
+    // small model's tool list short; the grant still decides every call.
+    definitionsFor: (context) => {
+      const listed = (context.delegation as DelegationGrant | undefined)?.operations;
+      const tools = uiSessions && capturedSession(context) ? withUi : definitions;
+      return listed
+        ? tools.filter(
+            (tool) =>
+              listed.includes(tool.operation) ||
+              uiTools.some((ui) => ui.operation === tool.operation),
+          )
+        : tools;
+    },
     async execute(operation: string, input: unknown, toolContext: ToolExecutionContext) {
       const run = await runOf(toolContext.runId);
       if (

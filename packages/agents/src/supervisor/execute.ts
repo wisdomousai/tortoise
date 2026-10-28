@@ -13,7 +13,21 @@ import {
   type SupervisorKernel,
 } from './run';
 
+/** What a settled call left for its `tool-finish` event: changed records or a refusal code. */
+type Outcome = { resources?: string[]; code?: string };
 type Calls = Map<string, { fingerprint: string; result: Promise<unknown> }>;
+
+/** The records a command receipt names in its revisions, or the code of a refusal. */
+function outcomeOf(settled: PromiseSettledResult<unknown>): Outcome {
+  if (settled.status === 'rejected') {
+    const code = (settled.reason as { code?: unknown } | undefined)?.code;
+    return typeof code === 'string' ? { code } : { code: 'FAILED' };
+  }
+  const revisions = (settled.value as { revisions?: unknown } | undefined)?.revisions;
+  return revisions && typeof revisions === 'object' && !Array.isArray(revisions)
+    ? { resources: Object.keys(revisions).slice(0, 20) }
+    : {};
+}
 
 /** Stop the run because a budget ran out: abort its work and release a waiting request. */
 function exceed(run: Active, budget: string) {
@@ -89,6 +103,15 @@ async function streamTurn(
     if (event.type === 'resume-data') {
       run.snapshot.resumeData = structuredClone(event.data);
       await emit(kernel, run, { type: 'progress', message: 'Native session recorded' });
+    } else if (event.type === 'tool-finish') {
+      // The call's own result, settled before its finish is recorded; the harness has it too.
+      const call = calls.get(event.callId);
+      const outcome = call ? outcomeOf((await Promise.allSettled([call.result]))[0]!) : {};
+      await emit(kernel, run, {
+        ...event,
+        ...(outcome.resources?.length ? { resources: outcome.resources } : {}),
+        ...(outcome.code ? { code: outcome.code } : {}),
+      });
     } else await emit(kernel, run, event);
   }
   await flushText(kernel, run);
@@ -136,8 +159,9 @@ export async function execute(
     await setState(kernel, run, 'running');
     const calls: Calls = new Map();
     await streamTurn(kernel, run, harness, prompt, calls);
-    // A native terminal event cannot overtake an application call still in flight.
-    await Promise.all([...calls.values()].map((call) => call.result));
+    // A native terminal event cannot overtake an application call still in flight. A refusal
+    // the harness handed back to its model does not fail the run; the harness decides that.
+    await Promise.allSettled([...calls.values()].map((call) => call.result));
     abortCheck(run);
     await setState(kernel, run, 'succeeded');
   } catch (error) {
