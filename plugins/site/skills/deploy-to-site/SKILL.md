@@ -5,11 +5,11 @@ description: Prepare an agent-native application for a site, plant or customer m
 
 # Deploy to a site
 
-A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it.
+A deployment policy binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its hardening profile floor. The network, process, audit and compliance plugins enforce it.
 
 ## Before writing
 
-- A module or plugin must declare every destination, [exchange folder](../../../../docs/glossary.md#exchange-folder), device or process the policy binds.
+- A module or plugin must declare every destination, exchange folder, device or process the policy binds.
 - `bun run generate` writes the security manifest and data flows to `dist/reference/<id>/`. They list what the policy has to bind.
 - Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.
@@ -24,7 +24,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    - `timeoutMs` on a destination that responds slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
    - `ca` or `certificatePins` where required;
    - `audit`;
-   - `identity`, either `grant-file` or `external` with `workforce` for [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in);
+   - `identity`, either `grant-file` or `external` with `workforce` for workforce sign-in;
      Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@agent-native/site/testing` stands in for it with a certificate the binding's `ca` trusts;
    - `grants.maxTtlSeconds`;
    - the listener for TLS or mTLS.
@@ -36,7 +36,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 7. Check the policy offline with `app site check --site <file>`. It exits 2 on any error finding. In a checkout, the application CLI is `bun run cli`.
 8. Export rules for the paths the in-process egress guard cannot see: `app network export --site <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
 9. Create a signing key with `bun run bundle keygen --out <dir>/key.json`, in a directory outside the repository, so the private key is never committed.
-10. Run `bun run build:web`, then build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` compiles the application CLI into `<dir>/files/bin/<app>` and writes the contract, security manifest and SBOM from the catalog into the bundle.
+10. Run `bun run build:web`, then build and sign a site bundle with `bun run bundle create --key key.json --out <dir>`. `create` compiles the application CLI into `<dir>/files/bin/<app>` and writes the contract, security manifest and SBOM from the catalog into the bundle.
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
 12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`. Without `--approval`, a bundle whose requirements widen is refused and the output prints the `approval` object; the site saves that object as the approval file.
 13. Install with the bundled binary, `<bundle>/files/bin/<app> install <bundle> --trust key.pub.json --site-policy <file> --approval <file> --service systemd|windows|none`. `--prefix` defaults to `/`, so stage under a temporary `--prefix` first to read what install writes. Then install without `--prefix`, with `--apply` to run the service and firewall commands. A staged tree is for reading and is not promoted. On macOS the service is `none` and nothing is applied. A refused admission, policy check, render or migration leaves the previous release current.

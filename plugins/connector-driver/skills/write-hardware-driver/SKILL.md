@@ -5,7 +5,7 @@ description: Observe or control equipment from an agent-native application throu
 
 # Write a hardware driver
 
-A [driver](../../../../docs/glossary.md#driver) is an executable in any language. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record.
+A driver is an executable in any language. The host starts it as a child process through the process port and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes observations. Commands, handlers, screens and agents then work as they do for any other system of record.
 
 ## Before writing
 
@@ -17,11 +17,11 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in any language
   - `idempotent` when the driver can deduplicate by effect ID;
   - `convergent` when a readback shows the result;
   - `once` with a journal otherwise.
-- Give each action a [risk level](../../../../docs/glossary.md#risk-level). The [bridge mode](../../../../docs/glossary.md#bridge-mode) defaults to `monitor-only`, which refuses every action.
+- Give each action a risk level. The bridge mode defaults to `monitor-only`, which refuses every action.
 
 ## Steps
 
-1. Write the [driver contract](../../../../docs/glossary.md#driver-contract) in the application with `defineDriverContract`. It holds:
+1. Write the driver contract in the application with `defineDriverContract`. It holds:
    - state fields with units and stable reads;
    - actions with input schema, mode, risk level, timeout, preconditions and readback;
    - events with a maximum rate;

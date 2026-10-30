@@ -5,7 +5,7 @@ description: Serve a local base or fine-tuned model to agents with measured dige
 
 # Serve a local model
 
-A [model entry](../../../../docs/glossary.md#model-entry) names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the [process port](../../../../docs/glossary.md#process-port).
+A model entry names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the process port.
 
 ## Before writing
 
@@ -27,11 +27,11 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 4. Add `modelServerPluginManifest` to the manifest, after the site, network and process manifests.
 5. Call `createModelServer({ process, runtime, entry, files, activation })`. Add its `plugin` to `plugins`.
 6. Give its `harness` to the automation plugin's `agentHarnesses` for trigger runs. The plugin also offers it to the host's run route, so a run a person starts with an `agentId` and no `harnessId` runs on it when the agent's model requirement admits it.
-7. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `local-inference` to a loopback URL.
+7. In the deployment policy, bind `local-inference` to a loopback URL.
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it responds outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.
-11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The [approval dataset](../../../../docs/glossary.md#approval-dataset) holds only decided approval requests the caller may see.
+11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The approval dataset holds only decided approval requests the caller may see.
 12. Redact free-text fields that can include personal data, and the rationale and rejection reason, as the deployment requires.
 13. Put the dataset's `digest` into the adapter's `dataset`. Training happens outside the host with the deployment's own tooling.
 14. Before the model serves, start the server with `evaluation: true`.

@@ -1,28 +1,21 @@
 # Oil lab test requests
 
-A technician submits a request to test an oil sample from a transformer. Another technician assigns a method, such as dissolved gas analysis; viewers can read the requests. This small application is the starting point for the other [patterns](../../../docs/patterns.md), which add one concern without changing the base module, handlers, policy or screens.
-
-## Try the desk
-
-From the repository root:
+A transformer maker's oil lab tests oil samples drawn from transformers. A technician submits a request to test a sample, another technician assigns the test method, such as dissolved gas analysis, and viewers read. Every other pattern imports this application unchanged and adds one concern.
 
 ```sh
 cd showcase/patterns/base
 bun run dev:web
 ```
 
-Create a request with a sample, transformer and description. Open the request and assign a method. The list and record screens use the same reads and commands available through the CLI and MCP.
+## What to try
 
-## What the code does
+- Create a request (port 4350) with a sample, a transformer and a description, then open it and assign a method.
+- Call the same instance from the CLI. From the repository root: `export AGENT_NATIVE_APPLICATION=@agent-native/pattern-base AGENT_NATIVE_CONNECTION=$PWD/showcase/patterns/base/.workspace/.connection.json`, then `bun run cli test-request list`.
+- Point an MCP client at `bun run mcp` with the same two variables; it also offers `test-requests.assign-method` as a workflow resource.
+- Update a request with an outdated expected revision and get `CONFLICT`.
 
-[`contracts.ts`](contracts.ts) declares the test-request [collection](../../../docs/primitives.md#collection), list and get queries, and submit and update commands. [`handlers.ts`](handlers.ts) applies those commands to the `testRequests` slice. [`policy.ts`](policy.ts) allows only members through the caller gate: technicians submit and update, while viewers read. An update with an old expected revision fails with `CONFLICT`.
+## References
 
-[`screens.tsx`](screens.tsx) binds the list and record screens; `ui/requests.tsx` lets an extension add sections to the request screen. The catalog also exposes `test-requests.assign-method` as an MCP workflow resource. `bun run generate` writes the reference to `dist/reference/test-requests/`.
-
-## Checks
-
-```sh
-bun test showcase/patterns/base
-```
-
-`test/requests.test.ts` covers roles, revision conflicts and idempotent retries. `test/headless.test.ts` submits and lists requests through the CLI and MCP.
+- [Patterns](../../../docs/patterns.md)
+- [Getting started](../../../docs/getting-started.md)
+- `bun test showcase/patterns/base`

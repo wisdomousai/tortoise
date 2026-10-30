@@ -1,51 +1,56 @@
 # Working on this starter
 
-Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before changing a boundary.
+Tortoise is a framework for small applications that each fit one process step at one site. Such an application pays off only while it is simple to build, needs little maintenance and stays limited to its step; the framework handles storage, access policy, delivery to central systems and the hosts. Judge a change by whether it keeps the next application that cheap.
+
+Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
 
 ## Layers
 
-The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `showcase/examples/*` and `showcase/patterns/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
+| Layer        | Path                                           | May import                                     |
+| ------------ | ---------------------------------------------- | ---------------------------------------------- |
+| framework    | `packages/*`                                   | framework only                                 |
+| workstations | `workstations/*` (screen bridge, sign-in)      | framework only                                 |
+| plugins      | `plugins/*`                                    | framework and the plugins it requires          |
+| starter      | `apps/*`                                       | framework; hosts the app in `app.config.json`  |
+| content      | `showcase/examples/*`, `showcase/patterns/*`   | framework, workstations, plugins               |
+| driver SDKs  | `sdks/*`                                       | no application; nothing imports an SDK         |
 
-- The framework and the starter name no domain and import no workstation package, plugin, example or pattern. The starter hosts the one application named in `app.config.json`.
-- An example in `showcase/examples/<name>` is a whole application for a real-world case in a covered domain. A pattern in `showcase/patterns/<name>` is a small application of the same shape that shows one technical concern. `showcase/patterns/base` is the base; every other pattern imports it unchanged and adds one concern.
-- An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
-- A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
-- It imports the framework only. The screen bridge and workstation sign-in live there.
-- Generic host or frame behavior goes in the framework, so a forked starter keeps receiving it.
-- A driver SDK in `sdks/<language>` implements the driver protocol that `plugins/connector-driver` defines, and proves itself against that plugin's reference contract. Nothing else imports an SDK, so the host depends on no driver language, and an SDK imports no application.
+- The framework and the starter name no domain and import no workstation package, plugin, example or pattern.
+- An example is a whole application for a real case in a covered domain. A pattern is a small application that shows one technical concern. Every pattern imports `showcase/patterns/base` unchanged and adds one concern.
+- An application has three entrypoints: browser-safe `manifest`, server `application`, browser `screens`. Its domain code, fakes, screens and tests stay in it. Framework tests never import one.
+- A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. It reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
+- Generic host or frame behavior goes in the framework, so a forked starter keeps getting it.
+- A driver SDK implements the driver protocol from `plugins/connector-driver` and proves itself against that plugin's reference contract.
 
 ## Invariants
 
-These protect data and security; `bun run check` and the conformance suites test them.
+These protect data and security. `bun run check` and the conformance suites test them.
 
 - Contracts are browser-safe. Handlers, React components, scenarios and provider code live in separate entrypoints.
-- Every change to the application's records is a command executed by the instance. A transport or harness never writes records itself.
-- Authorize the operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
-- Server code reaches the network only through the network port, and starts child processes only through the process port.
-- MCP, API, schema and reference docs are generated from the catalog when they are served or built. Nothing generated is committed; `bun run generate` writes the reference to `dist/reference/` for reading.
+- Every change to records is a command the instance executes. A transport or harness never writes records itself.
+- Authorize operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
+- Server code reaches the network only through the network port and starts child processes only through the process port.
+- The host generates MCP, API, schema and reference docs from the catalog when it serves or builds them. Commit nothing generated. `bun run generate` writes the reference to `dist/reference/`.
 
 ## Guidance
 
-This section is advice; depart from it when the code is better for it, and say why in the commit message.
+Advice. Depart from it when the code is better for it, and say why in the commit message.
 
-- Look for an existing primitive before adding one.
-- A new primitive, plugin or integrated technology gets a pattern or example and a row in `docs/patterns.md`. Content stays in the domains the repository addresses: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, and test and quality.
+- Look for an existing primitive before you add one.
+- A new primitive, plugin or integrated technology gets a pattern or example and a row in `docs/patterns.md`. Stay in the covered domains: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, test and quality.
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
-- Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts; use an outbox effect when another system decides.
+- Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts. Use an outbox effect when another system decides.
 - An application does one task at one site. Keep its code to that task.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
-- Do not add any of these records:
-  - an owner
-  - a term
-  - a renewal
-- Document what a workspace is for, what it trusts, and how to test it. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
-- When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
+- Do not add an owner, a term or a renewal record.
+- Document what a workspace is for, what it trusts and how to test it. Comment the non-obvious: transaction and authorization order, trust boundaries, failure behavior.
+- When a primitive's meaning or status changes, update `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and known gaps.
 
 ## Skills
 
-Skills are task guides for coding agents. Each lives in the workspace whose extension points it describes, in `<workspace>/skills/<name>/`, so it ships in that package and an application that installs the framework from a registry gets it from `node_modules`. An application's own skills go in its workspace or in a root `skills/<name>/`. `bun install` links them into `.claude/skills/` for Claude Code and `.agents/skills/` for Codex through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
+Skills are task guides for Claude Code and Codex, in `<workspace>/skills/<name>/` of the workspace they describe, so they ship in that package. An application's own skills go in its workspace or a root `skills/<name>/`. `bun install` links them into `.claude/skills/` and `.agents/skills/` (not committed). After adding or renaming a skill, run `bun run skills:link`.
 
 | Task | Skill |
 | --- | --- |
@@ -74,22 +79,22 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
 | Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |
 
-How skills stay current with the code:
+Keeping skills current:
 
-- A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
-- `scripts/skill-coverage.json` maps each package, workstation, plugin and SDK to the skills covering it. List its skills by name, or use an empty `skills` array with a `reason` when none apply. Include a workspace's own skills in its entry.
-- An application that installs the framework from a registry has no framework coverage file or surface stamp. If it adds a local package, workstation, plugin or SDK, create its coverage registry and review and stamp that local surface.
-- `bun run check:skills` validates the registry, skill discovery, links and paths independently of README headings. Add or update coverage when a workspace or skill changes.
-- `scripts/reviewed-surface.json` records each of those workspaces' entrypoints and exported names, and the root package scripts, as of the last skill review. When the code changes that surface, the check names the skills to review. Update them in the same commit for what changed, then run `bun run skills:stamp <workspace>`. The stamp's diff shows reviewers what was reviewed.
-- When a workspace gains an extension point that other code uses and no skill covers it, add a skill there.
-- When two skills repeat the same steps, keep the steps in the skill of the package that owns them and link to it from the other.
-- A skill links to docs and READMEs for detail instead of copying it. Paths it names must exist.
+- Name a skill for a task, uniquely across the repo. The owning workspace's README links it and this table lists it.
+- `scripts/skill-coverage.json` maps each package, workstation, plugin and SDK to its skills, or to an empty `skills` array with a `reason`. Include a workspace's own skills.
+- An application that installs the framework from a registry has no coverage file or surface stamp. If it adds a local workspace, create its coverage registry and review and stamp that surface.
+- `bun run check:skills` validates the registry, discovery, links and paths. Update coverage when a workspace or skill changes.
+- `scripts/reviewed-surface.json` records each workspace's entrypoints, exported names and the root scripts as of the last review. When that surface changes, the check names the skills to review. Update them in the same commit, then run `bun run skills:stamp <workspace>`.
+- A new extension point that other code uses and no skill covers gets a skill in its workspace.
+- When two skills repeat steps, keep them in the owning package's skill and link from the other.
+- Link to docs and READMEs instead of copying. Every path a skill names must exist.
 
 ## Working practice
 
-- Use `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'` for current library APIs. Run network documentation requests outside the sandbox.
+- For current library APIs: `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'`. Run network documentation requests outside the sandbox.
 - Run the checks in `docs/development-and-testing.md`.
-- Prose follows `docs/styleguide.md` and uses the terms in `docs/glossary.md`.
+- Follow `docs/styleguide.md` and use the terms in `docs/glossary.md`.
 - Do not discover or reuse provider credentials. Live probes need explicitly configured accounts. Never commit keys, data directories or generated launch credentials.
 - Concurrent agents own disjoint files, announce interface changes and preserve each other's work. The root owns dependency manifests and the lockfile.
-- This is a generic reference. Keep platform-specific cloud dependencies out of framework contracts and the runtime.
+- Keep platform-specific cloud dependencies out of framework contracts and the runtime.

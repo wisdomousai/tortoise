@@ -1,324 +1,163 @@
 # Architecture
 
-A Tortoise [application](glossary.md#application) keeps the records of one task at one site. It declares the commands that change those records, the queries that read them and the screens people use. Its contracts, handlers and screens live in separate [entrypoints](#application-entrypoints).
+An application is a set of commands and queries plus screens. The host runs one application on one workspace, and every caller (screen, agent, script) goes through it.
 
-The [host](glossary.md#host) is the process that runs the application: the Bun host behind the desktop window and the browser, or the mobile host on a phone. It opens one [instance](glossary.md#instance), the application opened on its [workspace](glossary.md#workspace). The workspace holds the application's data. While the instance is open, no other process writes that workspace.
-
-People, agents, scripts and other systems therefore reach the records only through the instance. A person works in the screens. An agent calls the same commands as tools, through MCP or an agent run in the host. A script uses the CLI or HTTP. Each of these [surfaces](glossary.md#surface) sends its calls to the same instance.
-
-Inside the instance, the runtime validates and authorizes each command, then commits its changes through [storage](glossary.md#storage). Queries pass the same authorization checks. After a commit, journal entries refresh the open screens that show the changed records, and dispatchers deliver committed outbox effects to other systems.
-
-Framework packages implement this path. The application composes [host plugins](glossary.md#host-plugin) for cross-cutting behavior such as network access and the audit log. The starter names the application in `app.config.json`.
+```text
+screen ─┐
+CLI ────┼─► host ─► runtime: validate, authorize, run handler ─► storage (one transaction)
+MCP ────┤                                                          │
+HTTP ───┘                                                          ├─► journal ─► live screens refresh
+                                                                   └─► outbox ─► dispatcher ─► ERP / MES
+```
 
 ## Layers
 
-| Layer | Location | Holds |
-| --- | --- | --- |
-| [Framework](glossary.md#framework) | `packages/*` | Domain-neutral primitives, ports, adapters and [UI registries](glossary.md#ui-registry), including the generic host and the [web frame](glossary.md#web-frame). |
-| [Workstation](glossary.md#workstation) | `workstations/*` | Packages for edge workstations: the [screen bridge](glossary.md#screen-bridge) and [workstation sign-in](glossary.md#workstation-sign-in). |
-| Plugins | `plugins/*` | [Host plugins](#host-plugins) for cross-cutting concerns an application chooses to compose, such as [deployment policy](glossary.md#deployment-policy), network, audit and compliance. |
-| [Starter](glossary.md#starter) | `apps/*` | Thin wiring its owner forks and extends: configuration, entrypoints, web root, stock UI primitives and the desktop and mobile wrappers. |
-| Content | `showcase/examples/*`, `showcase/patterns/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [pattern](glossary.md#pattern) composes the base pattern and adds one concern. |
-| Driver SDKs | `sdks/*` | The driver protocol in Python and C#, for [hardware drivers](hardware-drivers.md). |
+| Folder                                   | What goes there                                                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/*`                             | The framework. Names no domain.                                                                                                   |
+| `workstations/*`                         | Screen bridge and workstation sign-in. Import the framework only. |
+| `plugins/*`                              | [Host plugins](#host-plugins): network, audit, site policy, compliance and more.                                                  |
+| `apps/*`                                 | The starter: service, web, desktop and mobile wrappers. Runs the app named in `app.config.json`.           |
+| `showcase/examples/*`, `showcase/patterns/*` | Applications. Yours goes here too.                                                                                            |
+| `sdks/*`                                 | [Driver](hardware-drivers.md) SDKs for Python and C#.                                                                             |
 
-The starter reads its application from configuration. Generic behavior goes into framework packages. A new application therefore needs no change to the starter, and an owner who forks the starter keeps receiving framework changes.
-
-The web frame files are registry sources. A file in `apps/web/src` replaces the frame file at the same path.
+A file in `apps/web/src` replaces the frame file at the same path.
 
 ## Application entrypoints
 
-An application has three entrypoints:
+Every application has three files the starter loads:
 
-- **Manifest:** the browser-safe [manifest](glossary.md#manifest) with the application's modules.
-- **Application definition:** the server [application definition](glossary.md#application-definition) with state, [handlers](glossary.md#handler), authorization, services and the [targets](glossary.md#target) that reach other systems. It runs with the host's privileges. Only callers are untrusted.
-- **Screens:** the application's [screens](glossary.md#screen).
+| File             | Holds                                                                    | Runs in       |
+| ---------------- | ------------------------------------------------------------------------ | ------------- |
+| `manifest.ts`    | ID, title, modules (contracts), features, plugins. Browser-safe.         | browser, host |
+| `application.ts` | `defineApplication`: state, handlers, policy, plugins, integrations.     | host          |
+| `screens.tsx`    | `defineScreens`: routes and navigation.                                  | browser       |
 
-`app.config.json` names the application the starter hosts. The `apps/service` entrypoint and the CLI load its application definition into the host, and the web frame binds its screens. Compiled builds generate a static entry for the same application.
+A generated `application.ts`:
 
-Each application has its own [catalog](glossary.md#catalog), generated reference, web build and workspace. `bun run generate` writes the reference to `dist/reference/<id>/`. Nothing generated is committed.
+```ts
+export function createInspectionDeskApplication(options: InspectionDeskOptions = {}) {
+  const state = (ownerId: string) => createState(ownerId, options.members);
+  return defineApplication<AppState, Services>({
+    manifest,
+    createState: state,
+    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    handlers: createHandlers(),
+    authorization: appPolicy,
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    connect: () => ({ integrations: [] }),
+  });
+}
+```
+
+`bun run generate` writes the app's reference (OpenAPI, operations, agent skill) to `dist/reference/<id>/`. Don't commit it.
 
 ## Surfaces and identity
 
-Every surface calls the same instance.
+All surfaces call the same handlers with the same checks. The caller's identity comes from the session, never from input.
 
-| Surface | Entry | Identity |
-| --- | --- | --- |
-| HTTP | `/api/v1/commands/<id>`, `/api/v1/queries/<id>`, `/api/v1/blobs` | Browser: a one-time [launch key exchange](glossary.md#launch-key-exchange), then an HttpOnly cookie. Process: a bearer token the host issues. |
-| Live updates | `/api/v1/events` (SSE) | The same session, filtered by current read access. |
-| MCP | stdio, one tool per [capability](glossary.md#capability) (`task.create` becomes `task_create`) | A [connection file](glossary.md#connection-file) in [attached mode](#embedded-and-attached-modes), a [grant file](glossary.md#grant-file) in [embedded mode](#embedded-and-attached-modes). |
-| CLI | Subcommands generated from the catalog | A connection file in attached mode, a grant file in embedded mode. |
-| Typed client | The React bindings | The browser session. |
-
-## Request flow
-
-A module declares the browser-safe contracts of its capabilities. The handlers are separate server code, and the screens are ordinary React components. The application definition composes modules, state, authorization and services. The host adds storage, sessions and surfaces, and the [generators](glossary.md#generator) read the same catalog.
-
-```mermaid
-flowchart LR
-  Module[Module contracts] --> Catalog[Validated catalog]
-  Catalog --> Generated[Schemas, reference, workflows]
-  Catalog --> Surfaces[HTTP / MCP / CLI / typed client]
-  Screens[Browser and desktop screens] --> Surfaces
-  Caller[Agent run / trigger / script] --> Surfaces
-  Surfaces --> Runtime[Authorized command and query runtime]
-  Handlers[Module handlers] --> Runtime
-  Policy[Policy port] --> Runtime
-  Runtime --> Storage[Transactional storage]
-  Storage --> Journal[Committed journal]
-  Journal --> Live[Authorized live queries]
-  Live --> Screens
-```
-
-A handler receives the trusted [execution context](glossary.md#execution-context) and injected services, never a transport request. Literal operation IDs keep their types through composition into the typed client. Surface adapters still validate input at runtime.
+| Surface      | How to call it                                              | Who you are                                                         |
+| ------------ | ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| HTTP         | `POST /api/v1/commands/<id>`, `/api/v1/queries/<id>`        | Browser: launch link, then a cookie. Process: bearer token.         |
+| Live updates | `GET /api/v1/events` (SSE)                                  | Same session; read access filters the stream.                       |
+| MCP          | `bun run mcp`; `task.create` becomes tool `task_create`     | Connection file, or a grant file with `bun run cli mcp --embedded`. |
+| CLI          | `bun run cli <collection> <verb>`                           | Same as MCP.                                                        |
+| React        | `useLiveQuery`, `useCommand` from `@agent-native/react`     | Browser session.                                                    |
 
 ## Instances and hosts
 
-### Instance startup
+An instance is the application opened on one workspace. Only one process writes a workspace.
 
-The [composition](glossary.md#composition) opens an instance in the same steps on every host platform (`packages/kernel/src/instance.ts`):
+| Host platform | Storage            | Lock                           | Can open sockets and processes |
+| ------------- | ------------------ | ------------------------------ | ------------------------------ |
+| Bun           | SQLite             | OS lock on `.workspace/`       | yes                            |
+| Hosted        | Postgres           | Workspace lease | yes            |
+| Mobile        | SQLite snapshot    | exclusive transaction          | no                             |
 
-1. Refuse a deployment whose requirements the host platform cannot meet.
-2. Open the plugins, and with them the ports. A plugin that refuses stops startup before the workspace opens.
-3. Check the launcher's identity against the identity port, when the host asks for it.
-4. Open storage and the [blob](glossary.md#blob) store, then the runtime with the [audit log](glossary.md#audit-log) port and the plugins' services.
-5. Run each plugin's `ready` hook before the first request or integration pass.
-6. Build the [dispatchers](glossary.md#dispatcher) and [inbound sync](glossary.md#inbound-sync) from the application's connections. The process that opened the instance starts them.
-
-On a failure, the composition closes everything it opened, newest first.
-
-### Host platforms
-
-A host platform is trusted host code. The starter chooses it, and an application cannot. The host platforms differ in workspace ownership, storage and the capabilities they offer:
-
-| Host platform | Ownership | Storage | Capabilities |
-| --- | --- | --- | --- |
-| Bun (`bunPlatform`) | An OS lock on the workspace directory | SQLite row storage | Sockets, child processes, ingress, folders |
-| Hosted (`hostedPlatform`) | A [workspace lease](glossary.md#workspace-lease) in Postgres, plus the OS lock on the local directory | Postgres row storage | As the Bun platform |
-| Mobile (`packages/mobile`) | An exclusive transaction on the workspace's lock database | SQLite snapshot storage | None |
-
-The desktop window starts the host or attaches to a running one, and loads the shared web build. These are deployment choices. Module behavior does not depend on them.
-
-A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. The framework does not synchronize one workspace across several devices.
+Startup order (`packages/kernel/src/instance.ts`): check requirements, open plugins, open storage and blobs, run plugin `ready` hooks, start dispatchers and inbound sync. On failure everything closes, newest first.
 
 ### Embedded and attached modes
 
-A CLI call or an MCP bridge with `--embedded` runs in embedded mode, and so does a phone that opens its own workspace. A CLI call with a connection file, the MCP bridge without `--embedded`, the desktop window and an attached tablet run in attached mode.
-
-An embedded CLI or MCP process takes the same OS lock as a serving host. One process holds that lock and writes the SQLite file. A second process that opens the file for writing fails with `CONFLICT`. The CLI and the MCP client connect to the running process instead.
+- **Attached:** the CLI or MCP bridge talks to a running host through `.workspace/.connection.json`. The desktop window attaches the same way.
+- **Embedded:** `bun run cli mcp --embedded [--grant-file f]` or `bun run cli <collection> <verb> --embedded` opens the workspace itself. If a host is already running, it gets `CONFLICT`.
 
 ## Storage
 
-The storage port has an atomic transaction callback and a read callback. It imposes no record model on module state. Module state must be structured-clone compatible. Storage refuses shared memory, because it would alias across a transaction's copies.
+Storage gives handlers one atomic transaction per command. State must be plain JSON.
 
-| Adapter | Layout | Used by |
-| --- | --- | --- |
-| Memory | Structured clones in memory | Tests |
-| SQLite (`SQLiteStorage`) | One row per record. A commit writes only the rows it changed. | The Bun host platform |
-| Postgres (`PostgresStorage`) | The same row layout, shared safely by several hosts | The hosted platform |
-| Snapshot (`SnapshotStorage`) | One JSON document per workspace | The mobile host platform |
+| Adapter                                        | Used by            |
+| ---------------------------------------------- | ------------------ |
+| Memory                                         | tests              |
+| `SQLiteStorage` (one row per record)           | Bun host           |
+| `PostgresStorage` (same rows; hosts share them) | hosted instance   |
+| `SnapshotStorage` (one JSON document)          | mobile             |
 
-The SQLite, Postgres and snapshot adapters accept only JSON. The adapters reject sparse arrays instead of reloading the holes as nulls. The row layout is not a relational model of module state.
-
-A replacement adapter must pass the storage conformance suite in `packages/testing`. The suite checks the atomicity, isolation and persistence that the composition relies on.
-
-## Systems of record
-
-The application reaches a [system of record](glossary.md#system-of-record) through a target and the target's [connector](glossary.md#connector). The external call runs after the local transaction commits.
-
-A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. Because delivery can repeat, the dispatcher relies on the system of record's idempotency or on a lookup. The target's complete command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
-
-Inbound sync imports changes through ordinary commands. No transaction spans two systems.
-
-## Authorization and reactivity
-
-The policy port is injected. Every open screen receives live updates after a commit that changes what it reads.
-
-In the React bindings, a [live query](glossary.md#live-query) refetches when a declared dependency changes, or on every change when it declares none. It ignores stale responses. It clears protected data when authorization changes, and reconnects from a [snapshot](glossary.md#snapshot) cursor.
-
-[UI intents](glossary.md#ui-intent) expire and are not business events.
-
-## Agents
-
-An [agent run](glossary.md#agent-run) keeps [harness](glossary.md#harness) output and application commits in separate streams. The run supervisor captures the initiating context, offers the harness only catalog capabilities as tools, and cancels through run state.
+A new adapter must pass the storage conformance suite in `packages/testing`.
 
 ## Host plugins
 
-Modules, [host components](glossary.md#host-component) and plugins declare their network access, devices, [exchange folders](glossary.md#exchange-folder) and child processes as [requirement declarations](glossary.md#requirement-declaration). The host discovers nothing at runtime.
+A host plugin adds a cross-cutting concern. It provides ports; without it, the safe default applies.
 
-### Ports
+| Port      | Default                     | Plugin                              |
+| --------- | --------------------------- | ----------------------------------- |
+| Network   | refuse every destination    | `plugins/network` (egress guard) |
+| Ingress   | loopback only               | `plugins/network` (TLS, mTLS)       |
+| Identity  | trust the local owner       | `plugins/site`                      |
+| Audit log | none                        | `plugins/audit`                     |
+| Shell     | no OS integration           | `plugins/os`                        |
+| Processes | refuse every child process  | `plugins/process`                   |
+| Folders   | none                        | `plugins/site`                      |
 
-The host is a composition with ports. A plugin provides a port. When no plugin provides it, the composition's default applies.
-
-| Port | Default without a plugin | Provided by |
-| --- | --- | --- |
-| Network | Refuses every destination | `plugins/network`, the [egress guard](glossary.md#egress-guard). `plugins/hub-link` on a paired device, without an egress guard |
-| Ingress | The host platform's own listener: loopback on the Bun platform | `plugins/network` (TLS or mTLS from the deployment policy) |
-| Identity | Admits the trusted [local owner](glossary.md#owner) | `plugins/site` |
-| Audit log | No log | `plugins/audit` |
-| Shell | No OS integration | `plugins/os` |
-| Processes | Refuses every child process | `plugins/process` |
-| Folders | No exchange folders | `plugins/site` |
-
-Plugins provide ports because a wrapper around each call cannot write an audit record inside the command's transaction, bind outbound connections or refuse startup.
+To use a plugin, list it in both `manifest.ts` (`sitePluginManifest`) and `application.ts` (`sitePlugin`), in the same order. To write one, follow [write-host-plugin](../packages/host/skills/write-host-plugin/SKILL.md).
 
 ### Features and host plugins
 
-A [feature](glossary.md#feature) is a reusable domain part an application mounts once, such as approval requests. It has modules whose operation IDs start with the feature's ID, a state slice under that ID, handlers and a policy. The feature never reads application state. The application mounts it with `mountFeature`, which supplies:
+A feature is a reusable domain part, such as approval requests. Mount it with `mountFeature` and give it an access view computed from your roles. A plugin is like a feature but provides ports instead of reading your roles.
 
-- an access view that the application computes from its own state. The feature's policy and handlers read it.
-- hooks that the feature calls inside a command. A hook may write application records in the same transaction.
-- an adoption that moves data an older application version kept in its own state into the feature's slice.
+Composition fails at startup if:
 
-A host plugin is a feature with ports, settings, lifecycle hooks and platforms, and no access view or command hooks. `defineApplication` merges features, then plugins, into one state, one handler list, one policy, one set of services and one set of connections (`packages/kernel/src/features`). A feature's slice is stamped `feature:<id>` and a plugin's `plugin:<id>`.
-
-Composition refuses these at definition time:
-
-- feature or plugin lists that differ from the manifest's lists in content or order, and a `requires` entry that is not composed earlier.
-- a feature and a plugin with the same ID, or two units with operations in the same namespace.
-- an operation outside its unit's namespace, or an application operation inside one. A plugin's namespace is its ID unless its manifest names another. Device link (`link`), hub link (`hub`), notifications (`notification`) and workstation sign-in (`station`) keep namespaces that predate this rule.
-- a feature module, target, source or resource type that is not the feature's ID or does not start with `<id>-`.
-- a resource type that two units claim or that the application policy's `covers` lists, and an application policy rule for a unit's operation. `definePolicy` declares `covers`. Composition does not check a handwritten policy port that has no `covers`.
-- an application state or services key equal to a unit's ID.
-- an adoption whose application version no incompatible migration step reaches, so code from before the data moved refuses the workspace.
-
-### Composition
-
-A plugin has the same entrypoints as an application: a manifest, a server entrypoint and, when it has any, screens. The application lists its features and plugins in each of its own entrypoints. The generated artifacts therefore follow from the application alone. A plugin's state is its own slice under its ID. Its policy decides only its own capabilities and resource types.
-
-A plugin imports the packages of the plugins it requires, for their types, policy helpers and service accessors. The network plugin, for example, imports the site plugin's policy types. At runtime, plugins reach each other through the composed ports and the services the plugins expose. The port view resolves after every plugin opens, so two plugins can use each other without a construction cycle. For example, the egress guard records into the audit log, and the audit log's forwarder sends through the guard. The two plugins do not import each other.
+- the manifest's feature or plugin list differs from `application.ts`, or a plugin comes before one it requires;
+- two units share an ID or an operation namespace, or an operation is outside its unit's namespace;
+- two plugins provide the same port, or a needed port has no provider;
+- the settings include one that no plugin declares.
 
 ### Lifecycle
 
-- `open` runs before storage, in composition order, and may refuse startup.
-- `ready` runs in every instance, including an embedded CLI or MCP instance, before the first request.
-- `start` runs in a serving host once it listens, and on the mobile host each time it returns to the foreground. It never runs in an embedded CLI or MCP instance. It acts as the local owner, narrowed by a [delegated grant](glossary.md#grant).
-- `close` runs in reverse order.
+| Hook    | When                                                               |
+| ------- | ------------------------------------------------------------------ |
+| `open`  | before storage; may refuse startup                                 |
+| `ready` | in every instance, before the first request                        |
+| `start` | in a serving host after it listens; never in embedded CLI or MCP   |
+| `close` | on shutdown, in reverse order                                      |
 
-Startup refuses the composition in these cases:
-
-- a supplied setting that no composed plugin declares
-- a port that a plugin's configuration needs and no plugin provides
-- two plugins that provide the same port
-- server plugins that differ from the manifest's list or order, or a plugin composed before one it requires
-
-`packages/host/test/plugins.test.ts` covers the composition rules and the lifecycle.
-
-### Plugins in the examples
-
-Most examples compose these plugins:
-
-- **site** loads the deployment policy and enforces its identity floor.
-- **network** guards outbound connections.
-- **audit** keeps the tamper-evident audit log.
-- **compliance** adds auditor queries, the posture monitor and the Compliance screen.
-
-`field-service` also composes [webhook](../plugins/webhook/README.md), an example plugin written the way a third party would write one.
-
-### Features in the examples
-
-- **receiving** mounts `approval` and `reconciliation`.
-- **field-service** mounts `approval`.
-- **winding-line** mounts `approval` and `device`.
-- **asset-survey** mounts `assignment` and `approval`.
-
-Each example implements the access views from its own roles in `policy.ts`. The access views repeat the membership gate that its application policy applies. Each example also adopted the data that its version 1 state kept.
+Tests: `packages/host/test/plugins.test.ts`.
 
 ### Telemetry
 
-The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox). Handlers and adapters therefore include no metrics code. The plugin exports through the network port to a collector on the same machine. The export includes:
+`plugins/telemetry` turns the audit log and outbox into OpenTelemetry metrics and spans, so handlers contain no metrics code. It exports IDs, states, error codes, counts and durations, never record contents or principals. See the [telemetry plugin](../plugins/telemetry/README.md).
 
-- operation, target, harness and channel IDs
-- fixed states, error codes, counts and durations
-- digests of correlation, effect and run IDs
+## Rules the checks enforce
 
-The telemetry export includes no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).
+`bun run check` tests these:
 
-## Invariants
-
-`bun run check` and the conformance suites test these:
-
-- Each capability has one handler. The screens, HTTP, MCP and the CLI reach it with the same validation, authorization, results and errors (`showcase/examples/field-service/test/transport-conformance.test.ts`).
-- The framework generates surfaces, schemas, API descriptions and agent skills from the catalog. Contracts import no handlers, adapters or provider SDKs.
-- The host derives the principal, the workspace and the grant from the session. Input cannot choose or widen them.
-- Authorization is rechecked inside the transaction, on replay and on event delivery. Rows are filtered before they are counted or paged.
-- One instance writes each workspace. A command commits state, [revisions](glossary.md#revision), its receipt, journal entries and outbox effects in one transaction, or the command fails.
-- Handlers make no network or model calls. An application changes other systems through outbox effects and reads them through declared remote queries.
-- Server code reaches the network only through the network port, and starts child processes only through the [process port](glossary.md#process-port). The boundary check enforces both, and `scripts/boundary-rules.ts` lists each reviewed exemption with its reason.
-- The framework imports no workstation, plugin, starter or example code. A workstation package imports the framework only. A plugin imports no workstation package, starter or example. The starter imports none of them. An example imports no starter code, and nothing imports a driver SDK.
-
-The reviewed exemptions include the harness launches in `packages/agents` and the Postgres connection of the hosted platform, which opens before any plugin.
-
-## Packages
-
-| Package | Role |
-| --- | --- |
-| `contracts` | Serializable metadata, schemas and protocol errors. |
-| `runtime` | Composes contracts with handlers, storage and authorization. |
-| `kernel` | The [composition](glossary.md#composition): composes an application and its plugins and opens its instance on a host platform, with no Node or Bun API. |
-| `host` | Runs one application and its plugins: workspace ownership, sessions, HTTP, embedded MCP, the CLI, agent runs, providers and the hosted platform. |
-| `adapters` | HTTP and SSE, MCP, the CLI, CASL, SQLite and Postgres storage, the workspace lease and workspace ownership, each on its own subpath. |
-| `client`, `react` | The typed client, live queries and UI session context. |
-| `agents` | Harness and run interfaces, with provider details kept inside. |
-| `integration` | Targets, the dispatcher and inbound sync for systems of record. |
-| `event-log` | The hash-chained audit log that the audit plugin opens. |
-| `frame` | The web frame registry: session bindings, routing, palette, run panel and accounts. |
-| `operator-ui` | Glove-sized operator input parts as a shadcn registry. |
-| `devices` | Scanner input normalized and routed to capabilities without a model turn. |
-| `observation` | Readings from sources that cannot be queried, submitted through ingest commands. |
-| `shell` | [OS handlers](glossary.md#os-handler) and [OS actions](glossary.md#os-action), and the platform registrations generated from them. |
-| `bundle` | Signed, versioned [site bundles](glossary.md#site-bundle), checked before a site installs one. |
-| `mobile` | The Android and iOS host platform: device SQLite and files, an exclusive lock and the foreground and background lifecycle. |
-| `frame-native` | The native frame and its registry: tabs or rail, session context, live invalidation and glove-sized components. |
-| `testing` | Direct and scenario drivers, conformance checks and the [UI-binding](glossary.md#ui-binding) check. |
-| `scaffold` | Exports the starter, the framework and one or all examples as a standalone project, or generates a new application. |
-
-The framework packages can be packed and published at one version. The workstation packages are published with them. None is on a public registry.
-
-## Stack
-
-- Bun and TypeScript.
-- Zod for schemas.
-- SQLite for local storage, and Postgres for a hosted instance.
-- CASL for the policy adapter.
-- React with Vite, TanStack Query, shadcn and Tailwind for the screens.
-- Electron for the desktop.
-- Expo and React Native for the mobile host.
-- Playwright for browser tests.
-
-`bun.lock` pins the versions. Desktop packaging produces an unsigned directory. Signed distribution is out of scope.
+- One handler per capability; screens, HTTP, MCP and CLI get the same results and errors.
+- Authorization runs inside the transaction. The policy filters rows before counting or paging.
+- A command commits state, revisions, receipt, journal and outbox in one transaction, or nothing.
+- Handlers make no network or model calls. Changes to other systems go through the outbox.
+- Server code reaches the network only through the network port and starts processes only through the process port. `scripts/boundary-rules.ts` lists the exemptions.
+- The framework imports no plugin, workstation, starter or example.
 
 ## Examples
 
-Each [example](glossary.md#example) is an application under `showcase/examples/` and serves as a test fixture.
+| Example                                                            | Shows                                                             |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| [field-service](../showcase/examples/field-service/README.md)      | Work orders, roles, live updates, OS integration. The default app. |
+| [quality-inspection](../showcase/examples/quality-inspection/README.md) | Outbox to a fake quality system, instrument driver.          |
+| [winding-line](../showcase/examples/winding-line/README.md)        | A workstation app driven through its screen, scanner, MES sync.   |
+| [crm-capture](../showcase/examples/crm-capture/README.md)          | Live reads of a fake CRM with each caller's own access.           |
+| [asset-survey](../showcase/examples/asset-survey/README.md)        | Assignments for paired phones, photo extraction, a fake EAM.      |
+| [asset-survey-field](../showcase/examples/asset-survey-field/README.md) | The phone side of asset-survey on the [mobile host](mobile.md). |
+| [receiving](../showcase/examples/receiving/README.md)              | Goods receipts to an ERP through files. A scaffold export.  |
+| [fleet](../showcase/examples/fleet/README.md)                      | The [fleet](hosting.md#fleet) server that sites report to.        |
 
-| Example | Exercises | Host plugins |
-| --- | --- | --- |
-| [`field-service`](../showcase/examples/field-service/README.md) | Work orders with dispatcher, technician and customer roles, field projection, revisions, live updates, a deterministic agent, OS handlers and actions, and a webhook for the customer portal, with no system of record. The fixture for the transport, storage and security conformance suites. | site, network, audit, compliance, os, share-target, notifications, os-shortcuts, webhook |
-| [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | Outbox delivery and inbound sync against a fake quality system, keyboard capture and an instrument driver. The CLI and MCP run under a grant file in a stripped environment, from source or as the compiled binary. | site, network, audit, compliance, process, connector-driver |
-| [`winding-line`](../showcase/examples/winding-line/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
-| [`crm-capture`](../showcase/examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
-| [`asset-survey`](../showcase/examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
-| [`receiving`](../showcase/examples/receiving/README.md) | Goods receiving against an ERP through files. The application reads notices from an inbox folder, posts goods receipts as files and completes them from the ERP's receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
-| [`fleet`](../showcase/examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
-| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. The phone receives asset tags as Android intents, sends work requests as intents, shares captures and announces new assignments as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
-
-## References
-
-- [Getting started](getting-started.md)
-- [Capability authoring](capability-authoring.md)
-- [Interaction contract](interaction-contract.md)
-- [Authorization](authorization.md)
-- [State and reactivity](state-and-reactivity.md)
-- [Adapters](adapters.md)
-- [Systems of record](systems-of-record.md)
-- [Operator workstations](operator-workstations.md)
-- [Point-of-work input](point-of-work-input.md)
-- [Hardware drivers](hardware-drivers.md)
-- [Agents](agents.md)
-- [Providers](providers.md)
-- [Hosting](hosting.md)
-- [Security and compliance](security-and-compliance.md)
-- [Desktop](desktop.md)
-- [Mobile](mobile.md)
-- [Development and testing](development-and-testing.md)
-- [Implementation status](implementation-status.md)
+Stack: Bun, TypeScript, Zod, SQLite or Postgres, CASL, React, Vite, TanStack Query, shadcn, Tailwind, Electron, Expo, Playwright.

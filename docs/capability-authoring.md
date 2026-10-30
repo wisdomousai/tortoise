@@ -1,10 +1,16 @@
 # Capability authoring
 
-A [capability](glossary.md#capability) is a command or a query, declared once. In `field-service` the declaration is a contract, the server function is a handler, access is a policy rule, and the check is a behavioral scenario.
+A capability is one command or query. You write four things: a contract, a handler, a policy rule and a test. In a scaffolded app one command writes all four at the `// scaffold:` markers:
+
+```sh
+bun run scaffold add capability inspection.approve --kind command --description "Approve an inspection"
+```
+
+Then fill them in as below and run the checks in [development and testing](development-and-testing.md).
 
 ## Contract
 
-The contract is browser-safe data with a stable operation ID and explicit schemas.
+Browser-safe data: a stable ID and explicit schemas.
 
 ```ts
 import { z } from 'zod';
@@ -21,11 +27,11 @@ export const rename = defineCapability({
 export const notes = defineModule({ id: 'notes', capabilities: [rename] });
 ```
 
-Make protected output fields optional or model explicit output variants, so a result that [policy](glossary.md#policy) projected still validates.
+Make protected output fields optional, so output the policy trimmed still validates.
 
 ## Handler
 
-The handler lives in a server entrypoint and is typed by its capability.
+Server-only, with types from its capability.
 
 ```ts
 import { createHandlerFactory } from '@agent-native/runtime';
@@ -44,19 +50,16 @@ export const renameHandler = handler(rename, (input, ctx) => {
 });
 ```
 
-The module decides how its state is represented. A handler can wrap the transaction's state in its own repositories and receive domain services through `services`.
+Rules:
 
-A handler declares each changed resource with `ctx.change`, and the runtime assigns its [revision](glossary.md#revision) and [journal](glossary.md#journal) entry. A command that changes state but declares no changed resource fails. An effect or blob reference on an undeclared resource fails too, and so does a query that changes state.
-
-A handler makes no network call inside the transaction. It reads what it needs before the command, or enqueues an [outbox effect](glossary.md#effect) with `ctx.enqueue`. Declare the integration on such a capability, so the generated reference says that a [receipt](glossary.md#receipt) is not acceptance by the target.
-
-A handler reports a failure with `ApplicationError`, whose message and details must be safe to show the [caller](glossary.md#caller).
-
-A command that changes access calls `ctx.invalidateAuthorization()` or declares a change of type `authorization.changed`. Either increments the authorization revision in the same transaction.
+- Declare every changed resource with `ctx.change`; the runtime assigns its revision and journal entry. A command that changes state without it fails, and so does a query that changes state.
+- No network calls inside the transaction. Read first, or enqueue an outbox effect with `ctx.enqueue` and declare the integration.
+- Fail with `ApplicationError`; the caller sees its message.
+- A command that changes access calls `ctx.invalidateAuthorization()`.
 
 ## Nested calls
 
-A command whose writes must commit together with another operation's runs that operation inside its own transaction. The capability lists what it calls in `invokes`, and the handler calls `ctx.invoke` or `ctx.query` with the imported capability, so input and output are typed. `invokeRaw` and `queryRaw` take an operation ID and suit a command that runs whatever its input names, declared with `invokes: 'any'`.
+Use `ctx.invoke` (or `ctx.query`) when another operation's writes must commit in the same transaction. List the callee in `invokes`. (`invokeRaw` with `invokes: 'any'` runs an operation named in the input.)
 
 ```ts
 export const linkAndExtract = operation('capture.link-and-extract', 'command', {
@@ -75,20 +78,11 @@ handler(linkAndExtract, async (input, ctx) => {
 });
 ```
 
-Each call takes the whole command path for its operation under the caller's context: grant, policy with `via`, expected revisions, handler, projection, its own blob limits and the commit-phase policy. Its changes and effects count as the caller's. A nested query reads the writes made so far. The runtime refuses:
-
-- an operation the capability does not list;
-- a chain deeper than 4, more than 64 calls in one command, and a call that reaches an operation already running;
-- two calls at once, and a call still running when the handler returns;
-- a query that invokes a command, and a nested remote query.
-
-A refused call fails the command even when the handler catches the error. The catalog refuses an unknown target, a query that invokes a command, a cycle and a chain deeper than 4. An operation's destinations include those of what it invokes, and the grants of agents and job triggers that list it cover them.
-
-Use a nested call when both writes must commit together as one caller; see [choosing a composition](#choosing-a-composition) for the alternatives.
+The runtime authorizes and validates each nested call as its own operation, under your context, and its changes count as yours. The runtime refuses an unlisted operation, depth over 4, more than 64 calls, re-entry, parallel or dangling calls, and a query that invokes a command. A refused nested call fails the whole command, even if you catch it.
 
 ## Declared workflows
 
-A sequence that waits on people or systems of record between its steps is a declared [workflow](glossary.md#workflow). `defineWorkflow` lists its steps, the module lists it in `workflows`, and the application composes the [workflows plugin](../plugins/workflows/README.md) to run it.
+Use `defineWorkflow` when steps wait on people or systems of record. List it in the module's `workflows` and compose the [workflows plugin](../plugins/workflows/README.md).
 
 ```ts
 export const captureToEam = defineWorkflow({
@@ -117,19 +111,19 @@ export const captureToEam = defineWorkflow({
 });
 ```
 
-Bindings read the input (`from.input`), an earlier step's result (`from.step`), the outcome of an effect an earlier step awaited (`from.effect`) and, in a wait's condition, the query result (`from.result`). The catalog refuses a binding that reads ahead, a wait with neither `watch` nor `recheckMs`, a step that reaches a `workflow.*` operation, an unbound required input and durations out of range.
-
-Each step runs as the starter inside its own `workflow.advance` command, so it passes the application's policy as that person when it runs. A command that starts the workflow for its callers lists `workflow.start` in `invokes` and calls it with a business `key`, which admits one running instance per key.
+Bindings: `from.input`, `from.step` (earlier result), `from.effect` (an awaited effect's outcome), `from.result` (in a wait). The catalog refuses reading ahead, a wait without `watch` or `recheckMs`, and out-of-range durations. Each step runs as the person who started the workflow. To start one from a command, list `workflow.start` in `invokes` and pass a business `key`; one instance runs per key.
 
 ## Choosing a composition
 
-- A nested call: both writes must commit together, as one caller, in one transaction.
-- A declared workflow: steps follow each other over minutes to weeks, wait on a person or an outbox outcome, and a later failure undoes earlier steps.
-- A [trigger](glossary.md#trigger): work starts on a committed change or a schedule, under a person's trigger grant, with no sequence to keep.
+| Use | When |
+| --- | --- |
+| Nested call | Both writes commit together, in one transaction. |
+| Declared workflow | Steps span minutes to weeks, wait on people or outbox outcomes, and need compensation. |
+| Trigger | Work starts on a committed change or a schedule, with no sequence. |
 
 ## Collections
 
-For keyed records, declare a collection and use its records helper, which does the own-property lookup, raises `NOT_FOUND` and declares the change.
+For keyed records, use a collection. Its `records` helper does the lookup, `NOT_FOUND` and `ctx.change` for you.
 
 ```ts
 import { defineCollection, collectionList } from '@agent-native/contracts';
@@ -150,55 +144,19 @@ export const listNotes = collectionList(noteRecords, {
 // For the list: collectionListHandler(noteRecords, listNotes, { store: (s) => s.notes, visible: canSee });
 ```
 
-## Composition
+## Wire it up
 
-Add the module to the application's [manifest](glossary.md#manifest) and the handler to its [application definition](glossary.md#application-definition). The host builds the [instance](glossary.md#instance) from that definition, so no host or starter file changes. Tests compose the same definition directly.
-
-Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope.
-
-## Requirement declarations
-
-A module declares what it reaches outside the process as [requirement declarations](glossary.md#requirement-declaration):
-
-- network destinations, each with a purpose, data classes, availability and offline behavior;
-- exchange folders, each with a purpose, access and data classes;
-- devices and child processes, each with a purpose and availability.
-
-A network destination that includes an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows.
-
-## Screen binding
-
-Bind the capability to a [screen](glossary.md#screen) through the typed client.
-
-## Record shape changes
-
-When a stored record shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. A step must be deterministic, because storage runs it on every load until a commit persists the result.
-
-## Triggers
-
-A [trigger](glossary.md#trigger) runs a job or an agent definition on a committed change or a schedule. Declare it with `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md). Each run acts as the issuer of the trigger's [trigger grant](glossary.md#trigger-grant), narrowed to the trigger's operations, and its commands are authorized like any caller's.
+- Add the module to the manifest and the handler to the application definition. No host file changes.
+- Add the policy rule ([authorization](authorization.md#write-a-policy)).
+- Bind it to a screen through the typed client.
+- Declare anything outside the process as requirement declarations: network destinations, exchange folders, devices, child processes. Outbox destinations must queue offline. List plain-text-safe input fields in `audit`; the audit log keeps the rest as digests. Review the security manifest after `bun run generate`.
+- Changed a stored record shape? Add a deterministic step to `StateMigrations` instead of reading both shapes.
+- Need it on a change or schedule? Use `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md); it runs under the trigger grant.
 
 ## Scenarios
 
-Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `showcase/examples/field-service/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
+Test each capability for: allowed and denied access, a stale revision, a replayed idempotency key, and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs scenarios against the instance; `showcase/examples/field-service/test/transport-conformance.test.ts` repeats them over HTTP, CLI and MCP. Update agent scenarios when an agent gains or loses a capability.
 
-## Use
+## See also
 
-In an application made by the [scaffold](glossary.md#scaffold), this command writes the contract, handler, policy rule and a test at the `// scaffold:` markers.
-
-```sh
-bun run scaffold add capability inspection.approve --kind command --description "Approve an inspection"
-```
-
-Then run the checks in [development and testing](development-and-testing.md), and record browser and native runs in the [implementation ledger](implementation-status.md).
-
-## References
-
-- [Interaction contract](interaction-contract.md)
-- [State and reactivity](state-and-reactivity.md)
-- [Authorization](authorization.md)
-- [Systems of record](systems-of-record.md)
-- [Security and compliance](security-and-compliance.md)
-- [`packages/kernel`](../packages/kernel/README.md)
-- [Agents](agents.md)
-- [add-capability](../packages/runtime/skills/add-capability/SKILL.md)
+[Interaction contract](interaction-contract.md) · [State and reactivity](state-and-reactivity.md) · [Systems of record](systems-of-record.md) · [`packages/kernel`](../packages/kernel/README.md) · [Agents](agents.md) · [add-capability skill](../packages/runtime/skills/add-capability/SKILL.md)

@@ -5,11 +5,11 @@ description: Declare a durable workflow whose steps run commands and wait on que
 
 # Declare a workflow
 
-A [workflow](../../../../docs/glossary.md#workflow) is a sequence of steps over existing capabilities. Each [workflow instance](../../../../docs/glossary.md#workflow-instance) advances one step per command, as its starter, and undoes its completed steps with their [compensations](../../../../docs/glossary.md#compensation) when a step fails for good.
+A workflow is a sequence of steps over existing capabilities. Each workflow instance advances one step per command, as its starter, and undoes its completed steps with their compensations when a step fails for good.
 
 ## Before writing
 
-- Writes that must commit together are one command with nested calls; work that starts on a change or a schedule is a [trigger](../../../../docs/glossary.md#trigger). [Choosing a composition](../../../../docs/capability-authoring.md#choosing-a-composition) compares the three.
+- Writes that must commit together are one command with nested calls; work that starts on a change or a schedule is a trigger. [Choosing a composition](../../../../docs/capability-authoring.md#choosing-a-composition) compares the three.
 - Every step names a command or query that already exists. Add a missing one with the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) first.
 - A step that ends in another system's acceptance enqueues an outbox effect; the `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers the target.
 - Decide what undoes each step that changes something outside the application. A compensation is an ordinary command, such as `filing.withdraw`, and it must be safe to run twice.

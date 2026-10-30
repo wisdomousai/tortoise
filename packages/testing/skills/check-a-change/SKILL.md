@@ -28,7 +28,7 @@ description: Choose and run the checks for a change in this repository and repor
     - **Deterministic:** what `bun run check` and the focused suites showed.
     - **Browser:** Playwright against the real host.
     - **Native:** a packaged build or a real OS facility, on a named platform.
-    - **Live:** real providers, models, devices, hardware or [systems of record](../../../../docs/glossary.md#system-of-record), with explicitly configured accounts.
+    - **Live:** real providers, models, devices, hardware or systems of record, with explicitly configured accounts.
     - **By hand:** a one-off run, and what it showed.
 12. Say which checks were skipped and why.
 

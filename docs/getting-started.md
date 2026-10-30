@@ -1,105 +1,278 @@
 # Getting started
 
-Build a small application around one task at one site. This guide starts an inspection desk with a generated inspection record, then shows where to add the real fields, rules and screens. The scaffold is a starting point: it does not yet know what an inspection means at your site or send a result to a quality system.
-
-Before you start, identify who does the work, what triggers it, what evidence they capture and whether another system must accept the result. The [library tutorial](tutorial-library.md) develops a complete local workflow; the [tool crib tutorial](tutorial.md) also connects an external system and prepares a site install.
+You will build an inspection desk: a list of equipment inspections that people edit on a screen and agents edit over the CLI and MCP. Each step is one action and what you should see. It takes about 20 minutes.
 
 ## New application
 
-Install Bun 1.4.4, the version pinned in this repository. From the framework repository root, install its dependencies and export a new application. Replace the path below with an absolute path **outside this repository** that does not already exist:
+You need Bun and a clone of this repository.
+
+**1. Install the framework.** In the framework repository:
 
 ```sh
 bun install --frozen-lockfile
-bun run scaffold new /absolute/path/inspection-desk --name inspection-desk --display-name "Inspection Desk" --collection inspection
 ```
 
-The scaffold creates a separate directory containing the framework source, the starter and an application in `showcase/examples/inspection-desk`. It refuses to overwrite a directory and does not copy workspace data or credentials. `app.config.json` selects the new application; `scaffold.manifest.json` records the exported files and their hashes.
+You should see: `1291 packages installed`.
 
-In the new directory, install its pinned dependencies:
+**2. Export a new app.** Use a path outside this repository that does not exist yet:
 
 ```sh
-cd /absolute/path/inspection-desk
+bun run scaffold new /tmp/inspection-desk --name inspection-desk --display-name "Inspection Desk" --collection inspection
+```
+
+You should see:
+
+```text
+Exported 1320 source files for inspection-desk to /tmp/inspection-desk
+Next: bun install --frozen-lockfile && bun run format && bun run generate && bun run typecheck && bun test
+```
+
+The new directory is a full copy of the framework plus your app in `showcase/examples/inspection-desk/`. `app.config.json` already points at it.
+
+**3. Install and test it.**
+
+```sh
+cd /tmp/inspection-desk
+git init && git add -A && git commit -qm "scaffold"
 bun install --frozen-lockfile
-```
-
-The generated collection has a title, an `open` or `done` status, an author and a creation time. It includes commands to create and update records, queries to read them, default list and record screens, a policy and tests. The workspace owner is an editor; other members need to be configured. This is deliberately generic, not an inspection implementation.
-
-## Shape the task
-
-Work in `showcase/examples/inspection-desk` in the new directory:
-
-- **Record and operations:** `contracts/inspection.ts` declares the record and generated commands and queries. Add the facts the inspector needs to capture, such as an equipment identifier and measurement.
-- **Behavior:** `handlers/inspection.ts` supplies the collection's handler hooks. Add validation and domain rules for those facts.
-- **Access:** `policy.ts` defines who may read and change records. Adjust it for the people and roles at the site.
-- **Screens:** `ui/inspection.tsx` binds the generated list and record screens. Replace or extend them when the actual capture task needs a different interaction.
-- **Composition and tests:** `manifest.ts` declares browser-safe parts; `application.ts` composes the server; `screens.tsx` composes the screens. Update `test/inspection.test.ts` and the application tests to exercise permitted and refused work.
-
-For example, to require an equipment ID, add this property to `inspectionSchema` in `contracts/inspection.ts`:
-
-```ts
-equipmentId: z.string().min(1).max(80),
-```
-
-Add `'equipmentId'` to the `fields` arrays of both `collectionCreate` and `collectionUpdate` in the same file. The create input now requires it, while the update input can change it. Update the test data in `test/inspection.test.ts`, `test/conformance.test.ts` and `e2e/default-screens.pw.ts`, and add cases for an empty or invalid ID. The default screens use the declared inputs; replace them if the inspector needs a scanner or a more specialized capture flow.
-
-Keep the `// scaffold:<list>` markers if you want `scaffold add` to insert later parts. For example, `bun run scaffold add capability <operation-id> --kind command --description "<what it does>"` generates a contract, handler, policy rule and test. Its initial handler still needs the domain behavior. The [capability authoring guide](capability-authoring.md) walks through those pieces.
-
-If a quality system must decide whether to accept an inspection, add a target and implement its connector and completion behavior using [systems of record](systems-of-record.md). The generated target begins with an in-memory fake; generating it alone does not connect a real system.
-
-## Run and check the application
-
-From the new application's root, start its browser host:
-
-```sh
-bun run dev:web
-```
-
-Open the one-use launch link printed by the host; it expires after one minute. The default **Inspections** screen can create a record from the declared inputs and open it for editing. Try a title and the equipment ID you added above. For a desktop window instead, run `bun run dev` from the same directory.
-
-The host keeps its local workspace in `.workspace/` by default; set `WORKSPACE_PATH` to use a different directory. Only one instance may write a local workspace at a time. The desktop can attach to a running instance; a second embedded writer receives `CONFLICT`. The CLI and MCP can attach to the serving host through its connection file. A [hosted instance](hosting.md#hosted-instance) is reached in attached mode and stores its workspace in Postgres.
-
-Run the generated application's deterministic tests and build from its root:
-
-```sh
-bun run format
 bun run generate
 bun run typecheck
 bun test showcase/examples/inspection-desk
-bun run build
 ```
 
-The source export's `bun run check:skills` currently reports references to omitted examples and patterns and a removed root script, so the full `bun run check` cannot pass unchanged. The focused commands above do not establish a browser, device or live quality-system run. For the generated browser test, install the Playwright browser and run `bunx playwright test showcase/examples/inspection-desk`.
+You should see `Generated 10 reference artifacts for 1 applications in dist/reference`, no typecheck output, and `4 pass  0 fail`.
 
-## Command line
+## Run it
 
-While the host is running, its startup output gives the connection file path. The file contains a local credential with owner-only permissions; keep it private. From the new application's root, point the CLI at it and list the application's catalog:
-
-```sh
-export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
-bun run cli list
-bun run cli inspection create --title "Check pump 4" --equipment-id PUMP-4 --key inspection-pump-4
-bun run cli inspection list
-```
-
-The example assumes you added `equipmentId` above and use the default workspace path. If you set `WORKSPACE_PATH`, use the connection file shown in the host's output instead. `--key` supplies a command's [idempotency key](glossary.md#idempotency-key); queries do not need one. `bun run cli help <capability>` describes a generated command. The CLI uses the application selected by `app.config.json`.
-
-`bun run mcp` serves the same catalog as MCP tools over stdio, forwarding calls to the host named by `AGENT_NATIVE_CONNECTION`. Configure an MCP client to launch it with that environment variable. Commands take `input`, an `idempotencyKey` and optional `expectedRevisions`; queries take `input`. The caller's identity and grant come from the session or grant file, not tool arguments. An embedded MCP bridge can open a local workspace without a listening port, subject to the same single-writer rule.
-
-`bun run generate` writes the capability reference, OpenAPI document and application skill to `dist/reference/<id>/`. These are generated outputs for reading; do not commit them.
-
-## Explore an example
-
-The framework repository also contains working reference applications. They help you inspect a particular implementation before adapting the ideas to your own task. From the framework repository, for example:
+**4. Start the app.**
 
 ```sh
-cd showcase/examples/quality-inspection
 bun run dev:web
 ```
 
-That example captures measurements against a **fake** quality system. Its [README](../showcase/examples/quality-inspection/README.md) explains the capture and rejection flows. [Receiving](../showcase/examples/receiving/README.md) shows a file exchange with an ERP; [winding-line](../showcase/examples/winding-line/README.md) shows a workstation bridge; [asset-survey](../showcase/examples/asset-survey/README.md) and [asset-survey-field](../showcase/examples/asset-survey-field/README.md) show a hub and mobile application. The [patterns](patterns.md) isolate individual framework concerns on a shared oil-lab example.
+You should see one JSON line with `"application":"inspection-desk"` and a `launchUrl` like `http://127.0.0.1:4317/#launch=...`.
 
-## Other export options
+**5. Open the `launchUrl` in a browser.** It works once, within one minute. You should see an **Inspections** table (Id, Title, Status, Created By, Created At) and a **New** form with a Title field and a **Create** button. Create one inspection.
 
-A source export copies the framework into the new project. To install its packages from a configured registry instead, pass `--registry <url>` to `scaffold new`; `--published` selects npm. A registry export has no lockfile yet, so its first installation uses `bun install` without `--frozen-lockfile`. No framework version has been published to a public registry; `bun run release:serve` offers a loopback registry for trying the flow.
+**6. Use the CLI.** In a second terminal, from `/tmp/inspection-desk`:
 
-To start from an existing reference application, use `bun run scaffold /absolute/path/to/new-app --name new-app --example field-service`. An export does not initialize Git or install dependencies. A coding agent can follow [create-agent-native-app](../packages/scaffold/skills/create-agent-native-app/SKILL.md); the other task guides are listed in [AGENTS.md](../AGENTS.md#skills).
+```sh
+export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
+bun run cli help
+bun run cli inspection list --output text
+```
+
+You should see the command list, ending in `Exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, ...`, then a table with the inspection you created in the browser. The screen, the CLI and MCP all call the same operations.
+
+Stop the app with Ctrl+C before you change code.
+
+## Add a field
+
+Every inspection needs the ID of the equipment it checks.
+
+**7. Add the field to the record.** In `showcase/examples/inspection-desk/contracts/inspection.ts`, add one line to `inspectionSchema`:
+
+```ts
+export const inspectionSchema = z.strictObject({
+  id: recordKeySchema,
+  title: z.string().min(1).max(200),
+  equipmentId: z.string().min(1).max(80), // new
+  status: z.enum(['open', 'done']),
+  // ...
+});
+```
+
+In the same file, add `'equipmentId'` to the `fields` of the create and update commands:
+
+```ts
+inspectionCreate: collectionCreate(inspections, { /* ... */ fields: ['title', 'equipmentId'] }),
+inspectionUpdate: collectionUpdate(inspections, { /* ... */ fields: ['title', 'equipmentId', 'status'] }),
+```
+
+**8. Run the tests.**
+
+```sh
+bun test showcase/examples/inspection-desk
+```
+
+You should see `3 fail` with `Input does not match operation schema`. The old tests create inspections without an equipment ID.
+
+**9. Fix the tests.** In `test/inspection.test.ts` and `test/conformance.test.ts`, add `equipmentId: 'PUMP-4'` to every `inspection.create` input. In `e2e/default-screens.pw.ts`, fill the new field after the title:
+
+```ts
+await page.getByRole('textbox', { name: 'Equipment Id', exact: true }).fill('PUMP-4');
+```
+
+Add a test for the new rule at the end of `test/inspection.test.ts`:
+
+```ts
+test('an inspection without an equipment ID is refused', async () => {
+  const app = await open();
+  await expect(
+    app.invokeRaw(
+      { operation: 'inspection.create', input: { title: 'No ID', equipmentId: '' }, idempotencyKey: 'no-id' },
+      owner,
+    ),
+  ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+});
+```
+
+Run `bun test showcase/examples/inspection-desk` again. You should see `5 pass  0 fail`.
+
+**10. Try it from the CLI.** Start `bun run dev:web` again, then in the second terminal:
+
+```sh
+bun run cli help inspection create
+bun run cli inspection create --title "Check pump 4" --equipment-id PUMP-4 --key inspection-pump-4
+bun run cli inspection create --title "No equipment" --equipment-id "" --key bad-1; echo "exit $?"
+```
+
+You should see:
+
+```text
+inspection-desk inspection create --equipment-id <string> --title <string> [--key <idempotency-key>]
+{"operation":"inspection.create","result":{"id":"97d4b14c-...","title":"Check pump 4","equipmentId":"PUMP-4","status":"open",...},...}
+{"error":{"code":"INVALID_INPUT","message":"Input does not match operation schema"}}
+exit 2
+```
+
+The browser form now has an **Equipment Id** field too. `--key` is an idempotency key: run the same create twice with the same key and you get one inspection.
+
+## Add a command
+
+**11. Generate the command.** Stop the app, then:
+
+```sh
+bun run scaffold add capability inspection.close --kind command --description "Mark an open inspection done. Editors only."
+```
+
+You should see `Wrote 6 files in showcase/examples/inspection-desk`. It created `contracts/inspection-close.ts`, `handlers/inspection-close.ts` and `test/inspection-close.test.ts`, and registered them in `contracts.ts`, `policy.ts` (editors only) and `server.ts`. The generated command takes `{}` and does nothing yet.
+
+**12. Write the contract.** Replace `contracts/inspection-close.ts`:
+
+```ts
+import { z } from 'zod';
+import { defineCapability, jsonSchema, recordKeySchema } from '@agent-native/contracts';
+import { inspectionSchema } from './inspection';
+
+export const inspectionClose = defineCapability({
+  id: 'inspection.close',
+  kind: 'command',
+  description: 'Mark an open inspection done. Editors only.',
+  input: jsonSchema(z.strictObject({ id: recordKeySchema })),
+  output: jsonSchema(inspectionSchema),
+  permission: { action: 'write', resourceType: 'Inspection' },
+  ui: { exception: 'headless until a screen binds it' },
+});
+```
+
+**13. Write the handler.** Replace `handlers/inspection-close.ts`:
+
+```ts
+import { ApplicationError } from '@agent-native/contracts';
+import { own, type HandlerContribution } from '@agent-native/runtime';
+import { operations } from '../contracts';
+import type { AppState } from '../domain';
+import { handler, type Services } from './context';
+
+export function inspectionCloseHandlers(): HandlerContribution<AppState, Services>[] {
+  return [
+    handler(operations.inspectionClose, (input, ctx) => {
+      const inspection = own(ctx.state.inspections, input.id);
+      if (!inspection) throw new ApplicationError('NOT_FOUND', 'No such inspection');
+      if (inspection.status === 'done')
+        throw new ApplicationError('CONFLICT', 'Inspection is already done');
+      inspection.status = 'done';
+      ctx.change(`inspection:${inspection.id}`);
+      return inspection;
+    }),
+  ];
+}
+```
+
+`ctx.change` marks the record as changed, so open screens refresh it.
+
+**14. Write the test.** `bun test showcase/examples/inspection-desk` now fails in `inspection-close.test.ts`, because the generated test still sends `{}`. Replace its test body so it creates an inspection, then checks that a viewer gets `FORBIDDEN`, the owner gets `status: 'done'`, and a second close gets `CONFLICT`:
+
+```ts
+test('editors close an open inspection once; viewers cannot', async () => {
+  const workspacePath = await mkdtemp(join(tmpdir(), 'inspection-desk-inspection-close-'));
+  const instance = await openEmbeddedInstance(
+    createInspectionDeskApplication({
+      members: { viewer: 'viewer' },
+      services: { newId: () => 'i-1', now: () => 1_000 },
+    }),
+    { workspacePath },
+  );
+  cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
+  cleanup.push(() => instance.close());
+  const app = instance.application;
+  const close = (key: string, who: typeof owner) =>
+    app.invokeRaw({ operation: 'inspection.close', input: { id: 'i-1' }, idempotencyKey: key }, who);
+
+  await app.invokeRaw(
+    { operation: 'inspection.create', input: { title: 'Pump 4', equipmentId: 'PUMP-4' }, idempotencyKey: 'c' },
+    owner,
+  );
+  await expect(close('v', viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  expect((await close('close', owner)).result).toMatchObject({ id: 'i-1', status: 'done' });
+  await expect(close('again', owner)).rejects.toMatchObject({ code: 'CONFLICT' });
+});
+```
+
+Then run all checks:
+
+```sh
+bun run format && bun run generate && bun run typecheck && bun test showcase/examples/inspection-desk
+```
+
+You should see `6 pass  0 fail`.
+
+**15. Close an inspection from the CLI.** Start `bun run dev:web`, then:
+
+```sh
+bun run cli inspection list --output text           # copy an id
+bun run cli inspection close --id <id> --key close-1
+bun run cli inspection close --id <id> --key close-2; echo "exit $?"
+```
+
+You should see the inspection with `"status":"done"`, then `{"error":{"code":"CONFLICT","message":"Inspection is already done"}}` and `exit 5`.
+
+The command has no button yet; `ui: { exception: ... }` says so. To add one, see [build-screens](../packages/frame/skills/build-screens/SKILL.md).
+
+## Connect an agent over MCP
+
+**16. List the tools.** With the app running and `AGENT_NATIVE_CONNECTION` set:
+
+```sh
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"0"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | bun run --silent mcp
+```
+
+You should see tools named `inspection_list`, `inspection_create`, `inspection_close` and so on. To give Claude Code or Codex these tools, register `bun run mcp` as an MCP server with `AGENT_NATIVE_CONNECTION` in its environment. For Claude Code:
+
+```sh
+claude mcp add --scope project inspection-desk -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
+```
+
+## Run the browser test
+
+**17.** Install the browser once, then run the app's Playwright spec:
+
+```sh
+bunx playwright install chromium
+bunx playwright test showcase/examples/inspection-desk
+```
+
+You should see `1 passed`.
+
+## Next
+
+- Send finished inspections to a quality system: [Systems of record](systems-of-record.md).
+- Build a bigger app with Claude Code or Codex: [Tutorial](tutorial.md).
+- Read a finished app: `cd showcase/examples/quality-inspection && bun run dev:web`, then its [README](../showcase/examples/quality-inspection/README.md).
+- Start from an example instead of a blank app: `bun run scaffold /tmp/my-app --name my-app --example field-service`.
+- Install the framework from a registry instead of copying it: add `--registry <url>` (or `--published`) to `scaffold new`, and use `bun install` without `--frozen-lockfile`. No registry has the packages yet; `bun run release:serve` runs a local one.
+- In an export, the full `bun run check` fails because `check:skills` points at examples the export left out. Use the commands in step 14.

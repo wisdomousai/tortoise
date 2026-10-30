@@ -1,26 +1,20 @@
 # Sign in at a shared lab bench
 
-A technician scans a badge and enters a PIN at a shared terminal, then submits oil-test requests as that technician. A viewer can read the same requests but cannot submit them. The workspace owner enrolls and revokes the badges through [workstation sign-in](../../../docs/primitives.md#workstation-sign-in).
-
-## Try the terminal
-
-From the repository root:
+Several technicians share one terminal at the lab bench, and each request must record who submitted it. This pattern adds workstation sign-in to the [base lab desk](../base/README.md): a technician scans a badge and enters a PIN, and the bench screen then sends commands with an operator token, so the recorded requester and the authorization belong to that person, not the terminal. The token stays in memory and ends on sign-out, after two idle minutes or when the 15-minute session expires. The workspace stores only digests of badges and PINs.
 
 ```sh
 cd showcase/patterns/sign-in
 bun run dev:web
 ```
 
-On **Badges**, enroll `ana` and `ben` with badge values such as `LAB-0042`. On **Terminal**, scan a badge, type it as a burst with no field focused, or choose **Type instead**, then enter its PIN. A sample label such as `OS-24-0417` fills the sample field. `ana` is a technician and `ben` is a viewer.
+## What to try
 
-## Whose permission applies
+- On **Badges** (port 4358), enroll `ana` (technician) and `ben` (viewer) with values such as `LAB-0042`; only the owner enrolls or revokes.
+- On **Terminal**, scan a badge or type it as a burst with no field focused, or choose **Type instead**, then enter the PIN.
+- Scan a sample label such as `OS-24-0417` to fill the sample field and submit as `ana`; `ben` can only read.
 
-The terminal's session can start sign-in; only the owner can enroll or revoke badges. After sign-in, [`ui/bench.tsx`](ui/bench.tsx) sends commands with the operator token, so the recorded requester and authorization belong to the signed-in person, not the terminal. The token stays in memory and ends on sign-out, after two idle minutes, when leaving the terminal screen or after the 15-minute session expires. The workspace stores badge and PIN digests.
+## References
 
-## Checks
-
-```sh
-bun test showcase/patterns/sign-in
-```
-
-The sign-in test checks a technician, a viewer, replacement of a prior session, expiry and revocation over HTTP. See [operator workstations](../../../docs/operator-workstations.md#workstation-sign-in) for the shared-terminal design.
+- [Operator workstations: workstation sign-in](../../../docs/operator-workstations.md#workstation-sign-in)
+- [sign-in-at-a-terminal](../../../workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md)
+- `bun test showcase/patterns/sign-in`

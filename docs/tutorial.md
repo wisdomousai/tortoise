@@ -1,37 +1,41 @@
-# Tutorial
+# Tutorial: a tool crib app
 
-The tutorial builds one [application](glossary.md#application) step by step, from a generated skeleton to a staged site install. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the tool crib of a power transformer plant. Attendants at the crib window lend torque wrenches, crimpers, insulation testers and gauges to employees, and each tool has an etched asset tag.
+You will build the tool crib of a transformer plant: attendants lend torque wrenches, crimpers and testers to employees, and each tool has an asset tag like `TC-00601`. Use Claude Code or Codex. Each step gives you the goal, the prompt to paste, and how to check the result.
+
+Do [Getting started](getting-started.md) first, so you know what the prompts ask for.
 
 ## Setup
 
-The first step runs in the framework repository and exports a new repository with `scaffold new`. Every later step runs at the root of that export. `bun install` in the export links the skills into `.claude/skills/` for Claude Code and `.agents/skills/` for Codex, and the agent reads the export's `AGENTS.md`.
+1. Install Bun and the browser for Playwright: `bunx playwright install chromium`.
+2. Open Claude Code or Codex at the root of this repository for step 1. From step 2 on, open it at the root of the exported `tool-crib` repository. `bun install` there links the skills into `.claude/skills/` and `.agents/skills/`.
+3. For each step: paste the prompt, wait, run the check, then commit. One commit per step lets you redo a step with `git reset --hard HEAD`.
 
-1. Install Bun 1.4.4 and the Playwright browsers with `bunx playwright install chromium`.
-2. Start the coding agent at the root of the framework repository for the first step, and at the root of the export for the others.
-3. Paste the step's prompt.
-4. Review the diff and commit it before the next step, so each step can be reset on its own.
-
-`scaffold add` runs from the export root. Its policy rules, descriptions and tests name the generated `editor` role, which the tool records step renames to attendant, so each later step renames it in the generated part.
-
-In a source export, `bun run check:skills` reports paths into omitted examples and patterns and a root script removed from the export. The steps use these checks instead, from the export root:
+Every step's check starts with these commands. You should see no errors and `0 fail`:
 
 ```sh
-bun run format
-bun run generate
-bun run typecheck
+bun run format && bun run generate && bun run typecheck
 bun test showcase/examples/tool-crib
 ```
 
-A step that changes screens also runs these:
+Steps that change screens add:
 
 ```sh
 bun run build
-bunx playwright test showcase/examples/tool-crib
+bunx playwright test showcase/examples/tool-crib   # all passed
 ```
 
-## Application export
+To try the app by hand, run it in one terminal and point the CLI at it from another:
 
-Skill: `create-agent-native-app`. The step exports the framework, the starter and a generated application in `showcase/examples/tool-crib` with one `tool` collection, default list and record screens, and the site, network, audit and compliance plugins.
+```sh
+bun run --cwd showcase/examples/tool-crib dev:web
+export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-crib/.workspace/.connection.json
+```
+
+Do not run `bun run check:skills` in the export: it fails on links to examples the export left out.
+
+## 1. Export the app
+
+**Goal:** a new repository with a `tool` collection, default screens and tests. **Skill:** `create-agent-native-app`.
 
 ```text
 Use the create-agent-native-app skill. Create the application for the tool crib of a power
@@ -46,11 +50,11 @@ list the tools through the CLI and through the MCP bridge, and stop the instance
 command and what it printed.
 ```
 
-The agent reports a passing test run, the tool it created and the same tool in both lists.
+**Check:** the report shows `bun test` passing and the same tool in the CLI list and the MCP list.
 
-## Tool records
+## 2. Tool records
 
-Skills: `add-capability` and `build-screens`. The step replaces the generated `title` and `open`/`done` status with the crib's tool record and renames the roles.
+**Goal:** replace the generated title and status with the crib's real tool fields, and rename `editor` to `attendant`. **Skills:** `add-capability`, `build-screens`.
 
 ```text
 Use the add-capability skill and the build-screens skill. In showcase/examples/tool-crib,
@@ -73,9 +77,18 @@ tests, the Playwright spec and the application README for the new record. Run th
 add-capability skill names and report what passed.
 ```
 
-## Loans
+**Check:** the standard checks, then with the app running:
 
-Skill: `add-capability`. The step adds a `loan` collection and the two commands an attendant runs at the window. A loan is written only by those commands.
+```sh
+bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --key t1
+bun run cli tool create --asset-tag TC-00601 --description "Copy" --category gauge --bin A-04 --key t2; echo "exit $?"
+```
+
+You should see the first tool with `"status":"available"`, then an error and a non-zero exit for the duplicate tag.
+
+## 3. Loans
+
+**Goal:** check a tool out and back in. Only these two commands write loans. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/tool-crib, run
@@ -99,9 +112,19 @@ revision refused, a repeated idempotency key returning the same receipt, and a s
 refused. Run the checks the add-capability skill names and report what passed.
 ```
 
-## Overdue tools
+**Check:** the standard checks, then with the tool from step 2 (`bun run cli tool list --output text` shows its id):
 
-Skill: `add-capability`. The step adds a query that every member may call.
+```sh
+bun run cli tool check-out --tool-id <id> --borrower E104233 --work-order WO-58812 --due-at 2026-12-01T14:00:00Z --key out-1
+bun run cli tool check-out --tool-id <id> --borrower E104233 --work-order WO-58812 --due-at 2026-12-01T14:00:00Z --key out-2; echo "exit $?"
+bun run cli tool return --tool-id <id> --condition damaged --key back-1
+```
+
+You should see the tool `checked-out`, then `CONFLICT` with `exit 5`, then the tool `in-repair`.
+
+## 4. Overdue tools
+
+**Goal:** a query that lists loans past their due time. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/tool-crib, run
@@ -111,14 +134,16 @@ bun run scaffold add capability loan.overdue --kind query --description "List op
 
 The query takes an optional borrower and the usual page arguments, and returns open loans whose
 dueAt is before the time the query runs, with the tool's asset tag and description. Filter the
-rows before paging and counting. Test it with a fixed clock: a loan due one minute ago is
-listed, a loan due in one minute and a returned loan are not, and a viewer can call it. Run the
+rows before paging and counting. Test it with a fixed clock: it lists a loan due one minute
+ago, leaves out a loan due in one minute and a returned loan, and a viewer can call it. Run the
 checks the add-capability skill names and report what passed.
 ```
 
-## Crib counter screen
+**Check:** the standard checks. Check out a tool with `--due-at` in the past; `bun run cli loan overdue --output text` lists it.
 
-Skill: `build-screens`. The step replaces the default tool record screen with the screen an attendant works on at the window.
+## 5. Counter screen
+
+**Goal:** the screen the attendant uses at the window. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/tool-crib, replace the default tool record
@@ -137,9 +162,11 @@ and see the status in-repair. Run the checks the build-screens skill names and r
 passed.
 ```
 
-## Shift handover
+**Check:** the standard checks and the Playwright run. In the browser, open a tool: you see a check-out form when it is available and a return form when it is out. The **Overdue** tab is in the navigation.
 
-Skill: `write-a-feature`. The step adds a handover log as a [feature](glossary.md#feature) the application mounts.
+## 6. Shift handover
+
+**Goal:** a handover log, written as a reusable feature. **Skill:** `write-a-feature`.
 
 ```text
 Use the write-a-feature skill. For the application in showcase/examples/tool-crib, run
@@ -155,9 +182,11 @@ remove any application policy rule the feature now owns. Run the checks the writ
 names and report what passed.
 ```
 
-## Asset tag scanning
+**Check:** the standard checks. The **Handover** screen shows a form and the newest entries first.
 
-Skill: `add-scanner-input`. The step lets a keyboard wedge scanner at the window do what an attendant would type.
+## 7. Asset tag scanning
+
+**Goal:** a keyboard-wedge scanner does what the attendant would type. **Skill:** `add-scanner-input`.
 
 ```text
 Use the add-scanner-input skill. In showcase/examples/tool-crib, add a keyboard wedge scanner at
@@ -170,9 +199,11 @@ Playwright spec as a typed burst. Run the checks the add-scanner-input skill nam
 what passed.
 ```
 
-## Attendant sign-in
+**Check:** the standard checks and the Playwright run. In the browser, type `TC-00601` quickly and press Enter on any screen: the counter screen for that tool opens.
 
-Skill: `sign-in-at-a-terminal`. The step puts the counter screen behind a badge and PIN at the shared crib terminal.
+## 8. Attendant sign-in
+
+**Goal:** badge and PIN sign-in at the shared crib terminal. **Skill:** `sign-in-at-a-terminal`.
 
 ```text
 Use the sign-in-at-a-terminal skill. In showcase/examples/tool-crib, the crib window has one
@@ -185,9 +216,11 @@ refuses a revoked badge. Run the checks the sign-in-at-a-terminal skill names an
 passed.
 ```
 
-## Repair orders
+**Check:** the standard checks. The counter screen asks for a badge and PIN, and a check-out records the signed-in attendant as `checkedOutBy`.
 
-Skill: `connect-system-of-record`. The step sends a repair order to the plant's EAM through the [outbox](glossary.md#outbox) when a tool comes back damaged, and keeps the tool master data in step with the EAM.
+## 9. Repair orders
+
+**Goal:** a damaged return sends a repair order to the plant's EAM through the outbox. The EAM is a fake. **Skill:** `connect-system-of-record`.
 
 ```text
 Use the connect-system-of-record skill. For the application in showcase/examples/tool-crib, run
@@ -199,19 +232,21 @@ The plant EAM owns the tool master data and the repair orders. A return with con
 enqueues a repair order effect in the same transaction, with the asset tag, the note and the
 attendant who took the tool back. The EAM accepts it with a repair order number, which the tool
 screen shows; it rejects an asset tag it does not know with ASSET_UNKNOWN, which the tool screen
-shows as needing attention. A delivery whose outcome is unknown is held and resolved on a
-reconciliation screen. Inbound sync takes description, category, bin and calibration due date
+shows as needing attention. The outbox holds a delivery whose outcome is unknown, and a
+reconciliation screen resolves it. Inbound sync takes description, category, bin and calibration due date
 from the EAM's feed by asset tag, and never changes status.
 
 Keep the in-memory fake EAM port, make its behavior deterministic, and let
 DEMO_EAM_UNKNOWN_TAGS name asset tags it rejects in the demo. Test an accepted order, a rejection,
-a lost reply that is held then resolved, and a stale feed item. Run the checks the
+a lost reply the dispatcher holds and a person resolves, and a stale feed item. Run the checks the
 connect-system-of-record skill names and report what passed.
 ```
 
-## Repair triage agent
+**Check:** the standard checks. Return a tool as damaged: its screen shows a repair order number. Start the app with `DEMO_EAM_UNKNOWN_TAGS=TC-00601` and do the same: the screen shows the tool as needing attention.
 
-Skill: `add-capability`, at its agent scenario step. The step adds an [agent definition](glossary.md#agent-definition) whose proposals an attendant approves.
+## 10. Repair triage agent
+
+**Goal:** an agent that proposes retiring worn-out tools; an attendant approves. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/tool-crib, run
@@ -228,9 +263,11 @@ the agent's scripted scenarios for both outcomes. Run the checks the add-capabil
 and report what passed.
 ```
 
-## Cycle counts
+**Check:** the standard checks; the scripted scenarios for both outcomes pass. Proposals appear on the **Approvals** screen.
 
-Skill: `assign-work`. The step hands a bin count to an attendant as an assignment and takes the count back as a report a second attendant accepts.
+## 11. Cycle counts
+
+**Goal:** hand a bin count to an attendant and accept the report. **Skill:** `assign-work`.
 
 ```text
 Use the assign-work skill. For the application in showcase/examples/tool-crib, run
@@ -247,9 +284,11 @@ refuses a checked-out tool reported missing. Run the checks the assign-work skil
 what passed.
 ```
 
-## Calibration over MCP and the CLI
+**Check:** the standard checks. Accepting a report that lists a tag as missing sets that tool to `missing`.
 
-Skill: `add-capability`. The step adds a query for tools due for calibration and workflow text for an agent that reaches the application over MCP. A coding agent connected through the MCP bridge, a script on the CLI and the attendant's screen then work on the same tool records.
+## 12. Calibration over MCP and the CLI
+
+**Goal:** Claude Code uses the app over MCP while you watch the records change in the CLI. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/tool-crib, run
@@ -270,54 +309,45 @@ that a stale revision conflicts.
 
 Test the query with a fixed clock. Write a test through the MCP adapter that lists the
 tool.calibration-due tool and the calibration-pull workflow resource, calls tool.update with the
-revision a tool.get returned, and is refused with a stale revision. Run the checks the
+revision a tool.get returned, and gets CONFLICT for a stale revision. Run the checks the
 add-capability skill names and report what passed.
 ```
 
-Start the instance and point the CLI and the MCP bridge at its connection file:
+**Check:** the standard checks. Then start the app, register three tools due for calibration and lend one:
 
 ```sh
-PORT=4330 bun run --cwd showcase/examples/tool-crib dev:web
-export AGENT_NATIVE_APPLICATION=@tool-crib/application
+bun run --cwd showcase/examples/tool-crib dev:web
 export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-crib/.workspace/.connection.json
-```
-
-Register three tools due within 14 days through the CLI and lend one of them:
-
-```sh
 bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --calibration-due 2026-10-31 --key create-wrench
 bun run cli tool create --asset-tag TC-00602 --description "Insulation tester 5 kV" --category insulation-tester --bin B-01 --calibration-due 2026-11-05 --key create-tester
 bun run cli tool create --asset-tag TC-00603 --description "Crimper 6-50 mm2" --category crimper --bin C-02 --calibration-due 2026-11-09 --key create-crimper
-bun run cli tool check-out --tool-id <crimper ID> --borrower E104233 --work-order WO-58812 --due-at 2026-10-30T14:00:00Z --key lend-crimper
+bun run cli tool check-out --tool-id <crimper id> --borrower E104233 --work-order WO-58812 --due-at 2026-10-30T14:00:00Z --key lend-crimper
 ```
 
-Register the MCP bridge with Claude Code in the project config and give it the task with the application's tools and resources only. The bridge reads the connection file, so it acts as the instance owner over HTTP:
+Give Claude Code the app's MCP tools only, and the task:
 
 ```sh
-claude mcp add --scope project tool-crib -e AGENT_NATIVE_APPLICATION=$AGENT_NATIVE_APPLICATION -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
+claude mcp add --scope project tool-crib -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
 claude -p "Pull the tools due for calibration in the tool-crib application. Read the calibration-pull workflow resource first and follow it." \
   --allowedTools mcp__tool-crib ListMcpResourcesTool ReadMcpResourceTool \
   --disallowedTools Bash Edit Write
-```
-
-Claude Code reads `app://workflows/calibration-pull`, calls `tool_calibration_due`, and calls `tool_update` for the wrench and the tester with the revisions it read. It leaves the lent crimper in its bin and names it in its answer. The CLI list shows the bins it set:
-
-```sh
 bun run --silent cli tool list --output text
 ```
 
+You should see the wrench and the tester moved to bin `CAL-01`, and the lent crimper still in `C-02` (columns trimmed):
+
 ```text
-id                                    assetTag  description              category           bin     status       calibrationDue  createdBy  createdAt      revision
-e8ade5f3-8e3c-4479-adc3-403224a18ba7  TC-00603  Crimper 6-50 mm2         crimper            C-02    checked-out  2026-11-09      owner      1793176075611  2
-5a44d7c9-262b-4dc8-9ac2-fb092be2261b  TC-00602  Insulation tester 5 kV   insulation-tester  CAL-01  available    2026-11-05      owner      1793176075515  4
-85e6b25d-f3c3-4189-a961-c6255dfb06a0  TC-00601  Torque wrench 20-100 Nm  torque-tool        CAL-01  available    2026-10-31      owner      1793176069619  4
+assetTag  description              bin     status       calibrationDue
+TC-00603  Crimper 6-50 mm2         C-02    checked-out  2026-11-09
+TC-00602  Insulation tester 5 kV   CAL-01  available    2026-11-05
+TC-00601  Torque wrench 20-100 Nm  CAL-01  available    2026-10-31
 ```
 
-The model decides its calls, so another run can differ. `claude mcp remove --scope project tool-crib` removes the registration.
+The model chooses its own calls, so another run can differ. Remove the server with `claude mcp remove --scope project tool-crib`.
 
-## Selection and UI intents
+## 13. Selection and UI intents
 
-Skill: `build-screens`. The step lets an attendant signed in at the terminal select tools in the terminal's work area and start an agent run on them. The run reads the selection as its [UI session context](glossary.md#ui-session-context) and sends [UI intents](glossary.md#ui-intent) back to the attendant's screen. It changes no record; the attendant submits the form.
+**Goal:** the attendant selects tools, starts an agent run on them, and the run opens a tool and asks the attendant to review a change. The run never writes. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/tool-crib, let an attendant signed in at the
@@ -326,8 +356,8 @@ open a tool at the counter and ask the attendant to review a change.
 
 - A Tools tab beside Counter and Overdue lists the tools, with a checkbox on each row that
   selects it. The work area shares the selected tools as the UI session context, each as
-  tool:<id> with the revision the row shows. List the tool kind in the application's selectable
-  resources if it is not listed.
+  tool:<id> with the revision the row shows. Add the tool kind to the application's selectable
+  resources if it is missing.
 - An agent panel under the list holds the Accounts component for the harness, a brief, a Start
   run button and the RunPanel, and shows the tools the latest run captured. The deterministic
   demo harness gets a script that reads each selected tool with tool.get.
@@ -343,17 +373,17 @@ open a tool at the counter and ask the attendant to review a change.
 
 Keep the terminal's style. Give the review the warning token's border and a line that names the
 run. Write an HTTP test in which a run's ui.open and ui.request-review reach the session the run
-captured, a ui.open for an unknown tool is refused, and a run started without a session has no
-ui tools. Add a Playwright spec: sign in at the terminal, select a tool on the Tools tab, start
+captured, the host refuses a ui.open for an unknown tool, and a run started without a session has
+no ui tools. Add a Playwright spec: sign in at the terminal, select a tool on the Tools tab, start
 the demo run, see the counter open with the review, submit the bin and see the tool's bin
 change. Run the checks the build-screens skill names and report what passed.
 ```
 
-The agent reports the HTTP test and the Playwright spec passing. The run acts as the terminal's principal, not the signed-in attendant, and the attendant's own client submits the bin form.
+**Check:** the standard checks and the Playwright run, including the new spec.
 
-## Site deployment
+## 14. Site deployment
 
-Skills: `deploy-to-site` and `decommission-an-application`. The step binds the EAM in a [deployment policy](glossary.md#deployment-policy), builds a signed [site bundle](glossary.md#site-bundle), installs it under a staging prefix and removes it again.
+**Goal:** a signed install bundle, installed under a temporary prefix and removed again. **Skills:** `deploy-to-site`, `decommission-an-application`.
 
 ```text
 Use the deploy-to-site skill and the decommission-an-application skill. In the tool-crib
@@ -366,31 +396,8 @@ command and what it printed, and say which steps only stage on this operating sy
 checks the deploy-to-site skill names and report what passed.
 ```
 
-## Limits
+**Check:** the report lists each command and its output, ending with the uninstall. Nothing outside the prefix changed. On macOS the install writes the service and firewall files but does not load them.
 
-- The tutorial runs with fakes only. No step reaches a real EAM, scanner, badge reader or model, and the triage agent runs its scripted scenarios. The only model is the coding agent that calls the application over MCP in the calibration step.
-- On macOS, the install in the last step writes the unit and firewall files under the prefix and loads neither.
-- These skills have no step, because they need something an export or a laptop lacks:
-  - `run-agent-tools-in-a-sandbox`: Linux with bubblewrap;
-  - `run-a-hosted-instance`: Postgres and a trusted certificate;
-  - `extend-mobile-host`: an emulator or a phone;
-  - `bridge-station-screen`: the fake HMI of the winding-line example;
-  - `connect-a-site-to-a-fleet`: the fleet example;
-  - `write-host-plugin`: a plugin in `plugins/` rather than application code.
+## What this tutorial does not cover
 
-## References
-
-- [Getting started](getting-started.md#new-application)
-- [create-agent-native-app](../packages/scaffold/skills/create-agent-native-app/SKILL.md)
-- [add-capability](../packages/runtime/skills/add-capability/SKILL.md)
-- [build-screens](../packages/frame/skills/build-screens/SKILL.md)
-- [write-a-feature](../packages/host/skills/write-a-feature/SKILL.md)
-- [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md)
-- [sign-in-at-a-terminal](../workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md)
-- [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [assign-work](../packages/assignments/skills/assign-work/SKILL.md)
-- [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md)
-- [decommission-an-application](../plugins/site/skills/decommission-an-application/SKILL.md)
-- [check-a-change](../packages/testing/skills/check-a-change/SKILL.md)
-- [Capability authoring](capability-authoring.md)
-- [Patterns](patterns.md)
+Everything runs on fakes: no real EAM, scanner, badge reader or model, except Claude Code in step 12. These skills need hardware or services a laptop lacks: `run-agent-tools-in-a-sandbox` (Linux with bubblewrap), `run-a-hosted-instance` (Postgres and a TLS certificate), `extend-mobile-host` (a phone or emulator), `bridge-station-screen`, `connect-a-site-to-a-fleet` and `write-host-plugin`. [AGENTS.md](../AGENTS.md#skills) lists the skills.

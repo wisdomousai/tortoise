@@ -5,14 +5,14 @@ description: Run an agent-native application's instance on a server, with its wo
 
 # Run a hosted instance
 
-A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change.
+A hosted instance is the same host on another host platform. `hostedPlatform` keeps the workspace in a shared Postgres database and makes ownership a workspace lease with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change.
 
 ## Before writing
 
-- Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a [site](../../../../docs/glossary.md#site). The generated security manifest (`bun run generate`) shows its placement.
+- Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a site. The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
 - `showcase/patterns/hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
-- Decide where the instance's local directory (`--workspace`) lives. It still holds blobs, agent run history, the [audit log](../../../../docs/glossary.md#audit-log) and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
+- Decide where the instance's local directory (`--workspace`) lives. It still holds blobs, agent run history, the audit log and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
 
 ## Steps
 

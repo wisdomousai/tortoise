@@ -5,17 +5,17 @@ description: Add or change barcode scanner input at a point of work, so a scan s
 
 # Add scanner input
 
-A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that [policy](../../../../docs/glossary.md#policy) still authorizes, with no model turn.
+A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that policy still authorizes, with no model turn.
 
 ## Before writing
 
-- Check whether the scanner fits an existing [input source](../../../../docs/glossary.md#input-source): `createWedgeSource`, `createSerialSource`, `createHidPosSource` or `createCameraSource`. For rugged Android devices, use `createIntentSource` from `plugins/intent-scanner`.
+- Check whether the scanner fits an existing input source: `createWedgeSource`, `createSerialSource`, `createHidPosSource` or `createCameraSource`. For rugged Android devices, use `createIntentSource` from `plugins/intent-scanner`.
 - Decide whether the change is data or code. A new scanner model, prefix, layout or route is a profile or route stored per station through the configuration module. It needs no new code.
 - Take vendor programming barcodes from vendor data supplied with the deployment. Never hard-code them.
 
 ## Steps
 
-1. Describe the scanner with a [scanner profile](../../../../docs/glossary.md#scanner-profile), `ScannerProfile` in `packages/devices/src/scanner/profile.ts`. It holds the transport, prefix, suffix, terminator, key gap, minimum length, AIM identifiers, GS1 separator substitute and emulated keyboard layout.
+1. Describe the scanner with a scanner profile, `ScannerProfile` in `packages/devices/src/scanner/profile.ts`. It holds the transport, prefix, suffix, terminator, key gap, minimum length, AIM identifiers, GS1 separator substitute and emulated keyboard layout.
 2. To suggest a profile, run calibration (`calibrate`) on a single scan of the calibration barcode.
 3. Map scans to intents with `createScanRouter`. A route matches a GS1 application identifier or a regular expression, optionally limited to symbologies. The first match wins.
 4. List `deviceFeatureManifest` from `@agent-native/devices/contracts` in `defineManifest({ features })`.
@@ -25,7 +25,7 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 8. Write a new transport as a `ScannerSource` that decodes through `decodeScan`. Prefixes, AIM identifiers and GS1 parsing then follow the profile.
 9. Keep `packages/devices/src/scanner` portable, with no Node or Bun imports, because it also runs in React Native.
 10. For rugged Android, compose `plugins/intent-scanner`. Give the profile `transport: 'intent'` with the action, the data extra, and a sender permission where injected scans matter.
-11. Build the screen parts from the operator [UI registry](../../../../docs/glossary.md#ui-registry): `scan-prompt`, `scanner-setup` and the `use-scanner` hook. Add the capture hooks from `@agent-native/react/capture`. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers both.
+11. Build the screen parts from the operator UI registry: `scan-prompt`, `scanner-setup` and the `use-scanner` hook. Add the capture hooks from `@agent-native/react/capture`. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers both.
 12. Make sure a scanner's keystroke burst, including its final Enter, never fires a hotkey or submits the focused form. Filter the burst with `KeyBurstFilter` from the operator registry's `use-operator-keys` hook before it reaches the form.
 13. In a Playwright spec, type an upper-case scan with Shift held, because `keyboard.type` sends capitals without Shift and the wedge decoder reads the key events.
 

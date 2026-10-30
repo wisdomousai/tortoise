@@ -20,13 +20,13 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
 ## Steps
 
 1. Declare the source in the manifest's `components` with `mqttBroker({ id, destination, description, dataClasses })` or `opcUaServer({ ... })`. Each declares a `site`-scoped `tcp` destination with offline `degrade`.
-2. Write the ingest command with the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). Its input is the [observation](../../../../docs/glossary.md#observation), or what `toInput` maps it to. It records stable readings and raises attention for uncertain ones.
-3. Grant the ingest command, and nothing else, to the observing [principal](../../../../docs/glossary.md#principal).
+2. Write the ingest command with the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). Its input is the observation, or what `toInput` maps it to. It records stable readings and raises attention for uncertain ones.
+3. Grant the ingest command, and nothing else, to the observing principal.
 4. Create the observer in `connect`'s `observe`:
    - for MQTT, `createMqttObserver({ subscriber: { network, destination, clientId, username?, password? }, fields, application, context, ingestOperation })`;
    - for OPC UA, `createOpcUaObserver({ client: { network, destination, endpointUrl }, fields, ... })`.
-5. Call `start(intervalMs, onError)` and return the observer so the [host](../../../../docs/glossary.md#host) stops it.
-6. Bind the [destination](../../../../docs/glossary.md#destination) in the [deployment policy](../../../../docs/glossary.md#deployment-policy): `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
+5. Call `start(intervalMs, onError)` and return the observer so the host stops it.
+6. Bind the destination in the deployment policy: `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
 7. Take broker credentials from the deployment, never from code.
 
 ## Checks

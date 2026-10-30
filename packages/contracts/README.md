@@ -1,95 +1,10 @@
 # @agent-native/contracts
 
-The contracts package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts include schemas, permissions, UI bindings and declared requirements, and never handlers.
+Capabilities, modules and the catalog as browser-safe data: schemas, permissions, UI bindings and requirements, never handlers. Start with `defineCapability`, `defineModule` and `buildCatalog`. `jsonSchema` validation rejects input it would have to strip or transform; wire values must be JSON.
 
-## Context
-
-Domain-neutral. A domain defines its capabilities with this package in its own `contracts.ts`. Contracts are trusted code that describe untrusted input.
-
-## From a declaration to a call
-
-In the receiving application, [`contracts/delivery.ts`](../../showcase/examples/receiving/contracts/delivery.ts) declares `delivery.receive`: the ID, counted quantity, input and output schemas, required permission and screen binding. The declaration contains no write. The application's server supplies the handler and policy separately.
-
-The application collects declarations into modules, and `buildCatalog` checks that the combined declarations agree. The host and generators use the resulting catalog to describe the same operation to screens, HTTP, the CLI and MCP. A valid declaration does not itself grant access: the runtime checks the caller when the operation runs.
-
-## API reference
-
-- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
-- [Display metadata](../../docs/primitives.md#display-metadata): `DisplayDeclaration`, `DisplayField`, a capability's `display`; `checkDisplay`, which the catalog build runs; and `displayRecord`, the record schema an output holds.
-- [UI session context](../../docs/primitives.md#ui-session-context): `UiIntent` and `uiResourcePattern`, the `<kind>:<id>` form of a named resource.
-- [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
-- [Feature](../../docs/primitives.md#feature): `defineFeatureManifest`, `FeatureManifest`, `FeatureModules`, the namespace helpers `operationNamespace`, `checkNamespace`, `ownedName` and `unitIdPattern`, and `checkUnitScreens`, which both frames run on feature and plugin screens. A feature's operations start with its id, and its module and target names are its id or start with `<id>-`.
-- [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`. `describeContract`, `ContractApplication` and `operationSchemaDigest` add what a host serves at `/api/v1/contract`: the application and each operation's schema digest.
-- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a requesting agent it lists each command the agent may request approval for with its input schema. `creates` lists the record types a resource-scoped run may create.
-- Tool schemas: harnesses and surfaces build a capability's tool schema with `operationToolSchema`, or with `toolEnvelopeSchema` and `expectedRevisionsSchema`. These move a recursive input's `$defs` to the envelope's root, so llama.cpp and strict MCP clients resolve them.
-- [Command](../../docs/primitives.md#command): the caller-safe error envelope, `ApplicationError`, `ErrorCode` and `errorEnvelope`.
-- [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`.
-- [Remote query](../../docs/primitives.md#remote-query): the result shape every remote query returns, with `remoteResultSchema`, `RemoteResult`, `remoteSourceStatusSchema` and `RemoteSourceStatus`. Its opaque page cursor is `remoteCursorSchema`.
-- [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
-- [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
-- [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
-- [Peer target](../../docs/primitives.md#peer-target): `definePeerApi`, `PeerApi` and `peerApiOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination, a host component requiring it, and effects parsed by the peer's input schemas.
-- [Approval request](../../docs/primitives.md#approval-request): `approvalOperations` under fixed `approval.*` IDs, `approvalModule` and `approvalFeatureManifest`, `approvalRequestSchema` with `Approval request`, `approvalStatusSchema` with `ApprovalStatus`, and the `approval requests` collection.
-- [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `reconciliationModule` and `reconciliationFeatureManifest`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
-- [Collection](../../docs/primitives.md#collection): `defineCollection` (with an optional `parent` and `retiredField`), `Collection`, the generated reads `collectionGet`, `collectionList` and `collectionTree`, the generated commands `collectionCreate`, `collectionUpdate`, `collectionMove` and `collectionRetire`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, `MAX_TREE`, and the `CollectionPage` and `CollectionTreePage` output shapes.
-- [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`, and `BlobLimits`, a command's `blobs`.
-- [Audit log](../../docs/primitives.md#audit-log): the audit envelope and port, `EventLogPort`, `AuditEvent`, `auditEventKinds` and `failClosedAuditMode`.
-- [OS handler](../../docs/primitives.md#os-handler): `OsHandler`, `OsTarget`, `CatalogOs`, `osRequestFields`, and `OsDeclarations`, a module's or component's `os`. The path and template syntax is `linkPathSegments`, `linkPathShape`, `templatePlaceholders` and `isWholePlaceholder`.
-- [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions include.
-- [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame. They are `OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome` and `OsActionResult`.
-
-The worked example is [`showcase/examples/field-service/contracts.ts`](../../showcase/examples/field-service/contracts.ts).
-
-## Entrypoints
-
-| Import | Runs in | Contents |
-| --- | --- | --- |
-| `@agent-native/contracts` | browser and server | The API above, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
-| `@agent-native/contracts/*` | browser and server | One source file from `src/`. |
-
-## Trust boundary
-
-`jsonSchema` validation rejects input it would have to strip or transform. Wire values must be JSON.
-
-`buildCatalog` fails before startup on:
-
-- duplicate IDs, and missing or cyclic dependencies;
-- missing UI declarations and unresolved workflow references;
-- colliding MCP names;
-- blob limits on a query, or outside 1 byte to 256 MiB;
-- OS declarations that break the rules in `os-catalog.ts`;
-- requirement errors.
-
-The requirement errors are an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, and a remote query whose target no destination `reads`. A declaration grants nothing by itself. A [deployment policy](../../docs/glossary.md#deployment-policy) binds it, and the [egress guard](../../docs/glossary.md#egress-guard) enforces it.
-
-An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request is received. The catalog only proves that the declaration is coherent.
-
-Audit events include references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
-
-## Dependencies
-
-External: `zod`, and `@noble/hashes` for the contract digests. No framework packages. This package must stay importable by a browser and by the generators. `bun run check:boundaries` rejects host runtimes, provider SDKs and server-only framework packages here.
-
-## Tests
-
-```sh
-bun test packages/contracts
-```
-
-- `test/data-provider.test.ts`: literal IDs and types survive, and both queries declare `remote`. Search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
-- `test/agent.test.ts`: agent definitions are sorted with their module in the catalog, and a requesting agent's instructions are checked. Definitions are refused for unknown or repeated capabilities, unbounded budgets, malformed scopes, and a direct agent on a command without a UI binding.
-- `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `approval.request` are offered `expectedRevisions`.
-- `test/feature.test.ts`: the built-in feature manifests keep their operation ids, and a feature manifest is refused for an operation, module or target outside its id.
-- `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
-- `test/peer.test.ts`: a peer API's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination and component, parsed effects, whose an effect is, and a feed that must be a service query.
-- `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
-
-## Task guides
-
-- [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
-- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox completion, sync and live reads.
-- [add-os-integration](../shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.
+- Primitives: [Capability](../../docs/primitives.md#capability), [Display metadata](../../docs/primitives.md#display-metadata), [UI session context](../../docs/primitives.md#ui-session-context), [Module](../../docs/primitives.md#module), [Feature](../../docs/primitives.md#feature), [Catalog](../../docs/primitives.md#catalog), [Agent definition](../../docs/primitives.md#agent-definition), [Command](../../docs/primitives.md#command), [Requirement declaration](../../docs/primitives.md#requirement-declaration), [Remote query](../../docs/primitives.md#remote-query), [Data provider](../../docs/primitives.md#data-provider), [Membership](../../docs/primitives.md#membership), [Target](../../docs/primitives.md#target), [Peer target](../../docs/primitives.md#peer-target), [Approval request](../../docs/primitives.md#approval-request), [Reconciliation](../../docs/primitives.md#reconciliation), [Collection](../../docs/primitives.md#collection), [Blob store](../../docs/primitives.md#blob-store), [Audit log](../../docs/primitives.md#audit-log), [OS handler](../../docs/primitives.md#os-handler), [OS action](../../docs/primitives.md#os-action), [Shell port](../../docs/primitives.md#shell-port).
 
 ## References
 
+- [add-capability](../runtime/skills/add-capability/SKILL.md)
 - [Capability authoring](../../docs/capability-authoring.md)

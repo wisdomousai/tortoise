@@ -5,7 +5,7 @@ description: Remove an agent-native application from a site without losing recor
 
 # Decommission an application
 
-An application keeps records its [systems of record](../../../../docs/glossary.md#system-of-record) have not completed only in its workspace. [Decommissioning](../../../../docs/glossary.md#decommissioning) delivers or decides them, then deletes the data directory. `app uninstall --purge` refuses while the installed release's `drain` still counts pending, held or acknowledged effects.
+An application keeps records its systems of record have not completed only in its workspace. Decommissioning delivers or decides them, then deletes the data directory. `app uninstall --purge` refuses while the installed release's `drain` still counts pending, held or acknowledged effects.
 
 ## Before writing
 

@@ -5,11 +5,11 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents, assignment kinds and features. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
+The scaffold starts an application and its parts. `scaffold new` exports the framework and a thin starter with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents, assignment kinds and features. `scaffold --example <name>` exports one reference example instead.
 
 ## Before writing
 
-- For a bounded task or workflow over existing [systems of record](../../../../docs/glossary.md#system-of-record), establish these before shaping the UI:
+- For a bounded task or workflow over existing systems of record, establish these before shaping the UI:
   - the real-world trigger;
   - record ownership;
   - the difference between capture and acceptance;
@@ -55,6 +55,5 @@ Run the checks the `check-a-change` skill names and report what actually passed.
 - [Setup reference](references/new-application.md)
 - [Getting started](../../../../docs/getting-started.md#new-application)
 - [Tutorial](../../../../docs/tutorial.md)
-- [Library tutorial](../../../../docs/tutorial-library.md)
 - [In-app assistant tutorial](../../../../docs/tutorial-assistant.md)
 - [Implementation status](../../../../docs/implementation-status.md)

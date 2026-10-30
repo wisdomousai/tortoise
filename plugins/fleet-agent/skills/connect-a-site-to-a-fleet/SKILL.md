@@ -5,7 +5,7 @@ description: Connect an on-site agent-native instance to a fleet application, or
 
 # Connect a site to a fleet
 
-The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts and the build's [best-before date](../../../../docs/glossary.md#best-before-date), forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API.
+The fleet agent connects a site to a fleet and is outbound only. Each cycle it reports outbox counts and the build's best-before date, forwards the audit log events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API.
 
 ## Before writing
 
@@ -20,13 +20,13 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
 1. Add `fleetAgentPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
 2. Add `fleetAgentPlugin`, or `createFleetAgentPlugin({ intervalMs })`, to the application's `plugins` in the same order.
-3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. Set its `maxResponseBytes` above the largest release file, because the guard's default cap of 32 MiB is below a compiled binary. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+3. In the deployment policy, bind `destinations.fleet` to the fleet's https origin. Set its `maxResponseBytes` above the largest release file, because the guard's default cap of 32 MiB is below a compiled binary. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 4. Bind `folders['fleet-releases']` to a directory the host's OS user can write. Leaving the destination or the folder out disables only that part, and the site still runs.
 5. Create a `field-sync` enrollment on the fleet.
 6. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
 7. Set `fleet-trust` to the publisher's `key.pub.json` to stage releases. A staged release appears in `fleet-releases/<release id>` only after it verifies.
 8. Activate a staged release with `app install <that directory> --trust key.pub.json`, by hand or from a timer the site runs. A release that widens the requirements also needs `--approval`. The staged files keep mode 0644, so run `app install` from the installed release's binary, or on a first install from a copy of the bundle.
-9. Set `fleet-relay` to `on` only when remote access is wanted. A remote caller still needs a session the site issued, for example through the site's [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in).
+9. Set `fleet-relay` to `on` only when remote access is wanted. A remote caller still needs a session the site issued, for example through the site's workforce sign-in.
 
 ### Fleet side
 

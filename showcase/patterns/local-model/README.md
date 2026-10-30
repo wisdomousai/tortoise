@@ -1,30 +1,20 @@
 # Suggest a method with a local model
 
-A technician submits an oil-test request. A trigger starts a method-suggester agent on a named [model entry](../../../docs/primitives.md#model-entry), and the agent asks a technician to approve its proposed update. The model never receives permission to change the request directly.
-
-## Try the stand-in
-
-From the repository root:
+This pattern runs the method suggester of the [agents pattern](../agents/README.md) on a model served on the lab's own machine. A trigger starts the agent on a named model entry, the declared model and the digests of its weights; the model server measures the files at startup and refuses a mismatch, and a fine-tune also needs a passing activation. The agent asks a technician to approve its proposed update and never changes the request itself.
 
 ```sh
 cd showcase/patterns/local-model
 bun run dev:web
 ```
 
-Enable the trigger on the Automation screen and submit a request without a method. The default launch starts a deterministic stand-in that speaks the model server's API; it is useful for wiring the flow but is not a model-quality test. The server listens on loopback port 4375.
+## What to try
 
-To try explicitly configured weights, set `LOCAL_MODEL_GGUF` to a local GGUF file before launching. `LAB_METHOD_MODEL` can instead name a JSON file with the model entry, files and optional activation. The [model-server guide](../../../plugins/model-server/README.md) describes the required process and policy.
+- Turn on the trigger on **Automation** (port 4357) and submit a request without a method. A deterministic stand-in on port 4375 answers by default and tests the wiring, not a model.
+- Set `LOCAL_MODEL_GGUF` to a GGUF file before launching to use local weights, or `LAB_METHOD_MODEL` to a JSON model entry with its files and an optional activation. The live test runs only with `LOCAL_MODEL_GGUF` set and a llama-server running.
+- Approve as a technician; a viewer's approval cannot commit the update.
 
-## Model and approval boundary
+## References
 
-The deployment selects the `lab-methods` entry and its weights. The model server measures the files at startup and refuses a digest mismatch; a fine-tune also needs a passing activation for those digests. The trigger does nothing until a person issues its grant. A run may read the request and request approval; approval runs the update under the approver's policy, so a viewer cannot commit it.
-
-[`model.ts`](model.ts) defines the entry, [`automation.ts`](automation.ts) declares the trigger, and [`responder.ts`](responder.ts) supplies the stand-in responses.
-
-## Checks
-
-```sh
-bun test showcase/patterns/local-model
-```
-
-The deterministic test checks measured weights, approval and the fine-tune gate. The live test runs only when `LOCAL_MODEL_GGUF` is explicitly set and a real llama-server is available. Record that live result separately from the stand-in test.
+- [Model server](../../../plugins/model-server/README.md)
+- [serve-a-local-model](../../../plugins/model-server/skills/serve-a-local-model/SKILL.md)
+- `bun test showcase/patterns/local-model`

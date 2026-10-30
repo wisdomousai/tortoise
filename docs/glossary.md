@@ -1,424 +1,424 @@
 # Glossary
 
-This glossary defines the terms used across Tortoise guides and code. The entries link to the implementation or guide for more detail. Some familiar words have specific meanings here: a target identifies an integration while a destination binds its network access; the journal records committed changes while the audit log records operations and denials.
+One line per term, alphabetical. Two pairs differ in ways that matter: a *target* names an integration and a *destination* binds its network access; the *journal* records committed changes and the *audit log* records operations and denials.
 
 ## Terms
 
 ### Adapter
 
-An implementation of a framework port, such as the SQLite storage adapter or the CASL authorization adapter. Lives in [`packages/adapters`](../packages/adapters/README.md). A harness adapter is an adapter of the harness port.
+An implementation of a framework port, such as the SQLite storage adapter or the CASL authorization adapter. See [`packages/adapters`](../packages/adapters/README.md).
 
 ### Agent definition
 
-A named agent in the catalog: its instructions, the capabilities it may call, the commands it requests approval for, the resource types it works on, its model requirement, its output mode and its budgets. Declared with `defineAgent`. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/runtime`](../packages/runtime/README.md).
+A named agent in the catalog: its instructions, the capabilities it may call, the commands it requests approval for, the resource types it works on, its model requirement, its output mode and its budgets. See [`packages/contracts`](../packages/contracts/README.md), [`packages/runtime`](../packages/runtime/README.md).
 
 ### Agent run
 
-One run of an agent, acting as one more caller on the catalog under a grant narrowed from its issuer's. Lives in [`packages/agents`](../packages/agents/README.md); explained in [agents](agents.md).
+One run of an agent, acting as one more caller on the catalog under a grant narrowed from its issuer's. See [`packages/agents`](../packages/agents/README.md), [agents](agents.md).
 
 ### Agent scenario
 
-A test of an agent definition: a task, fixture state and the commits, approval requests and refusals expected. It judges receipts, not the model's text. Lives in [`packages/testing`](../packages/testing/README.md).
+A test of an agent definition: a task, fixture state and the commits, approval requests and refusals it expects. See [`packages/testing`](../packages/testing/README.md).
 
 ### Application
 
-One unit of content that a host runs: a browser-safe manifest, an application definition and screens, with their tests. The examples under `showcase/examples/` are applications. Explained in [architecture](architecture.md#application-entrypoints).
+One unit of content that a host runs: a browser-safe manifest, an application definition and screens, with their tests. See [architecture](architecture.md#application-entrypoints).
 
 ### Application definition
 
-The server entrypoint of an application, declared with `defineApplication` from [`packages/kernel`](../packages/kernel/README.md). It holds the manifest, state and its migrations, handlers, authorization and services. It also holds remote sources, plugins and the connections to systems of record. It is trusted code that runs with the host's privileges.
+The server entrypoint of an application, declared with `defineApplication` from [`packages/kernel`](../packages/kernel/README.md).
 
 ### Approval dataset
 
-The approval requests people approved, rejected or let expire, exported as training data. It holds only approval requests the exporting caller may see, and redaction is applied before its digest. A model entry names the dataset by that digest. Lives in [`packages/runtime`](../packages/runtime/README.md).
+The approval requests people approved, rejected or let expire, exported as training data. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Approval request
 
-A command that one caller, usually an agent run, asks a person to approve before it runs. Approving runs the command once, in the same transaction, with the approver's own grants and policy; a refusal or conflict leaves the request pending. A requesting agent cannot commit. A request is pending, approved, rejected or expired. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [agents](agents.md).
+A command that one caller, usually an agent run, asks a person to approve before it runs. See [`packages/runtime`](../packages/runtime/README.md), [agents](agents.md).
 
 ### Assignee
 
-Who takes an assignment: a person, an agent definition, a paired device, a peer or an assignment target. The assignment feature matches the caller to the assignee itself; a target never calls, and its sync stores its reports. Lives in [`packages/assignments`](../packages/assignments/README.md).
+Who takes an assignment: a person, an agent definition, a paired device, a peer or an assignment target. See [`packages/assignments`](../packages/assignments/README.md).
 
 ### Assignment
 
-Work that a caller hands to an assignee with a brief, and the reports the assignee sends back. Its status is draft, sent, done, withdrawn or closed; its stage adds working and reviewed from its reports. Lives in [`packages/assignments`](../packages/assignments/README.md); explained in [assignments](assignments.md).
+Work that a caller hands to an assignee with a brief, and the reports the assignee sends back. See [`packages/assignments`](../packages/assignments/README.md), [assignments](assignments.md).
 
 ### Assignment kind
 
-The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the assignee types that may take it. Declared with `defineAssignmentKind` in [`packages/assignments`](../packages/assignments/README.md).
+The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the assignee types that may take it.
 
 ### Assignment report
 
-One result an assignee sends back on an assignment, under an ID the reporter chose. It holds a body in the kind's report schema, an optional subject record and its blobs. A person accepts it into the application's records or discards it. Lives in [`packages/assignments`](../packages/assignments/README.md).
+One result an assignee sends back on an assignment, under an ID the reporter chose. See [`packages/assignments`](../packages/assignments/README.md).
 
 ### Attached mode
 
-Running a CLI, MCP bridge, desktop window or phone against an instance that another process owns, through a session that instance issued. The opposite of embedded mode. Explained in [architecture](architecture.md#instances-and-hosts).
+Running a CLI, MCP bridge, desktop window or phone against an instance that another process owns, through a session that instance issued. See [architecture](architecture.md#instances-and-hosts).
 
 ### Audit log
 
-The hash-chained, tamper-evident record of commands, queries, denials, outbox transitions, sync passes, connections and agent runs. The composition's default port keeps no log; `plugins/audit` provides one in the deployment policy's audit mode. In required mode, a command whose accepted record cannot be appended inside its transaction rolls back. The code names are `packages/event-log`, `EventLogPort` and the policy key `eventLog`. Lives in [`plugins/audit`](../plugins/audit/README.md); explained in [security and compliance](security-and-compliance.md#audit-log).
+The hash-chained, tamper-evident record of commands, queries, denials, outbox transitions, sync passes, connections and agent runs. See [`plugins/audit`](../plugins/audit/README.md), [security and compliance](security-and-compliance.md#audit-log).
 
 ### Behavioral scenario
 
-A reusable test of one capability: permitted and denied access, a stale revision, a replayed idempotency key, and the change visible to another caller. Lives in [`packages/testing`](../packages/testing/README.md).
+A reusable test of one capability: permitted and denied access, a stale revision, a replayed idempotency key, and the change visible to another caller. See [`packages/testing`](../packages/testing/README.md).
 
 ### Best-before date
 
-The last day a build is within its [shelf life](#shelf-life): the build date plus the shelf life, in UTC. The host reports it, and the frame shows a notice once it has passed. A [site bundle](#site-bundle) signs the date. A new release records a new date. Commands, installs and the running service continue after the date. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
+The last day a build is within its [shelf life](#shelf-life): the build date plus the shelf life, in UTC. See [`packages/kernel`](../packages/kernel/README.md), [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
 
 ### Blob
 
-Content-addressed bytes, such as a photo or a document, that a command references from a resource. The blob store is the port that keeps them. Lives in [`packages/runtime`](../packages/runtime/README.md).
+Content-addressed bytes, such as a photo or a document, that a command references from a resource. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Bridge mode
 
-How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of risk level `none`, and `actuate` runs every declared action. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
+How far a screen bridge or a driver bridge may act. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Brief
 
-What an assignee receives with an assignment: the kind's brief schema, computed from the scope when the assignment is sent and unchanged after. A device or a peer receives it through the feed, without blobs. Lives in [`packages/assignments`](../packages/assignments/README.md).
+What an assignee receives with an assignment: the kind's brief schema, computed from the scope when the caller sends the assignment, unchanged after. See [`packages/assignments`](../packages/assignments/README.md).
 
 ### Caller
 
-The source of a command or query: a person at a screen, an agent run, a script, a trigger, a device or the dispatcher. Every caller uses the same catalog with the same validation and authorization.
+The source of a command or query: a person at a screen, an agent run, a script, a trigger, a device or the dispatcher.
 
 ### Capability
 
-A command or query declared once as data with `defineCapability`: its operation ID, input and output schemas, permission and UI binding. The catalog is the composed set. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [capability authoring](capability-authoring.md).
+A command or query declared once as data with `defineCapability`: its operation ID, input and output schemas, permission and UI binding. See [`packages/contracts`](../packages/contracts/README.md), [capability authoring](capability-authoring.md).
 
 ### Catalog
 
-The composed, validated description of everything an application can do. It holds the capabilities, requirement declarations, workflows, agent definitions, and OS handlers and actions. Every surface and generator reads it. Lives in [`packages/contracts`](../packages/contracts/README.md).
+The composed, validated description of everything an application can do. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Channel
 
-The surface that carried a request, as recorded in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. The host adapter sets it; a caller cannot. Lives in [`packages/contracts`](../packages/contracts/README.md).
+The surface that carried a request, as recorded in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Collection
 
-A typed set of records a module keeps in its state slice, with generated get and list queries. Lives in [`packages/runtime`](../packages/runtime/README.md).
+A typed set of records a module keeps in its state slice, with generated get and list queries. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Command
 
-An authorized write, submitted the same way by every caller. It commits state, revisions, its receipt, journal entries and outbox effects in one transaction, or fails. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [state and reactivity](state-and-reactivity.md).
+An authorized write that every caller submits the same way. See [`packages/runtime`](../packages/runtime/README.md), [state and reactivity](state-and-reactivity.md).
 
 ### Compensation
 
-The command a declared workflow step names to undo it. When a later step fails for good, or a person cancels the instance, the compensations of the completed steps run in reverse order, as the starter. Its input is read when its step completes. Lives in [`plugins/workflows`](../plugins/workflows/README.md).
+The command a declared workflow step names to undo it. See [`plugins/workflows`](../plugins/workflows/README.md).
 
 ### Compliance bundle
 
-The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. It is generated from the catalog and the deployment policy and re-checked while the application runs. Lives in [`plugins/compliance`](../plugins/compliance/README.md).
+The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. See [`plugins/compliance`](../plugins/compliance/README.md).
 
 ### Composition
 
-The portable layer that composes an application and its plugins, resolves the host ports and opens one instance. It uses no Node, Bun or React Native API. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The portable layer that composes an application and its plugins, resolves the host ports and opens one instance. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Connection file
 
-A private JSON file with a loopback endpoint and a bearer token, which the host writes as `.connection.json` in the workspace directory. The CLI and the MCP bridge attach with it. With a grant file, `serve` can write a second connection file bound to a delegated session. Lives in [`packages/adapters`](../packages/adapters/README.md) and [`packages/host`](../packages/host/README.md).
+A private JSON file with a loopback endpoint and a bearer token, which the host writes as `.connection.json` in the workspace directory. See [`packages/adapters`](../packages/adapters/README.md), [`packages/host`](../packages/host/README.md).
 
 ### Connector
 
-An implementation of the system-of-record port for one target. It delivers effects, looks up earlier deliveries and, where the target supports it, pulls changes and runs searches. Ready-made connectors live in `plugins/connector-*`; the port lives in [`packages/integration`](../packages/integration/README.md). Explained in [systems of record](systems-of-record.md).
+An implementation of the system-of-record port for one target. See [`packages/integration`](../packages/integration/README.md), [systems of record](systems-of-record.md).
 
 ### Container
 
-A work order, plant, workstation or other unit that people hold roles in. Membership is per container. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
+A work order, plant, workstation or other unit that people hold roles in. See [`packages/runtime`](../packages/runtime/README.md), [authorization](authorization.md).
 
 ### Continuation
 
-A command a handler asks for with `continueWith`, run after the handler's frame as a [nested call](#nested-call) in the same transaction under the same context. The caller lists it in `invokes`, and the nesting limits apply. It has no idempotency key of its own; the top-level receipt covers it. A refusal rolls back the caller. Lives in [`packages/runtime`](../packages/runtime/README.md).
+A command a handler asks for with `continueWith`, run after the handler's frame as a [nested call](#nested-call) in the same transaction under the same context. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Control holder
 
-Who controls a workstation application's screen: `operator`, `agent` for the screen bridge, or `idle`. The screen bridge reads the holder before every action and does not act while the operator holds control. Only a person can request control. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md#control-holder).
+Who controls a workstation application's screen: `operator`, `agent` for the screen bridge, or `idle`. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md#control-holder).
 
 ### Credential vault
 
-The port for provider secrets, kept by the instance only. Lives in [`packages/agents`](../packages/agents/README.md); explained in [providers](providers.md).
+The port for provider secrets, kept by the instance only. See [`packages/agents`](../packages/agents/README.md), [providers](providers.md).
 
 ### Cursor
 
-A position in the journal. A receipt and a query result return the cursor they were written or read at, and a live query follows the journal from it. HTTP encrypts cursors and binds them to the session. A remote query's page cursor is a different thing: the source's opaque token for the next page. Lives in [`packages/runtime`](../packages/runtime/README.md).
+A position in the journal. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Data provider
 
-One declaration of a kind of record that lives in a system of record and can be searched there live. It becomes two remote queries, `<id>.search` and `<id>.lookup`, so every surface reaches it the same way. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/integration`](../packages/integration/README.md).
+One declaration of a kind of record that lives in a system of record and that callers search there live. See [`packages/contracts`](../packages/contracts/README.md), [`packages/integration`](../packages/integration/README.md).
 
 ### Decommissioning
 
-Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. The workspace, the audit log and the blobs are deleted with the data directory, so `app uninstall --purge` refuses while the outbox still holds effects. Lives in [`plugins/site`](../plugins/site/README.md); explained in [application lifecycle](application-lifecycle.md#decommissioning-procedure).
+Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. See [`plugins/site`](../plugins/site/README.md), [application lifecycle](application-lifecycle.md#decommissioning-procedure).
 
 ### Delivery mode
 
-How a driver action avoids acting twice. `idempotent`: the driver deduplicates by effect ID. `convergent`: the host reads the declared state before and after acting. `once`: the host asks the driver whether it already acted, and an unknown outcome holds the effect. A procedure for a workstation application is always convergent. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
+How a driver action avoids acting twice. See [`plugins/connector-driver`](../plugins/connector-driver/README.md), [hardware drivers](hardware-drivers.md).
 
 ### Delivery outcome
 
-What one delivery attempt returns to the dispatcher. The target accepts or rejects the effect, or acknowledges it and decides later. A transient failure is retried. A stop where the target may have acted throws `DeliveryUncertain` and holds the effect. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+What one delivery attempt returns to the dispatcher. See [`packages/integration`](../packages/integration/README.md), [systems of record](systems-of-record.md).
 
 ### Deployment policy
 
-The policy one host runs under. It names the hardening floor, the identity floor, destination and folder bindings, process pins and ingress. A site runs under one policy. A desktop install on one person's computer can run under one policy. The launcher setting is `--site-policy`. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#deployment-policy).
+The policy one host runs under. See [`plugins/site`](../plugins/site/README.md), [security and compliance](security-and-compliance.md#deployment-policy).
 
 ### Destination
 
-A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. The deployment policy binds it to an address, so code never names a customer host. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
+A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. See [`packages/contracts`](../packages/contracts/README.md), [security and compliance](security-and-compliance.md#declarations).
 
 ### Device
 
-A paired phone or tablet, identified as `device:<id>`, or a hardware device a module declares. A page says "paired device" or "hardware device" when the context does not decide. Explained in [mobile](mobile.md) and [hardware drivers](hardware-drivers.md).
+A paired phone or tablet, identified as `device:<id>`, or a hardware device a module declares. See [mobile](mobile.md), [hardware drivers](hardware-drivers.md).
 
 ### Device link
 
-Pairing a phone or tablet with a hub. An administrator creates a one-use enrollment code on the hub; the device exchanges it for its own bearer credential and presents that on every later request. Lives in [`plugins/device-link`](../plugins/device-link/README.md); the device side is [`plugins/hub-link`](../plugins/hub-link/README.md).
+Pairing a phone or tablet with a hub. See [`plugins/device-link`](../plugins/device-link/README.md).
 
 ### Dispatcher
 
-The worker that claims queued, retrying and acknowledged effects, delivers them through the connector outside any transaction, and records each outcome under the integration principal. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+The worker that claims queued, retrying and acknowledged effects, delivers them through the connector outside any transaction, and records each outcome under the integration principal. See [`packages/integration`](../packages/integration/README.md), [systems of record](systems-of-record.md).
 
 ### Display metadata
 
-What a capability declares about how it and its records are shown: a label, the resource kind its records name, their key, title field and shown fields. Generic screens, the command palette, MCP tool titles and the generated reference read it. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in the [interaction contract](interaction-contract.md).
+What a capability declares about how screens show it and its records: a label, the resource kind its records name, their key, title field and shown fields. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Driver
 
-A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams and started through the process port. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
+A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams, which the process port starts. See [`plugins/connector-driver`](../plugins/connector-driver/README.md), [hardware drivers](hardware-drivers.md).
 
 ### Driver contract
 
-The browser-safe description of one driver: its state fields, its actions with delivery mode and risk level, its events, and what it needs from the deployment. The host checks a running driver against the contract's digest at every handshake. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+The browser-safe description of one driver: its state fields, its actions with delivery mode and risk level, its events, and what it needs from the deployment. See [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Driver SDK
 
-A library in another language that implements the driver protocol for a driver author: bridge-mode gating, a journal for `once` actions, events, and stubs generated from the driver contract. Each SDK proves itself against the reference contract of `plugins/connector-driver`. Lives in [`sdks/driver-python`](../sdks/driver-python/README.md) and [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md).
+A library in another language that implements the driver protocol for a driver author: bridge-mode gating, a journal for `once` actions, events, and stubs generated from the driver contract. See [`sdks/driver-python`](../sdks/driver-python/README.md), [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md).
 
 ### Effect
 
-A durable intent to change another system, committed with the command that causes it and delivered later by the dispatcher. Pages call it an outbox effect on first use. Its phases are queued, claimed, retrying, acknowledged, held, accepted, rejected and cancelled. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+A durable intent to change another system, committed with the command that causes it; the dispatcher delivers it later. See [`packages/runtime`](../packages/runtime/README.md), [systems of record](systems-of-record.md).
 
 ### Effect completion
 
-Recording a system of record's outcome for one effect, accepted or rejected, through the target's complete command. The dispatcher completes under the integration principal with its fencing token. A person completes a held effect through reconciliation. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+Recording a system of record's outcome for one effect, accepted or rejected, through the target's complete command. See [`packages/integration`](../packages/integration/README.md), [systems of record](systems-of-record.md).
 
 ### Egress guard
 
-The path from server code and declared child processes to the network. It admits a destination only when the deployment policy binds it. The reviewed exemptions are listed in `scripts/boundary-rules.ts`; a paired device has no egress guard. Lives in [`plugins/network`](../plugins/network/README.md).
+The path from server code and declared child processes to the network. See [`plugins/network`](../plugins/network/README.md).
 
 ### Embedded mode
 
-Running the instance inside the calling process: a CLI call or an MCP bridge with `--embedded`, or a phone that opens its own workspace. Embedded calls open a local workspace only. The opposite of attached mode.
+Running the instance inside the calling process: a CLI call or an MCP bridge with `--embedded`, or a phone that opens its own workspace.
 
 ### Example
 
-A whole application under `showcase/examples/` for a real-world case in one of the covered domains, such as field service work orders or goods receiving. It also serves as a test fixture. Listed in [architecture](architecture.md#examples). A [pattern](#pattern) shows one technical concern instead.
+A whole application under `showcase/examples/` for a real-world case in one of the covered domains, such as field service work orders or goods receiving.
 
 ### Exchange folder
 
-A directory the application exchanges files through with another system, declared by ID with its access and data classes. Only the deployment policy knows its path. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
+A directory the application exchanges files through with another system, declared by ID with its access and data classes. See [`packages/contracts`](../packages/contracts/README.md), [security and compliance](security-and-compliance.md#declarations).
 
 ### Execution context
 
-Who is calling, in which workspace, under which grant, through which channel, and with which cancellation. The host supplies it; input cannot set or widen it. Lives in [`packages/runtime`](../packages/runtime/README.md).
+Who is calling, in which workspace, under which grant, through which channel, and with which cancellation. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Execution host
 
-Runs the tools an agent uses in Linux bubblewrap sandboxes. Each sandbox holds one token bound to its run and its grant, which the plugin issues and revokes. On other platforms a sandbox reports itself unavailable. Lives in [`plugins/execution-host`](../plugins/execution-host/README.md).
+Runs the tools an agent uses in Linux bubblewrap sandboxes. See [`plugins/execution-host`](../plugins/execution-host/README.md).
 
 ### Extractor
 
-Turns one frame, such as a screen capture or a driver's state read, into readings with a confidence and a provenance. It omits a field it cannot read instead of failing. Lives in [`packages/observation`](../packages/observation/README.md); [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) fixes it to screen captures.
+Turns one frame, such as a screen capture or a driver's state read, into readings with a confidence and a provenance. See [`packages/observation`](../packages/observation/README.md).
 
 ### Feature
 
-A reusable domain part an application mounts once, such as approval requests: modules whose operations start with the feature's ID, a state slice under that ID, handlers and a policy. The application supplies an access view and hooks when it mounts it. Declared with `defineFeatureManifest` and `defineFeature`; explained in [architecture](architecture.md#features-and-host-plugins). A harness's `features` flags are unrelated.
+A reusable domain part an application mounts once, such as approval requests: modules whose operations start with the feature's ID, a state slice under that ID, handlers and a policy. See [architecture](architecture.md#features-and-host-plugins).
 
 ### Feed
 
-The inbound side of a target: the item schema, the most items one batch may include, and the records a batch changes. Inbound sync applies feed batches. Lives in [`packages/contracts`](../packages/contracts/README.md).
+The inbound side of a target: the item schema, the most items one batch may include, and the records a batch changes. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Fencing token
 
-A number that grows with each new holder of a worker claim or a workspace lease. A write that has an older token fails, so a stalled holder cannot overwrite the one that took over. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
+A number that grows with each new holder of a worker claim or a workspace lease. See [`packages/runtime`](../packages/runtime/README.md), [`packages/adapters`](../packages/adapters/README.md).
 
 ### Fleet
 
-An application that sites report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. The fleet agent is the site-side plugin. Lives in [`showcase/examples/fleet`](../showcase/examples/fleet/README.md) and [`plugins/fleet-agent`](../plugins/fleet-agent/README.md); explained in [hosting](hosting.md#fleet).
+An application that sites report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. See [`showcase/examples/fleet`](../showcase/examples/fleet/README.md), [`plugins/fleet-agent`](../plugins/fleet-agent/README.md).
 
 ### Framework
 
-The domain-neutral packages under `packages/`. The framework names no domain and imports no plugin or example.
+The domain-neutral packages under `packages/`.
 
 ### Framework release
 
-The framework, workstation and plugin packages published together at one version. `bun run check:manifests` refuses packages at different versions, and `bun run check:framework` reports an application that installed more than one. Lives in `scripts/release.ts`; explained in [development and testing](development-and-testing.md).
+The framework, workstation and plugin packages published together at one version. See [development and testing](development-and-testing.md).
 
 ### Generator
 
-A pure transformation from the catalog to a reference document. The outputs are the catalog contract, OpenAPI, the capability, workflow and agent references, the application skill, and the security manifest with its data flows. MCP tools, the HTTP API and schemas are generated when served. `bun run generate` writes the rest to `dist/reference/`, and nothing generated is committed. Lives in `scripts/reference-artifacts.ts`.
+A pure transformation from the catalog to a reference document.
 
 ### Golden test
 
-Replays labeled frames through a station profile and its extractors and reports per-field accuracy and confidence. It is run before a profile or model change is used, and a confident wrong reading must stay at zero. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
+Replays labeled frames through a station profile and its extractors and reports per-field accuracy and confidence. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Grant
 
-The permission a caller acts under: the capabilities, resources and expiry it may use, bound to a principal and a workspace. A delegated grant narrows an issuer's own access for an agent run, a trigger or another process. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
+The permission a caller acts under: the capabilities, resources and expiry it may use, bound to a principal and a workspace. See [`packages/runtime`](../packages/runtime/README.md), [authorization](authorization.md).
 
 ### Grant file
 
-A JSON file an orchestrator writes for a process it starts: the principal, the capabilities and optionally the resources, expiry and workspace. An embedded CLI or MCP process acts under it, and tool arguments cannot widen it. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [systems of record](systems-of-record.md).
+A JSON file an orchestrator writes for a process it starts: the principal, the capabilities and optionally the resources, expiry and workspace. See [`packages/adapters`](../packages/adapters/README.md), [systems of record](systems-of-record.md).
 
 ### Handler
 
-The server function that implements one capability. It receives the execution context and injected services, never a transport request, and makes no network or model call. Lives in the application definition.
+The server function that implements one capability.
 
 ### Hardening profile
 
-The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. Explained in [security and compliance](security-and-compliance.md#deployment-policy).
+The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. See [security and compliance](security-and-compliance.md#deployment-policy).
 
 ### Harness
 
-The adapter that runs one model turn for an agent run and returns its tool calls and output. Codex, Claude, the AI SDK, a local model and a deterministic fixture are harnesses. Lives in [`packages/agents`](../packages/agents/README.md); explained in [agents](agents.md).
+The adapter that runs one model turn for an agent run and returns its tool calls and output. See [`packages/agents`](../packages/agents/README.md), [agents](agents.md).
 
 ### Host
 
-The process that opens an instance for one application on a host platform and serves it: the Bun host behind the desktop and browser, or the mobile host. Lives in [`packages/host`](../packages/host/README.md) and [`packages/mobile`](../packages/mobile/README.md).
+The process that opens an instance for one application on a host platform and serves it: the Bun host behind the desktop and browser, or the mobile host. See [`packages/host`](../packages/host/README.md), [`packages/mobile`](../packages/mobile/README.md).
 
 ### Host component
 
-A part of the host, such as the audit forwarder or a screen bridge, that declares its own requirements with `defineHostComponent`. Lives in [`packages/contracts`](../packages/contracts/README.md).
+A part of the host, such as the audit forwarder or a screen bridge, that declares its own requirements with `defineHostComponent`. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Host platform
 
-What the composition needs from the machine: workspace ownership, storage, a blob store, an optional secret store and the host's own components. It also states what it can offer: raw sockets, child processes, ingress and folders. The Bun platform, the hosted platform and the mobile platform are host platforms. Lives in [`packages/kernel`](../packages/kernel/README.md).
+What the composition needs from the machine: workspace ownership, storage, a blob store, an optional secret store and the host's own components. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Host plugin
 
-A cross-cutting part an application composes: a feature with ports, settings and lifecycle hooks, and the same three entrypoints as an application. Lives in `plugins/`; explained in [architecture](architecture.md#host-plugins). "Plugin" alone means a host plugin after first use.
+A cross-cutting part an application composes: a feature with ports, settings and lifecycle hooks, and the same three entrypoints as an application. See [architecture](architecture.md#host-plugins).
 
 ### Hosted instance
 
-The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the deployment policy. Explained in [hosting](hosting.md#hosted-instance).
+The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the deployment policy. See [hosting](hosting.md#hosted-instance).
 
 ### Hub
 
-The instance that phones and tablets pair with and deliver to, usually the site's host under the `site-hub` hardening profile. Explained in [mobile](mobile.md).
+The instance that phones and tablets pair with and deliver to, usually the site's host under the `site-hub` hardening profile. See [mobile](mobile.md).
 
 ### Idempotency key
 
-The caller-chosen key that makes a repeated command return its first receipt instead of running again. A reused key with different input conflicts. Explained in [interaction contract](interaction-contract.md).
+The caller-chosen key that makes a repeated command return its first receipt instead of running again. See [interaction contract](interaction-contract.md).
 
 ### Inbound sync
 
-Importing a system of record's changes as ordinary commands. Each feed batch is bound to a watermark range, so two pullers cannot apply the same batch. Lives in [`packages/integration`](../packages/integration/README.md).
+Importing a system of record's changes as ordinary commands. See [`packages/integration`](../packages/integration/README.md).
 
 ### Input source
 
-Device input, such as a scan, normalized into events and routed to a capability without a model turn. Lives in [`packages/devices`](../packages/devices/README.md); explained in [point-of-work input](point-of-work-input.md).
+Device input, such as a scan, normalized into events and routed to a capability without a model turn. See [`packages/devices`](../packages/devices/README.md), [point-of-work input](point-of-work-input.md).
 
 ### Instance
 
-One application opened on one workspace: its plugins and ports, storage, the runtime and the integrations. While it is open it is the only writer of that workspace and executes the workspace's commands and queries. A host opens an instance; an embedded CLI or MCP process opens its own. Each opening gets a new instance ID, which audit records and the workspace lease name. Lives in [`packages/kernel`](../packages/kernel/README.md) and [`packages/runtime`](../packages/runtime/README.md).
+One application opened on one workspace: its plugins and ports, storage, the runtime and the integrations. See [`packages/kernel`](../packages/kernel/README.md), [`packages/runtime`](../packages/runtime/README.md).
 
 ### Integration allowlist
 
-A policy rule that recognizes one integration principal and lists the only capabilities it may call. A target's allowlist covers its complete and sync commands. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/integration`](../packages/integration/README.md).
+A policy rule that recognizes one integration principal and lists the only capabilities it may call. See [`packages/runtime`](../packages/runtime/README.md), [`packages/integration`](../packages/integration/README.md).
 
 ### Integration principal
 
-The narrow principal the dispatcher and inbound sync run as. It can complete, sync and read status, and nothing else.
+The narrow principal the dispatcher and inbound sync run as.
 
 ### Interlock
 
-The checks a connector passes before it acts on a screen or on equipment: the bridge mode, the control holder or local control, and a readback that confirms the result. A model may resolve a target or suggest a step; it never acts itself. The interlock is not safety-rated, and a machine's safety interlocks stay with the machine. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md#interlock) and [hardware drivers](hardware-drivers.md#interlock).
+The checks a connector passes before it acts on a screen or on equipment: the bridge mode, the control holder or local control, and a readback that confirms the result. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Journal
 
-The ordered record of committed changes that live queries follow. Each entry names the changed resource and the revision. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [state and reactivity](state-and-reactivity.md).
+The ordered record of committed changes that live queries follow. See [`packages/runtime`](../packages/runtime/README.md), [state and reactivity](state-and-reactivity.md).
 
 ### Launch key exchange
 
-How a browser gets its session. The host issues a one-use launch key that expires after 60 seconds, and the web frame exchanges it for the session cookie. Lives in [`packages/adapters`](../packages/adapters/README.md) and [`packages/frame`](../packages/frame/README.md).
+How a browser gets its session. See [`packages/adapters`](../packages/adapters/README.md), [`packages/frame`](../packages/frame/README.md).
 
 ### Live query
 
-A query a screen keeps current by following the journal. It refetches when a declared dependency changes, ignores stale responses and reconnects from its cursor. Lives in [`packages/client`](../packages/client/README.md) and [`packages/react`](../packages/react/README.md).
+A query a screen keeps current by following the journal. See [`packages/client`](../packages/client/README.md), [`packages/react`](../packages/react/README.md).
 
 ### Manifest
 
-The browser-safe entrypoint of an application or host plugin: its ID, title, modules and host components. An application manifest also lists its composed plugins and the platforms it is delivered to. The web build and the generators import it without loading handlers or provider code. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The browser-safe entrypoint of an application or host plugin: its ID, title, modules and host components. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Membership
 
-The roles people hold in a container, kept by the framework and changed with the membership command. Lives in [`packages/runtime`](../packages/runtime/README.md).
+The roles people hold in a container, which the framework keeps and the membership command changes. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Model entry
 
-A model the model server may serve, named by an ID and the digest of its base weights. A fine-tune adds its adapter's digest and the digest of the dataset it was trained on. Declared in [`packages/agents`](../packages/agents/README.md); measured and served by [`plugins/model-server`](../plugins/model-server/README.md).
+A model the model server may serve, named by an ID and the digest of its base weights.
 
 ### Module
 
-The browser-safe unit a domain contributes to the catalog: capabilities, requirement declarations, OS declarations, workflows and agent definitions, declared with `defineModule`. Its handlers, state slice and policy are server code supplied with the application definition or the host plugin. Lives in [`packages/contracts`](../packages/contracts/README.md).
+The browser-safe unit a domain contributes to the catalog: capabilities, requirement declarations, OS declarations, workflows and agent definitions, declared with `defineModule`. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Nested call
 
-A command or query that a handler runs with `ctx.invoke` or `ctx.query` inside its own command's transaction, under the same context. The capability lists the operations it may call in `invokes`. Each call is authorized on its own, with `via` naming the enclosing operations, and a refusal rolls back the whole command. Calls go at most 4 levels deep and 64 per command. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [capability authoring](capability-authoring.md#nested-calls).
+A command or query that a handler runs with `ctx.invoke` or `ctx.query` inside its own command's transaction, under the same context. See [`packages/runtime`](../packages/runtime/README.md), [capability authoring](capability-authoring.md#nested-calls).
 
 ### Observation
 
-A reading from a source that cannot be queried, such as a broker topic, a controller tag or the screen of a workstation application, submitted through an ingest command. Lives in [`packages/observation`](../packages/observation/README.md).
+A reading an ingest command submits from a source that answers no query: a broker topic, a controller tag or the screen of a workstation application. See [`packages/observation`](../packages/observation/README.md).
 
 ### Operator
 
-A person who works at a workstation or a point of work, usually under an `operator` role the application declares. A person who installs and runs a site is a site operator.
+A person who works at a workstation or a point of work, usually under an `operator` role the application declares.
 
 ### OS action
 
-A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it includes. Lives in [`packages/shell`](../packages/shell/README.md); explained in [desktop](desktop.md).
+A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it includes. See [`packages/shell`](../packages/shell/README.md), [desktop](desktop.md).
 
 ### OS handler
 
-A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or notification reply, and the capability its requests go to. Lives in [`packages/shell`](../packages/shell/README.md).
+A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or notification reply, and the capability its requests go to. See [`packages/shell`](../packages/shell/README.md).
 
 ### Outbox
 
-The part of the workspace that holds effects until the dispatcher delivers them. Lives in [`packages/runtime`](../packages/runtime/README.md).
+The part of the workspace that holds effects until the dispatcher delivers them. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Owner
 
-The local owner is the principal `owner`. Where the identity policy admits it, the host issues it a session and a connection file, and an embedded call without a grant file acts as it. An application may also declare an `owner` role in a container. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The principal `owner`: the local owner, who gets a session and connection file where the identity policy allows it. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Pattern
 
-A small application under `showcase/patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `showcase/patterns/base` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
+A small application under `showcase/patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox.
 
 ### Peer
 
-Another agent-native application enrolled with this one through the peer link. It calls the peer API as its service principal, `peer:<id>`, or on behalf of a person through a subject assertion. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
+Another agent-native application enrolled with this one through the peer link. See [`plugins/peer-link`](../plugins/peer-link/README.md).
 
 ### Peer API
 
-The commands and queries an application lets a peer call: those its service principal may call, and those a peer may call on behalf of a mapped person. Declared with `definePeerApi` in [`packages/contracts`](../packages/contracts/README.md).
+The commands and queries an application lets a peer call: those its service principal may call, and those a peer may call on behalf of a mapped person.
 
 ### Peer link
 
-Enrollment of, and calls between, two agent-native applications. An administrator of the called application creates a one-use enrollment code. The calling application exchanges it for a bearer credential and registers an Ed25519 public key. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md); explained in [systems of record](systems-of-record.md#peer-applications).
+Enrollment of, and calls between, two agent-native applications. See [`plugins/peer-link`](../plugins/peer-link/README.md), [systems of record](systems-of-record.md#peer-applications).
 
 ### Peer target
 
-A target that is another agent-native application, declared with `definePeerTarget` from the peer API that application publishes. It adds a network destination, effect requests parsed by the peer commands' input schemas, and a feed from a service query of the peer API. Declared in [`packages/contracts`](../packages/contracts/README.md); connected with `connectPeerTarget` from [`packages/integration`](../packages/integration/README.md).
+A target that is another agent-native application, declared with `definePeerTarget` from the peer API that application publishes.
 
 ### Person
 
-A human caller: an operator, inspector, supervisor, auditor or owner at a screen or a workstation. Used when the page contrasts people with agents, scripts and devices.
+A human caller: an operator, inspector, supervisor, auditor or owner at a screen or a workstation.
 
 ### Plugin service
 
-The object a host plugin exposes to later plugins and to handlers as `services[<plugin id>]`, such as the audit plugin's log directory and forwarder statistics. It is trusted code like the plugin. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The object a host plugin exposes to later plugins and to handlers as `services[<plugin id>]`, such as the audit plugin's log directory and forwarder statistics. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Point of work
 
@@ -426,83 +426,83 @@ The place where an operator, a device or station software produces the input an 
 
 ### Policy
 
-The port that decides operation, object, row and field access for a principal, built with `definePolicy` or the CASL adapter. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
+The port that decides operation, object, row and field access for a principal, built with `definePolicy` or the CASL adapter. See [`packages/runtime`](../packages/runtime/README.md), [authorization](authorization.md).
 
 ### Principal
 
-The identity a caller acts as: a person, a device, the integration principal or an agent run's issuer. The host derives it from the session; input cannot choose it. Explained in [authorization](authorization.md).
+The identity a caller acts as: a person, a device, the integration principal or an agent run's issuer. See [authorization](authorization.md).
 
 ### Procedure
 
-A declared sequence of screen steps in a station profile, run for one effect type. It includes preconditions, a risk level, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
+A declared sequence of screen steps in a station profile that runs for one effect type. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Process port
 
-The host port that starts declared child processes from the deployment policy's bindings. Its default refuses. Lives in [`plugins/process`](../plugins/process/README.md).
+The host port that starts declared child processes from the deployment policy's bindings. See [`plugins/process`](../plugins/process/README.md).
 
 ### Query
 
-An authorized read of one snapshot that changes nothing and returns a cursor the caller can follow. Lives in [`packages/runtime`](../packages/runtime/README.md).
+An authorized read of one snapshot that changes nothing and returns a cursor the caller can follow. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Receipt
 
-The stored result of a command under its idempotency key: the outcome, the changed resources and any continuation. A replay returns the receipt. Lives in [`packages/runtime`](../packages/runtime/README.md).
+The stored result of a command under its idempotency key: the outcome, the changed resources and any continuation. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Reconciliation
 
-The tracked state and procedure for effects whose outcome no one can establish automatically. A person completes or releases a held effect through the framework's reconciliation commands. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+The tracked state and procedure for effects whose outcome no one can establish automatically. See [`packages/runtime`](../packages/runtime/README.md), [systems of record](systems-of-record.md).
 
 ### Release
 
-Always qualified. Releasing a held effect returns it to queued for another delivery. A framework release and a site bundle installed as a site release have entries of their own. Releasing workspace ownership ends an instance's hold on its workspace.
+Always qualified: releasing a held effect queues it for another delivery; releasing workspace ownership ends an instance's hold on its workspace.
 
 ### Remote query
 
-A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+A query that reads another system when the caller runs the query, and stores nothing. See [`packages/runtime`](../packages/runtime/README.md), [systems of record](systems-of-record.md).
 
 ### Requirement declaration
 
-What a module, host component or plugin needs outside the process, as data: destinations, exchange folders, devices and child processes. The deployment policy binds them. Explained in [security and compliance](security-and-compliance.md#declarations).
+What a module, host component or plugin needs outside the process, as data: destinations, exchange folders, devices and child processes. See [security and compliance](security-and-compliance.md#declarations).
 
 ### Revision
 
-The per-resource counter a command bumps. `expectedRevisions` makes a stale write conflict. Explained in [interaction contract](interaction-contract.md).
+The per-resource counter a command bumps. See [interaction contract](interaction-contract.md).
 
 ### Risk level
 
-What a declared action can do to people or equipment. `none` runs in assist mode, `low` needs actuate mode, and `operator-present` needs actuate mode and a confirmation at the workstation in the effect payload. Procedures for a workstation application and driver actions use the same levels. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+What a declared action can do to people or equipment. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Scaffold
 
-The tool that exports the framework, the starter and content as a standalone application, or generates a new application and its parts. Lives in [`packages/scaffold`](../packages/scaffold/README.md).
+The tool that exports the framework, the starter and content as a standalone application, or generates a new application and its parts. See [`packages/scaffold`](../packages/scaffold/README.md).
 
 ### Scanner profile
 
-Schema-validated data describing how one scanner at one workstation reaches the application and how its output is normalized. Its transport is a keyboard wedge, a serial port, HID POS, a camera, a host plugin or an Android intent. Lives in [`packages/devices`](../packages/devices/README.md); explained in [point-of-work input](point-of-work-input.md).
+Schema-validated data describing how one scanner at one workstation reaches the application and how the decoder normalizes its output. See [`packages/devices`](../packages/devices/README.md), [point-of-work input](point-of-work-input.md).
 
 ### Screen
 
-One routed part of an application's UI, declared in its `screens` entrypoint and bound to capabilities through the typed client. The display of a workstation application is its screen. Explained in [architecture](architecture.md#application-entrypoints).
+One routed part of an application's UI, declared in its `screens` entrypoint and bound to capabilities through the typed client. See [architecture](architecture.md#application-entrypoints).
 
 ### Screen bridge
 
-The connector that reads a workstation application through its screen and runs declared procedures on it. It is not the workstation. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+The connector that reads a workstation application through its screen and runs declared procedures on it. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md).
 
 ### Screen recognizer
 
-An extractor for screen captures in `workstations/screen-bridge/src/recognition`: the accessibility tree, a recognition worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+An extractor for screen captures in `workstations/screen-bridge/src/recognition`: the accessibility tree, a recognition worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md).
 
 ### Session
 
-What a host issues to an authenticated caller; the execution context is derived from it. It is a browser cookie after the launch key exchange, the bearer token of a connection file, or a paired device's credential. It is also a workforce sign-in cookie or a workstation sign-in. Lives in [`packages/adapters`](../packages/adapters/README.md).
+What a host issues to an authenticated caller and derives the execution context from. See [`packages/adapters`](../packages/adapters/README.md).
 
 ### Shelf life
 
-How many days each build of an application stays within its [best-before date](#best-before-date), declared in the manifest. An application without one builds releases without a best-before date. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
+How many days each build of an application stays within its [best-before date](#best-before-date), declared in the manifest. See [`packages/kernel`](../packages/kernel/README.md), [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
 
 ### Shell port
 
-The host port that receives OS requests under declared OS handlers and performs declared OS actions. Without a plugin that provides it, every call fails with `UNAVAILABLE`; `plugins/os` provides it. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The host port that receives OS requests under declared OS handlers and performs declared OS actions. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Site
 
@@ -510,137 +510,132 @@ A plant, office or customer location where a host runs under one deployment poli
 
 ### Site bundle
 
-One signed, versioned directory per application and platform, checked before a site installs it. It holds the payload, a manifest with every file's digest and the declared requirements, and an Ed25519 signature. `app install` verifies it and places it as a release, and a failed step leaves the previous release current. Lives in [`packages/bundle`](../packages/bundle/README.md) and [`plugins/site`](../plugins/site/README.md).
+One signed, versioned directory per application and platform, which a site checks before it installs it. See [`packages/bundle`](../packages/bundle/README.md), [`plugins/site`](../plugins/site/README.md).
 
 ### Snapshot
 
-One consistent read of a workspace at a journal cursor. A query reads one snapshot.
+One consistent read of a workspace at a journal cursor.
 
 ### Starter
 
-The thin application host a team forks or generates and then owns: `apps/service`, `apps/web`, `apps/desktop` and `apps/mobile`. It hosts the one application named in `app.config.json`.
+The thin application host a team forks or generates and then owns: `apps/service`, `apps/web`, `apps/desktop` and `apps/mobile`.
 
 ### State migration
 
-Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace. Storage runs the steps on every load until a commit persists the result. The `migrate` command migrates a checked copy of the database before it replaces the live one. Lives in [`packages/kernel`](../packages/kernel/README.md) and [`packages/host`](../packages/host/README.md).
+Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace. See [`packages/kernel`](../packages/kernel/README.md), [`packages/host`](../packages/host/README.md).
 
 ### Station profile
 
-Versioned data describing one kind of workstation application: how to recognize its screens and where each field is shown and read. It also marks the forbidden regions and declares the procedures the screen bridge may run. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+Versioned data describing one kind of workstation application: how to recognize its screens and where each field appears and how to read it. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md).
 
 ### Storage
 
-The port for the instance's transactional state. The memory adapter is in `packages/runtime`. The SQLite and Postgres adapters store one row per record and write only what a commit changed. The mobile host uses the snapshot adapter, which stores each workspace as one JSON document. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
+The port for the instance's transactional state. See [`packages/runtime`](../packages/runtime/README.md), [`packages/adapters`](../packages/adapters/README.md).
 
 ### Subject assertion
 
-The signed `Agent-Native-Subject` header with which a peer names the person a request is made for. The key the peer enrolled signs the audience, the subject, the request line, the body digest and a lifetime of at most 120 seconds. The called application accepts each assertion once. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
+The signed `Agent-Native-Subject` header with which a peer names the person a request is for. See [`plugins/peer-link`](../plugins/peer-link/README.md).
 
 ### Subject mapping
 
-The called application's table from a peer's subject IDs to its own principals. A call on behalf of an unmapped subject is refused, and no subject maps to a `peer:` or `device:` principal or a reserved principal. Managed with `peer.subject.map` in [`plugins/peer-link`](../plugins/peer-link/README.md).
+The called application's table from a peer's subject IDs to its own principals.
 
 ### Surface
 
-One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md).
+One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. See [`packages/adapters`](../packages/adapters/README.md).
 
 ### Synced records
 
-The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders. Inbound sync keeps them current, and the system of record stays authoritative for them. Lives in each application's state.
+The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders.
 
 ### System of record
 
-Another system that owns records the application reads or changes, and that decides what it accepts. It cannot join the application's transaction, so the application reaches it through a target. Explained in [systems of record](systems-of-record.md).
+Another system that owns records the application reads or changes, and that decides what it accepts. See [systems of record](systems-of-record.md).
 
 ### Target
 
-The declaration of one system of record with `defineTarget`: its complete, sync and status commands and queries, the integration principal's capabilities and its integration allowlist. A target's connector delivers its effects. The manifest's `targets` field is unrelated; it lists delivery platforms. Declared in [`packages/contracts`](../packages/contracts/README.md); its handlers and integration allowlist live in [`packages/integration`](../packages/integration/README.md).
+The declaration of one system of record with `defineTarget`: its complete, sync and status commands and queries, the integration principal's capabilities and its integration allowlist.
 
 ### Telemetry
 
-OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. The metrics and traces are exported through the egress guard without record contents. A driver's `telemetry` event is different: it enters as an observation. Lives in [`plugins/telemetry`](../plugins/telemetry/README.md).
+OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. See [`plugins/telemetry`](../plugins/telemetry/README.md).
 
 ### Terminal
 
-A principal whose session may sign operators in at a workstation: the local owner, or a principal listed in the `station-sign-in-terminals` setting, such as an attached tablet's. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md); explained in [operator workstations](operator-workstations.md#workstation-sign-in).
+A principal whose session may sign operators in at a workstation: the local owner, or a principal listed in the `station-sign-in-terminals` setting, such as an attached tablet's. See [`workstations/sign-in`](../workstations/sign-in/README.md), [operator workstations](operator-workstations.md#workstation-sign-in).
 
 ### Tortoise
 
-The name of the project: the framework, workstation packages, host plugins, starter, examples, patterns and driver SDKs in this repository. Package names keep the `@agent-native/` scope. Explained in the [README](../README.md).
+The name of the project: the framework, workstation packages, host plugins, starter, examples, patterns and driver SDKs in this repository.
 
 ### Trigger
 
-Work that starts on a committed change or a schedule instead of a person's prompt. A trigger submits commands under a trigger grant like any caller. Lives in [`plugins/automation`](../plugins/automation/README.md).
+Work that starts on a committed change or a schedule instead of a person's prompt. See [`plugins/automation`](../plugins/automation/README.md).
 
 ### Trigger grant
 
-A person's recorded, expiring permission for a trigger to act as that principal. Lives in [`plugins/automation`](../plugins/automation/README.md).
+A person's recorded, expiring permission for a trigger to act as that principal. See [`plugins/automation`](../plugins/automation/README.md).
 
 ### UI binding
 
-The screen control a capability declares it is reached from, or the stated reason it has none. Building the catalog fails for a capability with neither. An application's UI-binding test fails when no screen references a capability that claims a binding. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/testing`](../packages/testing/README.md).
+The screen control a capability declares as its entry point, or the stated reason it has none. See [`packages/contracts`](../packages/contracts/README.md), [`packages/testing`](../packages/testing/README.md).
 
 ### UI intent
 
-A request from an agent run to the screen it started from: open a resource, select one, fill a command's form for the person to submit, or ask for a review. It is checked under the run's grant, expires, and changes no records. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/adapters`](../packages/adapters/README.md); explained in the [interaction contract](interaction-contract.md#ui-intents).
+A request from an agent run to the screen it started from: open a resource, select one, fill a command's form for the person to submit, or ask for a review. See [`packages/contracts`](../packages/contracts/README.md), [`packages/adapters`](../packages/adapters/README.md).
 
 ### UI registry
 
-Reusable screen parts published as shadcn registries over stock shadcn primitives, which an application copies with `shadcn add` and then owns. The `agent-native` registry ships in [`packages/frame`](../packages/frame/README.md); the `operator` registry ships in [`packages/operator-ui`](../packages/operator-ui/README.md).
+Reusable screen parts published as shadcn registries over stock shadcn primitives, which an application copies with `shadcn add` and then owns.
 
 ### UI session context
 
-The selection and observed revisions a screen shares with an agent run, checked against authorized queries and frozen when the run captures it. A run started from it can send [UI intents](#ui-intent) back to the screen. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [authorization](authorization.md).
+The selection and observed revisions a screen shares with an agent run, which the host checks against authorized queries and freezes when the run captures it. See [`packages/adapters`](../packages/adapters/README.md), [authorization](authorization.md).
 
 ### Watermark
 
-The target's opaque position after the last applied feed batch, stored in the application's state. A sync batch whose start is not the stored watermark conflicts. Lives in [`packages/integration`](../packages/integration/README.md).
+The target's opaque position after the last applied feed batch, stored in the application's state. See [`packages/integration`](../packages/integration/README.md).
 
 ### Web frame
 
-The domain-neutral browser shell around one application's screens: session, routing, palette, run panel and accounts. The native frame is its React Native counterpart. Lives in [`packages/frame`](../packages/frame/README.md) and [`packages/frame-native`](../packages/frame-native/README.md).
+The domain-neutral browser shell around one application's screens: session, routing, palette, run panel and accounts. See [`packages/frame`](../packages/frame/README.md), [`packages/frame-native`](../packages/frame-native/README.md).
 
 ### Worker claim
 
-The dispatcher's hold on one effect: a worker name, an expiry and a fencing token. A claim whose expiry passed reads as the phase before it, and another worker may take the effect over. Lives in [`packages/runtime`](../packages/runtime/README.md).
+The dispatcher's hold on one effect: a worker name, an expiry and a fencing token. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Workflow
 
-A sequence of capabilities a module declares for agents: prose `text` with the operations it names, and, when declared with `defineWorkflow`, steps that run a command or wait on a query, with their bindings, retries, timeouts and compensations. The catalog checks a declared workflow against the operations it names. Lives in [`packages/contracts`](../packages/contracts/README.md).
+A sequence of capabilities a module declares for agents: prose `text` with the operations it names, and, when declared with `defineWorkflow`, steps that run a command or wait on a query, with their bindings, retries, timeouts and compensations. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Workflow instance
 
-One run of a declared workflow, started with `workflow.start` and advanced one step per command by the workflows plugin's runner, as its starter under a grant narrowed to the workflow's operations. It ends succeeded, compensated, failed or cancelled, or stalls for a person. Lives in [`plugins/workflows`](../plugins/workflows/README.md).
+One run of a declared workflow, which `workflow.start` starts and the workflows plugin's runner advances one step per command, as its starter under a grant narrowed to the workflow's operations. See [`plugins/workflows`](../plugins/workflows/README.md).
 
 ### Workforce sign-in
 
-People signing in to a serving host through the site's identity provider under `identity: external`. Lives in [`plugins/site`](../plugins/site/README.md).
+People signing in to a serving host through the site's identity provider under `identity: external`. See [`plugins/site`](../plugins/site/README.md).
 
 ### Worklist
 
-The assignee side of assignments in another application, such as a phone or a peer. It holds the open assignments from the issuer's feed. Each report or done mark is recorded and queued for the issuer in one transaction. Declared with `defineWorklist` in [`packages/assignments`](../packages/assignments/README.md).
+The assignee side of assignments in another application, such as a phone or a peer.
 
 ### Workspace
 
-The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One instance holds it at a time. On one computer an OS lock stops a second process from writing the SQLite file. A hosted workspace uses a workspace lease. A directory of code in this repository is a package: a framework package, a workstation package, a plugin, an app, an example or an SDK.
+The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database.
 
 ### Workspace lease
 
-One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. Another instance can take the workspace over once the lease expires. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [hosting](hosting.md).
+One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. See [`packages/adapters`](../packages/adapters/README.md), [hosting](hosting.md).
 
 ### Workstation
 
-A station PC or panel where operators work and sign in. A workstation application already running there is read and operated through the screen bridge. The packages live under `workstations/`, between the framework and the host plugins. Explained in [operator workstations](operator-workstations.md).
+A station PC or panel where operators work and sign in. See [operator workstations](operator-workstations.md).
 
 ### Workstation application
 
-Software already running at a workstation that has no API and must stay unmodified. A vendor HMI, test-bench software and an MES client are workstation applications. The screen bridge reads its screen and runs declared procedures on it. Explained in [operator workstations](operator-workstations.md).
+Software already running at a workstation that has no API and must stay unmodified. See [operator workstations](operator-workstations.md).
 
 ### Workstation sign-in
 
-An operator signing in at a workstation by badge and PIN, for a short-lived session issued to that operator. Only a terminal's own session may sign people in, and never under a delegated grant. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md).
-
-## References
-
-- [Point-of-work input](point-of-work-input.md)
-- [Overview](overview.md)
+An operator signing in at a workstation by badge and PIN, for a short-lived session issued to that operator. See [`workstations/sign-in`](../workstations/sign-in/README.md).

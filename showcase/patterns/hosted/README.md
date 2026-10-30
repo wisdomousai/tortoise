@@ -1,45 +1,23 @@
 # Host the lab desk with Postgres
 
-The [base oil-lab desk](../base/README.md) can run on a server with its workspace in Postgres. This pattern adds a [workspace lease](../../../docs/primitives.md#workspace-lease) and external workforce sign-in. Only one instance can commit to the workspace at a time; another can take over after the holder stops or its lease expires.
+The [base lab desk](../base/README.md) also runs on a server with its workspace in Postgres. This pattern adds the workspace lease and workforce sign-in through an external identity provider: one instance commits at a time, each commit checks the lease's fencing token inside its transaction, and another takes over when the holder stops or its lease expires. The stand-in identity provider signs in any lab user without a password.
 
-## Run on this machine
-
-Run the pattern on this machine:
-
-1. Start a Postgres server the instance can create tables in, and put its URL in `AGENT_NATIVE_DATABASE_URL`.
-2. Issue a certificate for `127.0.0.1` from a CA the browser trusts, such as mkcert's: `mkcert -install`, then `mkcert 127.0.0.1`.
-3. Start the launch:
-
-   ```sh
-   cd showcase/patterns/hosted
-   LAB_IDP_CERT=<dir>/127.0.0.1.pem LAB_IDP_KEY=<dir>/127.0.0.1-key.pem \
-     LAB_IDP_CA="$(mkcert -CAROOT)/rootCA.pem" bun run dev:web
-   ```
-
-4. Open the sign-in link the launch prints, pick `ana@lab.example`, and submit a test request. Sign in again as `ben@lab.example` to read it as a viewer. Workforce sessions live in memory, so a restart signs everyone out.
-5. From the repository root, start a second instance of the same workspace:
-
-   ```sh
-   AGENT_NATIVE_APPLICATION=@agent-native/pattern-hosted \
-     bun run cli serve --workspace <dir>/instance-b --hosted-workspace test-requests --port 4362
-   ```
-
-   The second instance exits with code 5 and `CONFLICT` while the first holds the lease. Stop the first instance, and the same command takes over and serves the requests. Without `AGENT_NATIVE_SITE_POLICY` the second instance runs as the local owner, and its connection file reaches it from the CLI.
-
-The frame has no sign-out control. `POST /auth/sign-out` from the page's origin ends the session.
-
-## Identity and ownership
-
-The development identity provider is a stand-in: it signs in whichever lab user is chosen without a password and redirects only to loopback. A real deployment must bind `workforce-idp` to its own provider. With `identity: external`, the host issues no local owner session, launch link or connection file; people sign in at `/auth/sign-in`, and the verified email selects the lab role.
-
-Every commit checks the lease's fence in the transaction. An instance that loses the lease can no longer commit. The database URL comes from `AGENT_NATIVE_DATABASE_URL`, not the deployment policy or a command-line argument.
-
-## Code and checks
-
-[`application.ts`](application.ts) defines lab members and composes the host; [`dev.ts`](dev.ts) starts the stand-in identity provider and development policy.
+Start a Postgres server with a database the instance may create tables in, put its URL in `AGENT_NATIVE_DATABASE_URL`, issue a loopback certificate (`mkcert -install`, then `mkcert 127.0.0.1`), and run:
 
 ```sh
-bun test showcase/patterns/hosted
+cd showcase/patterns/hosted
+LAB_IDP_CERT=<dir>/127.0.0.1.pem LAB_IDP_KEY=<dir>/127.0.0.1-key.pem \
+  LAB_IDP_CA="$(mkcert -CAROOT)/rootCA.pem" bun run dev:web
 ```
 
-The tests race instances on PGlite and exercise the stand-in provider with a throwaway CA when `openssl` is available. They do not establish a deployment against an organization's identity provider.
+## What to try
+
+- Open the printed sign-in link, pick `ana@lab.example` and submit a request; sign in as `ben@lab.example` to read it as a viewer. The host keeps sessions in memory, so a restart signs everyone out.
+- Start a second instance on the same workspace from the repository root: `AGENT_NATIVE_APPLICATION=@agent-native/pattern-hosted bun run cli serve --workspace <dir>/instance-b --hosted-workspace test-requests --port 4362`. It exits with code 5 and `CONFLICT`; stop the first instance and the same command takes over.
+- `POST /auth/sign-out` from the page's origin ends a session; the frame has no sign-out control.
+
+## References
+
+- [Hosting](../../../docs/hosting.md)
+- [run-a-hosted-instance](../../../packages/host/skills/run-a-hosted-instance/SKILL.md)
+- `bun test showcase/patterns/hosted` races instances on PGlite and runs the stand-in provider when it finds `openssl`

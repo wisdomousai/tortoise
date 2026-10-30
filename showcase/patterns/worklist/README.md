@@ -1,36 +1,22 @@
 # A field crew's sampling worklist
 
-The oil lab in the [assignments pattern](../assignments/README.md) sends sampling rounds to a separate field-crew application. The crew reads each brief in its [worklist](../../../docs/primitives.md#worklist), reports samples and marks the round done. The lab decides whether to accept each report and the worklist shows the result.
-
-## Connect the two applications
-
-From the repository root, start each application in a separate terminal:
+The oil lab in the [assignments pattern](../assignments/README.md) sends sampling rounds to the field crew that draws the samples; this pattern is the crew's own application. The crew reads each round's brief in its worklist, reports samples and marks the round done. A report commits locally with an outbox effect, the peer link delivers it, and the lab decides as `peer:<id>` whether to accept it; the worklist keeps a refusal with its reason and never resends a rejected report.
 
 ```sh
-cd showcase/patterns/assignments
-bun run dev:web
+cd showcase/patterns/assignments && bun run dev:web   # terminal 1
+cd showcase/patterns/worklist && bun run dev:web      # terminal 2
 ```
 
-```sh
-cd showcase/patterns/worklist
-bun run dev:web
-```
+## What to try
 
-On the lab's **Peers** screen, create an enrollment code. Enter that code for the `lab` target on the worklist's **Peers** screen, then send a sampling round to the peer from the lab's round board. The crew can report samples from the worklist; a lab technician accepts them into test requests.
+- On the lab's **Peers** screen, create an enrollment code; enter it for the `lab` target on the worklist's **Peers** screen (port 4363).
+- Send a sampling round to the peer from the lab's round board, report samples from the worklist, and accept them in the lab.
+- Report a transformer outside the round: the lab keeps it without a subject for a technician to link.
+- Withdraw the round in the lab and watch the worklist refuse further reports.
 
-## How reports travel
+## References
 
-The worklist pulls the lab's open assignment feed and keeps a local copy of each brief. A report or done mark commits locally with an outbox effect, then travels to the lab through the peer link. The lab sees the service principal `peer:<id>`, checks its own assignment state and returns acceptance or a refusal. The worklist keeps a refusal and its reason; it does not resend a rejected report.
-
-If a transformer is outside the round, the lab keeps the peer report without a subject for a technician to link. If the lab withdraws or closes the round, later reports are refused and the next feed closes the worklist copy. The peer credential stays in the peer link and the call does not assert an individual crew member's identity.
-
-## Code and checks
-
-[`contracts.ts`](contracts.ts) declares the worklist and `lab` target; [`application.ts`](application.ts) connects the peer, and [`policy.ts`](policy.ts) separates local technicians from the integration principal.
-
-```sh
-bun test showcase/patterns/worklist
-bunx playwright test showcase/patterns/worklist
-```
-
-The peer test and browser spec start both hosts on loopback and check reporting, completion and a withdrawn-round refusal.
+- [Assignments](../../../docs/assignments.md)
+- [connect-two-applications](../../../plugins/peer-link/skills/connect-two-applications/SKILL.md)
+- [Assignments pattern](../assignments/README.md)
+- `bun test showcase/patterns/worklist`, `bunx playwright test showcase/patterns/worklist`

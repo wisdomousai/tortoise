@@ -5,7 +5,7 @@ description: Let operators sign in at a shared workstation terminal with a badge
 
 # Sign in at a terminal
 
-A [terminal](../../../../docs/glossary.md#terminal) is a principal whose screen may sign people in. An [operator](../../../../docs/glossary.md#operator) scans a badge there and enters a PIN. The terminal's screen then holds a short-lived operator token in memory and acts as that person until the session ends.
+A terminal is a principal whose screen may sign people in. An operator scans a badge there and enters a PIN. The terminal's screen then holds a short-lived operator token in memory and acts as that person until the session ends.
 
 ## Before writing
 

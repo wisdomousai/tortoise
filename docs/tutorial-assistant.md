@@ -1,38 +1,28 @@
-# In-app assistant
+# Tutorial: an in-app assistant
 
-The tutorial builds an [application](glossary.md#application) with an assistant in a panel beside every screen. Each step is a prompt for a coding agent, such as Claude Code or Codex, and names the skill the agent follows. The application is the spare parts customer service desk of a power transformer plant. Utilities call the desk about bushings, tap changer parts, gaskets and relays for transformers in service. The assistant finds a transformer by its serial, looks up parts, opens screens, answers from the records and asks the person when a request is ambiguous. It fills the quote form for the person to check and create. It requests approval for a discount above 10 percent and for a cancellation.
+You will build a parts desk for a transformer plant. Utilities call about bushings, tap changer parts, gaskets and relays. An assistant panel beside every screen finds a transformer by serial, looks up parts, fills the quote form for the person to check, and asks for approval before a discount above 10 percent or a cancellation. Use Claude Code or Codex. Each step gives the goal, the prompt and the check.
+
+Do [Getting started](getting-started.md) first. The [tool crib tutorial](tutorial.md) covers records, screens and integrations in more depth.
 
 ## Setup
 
-The first step runs in the framework repository and exports a new repository with `scaffold new`. Every later step runs at the root of that export.
+1. Install Bun and `bunx playwright install chromium`.
+2. Only for step 12: install llama.cpp's `llama-server` and download a GGUF instruction model that calls tools, such as Gemma 4 E4B.
+3. Open Claude Code or Codex at the root of this repository for step 1, and at the root of the `parts-desk` export after that.
+4. For each step: paste the prompt, run the check, commit.
 
-1. Install Bun 1.4.4 and the Playwright browsers with `bunx playwright install chromium`.
-2. Install llama.cpp's `llama-server` and download a GGUF build of an instruction model that calls tools, such as Gemma 4 E4B. Only the live run uses them.
-3. Start the coding agent at the root of the framework repository for the first step, and at the root of the export for the others.
-4. Paste the step's prompt.
-5. Review the diff and commit it before the next step.
-
-In a source export, `bun run check:skills` reports paths into omitted examples and patterns and a root script removed from the export. The steps use these checks from the export root instead:
+The standard check, from the export root. You should see `0 fail`:
 
 ```sh
-bun run format
-bun run generate
-bun run typecheck
+bun run format && bun run generate && bun run typecheck
 bun test showcase/examples/parts-desk
 ```
 
-A step that changes screens also runs these:
+Steps that change screens add `bun run build` and `bunx playwright test showcase/examples/parts-desk` (all passed).
 
-```sh
-bun run build
-bunx playwright test showcase/examples/parts-desk
-```
+## 1. Export the app
 
-The assistant reads the records through queries and changes them through commands, like any other caller. Its grant is narrower than the person's who starts it, and the application's policy decides every call. The panel starts each turn as a run with `POST /api/v1/runs` and draws the run's events. The framework has no chat component, so the panel is application code built on the run route, the run events and the UI session.
-
-## Application export
-
-Skill: `create-agent-native-app`. The step exports the framework, the starter and a generated application in `showcase/examples/parts-desk` with one `inquiry` collection.
+**Goal:** a new repository with an `inquiry` collection. **Skill:** `create-agent-native-app`.
 
 ```text
 Use the create-agent-native-app skill. Create the application for the spare parts customer
@@ -49,9 +39,11 @@ each command and what it printed. Run the checks the create-agent-native-app ski
 report what passed.
 ```
 
-## Transformers and parts
+**Check:** the report shows `bun test` passing and the same inquiry in the CLI and MCP lists.
 
-Skill: `add-capability`. The step adds the records the desk looks up and a development seed. The seed has two serials that share a prefix, so a partial serial is ambiguous.
+## 2. Transformers and parts
+
+**Goal:** the records the desk looks up, plus seed data. Two serials share a prefix, so `TR-404` is ambiguous. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -93,9 +85,17 @@ the Playwright spec and the application README. Run the checks the add-capabilit
 and report what passed.
 ```
 
-## Quotes
+**Check:** the standard check. Start the app with `bun run --cwd showcase/examples/parts-desk dev:web`, set `AGENT_NATIVE_CONNECTION` to `showcase/examples/parts-desk/.workspace/.connection.json`, then:
 
-Skill: `add-capability`. The step adds the quote and the rule that a discount above 10 percent needs a supervisor.
+```sh
+bun run cli transformer find --serial TR-404 --output text
+```
+
+You should see two rows: `TR-40417` and `TR-40471`. If the flag differs, `bun run cli help transformer find` shows it.
+
+## 3. Quotes
+
+**Goal:** quotes, and the rule that a discount above 10 percent needs a supervisor. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -124,14 +124,16 @@ Add a supervisor role that may do what desk members do. The policy refuses quote
 10 percent with FORBIDDEN unless the caller is a supervisor. A run under an agent definition, whose
 grant names the agent, never sets more than 10 percent, whoever started it. dev.ts adds the member
 mara as a supervisor. Write behavioral tests for a part that does not fit, 10 percent allowed and
-12 percent refused for desk, 12 percent allowed for a supervisor, a submitted quote that cannot
-be discounted, and the inquiry set to quoted. Run the checks the add-capability skill names and
+12 percent refused for desk, 12 percent allowed for a supervisor, a submitted quote that refuses
+a discount, and the inquiry set to quoted. Run the checks the add-capability skill names and
 report what passed.
 ```
 
-## Desk screens
+**Check:** the standard check. The new tests cover 10 percent allowed and 12 percent refused for desk, and 12 percent allowed for a supervisor.
 
-Skill: `build-screens`. The step replaces the default screens with the screens the desk works on during a call.
+## 4. Desk screens
+
+**Goal:** the screens the desk uses during a call. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/parts-desk, replace the default list and record
@@ -166,9 +168,11 @@ set 8 percent, create the draft and submit it. Run the checks the build-screens 
 report what passed.
 ```
 
-## Capability descriptions
+**Check:** the standard check and Playwright. Open `TR-40417` in the browser: you see the assembly cards with parts and stock badges.
 
-Skill: `add-capability`. A model chooses a tool by its description and fills its input by the property descriptions, so the step writes them for a model.
+## 5. Capability descriptions
+
+**Goal:** descriptions a model can pick tools by. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. In showcase/examples/parts-desk, rewrite the description of every
@@ -182,9 +186,11 @@ Add a test that every capability and every input property of the application has
 Run the checks the add-capability skill names and report what passed.
 ```
 
-## Assistant agent
+**Check:** the standard check, including the new test that every capability and input property has a description.
 
-Skill: `add-capability`, at its agent definition step. The step defines the assistant as a direct agent that also requests approval for two commands.
+## 6. Assistant agent
+
+**Goal:** define the assistant and what it may do. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -213,9 +219,11 @@ approval.request and not quote.cancel. Run the checks the add-capability skill n
 what passed.
 ```
 
-## Local model
+**Check:** the standard check. The grant test shows `approval.request` and no `quote.cancel`.
 
-Skill: `serve-a-local-model`. The step serves the assistant from a model on the desk's own machine. A stand-in for llama-server plays the model in tests and in the development launch, so later steps can drive the panel without weights.
+## 7. Local model
+
+**Goal:** serve the assistant from a model on the desk's own machine. Tests use a stand-in for `llama-server`, so you need no weights until step 12. **Skill:** `serve-a-local-model`.
 
 ```text
 Use the serve-a-local-model skill. In showcase/examples/parts-desk, serve the assistant from a
@@ -243,9 +251,11 @@ runs on the model server's harness, and that the stand-in's run for TR-40417 cal
 transformer.find. Run the checks the serve-a-local-model skill names and report what passed.
 ```
 
-## Assistant panel
+**Check:** the standard check. `bun run --cwd showcase/examples/parts-desk dev:web` prints which model server runs (the stand-in by default).
 
-Skill: `build-screens`, at its panel step. The step docks the assistant beside every screen. Each turn is a run in one conversation, and the panel draws the run's events.
+## 8. Assistant panel
+
+**Goal:** the chat panel docked beside every screen. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/parts-desk, add the assistant panel as the
@@ -264,7 +274,7 @@ classes.
   run's text events left-aligned on muted, with the time.
 - Calls: each tool-start and tool-finish pair is a compact chip with the capability's title from
   the catalog, an icon for a query or a command, a spinner while it runs, a check in success when
-  it finishes, and the refusal code in destructive when it is refused. Each record in the
+  it finishes, and the refusal code in destructive when the host refuses it. Each record in the
   tool-finish resources of a command is a link that opens its screen. A query's finish names no
   records, so a transformer serial or quote number in the assistant's text is a link too.
 - Questions: while the run awaits a question, a card shows it with a button per choice, or a text
@@ -279,15 +289,17 @@ classes.
 Style: only the starter's color tokens, light and dark, compact type, subtle borders, no
 gradients or hero blocks. Add a Playwright spec against the stand-in model; the spec runs under
 Node, so a Bun script prepares the workspace, the deployment policy and the model's environment.
-The first message may be refused while the model server starts, so the spec sends it again. Ask for
+The host refuses the first message while the model server is still starting, so the spec sends it again. Ask for
 TR-40417 and see the transformer.find chip link to it; ask for TR-404 and answer the question
 with TR-40471; ask for 15 percent off a draft and see the approval card. Run the checks the
 build-screens skill names and report what passed.
 ```
 
-## Screen context
+**Check:** the standard check and Playwright. In the browser, ask "TR-404": the assistant asks which transformer you mean.
 
-Skill: `build-screens`. The step lets the assistant see what the person sees, so "this transformer" means the one on the screen.
+## 9. Screen context
+
+**Goal:** "this transformer" means the one on the screen. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/parts-desk, let each screen publish the record
@@ -303,9 +315,11 @@ check through GET /api/v1/runs that the run's UI context names the transformer. 
 the build-screens skill names and report what passed.
 ```
 
-## UI intents
+**Check:** the standard check and Playwright. On `TR-40417`, the panel header shows `TR-40417 · Northgrid Energy` and suggests requests about it.
 
-Skill: `build-screens`, at its UI intent step. The step lets a run open screens and fill the quote form. The person creates the quote.
+## 10. UI intents
+
+**Goal:** the assistant opens screens and fills the quote form; the person creates the quote. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/parts-desk, handle the assistant's UI intents
@@ -314,20 +328,22 @@ quote.create fills the quote builder through usePreparedInput. The builder shows
 the assistant prepared the form, with Discard, and creates nothing until the person clicks
 Create draft. The quote builder is a route of its own, so the panel passes a `prepare` handler that
 navigates to it. Calls to ui.open and ui.prepare show as chips that say what opened or which form
-was filled; a run's events name the call but not its input, so the handlers note what they received.
+they filled; a run's events name the call but not its input, so the handlers note what they received.
 The panel narrows every screen, so lay the screens out by the width of the screen, not of the
 window.
 
 Extend responder.ts: "prepare a quote" for a serial and parts calls transformer.find, part.search
 and ui.prepare on quote.create. Extend the Playwright spec: ask for a quote of two HV bushings for
-TR-40417, see the builder open with the lines, create the draft and check that the quote was
-created by the person, not by the run. Run the checks the build-screens skill names and report
+TR-40417, see the builder open with the lines, create the draft and check that the person, not
+the run, created the quote. Run the checks the build-screens skill names and report
 what passed.
 ```
 
-## Scripted scenarios
+**Check:** the standard check and Playwright. Ask for a quote of two HV bushings for TR-40417: the quote builder opens filled in, and the app creates nothing until you click **Create draft**.
 
-Skill: `add-capability`, at its agent scenario step. Scenarios judge what the run committed, requested and refused, not its text.
+## 11. Scripted scenarios
+
+**Goal:** tests that judge what the assistant committed and requested and which calls the policy refused, without a model. **Skill:** `add-capability`.
 
 ```text
 Use the add-capability skill. In showcase/examples/parts-desk, write the assistant's scripted
@@ -335,12 +351,12 @@ scenarios with runAgentScenarios and the deterministic harness:
 
 - A quote: the run finds TR-40417, searches its bushings, creates a draft quote with two of them
   and sets 5 percent. It commits the quote.
-- A cancellation without approval: the run calls quote.cancel on a submitted quote and is refused
-  with FORBIDDEN; nothing commits and the quote stays submitted.
+- A cancellation without approval: the run calls quote.cancel on a submitted quote and gets
+  FORBIDDEN; nothing commits and the quote stays submitted.
 - A cancellation with approval: the run requests approval for quote.cancel with a rationale. It
-  commits nothing; a supervisor approves, and the quote is cancelled as the supervisor.
-- A discount above the limit: quote.discount at 15 percent is refused, and approval.request for
-  it is accepted.
+  commits nothing; a supervisor approves, and the cancellation runs as the supervisor.
+- A discount above the limit: the policy refuses quote.discount at 15 percent and accepts
+  approval.request for it.
 - A clarifying question: for TR-404 the run asks which transformer and gets the answer TR-40471,
   then searches that transformer's parts. The scenario expects one question.
 
@@ -350,9 +366,11 @@ discount are two scenarios. Put them in test/agent-scenarios.test.ts. Run the ch
 add-capability skill names and report what passed.
 ```
 
-## Live run
+**Check:** `bun test showcase/examples/parts-desk/test/agent-scenarios.test.ts` shows five passing scenarios.
 
-Skill: `serve-a-local-model`. The step holds one conversation with a real model in the panel and adds an opt-in test for it.
+## 12. Live run
+
+**Goal:** one real conversation with a local model. **Skill:** `serve-a-local-model`.
 
 ```text
 Use the serve-a-local-model skill. Start showcase/examples/parts-desk with bun run dev:web and
@@ -375,41 +393,28 @@ serve-a-local-model skill names and report what passed. Do not change prompts or
 model succeed; record what it did in the README.
 ```
 
-The service reports its launch link before the weights are measured, and the link works once for a minute, so the script that drives the browser starts the service itself and opens the link at once. A model that cannot do the task fails the opt-in test; the README records which turn and what the model did instead.
+**Check:** the report lists each turn's calls, questions and approvals, with screenshots. A small model may fail some turns; the README records where. When the script drives the browser, open the launch link at once: it works once, for one minute.
 
-## Voice input
+## 13. Voice input
 
-Skill: `build-screens`. The step adds dictation to the composer. The words go into the text area, and the person sends them.
+**Goal:** dictate into the composer; the person still sends. **Skill:** `build-screens`.
 
 ```text
 Use the build-screens skill. In showcase/examples/parts-desk, add a microphone button to the
 assistant composer. It uses the browser's speech recognition only with on-device processing, so
-no audio leaves the machine, and it is hidden when the browser offers no on-device recognition
-for English. While it listens, the button shows a pulsing ring in the primary color and the
-interim words appear in the text area; the person edits and sends them. Extend the Playwright
-spec: the button is hidden when the browser lacks on-device recognition, and with a stubbed
-recognizer the dictated words fill the text area and nothing is sent. Say in the README where
-dictation was checked with a real microphone. Run the checks the build-screens skill names and
+no audio leaves the machine, and it hides when the browser offers no on-device recognition for
+English. While it listens, the button shows a pulsing ring in the primary color and the interim
+words appear in the text area; the person edits and sends them. Extend the Playwright spec: the
+button hides when the browser lacks on-device recognition, and with a stubbed recognizer the
+dictated words fill the text area and the composer sends nothing. Say in the README where
+dictation ran against a real microphone. Run the checks the build-screens skill names and
 report what passed.
 ```
 
-Headless Chromium crashes the page when it calls `SpeechRecognition.available()`, so the earlier specs report recognition as unavailable through a shared `test` in `e2e/desk.ts`. Helpers in `e2e/` are test code and stay out of the boundary scan.
+**Check:** the standard check and Playwright. Headless Chromium crashes on `SpeechRecognition.available()`, so the specs report recognition as unavailable.
 
 ## Limits
 
-- The framework has no chat component. The panel is application code on the run route, the run events and the UI session.
-- The AI SDK and local harnesses keep no history between runs, so the panel sends the earlier turns in each prompt. The host keeps no prompts, so a reload starts a new conversation.
-- A run keeps its last 256 events. The supervisor joins streamed text into pieces of at least 200 characters, so a long reply stays whole.
-- A model asks questions only in a run started with a UI session.
-- The live run depends on the model. The scripted scenarios judge the same behavior without one.
-
-## References
-
-- [Tutorial](tutorial.md)
-- [Agents](agents.md)
-- [Interaction contract](interaction-contract.md)
-- [create-agent-native-app](../packages/scaffold/skills/create-agent-native-app/SKILL.md)
-- [add-capability](../packages/runtime/skills/add-capability/SKILL.md)
-- [build-screens](../packages/frame/skills/build-screens/SKILL.md)
-- [serve-a-local-model](../plugins/model-server/skills/serve-a-local-model/SKILL.md)
-- [check-a-change](../packages/testing/skills/check-a-change/SKILL.md)
+- The framework has no chat component. The panel is app code on the run route, run events and the UI session.
+- Runs keep no history, so the panel sends earlier turns in each prompt. A reload starts a new conversation.
+- A run keeps its last 256 events. A model asks questions only in a run started with a UI session.

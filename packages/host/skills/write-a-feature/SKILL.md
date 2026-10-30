@@ -5,11 +5,11 @@ description: Write a feature, a reusable domain part (approval requests, reconci
 
 # Write a feature
 
-A [feature](../../../../docs/glossary.md#feature) contributes [modules](../../../../docs/glossary.md#module) whose operation IDs start with its ID, a state slice under that ID, handlers and a [policy](../../../../docs/glossary.md#policy). It never reads application state: the [application](../../../../docs/glossary.md#application) mounts it with an access view and hooks. A [host plugin](../../../../docs/glossary.md#host-plugin) is a feature with ports, settings and a lifecycle; follow the `write-host-plugin` skill (`packages/host/skills/write-host-plugin/SKILL.md`) when the part needs those.
+A feature contributes modules whose operation IDs start with its ID, a state slice under that ID, handlers and a policy. It never reads application state: the application mounts it with an access view and hooks. A host plugin is a feature with ports, settings and a lifecycle; follow the `write-host-plugin` skill (`packages/host/skills/write-host-plugin/SKILL.md`) when the part needs those.
 
 ## Before writing
 
-- Domain behavior for one application is a [capability](../../../../docs/glossary.md#capability) in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`).
+- Domain behavior for one application is a capability in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`).
 - Look in [primitives](../../../../docs/primitives.md#feature) for a feature that already covers the part. Work handed to someone who reports back is the `assignment` feature; follow the `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`).
 - Pick the ID once. It is the state key, the `feature:<id>` stamp, the services key and the operation namespace, and journal resources and receipts keep it.
 - `showcase/patterns/review` writes a feature next to the application that mounts it: a four-eyes review whose access view names each record's author, with a panel the application places on its own record screen.
@@ -32,7 +32,7 @@ In an application made by `scaffold new`, `bun run scaffold add feature <id> [--
    - list the manifest in `defineManifest({ features })`;
    - mount it in `defineApplication({ features: [mountFeature(feature, { access, hooks, adopt })] })` in the same order;
    - add its screens, declared with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, to `defineScreens({ manifest, features })`; the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
-7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), [integration allowlists](../../../../docs/glossary.md#integration-allowlist) and delegated-grant scope. The application policy never sees the feature's operations.
+7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), integration allowlists and delegated-grant scope. The application policy never sees the feature's operations.
 8. Remove any application policy rule for the feature's operations and any event rule for its resource types. Composition refuses both when the application policy is built with `definePolicy`.
 9. When the data lived in application state before, adopt it:
    - add an application migration step to a new version that removes the old fields, without `compatible`;

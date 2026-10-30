@@ -5,12 +5,12 @@ description: Let the operating system reach an agent-native application, or let 
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `showcase/examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `showcase/examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its module. The first kind is an OS handler, the second an OS action. `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. Host plugins serve each kind. `showcase/examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `showcase/examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
 
 ## Before writing
 
 - Treat an OS request as coming from an unauthenticated sender on the device. A handler only opens a resource the caller may read, navigates or prefills a form. It never commits; a person confirms through the form it opens.
-- Give the handler an `open` or `prepare` target, never a [command](../../../../docs/glossary.md#command). A `prepare` target fills a command's form for a person to confirm.
+- Give the handler an `open` or `prepare` target, never a command. A `prepare` target fills a command's form for a person to confirm.
 - Pick the kind and the plugin that serves it. Startup refuses a declared kind that no composed plugin serves.
 
 | Kind | Handler or action | Plugin |
@@ -28,11 +28,11 @@ An application declares what the OS may send it and what it may ask of the OS as
    - An `open` target's kind must be listed in the application's `selectableResources`, with a read query that takes `{ id }`. The host and the mobile shell run that query as the caller before the frame sees the delivery, and drop it when the read fails.
    - The screens map the kind to a screen in `resources` of `defineScreens` or `defineNativeScreens`.
 3. List the serving plugin and `plugins/os` in the application's manifest and application entrypoints. A site turns individual IDs off with the `os-disabled` setting.
-4. For `notify`, write what the [notifications README](../../../../plugins/notifications/README.md#entrypoints) lists under "What the application writes":
+4. For `notify`, write these ([notifications README](../../../../plugins/notifications/README.md)):
    - a notify action over outbox targets with `offline: 'queue'`;
    - a `<target>.effect.complete` command per target. It calls `ctx.completeEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
-5. Declare the data classes an action includes. Notification text leaves the [instance](../../../../docs/glossary.md#instance) for the lock screen.
+5. Declare the data classes an action includes. Notification text leaves the instance for the lock screen.
 6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@agent-native/frame-native/os-actions` on a device.
 7. Write no platform registration by hand. The generators in `@agent-native/shell/registrations` turn the same declarations into platform files:
    - `nativeOsConfig` runs in `bun run mobile:prepare` (`scripts/mobile-entry.ts`) and adds the Expo config plugins for shares, notifications, intent filters and shortcuts;

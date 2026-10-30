@@ -5,25 +5,25 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its synced records and its pending [outbox effects](../../../../docs/glossary.md#effect). A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target).
+The application owns its synced records and its pending outbox effects. A local receipt proves the local commit, not acceptance by the target.
 
 ## Before writing
 
 - Write down the trigger, the record each side owns and who handles an exception.
 - List the outcomes the target can return: accepted, rejected or acknowledged to be decided later.
-- Decide how the target deduplicates: by effect ID (idempotent delivery) or through a lookup the [dispatcher](../../../../docs/glossary.md#dispatcher) calls before every send. With neither, design the [reconciliation](../../../../docs/glossary.md#reconciliation) path before the happy path.
-- Decide whether reads use records copied through [inbound sync](../../../../docs/glossary.md#inbound-sync) or read the system of record when asked through a [remote query](../../../../docs/glossary.md#remote-query). Do not copy a whole system to serve searches.
+- Decide how the target deduplicates: by effect ID (idempotent delivery) or through a lookup the dispatcher calls before every send. With neither, design the reconciliation path before the happy path.
+- Decide whether reads use records copied through inbound sync or read the system of record when asked through a remote query. Do not copy a whole system to serve searches.
 
 ## Steps
 
-1. Declare the target once with `defineTarget` in the browser-safe contracts (`showcase/examples/quality-inspection/contracts/target.ts`). It produces the complete, sync and status capabilities, the [integration principal](../../../../docs/glossary.md#integration-principal)'s grant and its [integration allowlist](../../../../docs/glossary.md#integration-allowlist).
+1. Declare the target once with `defineTarget` in the browser-safe contracts (`showcase/examples/quality-inspection/contracts/target.ts`). It produces the complete, sync and status capabilities, the integration principal's grant and its integration allowlist.
 2. Declare how the application reaches the target:
    - a network destination that reads the target and queues while offline;
    - or, for a system reached through shared folders, the exchange folders with `fileExchange` from `@agent-native/connector-files/contracts`.
 3. Enqueue in commands. A command that forwards a record calls `ctx.enqueue` on a changed resource and declares `integration` on the capability. The record keeps its effect ID and delivery state. Never call the target inside a handler. When an existing command forwards the record, such as a return that sends a repair order, delete the send command and delivery map that `scaffold add target` generated.
 4. Implement the complete and sync handlers with `targetHandlers`. They say how an outcome changes the forwarded record, how a feed item changes local state, and which records a caller may count.
 5. Pass `versions` to `targetHandlers` when the feed can deliver an older version after a newer one.
-6. Implement the [connector](../../../../docs/glossary.md#connector) (`SystemOfRecordPort`) as the only code that talks to the target. It reaches the target through the network port or the folder port. Start from a ready-made port when one fits:
+6. Implement the connector (`SystemOfRecordPort`) as the only code that talks to the target. It reaches the target through the network port or the folder port. Start from a ready-made port when one fits:
    - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `showcase/patterns/system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
    - `fileTargetPort` (`plugins/connector-files`) for a file drop with receipts or an archive, and an inbox of result exports.
 7. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided. For a target whose delivery is not idempotent, the dispatcher calls `lookup` before each redelivery, so a lost reply can be thrown as a transient failure; throw `DeliveryUncertain` when the connector may already have acted and its lookup cannot tell.
@@ -31,7 +31,7 @@ The application owns its synced records and its pending [outbox effects](../../.
 9. Compose reconciliation for held effects. The dispatcher holds an effect whose outcome cannot be established, whose acknowledgement was lost or whose recheck was denied. It polls `acknowledged` effects. Only a domain command moves an effect out of `held`: complete it when the target applied or refused it, release it when it did not.
    - Mount `reconciliationFeature()` from `@agent-native/runtime`: list `reconciliationFeatureManifest` in `defineManifest({ features })` and mount it with `mountFeature` in `application.ts`, as `showcase/examples/receiving/application.ts` does and the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
    - In the access view, `allows(context, action)` applies the application's membership gate and integration allowlists, and `sees(context, effect)` decides which held effects a caller may see and decide.
-   - Add the frame's `reconciliation-review` [UI registry](../../../../docs/glossary.md#ui-registry) item to a screen.
+   - Add the frame's `reconciliation-review` UI registry item to a screen.
    - In the `onResolved` hook, record the outcome on the domain record as the target's `onOutcome` would. It receives the application's handler context last and commits with the decision.
 10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`showcase/examples/winding-line/handlers/attention.ts`).
 11. For live search, declare search and lookup queries with `defineDataProvider` (`showcase/examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. A provider declared `identity: 'service'` reads with the service credential only.

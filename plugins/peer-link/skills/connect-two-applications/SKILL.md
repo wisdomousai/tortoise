@@ -5,7 +5,7 @@ description: Let one agent-native application call another, as its service princ
 
 # Connect two applications
 
-The called application publishes a peer API and serves it with `@agent-native/peer-link`. The calling application declares that application as a [target](../../../../docs/glossary.md#target) and delivers [outbox effects](../../../../docs/glossary.md#effect) to it and reads it through the same plugin. A call either runs as the caller's service [principal](../../../../docs/glossary.md#principal) there, `peer:<id>`, or on behalf of a person, under that person's own [policy](../../../../docs/glossary.md#policy).
+The called application publishes a peer API and serves it with `@agent-native/peer-link`. The calling application declares that application as a target and delivers outbox effects to it and reads it through the same plugin. A call either runs as the caller's service principal there, `peer:<id>`, or on behalf of a person, under that person's own policy.
 
 ## Before writing
 

@@ -1,8 +1,8 @@
 # Patterns
 
-The patterns show how to add a particular capability to a small working application. They share an oil lab at a power-transformer manufacturer: a technician submits a test request for an oil sample, and another technician assigns the test method. The [base application](../showcase/patterns/base/README.md) contains the request records, screens and technician/viewer policy.
+Each pattern adds one capability to a small working application. They share an oil lab at a power-transformer manufacturer: a technician submits a test request for an oil sample, and another assigns the test method. The [base application](../showcase/patterns/base/README.md) has the request records, screens and technician/viewer policy.
 
-Each other pattern imports those parts unchanged and adds one concern. Start with the base to see the work, then choose a pattern for the interaction you want to build. The [examples](architecture.md#examples) are larger applications that combine several concerns around a complete task.
+Each other pattern imports those parts unchanged and adds one concern. Start with the base, then choose a pattern for the interaction you want to build. The [examples](architecture.md#examples) are larger applications that combine several concerns around a complete task.
 
 ## Choose a pattern
 
@@ -23,19 +23,19 @@ Each other pattern imports those parts unchanged and adds one concern. Start wit
 | [Assignments](../showcase/patterns/assignments/README.md) | Send a sampling round and accept a report into a test request. | 4362 |
 | [Worklist](../showcase/patterns/worklist/README.md) | Receive that round in a second application and return reports over a peer link. | 4363 |
 
-Each page explains its setup, the work a person can try, the source files, checks and limits. The [primitives reference](primitives.md) maps the framework's building blocks to their implementations; the [overview](overview.md#layers-and-dependencies) shows workspace dependencies.
+Each page explains setup, work to try, source files, checks and limits. The [primitives reference](primitives.md) maps building blocks to implementations; the [overview](overview.md#layers) shows workspace dependencies.
 
 ## How an extension uses the base
 
-The base defines its request contract in `showcase/patterns/base/contracts.ts`, its state and handlers in `domain.ts` and `handlers.ts`, and access in `policy.ts`. The screens live in `ui/requests.tsx`.
+The base defines its request contract in `showcase/patterns/base/contracts.ts`, state and handlers in `domain.ts` and `handlers.ts`, and access in `policy.ts`. Screens live in `ui/requests.tsx`.
 
-An extension composes those parts in its own entrypoints:
+An extension composes those parts in its entrypoints:
 
 1. The manifest includes the base module and the extension's module, feature or plugin manifest.
-2. The server mounts the base handlers on the `testRequests` slice and routes each module to its policy. An extension that needs lab membership can supply an access view over the application state.
-3. The screens reuse the base routes and navigation. An extension can add a section to the request screen without editing the base.
+2. The server mounts the base handlers on the `testRequests` slice and routes each module to its policy. An extension needing lab membership supplies an access view over the application state.
+3. Screens reuse the base routes and navigation. An extension adds a section to the request screen without editing the base.
 
-The [review pattern](../showcase/patterns/review/README.md) is a small example: the review feature owns signatures, while the lab supplies the access view that identifies the request's author and the technicians who can review it.
+The [review pattern](../showcase/patterns/review/README.md) is a small example: the review feature owns signatures, and the lab supplies the access view identifying the request's author and the technicians who review it.
 
 ## Run and check
 
@@ -51,6 +51,6 @@ bun test showcase/patterns/agents
 bun test showcase/patterns
 ```
 
-Development launches that need an outside system generally start a stand-in: for example, `system-of-record` starts a fake LIMS, `signals` starts fake plant endpoints and `operations` can start a collector stand-in. The relevant README names the setup and how to trigger a failure. The `hosted` pattern instead needs Postgres and a trusted local certificate for its browser sign-in; `sandbox` requires Linux with bubblewrap for the confined-tool path.
+Patterns that need an outside system start a stand-in: `system-of-record` starts a fake LIMS, `signals` starts fake plant endpoints, `operations` starts a collector stand-in. Each README names the setup and how to trigger a failure. `hosted` needs Postgres and a trusted local certificate for its browser sign-in; `sandbox` requires Linux with bubblewrap for the confined-tool path.
 
-The pattern tests and the two Playwright suites for `assignments` and `worklist` do not establish a live provider, real plant, production fleet or device run. [Implementation status](implementation-status.md) records those separate kinds of evidence and known gaps.
+Pattern tests and the Playwright suites for `assignments` and `worklist` do not establish a live provider, real plant, production fleet or device run. [Implementation status](implementation-status.md) records those kinds of evidence and known gaps.

@@ -1,30 +1,20 @@
 # Count activity with a host plugin
 
-The oil lab wants to know how many test requests were submitted or changed. This pattern adds an `activity` [host plugin](../../../docs/primitives.md#host-plugin) to the [base desk](../base/README.md). The plugin reads committed journal entries and shows counts by operation on its own screen.
-
-## Try the counter
-
-From the repository root:
+The oil lab wants to know how many test requests technicians submitted or changed. This pattern adds an `activity` host plugin to the [base lab desk](../base/README.md): it reads the committed journal under a delegated grant, records each pass with its own `activity.pass.record` command, and shows counts by operation on its own screen, without touching the lab's module. A cursor stored with the counts keeps a pass replayed after a crash from counting twice.
 
 ```sh
 cd showcase/patterns/host-plugin
 bun run dev:web
 ```
 
-Submit and update a request, then open **Activity**. The serving host runs the counting loop. By default the plugin counts every application module except its own; `AGENT_NATIVE_ACTIVITY_MODULES` narrows the set. Startup refuses a module name the application does not compose.
+## What to try
 
-## How the plugin counts
+- Submit and update a request (port 4353), then open **Activity**.
+- Set `AGENT_NATIVE_ACTIVITY_MODULES` to narrow the counted modules; startup refuses a module the application does not compose.
+- Read the summary as a viewer: only the owner may, and the counts hold operation names, never sample descriptions or principals.
 
-The loop reads the journal under a delegated grant and records each pass with its own `activity.pass.record` command. The plugin stores a cursor with the counts, so replaying a pass after a crash does not count the same entries twice. Journal entries already removed by retention before the loop reads them cannot be counted.
+## References
 
-The plugin's policy decides only its `activity.*` operations and slice. Summary readers start with the workspace owner; an ordinary lab viewer cannot read the counter. Counts contain operation names, not sample descriptions or principals.
-
-The plugin lives in [`plugins/activity`](plugins/activity); [`counting.ts`](plugins/activity/counting.ts) reads the journal, and [`plugin.ts`](plugins/activity/plugin.ts) supplies the lifecycle hooks. Unlike the [webhook plugin](../../../plugins/webhook/README.md), this plugin needs no network destination.
-
-## Checks
-
-```sh
-bun test showcase/patterns/host-plugin
-```
-
-The activity tests cover startup refusal, cursor recovery, duplicate passes and access to the summary. The [host-plugin guide](../../../packages/host/skills/write-host-plugin/SKILL.md) explains how to build a plugin for another application.
+- [write-host-plugin](../../../packages/host/skills/write-host-plugin/SKILL.md)
+- [Webhook plugin](../../../plugins/webhook/README.md)
+- `bun test showcase/patterns/host-plugin`

@@ -5,7 +5,7 @@ description: Hand work to a person, an agent, a paired device, a peer applicatio
 
 # Assign work
 
-An [assignment](../../../../docs/glossary.md#assignment) sends a [brief](../../../../docs/glossary.md#brief) to an [assignee](../../../../docs/glossary.md#assignee), and the assignee sends [reports](../../../../docs/glossary.md#assignment-report) back. The `assignment` [feature](../../../../docs/glossary.md#feature) generates the operations from [assignment kinds](../../../../docs/glossary.md#assignment-kind); the application supplies the access view, the hooks and the screens. An application that takes work from another keeps a [worklist](../../../../docs/glossary.md#worklist).
+An assignment sends a brief to an assignee, and the assignee sends reports back. The `assignment` feature generates the operations from assignment kinds; the application supplies the access view, the hooks and the screens. An application that takes work from another keeps a worklist.
 
 ## Before writing
 

@@ -5,11 +5,11 @@ description: Write a host plugin in plugins/<name> for a cross-cutting concern (
 
 # Write a host plugin
 
-A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../../../docs/glossary.md#feature) with settings, lifecycle hooks and ports: it adds [modules](../../../../docs/glossary.md#module), a state slice, a [policy](../../../../docs/glossary.md#policy) and connections like a feature, and reaches the [host](../../../../docs/glossary.md#host) through its ports. An [application](../../../../docs/glossary.md#application) lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one.
+A host plugin is a feature with settings, lifecycle hooks and ports: it adds modules, a state slice, a policy and connections like a feature, and reaches the host through its ports. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one.
 
 ## Before writing
 
-- Decide whether the concern is a plugin. Domain behavior for one application is a [capability](../../../../docs/glossary.md#capability) in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). A reusable domain part that needs no port, setting or lifecycle hook, and reads the application through an access view, is a feature; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`).
+- Decide whether the concern is a plugin. Domain behavior for one application is a capability in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). A reusable domain part that needs no port, setting or lifecycle hook, and reads the application through an access view, is a feature; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`).
 - Put generic host or frame behavior that every application needs in the framework packages.
 - `showcase/patterns/host-plugin/plugins/activity` is a plugin with no network, device or process, written next to the application that composes it.
 - Look in `plugins/*` and in [primitives](../../../../docs/primitives.md#host-plugin) for a plugin that already covers the concern.
@@ -19,12 +19,12 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 
 1. Create `plugins/<name>` with a `package.json` named `@agent-native/<name>`.
 2. Document what the plugin does, what it trusts and how to test it in its README.
-3. Declare the browser-safe `plugin-manifest` entrypoint with `definePluginManifest`. List its modules and the settings it claims. Every operation ID starts with the plugin's ID; `namespace` names another prefix only for operation IDs that are already a wire protocol. Put its [requirement declarations](../../../../docs/glossary.md#requirement-declaration) in `components`: destinations, exchange folders, devices and child processes. Startup refuses a setting that no composed plugin claims.
+3. Declare the browser-safe `plugin-manifest` entrypoint with `definePluginManifest`. List its modules and the settings it claims. Every operation ID starts with the plugin's ID; `namespace` names another prefix only for operation IDs that are already a wire protocol. Put its requirement declarations in `components`: destinations, exchange folders, devices and child processes. Startup refuses a setting that no composed plugin claims.
 4. Declare the server `plugin` entrypoint with `defineHostPlugin`: `state.create` for its own slice, its handlers, and an authorization port over its own resource types only. A resource type the application's policy covers, or another unit claims, is refused at composition. Return targets, observers and remote-query sources from `connect`; expose a service from `open`.
 5. List the features and plugins it needs in `requires`.
-6. Implement the lifecycle hooks it needs: `open`, `ready`, `start` and `close`. [Lifecycle](../../../../docs/architecture.md#lifecycle) says when each runs; `open` may refuse startup. In a built binary, `open` also receives `build`, the build time and [best-before date](../../../../docs/glossary.md#best-before-date), for a plugin that reports or checks them.
-7. Reach the network, ingress, identity, processes, exchange folders and the [audit log](../../../../docs/glossary.md#audit-log) only through `HostPorts`. Never reach them through another plugin's imports.
-8. Write from a loop or job only through the plugin's own commands, as a caller under a [delegated grant](../../../../docs/glossary.md#grant). Never write into application state.
+6. Implement the lifecycle hooks it needs: `open`, `ready`, `start` and `close`. [Lifecycle](../../../../docs/architecture.md#lifecycle) says when each runs; `open` may refuse startup. In a built binary, `open` also receives `build`, the build time and best-before date, for a plugin that reports or checks them.
+7. Reach the network, ingress, identity, processes, exchange folders and the audit log only through `HostPorts`. Never reach them through another plugin's imports.
+8. Write from a loop or job only through the plugin's own commands, as a caller under a delegated grant. Never write into application state.
 9. For a plugin that issues its own credentials, as the device link and the peer link do:
    - pair by a one-use code with `@agent-native/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
    - serve the code exchange from `publicRoute`, which runs before the session check;
@@ -51,7 +51,7 @@ Test the plugin through a fixture application in its own `test/`, never through 
 
 - startup refusal for bad settings;
 - the port refusing when no plugin provides it;
-- a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario) through `directDriver`.
+- a behavioral scenario through `directDriver`.
 
 Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`).
 

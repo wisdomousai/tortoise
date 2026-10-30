@@ -1,160 +1,145 @@
 # Hardware drivers
 
-An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or workstation application.
+A driver is a separate process, in any language, that connects your application to an instrument, a controller or a workstation application. Its actions are outbox effects and its state enters as observations, so capabilities, screens and agents treat it like any other [system of record](systems-of-record.md).
 
-## Driver processes
+## Try it
 
-A driver is an executable in any language that reads and writes lines, such as Python for a serial instrument or C# for a vendor COM server. The [host](glossary.md#host) starts the driver as a child process and speaks a small protocol to it. Each action in the driver's contract is an effect type of an outbox [target](glossary.md#target), and the driver's state enters as [observations](glossary.md#observation). Capabilities, handlers, screens, agents and generators therefore work as they do for any other [system of record](systems-of-record.md).
+From the repo root:
 
-Vendor code never runs inside the host process: no FFI, no native addons and no in-process COM. The reasons:
+```sh
+AGENT_NATIVE_APPLICATION=@agent-native/winding-line bun run --silent cli driver list
+```
 
-- a crash in vendor code would take down the process that holds the workspace;
-- COM automation needs its own single-threaded apartment;
-- a 32-bit COM server cannot load into a 64-bit host;
-- device access often needs another OS user or group.
+You should see:
 
-A station is reached through its screen, or through its automation interface with a driver.
+```text
+station-automation 1.0.0  Station automation
+  process  station-automation-driver (optional)
+  digest   8d0cc0aadd5a5c638154bb2bbbef45c715c65a7c254202c5cdaa0b6ed271ddf9
+  action   recipe.load  convergent, risk operator-present
+```
+
+Then run the drivers end to end against simulated equipment:
+
+```sh
+bun test plugins/connector-driver sdks/driver-python sdks/driver-dotnet
+```
+
+The .NET suite skips itself without `dotnet` on `PATH`; the Python suite needs `python3`.
+
+## Write a driver
+
+1. Write the contract in the application with `defineDriverContract`, and wire the driver and process plugins ([connector-driver README](../plugins/connector-driver/README.md#wiring-an-application)).
+2. Export the contract and generate stubs. For Python:
+
+   ```sh
+   app driver contract <id> --out <id>.json
+   python -m agent_native_driver.stubgen <id>.json -o <id>_contract.py
+   ```
+
+3. Write the driver with the [Python](../sdks/driver-python/README.md) or [.NET](../sdks/driver-dotnet/README.md) SDK: a handshake handler that opens the equipment, a state reader, and one handler per action.
+4. Check it against the contract. This never sends `action.invoke`, so it is safe on live equipment:
+
+   ```sh
+   app driver check <id> -- <absolute executable>
+   ```
+
+5. Build one self-contained executable (PyInstaller, Nuitka, or a .NET single-file build; `win-x86` for a 32-bit COM server).
+6. Bind its path and hash in the deployment policy ([Process binding](#process-binding)). `app driver list` prints the process ID and digest to bind.
+
+In a checkout, `app driver` is `bun run --silent cli driver` with `AGENT_NATIVE_APPLICATION` set. The [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) skill covers these steps for Claude Code or Codex.
+
+## Why a separate process
+
+Vendor code never runs in the host: no FFI, native addons or in-process COM. A vendor crash would kill the process holding the workspace, COM needs its own apartment, a 32-bit COM server can't load into a 64-bit host, and devices often need another OS user.
 
 ## Process binding
 
-The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration). The declaration names the target after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. It gets no `PATH` or `PYTHONPATH`, and the policy may not set them, so a driver takes the programs it runs as absolute paths in the binding's environment. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
+The driver plugin's manifest declares each driver process as a requirement. The [deployment policy](security-and-compliance.md#deployment-policy) binds it to an absolute executable with fixed arguments and environment, and optionally its hash.
 
-## Protocol
-
-The host and the driver exchange JSON-RPC 2.0 messages, one per line, over the driver's standard input and output. A line longer than 1,048,576 characters is dropped and reported as malformed, so a driver that never ends a line cannot grow the host's memory. The host drains the driver's standard error and never shows it.
-
-| Method | Sent by | Request | Response |
-| --- | --- | --- | --- |
-| `initialize` | host | Protocol version, expected contract digest, host configuration and bridge mode | Driver ID and version, the digest, a session ID and its units |
-| `state.read` | host | Field names | Values, optional confidence per field, and the read time |
-| `action.invoke` | host | Action, input, effect ID, deadline and bridge mode | The equipment's reference for what it did, and an optional result |
-| `action.lookup` | host | Effect ID | The recorded outcome, `unknown` or `uncertain` |
-| `$/cancel` | host | The ID of the request to cancel | None |
-| `event` | driver | Session, sequence number, name, payload, time and unit | None, because it is a notification |
-| `health` | host | Nothing, at a configured interval | Liveness; a failed check stops the driver |
-| `shutdown` | host | Nothing | An orderly stop before the host kills the process tree |
-
-A unit is the serial number, firmware and model the driver reports. A new session ID means the driver restarted, and the host reports a gap in the event sequence.
-
-## Failure kinds
-
-A driver error includes a kind, which decides what happens to the [outbox effect](glossary.md#effect). An error without a kind counts as `transient`.
-
-| Kind | Meaning | Outcome for the effect |
-| --- | --- | --- |
-| `rejected` | The equipment refused, and retrying will not help. | Completed as a business rejection with the driver's code. |
-| `precondition` | The equipment is not in a state to do it now. | Completed as a business rejection. |
-| `transient` | Nothing was done, and a retry may succeed. | Retried with backoff. |
-| `uncertain` | The equipment may have acted. | Held for a person to reconcile. |
-| `refused` | The bridge mode or the driver's own rules forbid the action. | Retried, so the effect waits until the mode or the rules allow the action. |
-
-An action in flight when the driver exits, times out or is cancelled fails transiently, as does a malformed response. Before the [dispatcher](glossary.md#dispatcher) sends that effect again, the action's delivery mode decides whether the earlier attempt took effect.
+- The child gets no inherited environment, no `PATH` and no `PYTHONPATH`; give it absolute paths in the binding's environment.
+- Closing the driver kills its whole process tree.
+- A required driver with no binding stops startup; an optional one stays unavailable.
 
 ## Driver contract
 
-A driver contract is browser-safe data written with `defineDriverContract` in the application. It declares:
+`defineDriverContract` declares:
 
-- state fields, with type, options, decimals, unit, minimum confidence and the number of agreeing reads that make a value stable;
-- actions, each with an input schema, a delivery mode, a risk level, a timeout, and optionally preconditions and a readback on state;
-- events, each with a kind (telemetry, occurrence or progress) and a maximum rate;
-- the `control` field that shows when the operator works the equipment locally;
+- state fields: type, unit, decimals, minimum confidence, and how many agreeing reads make a value stable;
+- actions: input schema, [delivery mode](#delivery-modes), risk level, timeout, optional preconditions and readback;
+- events: kind (telemetry, occurrence, progress) and maximum rate;
+- the `control` field that shows local operation;
 - whether the driver supports lookups;
-- the process the driver runs as, with its devices and network destinations.
+- the process, with its devices and network destinations.
 
-A convergent action needs a readback, and a `once` action needs a driver with lookup.
-
-`app driver contract <id>` writes the contract document and its digest as JSON. The digest is the SHA-256 of the document's canonical JSON. The SDK stub generators recompute the digest, refuse a file that does not match, and write the digest into the driver. The handshake refuses a driver that replies with another digest, so a driver built against an older contract does not run.
+The digest is the SHA-256 of the contract's canonical JSON. Stub generators write it into the driver, and the handshake refuses a driver with a different digest.
 
 ### Delivery modes
 
-- **`idempotent`:** the driver deduplicates by effect ID, so a resend is safe.
-- **`convergent`:** the host reads the readback first and accepts without acting when it already holds. After acting, it accepts once the readback holds across the fields' stable reads.
-- **`once`:** the driver records each effect in a journal before acting and responds to `action.lookup` from it. After a lost reply, the dispatcher asks before sending again.
+| Mode | Safe resend because | After a lost reply |
+| --- | --- | --- |
+| `idempotent` | The driver deduplicates by effect ID. | Resend. |
+| `convergent` | The host checks the readback first and skips the action if it already holds. Needs a readback. | Read back: accept if it holds, otherwise [hold](systems-of-record.md#held-effects) unless the action surely never ran. |
+| `once` | The driver journals each effect before acting. Needs lookup. | Ask with `action.lookup`; a started effect with no outcome returns `uncertain`, and the dispatcher holds it. |
 
-After a lost reply to a convergent action, the host reads back. It accepts a result the equipment shows, and otherwise holds the effect unless it knows it never acted. A person who [reconciles](glossary.md#reconciliation) a held convergent effect as not applied releases it, and the next delivery acts again.
+Reconciling a held convergent effect as not applied lets the next delivery act again.
 
-A lookup of a `once` journal entry that started and has no outcome returns `uncertain`, which holds the effect.
+## Protocol
+
+JSON-RPC 2.0, one message per line on stdin and stdout. The host drops lines over 1,048,576 characters as malformed, and drains stderr without showing it.
+
+| Method | From | Purpose |
+| --- | --- | --- |
+| `initialize` | host | Check protocol and contract digest; driver returns session ID and units (serial, firmware, model). |
+| `state.read` | host | Read fields, with optional confidence. |
+| `action.invoke` | host | Run an action with effect ID, deadline and bridge mode. |
+| `action.lookup` | host | Ask what happened to an effect. |
+| `$/cancel` | host | Cancel a request. |
+| `event` | driver | Notification with session and sequence number. A new session ID means a restart. |
+| `health` | host | Liveness; a failure stops the driver. |
+| `shutdown` | host | Orderly stop before the host kills the process tree. |
+
+### Failure kinds
+
+| Kind | Meaning | Effect outcome |
+| --- | --- | --- |
+| `rejected` | Equipment refused for good. | Business rejection with the driver's code. |
+| `precondition` | Not in a state to do it now. | Business rejection. |
+| `transient` (default) | Nothing done. | The dispatcher retries with backoff. |
+| `uncertain` | May have acted. | The dispatcher holds it for a person. |
+| `refused` | Bridge mode or driver rules forbid it. | Waits until the mode allows it. |
+
+A crash, timeout, cancel or malformed reply mid-action is transient; the delivery mode decides what happens before the resend.
 
 ## Interlock
 
-Driver actions pass the same interlock as the screen bridge's procedures. The connector checks each effect in this order:
+Driver actions pass the same interlock as [screen procedures](operator-workstations.md#interlock). For each effect the connector:
 
-1. It rejects an unknown action, invalid input, or an `operator-present` action whose input lacks a confirmation that a person is at the machine.
-2. The [bridge mode](glossary.md#bridge-mode) must allow the risk level: `monitor-only` refuses every action, `assist` allows only `none`, and `actuate` allows all. Otherwise the effect waits.
-3. It accepts without acting when the readback already holds.
-4. While the `control` field shows local control, it sends nothing, and the effect waits.
-5. Unmet preconditions reject the effect, and preconditions it cannot read with confidence make the effect wait.
+1. rejects an unknown action, invalid input, or an `operator-present` action without presence confirmation;
+2. waits unless the bridge mode allows the risk level (`monitor-only` none, `assist` only `none`, `actuate` all);
+3. accepts without acting if the readback already holds;
+4. waits while `control` shows local operation;
+5. rejects on unmet preconditions and waits on unreadable ones.
 
-The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `showcase/examples/winding-line` refuses while the operator holds [control](glossary.md#control-holder) of the station.
+The application's control query supplies the mode and may refuse for its own reasons; `winding-line` refuses while the operator holds control. Drivers start in `monitor-only`, and the SDKs re-check mode, presence, deadline and once-per-effect inside the driver. A handler exception other than a refusal reads as `uncertain`.
 
-A driver starts in `monitor-only` at its handshake. Every `action.invoke` includes the mode, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
+## Timing
 
-## Timing and rates
-
-The framework is not real-time. Timing-critical loops stay in the driver or the controller below it: closed-loop control, motion profiles, anything under a second. To the framework such a routine is one action. An interrupted run is held unless its delivery mode can show the outcome. Supervisory sequences, with steps of seconds or longer and operator checkpoints, are separate actions that the dispatcher sends one at a time.
-
-Every committed observation is a command, with a row write, a receipt and a journal entry. The observer submits a state value only after it is debounced, and resends unchanged content once per heartbeat window. The SDKs drop events above their declared rate before they get a sequence number, so the host sees no gap. High-rate data stays in the driver or goes to a historian.
-
-## Driver SDKs
-
-The [Python SDK](../sdks/driver-python/README.md) and the [.NET SDK](../sdks/driver-dotnet/README.md) implement the protocol, and the driver author writes the handlers that touch the equipment. Both enforce the same rules:
-
-- **Mode:** the bridge mode and the presence confirmation are checked before a handler runs.
-- **Deadline:** an expired action is refused as transient without running.
-- **Once per effect:** an `idempotent` or `once` action runs at most once per effect ID. A contract with `once` actions needs a journal on disk.
-- **Failures:** a handler that raises anything other than a refusal reads as `uncertain`.
-
-The reference contract is a test chamber in the plugin's `testing` entrypoint, with one action per delivery mode, a door precondition and local control. Each SDK ships a simulated chamber written against it. The SDK's host test runs the driver check and the shared connector conformance suite against that chamber as a real child process. The suite runs once per delivery mode and includes a driver crash after acting.
-
-## Driver authoring and deployment
-
-1. Write the contract in the application, and wire the driver and process plugins as the [connector-driver README](../plugins/connector-driver/README.md#wiring-an-application) describes.
-2. Write the contract file, and generate stubs from it with the SDK's generator.
-3. Write the driver with the SDK: a handshake handler that opens the equipment and names its units, a state reader, and a handler per action.
-4. Check the driver against its contract. The check never sends `action.invoke`, so it is safe against connected equipment.
-5. Build a self-contained executable with PyInstaller or Nuitka, or as a .NET single-file build. Use `win-x86` for a 32-bit COM server.
-6. Bind the executable's path and hash in the deployment policy.
-
-The commands for steps 2, 4 and 6:
-
-```sh
-app driver contract <id> --out <id>.json
-app driver check <id> -- <absolute executable>
-app driver list
-```
-
-`app driver list` prints each process ID and contract digest to bind. In a checkout, run `bun run cli driver` instead.
+The framework is not real-time. Keep loops under a second, motion and closed-loop control in the driver or controller; to the framework they are one action. Every committed observation is a command, so the observer submits values only once stable and repeats unchanged ones once per heartbeat. SDKs drop events above the declared rate before numbering them. Send high-rate data to a historian.
 
 ## Examples
 
-### Measuring instrument
-
-`showcase/examples/quality-inspection` observes only. A Python driver reads a gauge or balance over its serial data output, and its contract has no actions. Each stable reading becomes an instrument reading through an ingest command. The inspector records it as a result with **Use reading**. The tests run the real serial code over a pseudo-terminal pair.
-
-### Station automation
-
-`showcase/examples/winding-line` actuates. A .NET driver reaches the workstation application through its COM automation server instead of its screen. Its contract reports the screen profile's fields. It loads recipes as a convergent `operator-present` action, with the screen procedure's precondition and readback. The domain is the same on both routes, and each station is configured on one route. A simulated station stands in for the COM server in the tests and the demo.
+- **Measuring instrument** (`showcase/examples/quality-inspection`): a Python driver reads a gauge over serial; no actions. Each stable reading becomes an instrument reading; the inspector clicks **Use reading**. Tests run the real serial code over a pseudo-terminal pair.
+- **Station automation** (`showcase/examples/winding-line`): a .NET driver loads recipes through the vendor COM server as a convergent `operator-present` action, the same domain as the [screen route](operator-workstations.md#automation-route). A simulated station replaces COM in tests and the demo.
 
 ## Limits
 
-- **Safety:** drivers never operate safety functions. Machine guarding and safety stay with the machine and its builder, and nothing here is safety-rated.
-- **Child-process network:** the proxy environment confines HTTP and HTTPS clients only. Raw sockets that a driver opens itself, for Modbus TCP or OPC UA, are contained only by the exported OS rules; a TypeScript adapter can use the network port instead.
-- **Secrets:** a process that declares secrets needs a platform secret store. The Bun platform has none, so such a driver is unavailable there.
-- **Signing:** driver executables are pinned by hash only. A site bundle does not include the executables. The executables get no signature and no staged activation.
+- Drivers never operate safety functions; nothing here is safety-rated.
+- The proxy confines only HTTP and HTTPS. Only the exported OS rules confine raw sockets (Modbus TCP, OPC UA).
+- A driver that declares secrets needs a platform secret store; the Bun platform has none.
+- The policy pins executables by hash; nothing signs them, and site bundles leave them out.
+- Not built: remote drivers over mTLS, a non-journaled fast reading stream, remote queries over driver state, Android in-process drivers, a C++ SDK.
 
-Not built:
+## See also
 
-- a remote transport, for a driver on another machine over an mTLS socket;
-- a live, non-journaled reading stream for fast gauges;
-- remote queries over driver state;
-- in-process drivers on Android as Expo native modules;
-- a C++ SDK.
-
-## References
-
-- [Operator workstations](operator-workstations.md)
-- [Systems of record](systems-of-record.md)
-- [Security and compliance](security-and-compliance.md)
-- [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
-- [Connector-driver plugin](../plugins/connector-driver/README.md)
-- [Process plugin](../plugins/process/README.md)
+[Operator workstations](operator-workstations.md) · [Security and compliance](security-and-compliance.md) · [Process plugin](../plugins/process/README.md)

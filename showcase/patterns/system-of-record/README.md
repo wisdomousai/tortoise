@@ -1,37 +1,22 @@
 # Publish a lab request to a LIMS
 
-A technician registers an oil-test request with an enterprise LIMS. The lab desk records the publication locally, then sends it to the LIMS, which can accept, reject or hold it for review. The LIMS change feed also brings requests registered at other sites into the desk.
-
-## Try the fake LIMS
-
-From the repository root:
+The company's LIMS, its laboratory information management system, keeps the authoritative record of every test request. This pattern adds publication to the [base lab desk](../base/README.md): `publication.publish` commits the pending publication and an outbox effect together, and the HTTP connector then sends the effect ID as the LIMS idempotency key. A `201` accepts, a `422` rejects with a business reason such as `NO_METHOD`, and a `202` leaves the publication pending while the dispatcher looks up the decision; a pending request the LIMS later cannot find goes on hold for a technician to reconcile. Without a bound destination, publications stay queued.
 
 ```sh
 cd showcase/patterns/system-of-record
 bun run dev:web
 ```
 
-The development launch starts a fake LIMS on `127.0.0.1:4371`. Create a request, assign a test method and publish it. The publication screen shows the LIMS outcome. The fake LIMS offers controls for a review queue, approval, lost requests and external registrations; the commands below act as its staff:
+## What to try
 
-```sh
-curl -X POST localhost:4371/control/review -d '{"on":true}'
-curl -X POST localhost:4371/control/approve -d '{"key":"<effect id>"}'
-curl -X POST localhost:4371/control/forget -d '{"key":"<effect id>"}'
-curl -X POST localhost:4371/control/register -d '{"sample":"OS-24-2001","transformer":"TR-38822","description":"Acidity of aged oil","method":"IEC 62021-1"}'
-```
+- Create a request (port 4351), assign a method and publish it; the publication screen shows the LIMS outcome.
+- Act as LIMS staff against the fake on `127.0.0.1:4371`: `curl -X POST localhost:4371/control/review -d '{"on":true}'` turns on the review queue, `/control/approve -d '{"key":"<effect id>"}'` approves a held publication, `/control/forget` loses one.
+- `curl -X POST localhost:4371/control/register -d '{"sample":"OS-24-2001","transformer":"TR-38822","description":"Acidity of aged oil","method":"IEC 62021-1"}'` registers a request at another site, and the feed imports it.
+- The `lims-integration` principal completes and syncs the target's operations but cannot publish or submit requests.
 
-## From publication to outcome
+## References
 
-`publication.publish` commits the pending publication and an [outbox effect](../../../docs/primitives.md#outbox-effect) together. After commit, the HTTP connector sends the effect ID as the LIMS idempotency key. A `201` response accepts the publication with a LIMS ID; `422` rejects it with a business reason such as `NO_METHOD`. A `202` response stays pending while the dispatcher looks up the decision. If the LIMS later cannot find a pending request, the effect is held for a technician to reconcile.
-
-The connector reaches only the destination bound by the site policy. Without a binding, publications remain queued. The development policy binds a loopback fake over HTTP; a real deployment needs an appropriate site or internet HTTPS declaration and its own connector validation. The `lims-integration` principal can complete and sync target operations but cannot publish or submit requests.
-
-## Code and checks
-
-[`handlers.ts`](handlers.ts) records publications and outcomes; [`lims-port.ts`](lims-port.ts) builds the REST connector; [`fake-lims.ts`](fake-lims.ts) implements the demo LIMS.
-
-```sh
-bun test showcase/patterns/system-of-record
-```
-
-The publishing tests cover acceptance, rejection, pending review, reconciliation, inbound sync and a missing destination. They use the fake LIMS, not a live enterprise system.
+- [Systems of record](../../../docs/systems-of-record.md)
+- [connect-system-of-record](../../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [HTTP connector](../../../plugins/connector-http/README.md)
+- `bun test showcase/patterns/system-of-record`

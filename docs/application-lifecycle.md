@@ -1,16 +1,22 @@
 # Application lifecycle
 
-A production build can report a [best-before date](glossary.md#best-before-date) from the application's declared shelf life. The host warns after that date and continues to run commands. A replacement release gets a new date.
+A production build reports a best-before date from the application's declared shelf life. The host warns after that date and continues to run commands. A replacement release gets a new date.
 
-Removal depends on the records still waiting for delivery. Before deleting the data directory, the uninstall command drains the [outbox](glossary.md#outbox) and refuses the purge while effects remain unresolved. Records kept only in the application need a backup before removal.
+Removal depends on records still waiting for delivery. The uninstall command drains the outbox and refuses the purge while effects remain unresolved. Records kept only in the application need a backup before removal.
 
 ## Shelf life and best-before date
 
-The [manifest](glossary.md#manifest) declares the [shelf life](glossary.md#shelf-life) as a whole number of days, and `defineManifest` refuses any other value. An application without one builds releases without a best-before date.
+The manifest declares the shelf life as a whole number of days; `defineManifest` refuses any other value. An application without one builds releases without a best-before date.
 
-A build stamps the time it was made. `scripts/application-entry.ts` writes the entry that `bun run build:cli`, the desktop sidecar build and `bun run bundle create` compile, and the entry stamps the definition with the build time (`packages/kernel/src/build.ts`). A run from source has no stamp and no date. The best-before date is the build date plus the shelf life, in UTC, and it is the last day within the shelf life.
+A build stamps its time. `scripts/application-entry.ts` writes the entry these commands compile:
 
-`bun run bundle create` stamps the binary and the [site bundle](glossary.md#site-bundle) with the same time and signs the date into `bundle.json`. A new release records a new date. A changed date fails verification.
+- `bun run build:cli`
+- the desktop sidecar build
+- `bun run bundle create`
+
+The entry stamps the definition with the build time (`packages/kernel/src/build.ts`). A run from source has no stamp and no date. The best-before date is build date plus shelf life, in UTC — the last day within the shelf life.
+
+`bun run bundle create` stamps the binary and the site bundle with the same time and signs the date into `bundle.json`. A new release records a new date. A changed date fails verification.
 
 The date shows in these places:
 
@@ -24,15 +30,27 @@ The date shows in these places:
 | Compliance posture | The `best-before` check: `pass`, then `warn` from 30 days before the date |
 | Fleet health | The `past-best-before` state |
 
-The posture check reports `info` for a build without a date and never `fail`. Commands keep committing, `app install` admits a bundle past its date, and the service keeps running.
+The posture check reports `info` for a build without a date, never `fail`. Commands keep committing, `app install` admits a bundle past its date, and the service keeps running.
 
 ## What decommissioning removes
 
-An effect waiting in the outbox exists only in the workspace. Once the outbox is empty and every [held effect](systems-of-record.md#held-effects) is decided, the systems of record hold every record a target receives. Records no target receives, the [audit log](glossary.md#audit-log) and the blobs exist only in the data directory, `var/lib/agent-native/<app>` on a site.
+An effect in the outbox exists only in the workspace. Once the outbox is empty and a person has decided every held effect, the systems of record hold every record a target receives.
 
-`app uninstall --purge` runs the installed release's own `drain` before it removes anything. It verifies that release against the keys given with `--trust`, because the binary runs with the installer's rights. The release knows its targets and effect types, which the binary running the uninstall may not. With `--apply` the service stops first, and without it a running service owns the workspace and `drain` refuses.
+What exists only in the data directory (`var/lib/agent-native/<app>` on a site):
 
-`drain` delivers what it can and then counts what remains for each target: pending effects, held effects and effects awaiting the target's decision. While any remain, the purge is refused with `CONFLICT` and the counts in the error details, and every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target completes, and the override.
+- Records that no target receives
+- The audit log
+- The blobs
+
+`app uninstall --purge` runs the installed release's own `drain` before removing anything, verifying that release against the keys given with `--trust` — the binary runs with the installer's rights. The release knows its targets and effect types, which the uninstalling binary may not. With `--apply` the service stops first; without it, a running service owns the workspace and `drain` refuses.
+
+`drain` delivers what it can and then counts what remains for each target:
+
+- Pending effects
+- Held effects
+- Effects awaiting the target's decision
+
+While any remain, the purge fails with `CONFLICT` and the counts in the error details — every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target completes, and the override.
 
 ## Decommissioning procedure
 
@@ -64,7 +82,7 @@ Here `app` stands for the application's CLI and `<app>` for its ID.
 
 A desktop installation keeps its workspace under Electron's `userData` directory. Close the window, run `drain` on that workspace, copy it when retention applies, delete it, and uninstall the application through the OS.
 
-A paired phone hands its records to its hub. Open the application until its records reach the hub, revoke the device on the hub's Devices screen, then uninstall the application. The OS deletes its sandbox with the workspace.
+A paired phone hands its records to its hub. Open the application until its records reach the hub, revoke the device on the hub's Devices screen, then uninstall. The OS deletes the sandbox with the workspace.
 
 A hosted instance delivers while it serves, and its fleet report counts what remains. Stop it once the report shows nothing pending or held, then drop its workspace from the database with the database's own tools.
 

@@ -1,192 +1,118 @@
 # Development and testing
 
-Use these commands to develop the configured application and verify a change. Automated, browser, native and live-provider checks establish different things; report each that ran and any that were skipped.
+The commands to change the framework or an application and prove the change works. When you report a change, say which checks ran and which you skipped.
 
 ## Setup
-
-Install the pinned dependencies:
 
 ```sh
 bun install --frozen-lockfile
 ```
 
-The root `postinstall` links the task skills listed in [AGENTS.md](../AGENTS.md#skills) for coding agents. `bun run skills:link` does the same by hand, after a skill is added or renamed.
+`postinstall` links the task skills from [AGENTS.md](../AGENTS.md#skills) for Claude Code and Codex; rerun `bun run skills:link` after adding or renaming a skill. The starter hosts the application named in `app.config.json`; set `AGENT_NATIVE_APPLICATION` (package name or path) to override it for one launch.
 
-The [starter](glossary.md#starter) hosts the [application](glossary.md#application) that `app.config.json` names. `AGENT_NATIVE_APPLICATION` overrides it for one launch, with a package name or a path.
+## Before you commit
 
-## Check script
+`bun run check` must pass. It runs, in order:
 
-`bun run check` runs these steps in order. A change must pass it.
-
-```sh
-bun run check:format
-bun run typecheck
-bun run check:boundaries
-bun run check:manifests
-bun run check:framework
-bun run check:skills
-bun run check:size
-bun run generate
-bun run check:registry:operator
-bun test
-bun run test:portable
-bun run test:sandbox
-bun run build
-```
-
-- **`check:format`**: a file that Prettier would change. `bun run format` rewrites them, and `.prettierignore` leaves Markdown out.
-- **`typecheck`**: type errors in two TypeScript projects. `tsconfig.json` covers everything with Bun and Node types, and `tsconfig.native.json` covers the React Native sources without them.
-- **`check:boundaries`**: imports across layers, server code reaching browser bundles, and direct network or process APIs outside the reviewed exemptions in `scripts/boundary-rules.ts`. Portable source may not import `node:` or `bun:` modules or use Node or Bun globals.
-- **`check:manifests`**: a framework package manifest that would not install on its own.
-- **`check:framework`**: more than one installed framework version. It runs `scaffold versions`.
-- **`check:skills`**: invalid skill metadata, links, paths or coverage, and public surfaces that changed since their skills were reviewed ([AGENTS.md](../AGENTS.md#skills)). Workspace coverage lives in `scripts/skill-coverage.json`; README headings do not determine it.
-- **`check:size`**: code in a package `src/index.ts` other than re-exports. Files over 300 lines and functions over 80 lines are listed as hints and do not fail.
-- **`generate`**: a [catalog](glossary.md#catalog) that cannot be documented. It writes the reference to `dist/reference/<id>/`, which is not committed.
-- **`check:registry:operator`**: generated operator registry files that are out of date. `bun run build:registry:operator` regenerates them.
-- **`test:portable`**: composition, runtime, client, integration and mobile platform code that works only because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the composition's replacements installed.
-- **`test:sandbox`**: a standalone binary that does not resolve. It compiles the quality-inspection CLI, runs it in an empty environment and verifies its [audit log](glossary.md#audit-log).
-- **`build`**: a web build or registry build that breaks for the configured application. It builds the web frame and the agent-native, operator, compliance, native and driver registries.
-
-React Native declares globals that conflict with Node's, so the root TypeScript project excludes the React Native sources.
-
-Split a file that `check:size` lists only when it holds a second responsibility. A long declarative table or a long linear function can stay as it is.
+| Step | Fails when |
+| --- | --- |
+| `check:format` | Prettier would change a file. Fix with `bun run format`. It skips Markdown. |
+| `typecheck` | `tsconfig.json` or `tsconfig.native.json` (React Native) has type errors. |
+| `check:boundaries` | An import crosses layers, server code reaches a browser bundle, or code uses network or process APIs outside `scripts/boundary-rules.ts`. Portable code may not use `node:`, `bun:` or their globals. |
+| `check:manifests` | A package manifest would not install on its own. |
+| `check:framework` | `node_modules` holds more than one framework version. |
+| `check:skills` | Skill metadata, links, paths or coverage are wrong, or a public surface changed since its last skill review. Coverage: `scripts/skill-coverage.json`. |
+| `check:size` | A package `src/index.ts` holds more than re-exports. Long files and functions are hints only; split only when a file has a second job. |
+| `generate` | A catalog fails to document. Output goes to `dist/reference/<id>/`; do not commit it. |
+| `check:registry:operator` | Operator registry files are stale. Fix with `bun run build:registry:operator`. |
+| `bun test` | Any test fails. |
+| `test:portable` | Portable code relies on a Web global Hermes may lack. |
+| `test:sandbox` | The compiled quality-inspection CLI fails in an empty environment or its audit log doesn't verify. |
+| `build` | The web frame or a registry fails to build. |
 
 ## Test scripts
 
-| Command                             | Scope                                                                                           |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `bun run test:unit`                 | Contracts, runtime, client ordering and UI context.                                             |
-| `bun run test:conformance`          | Policy, repositories, adapters and example-domain scenarios.                                    |
-| `bun run test:service`              | The host, the plugins, and each example's HTTP boundary and instance behavior.                 |
-| `bun run test:harness`              | Harness and supervision fixtures that need no provider.                                         |
-| `bun run test:integration`          | Outbox dispatch and inbound sync against fake systems of record.                                |
-| `bun run test:isolated`             | The whole suite, failing on any non-loopback connection from the test process.                  |
-| `bun run test:e2e`                  | Browser acceptance with Playwright.                                                             |
-| `bun run test:execution-host:linux [path ...]` | The execution host's bubblewrap tests in a Linux container, or the tests at the paths given. Needs Docker; the tests skip elsewhere. |
-| `bun run test:package`              | Desktop packaging checks available on this platform.                                            |
-| `bun run test:scaffold`             | Deterministic export and its overwrite and privacy safeguards.                                  |
-| `bun run test:scaffold:full`        | With `SCAFFOLD_ACCEPTANCE=1`, a fresh export installs, typechecks, builds, tests and adds a capability. |
+| Command | Runs |
+| --- | --- |
+| `bun run test:unit` | Contracts, runtime, client ordering, UI context. |
+| `bun run test:conformance` | Policy, repositories, adapters, example-domain scenarios. |
+| `bun run test:service` | Host, plugins, each example's HTTP boundary. Binds loopback ports. |
+| `bun run test:harness` | Harness and supervision fixtures, no provider. |
+| `bun run test:integration` | Outbox dispatch and inbound sync against fake systems of record. |
+| `bun run test:isolated` | Everything, failing on any non-loopback connection. |
+| `bun run test:e2e` | Playwright browser acceptance. |
+| `bun run test:execution-host:linux [path ...]` | Bubblewrap tests in a Linux container. Needs Docker. |
+| `bun run test:package` | Desktop packaging checks for this platform. |
+| `bun run test:scaffold` / `test:scaffold:full` | Export safeguards; with `SCAFFOLD_ACCEPTANCE=1`, a fresh export installs, builds and tests. |
 
-## Build and run scripts
+Notes:
 
-| Command                                          | What it does                                                                                    |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `bun run docs:dev`, `docs:build`, `docs:preview` | The VitePress site of the guides, READMEs and skills in `dist/docs`, published by `.github/workflows/docs.yml` on push to main. |
-| `bun run dev` / `dev:web`                        | Open the configured application in the desktop window, or in a browser.                         |
-| `cd showcase/examples/<name> && bun run dev`              | One example on its own port and workspace.                                                      |
-| `bun run cli`, `bun run mcp`                     | Run `apps/service/src/cli.ts` or `packages/adapters/src/mcp.ts` from source.                    |
-| `bun run build:cli`                              | Compile the configured application's CLI.                                                       |
-| `bun run build:web`                              | Build the web frame for the configured application.                                             |
-| `bun run build:web:examples`                     | Build the web frame per example and per sample with specs into `dist/web/<application id>`.     |
-| `bun run build:registry`                         | Build the agent-native shadcn registry.                                                         |
-| `bun run build:registry:<name>`                  | Build the `operator`, `compliance`, `native` or `driver` shadcn registry.                       |
-| `bun run bundle`                                 | Generate a signing key, or create, verify and admit a [site bundle](glossary.md#site-bundle).   |
-| `bun run package:stage`, `package:desktop`       | Stage and package the desktop application for one target ([desktop](desktop.md)).               |
-| `bun run format`                                 | Rewrite files with Prettier.                                                                    |
-| `bun run mobile:prepare`                         | Write the mobile entry for the application `app.config.json` names for mobile.                  |
-| `bun run dev:mobile`                             | Prepare, then start Metro for a development build on a device or emulator.                      |
-| `bun run mobile:prebuild`                        | Prepare, then generate `apps/mobile/ios` and `apps/mobile/android` with `expo prebuild`.        |
-| `bun run check:mobile-bundle`                    | Prepare the starter's fixture application and bundle `apps/mobile` for Android with Metro.      |
+- Firewall exports are golden files. Regenerate with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff.
+- TLS tests skip without `openssl`.
+- A sandbox that blocks listening sockets shows `EADDRINUSE`, even for port 0.
+- Subprocess tests can time out on a loaded machine. Rerun before calling it a regression.
+- Agent scenarios judge receipts and approval requests, never text. CI uses the deterministic harness; `AGENT_SCENARIOS=live` needs a configured harness.
+- Provider checks are opt-in and use an explicitly configured account. Never pick up credentials from unrelated config or fall back to a paid key.
 
-`mobile:prebuild` includes the native plugins' config plugins.
+## Run and build
 
-## Test environment
+| Command | Does |
+| --- | --- |
+| `bun run dev` / `dev:web` | Open the configured app in the desktop window / a browser. |
+| `cd showcase/examples/<name> && bun run dev:web` | One example on its own port and workspace. |
+| `bun run --silent cli <noun> <verb>` | The CLI from source. `bun run mcp` runs the MCP server. |
+| `bun run build:cli` / `build:web` / `build:web:examples` | Compile the CLI / build the web frame / build every example into `dist/web/<id>`. |
+| `bun run build:registry[:operator\|compliance\|native\|driver]` | Build a shadcn registry. |
+| `bun run bundle` | Make a signing key, or create, verify and admit a site bundle. |
+| `bun run package:stage`, `package:desktop` | Package the [desktop](desktop.md) app. |
+| `bun run dev:mobile`, `mobile:prebuild`, `check:mobile-bundle` | Start Metro / generate native projects / bundle `apps/mobile` for Android. |
+| `bun run docs:dev`, `docs:build` | The docs site (`dist/docs`); CI publishes it on push to main. |
 
-Firewall exports are compared with golden files in the network plugin. Regenerate them with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff.
-
-The TLS and mTLS tests issue throwaway certificates with `openssl`. The tests are skipped where `openssl` is missing.
-
-The `test:service` tests bind loopback ports. A sandbox that blocks listening sockets reports `EADDRINUSE`, even for port zero.
-
-Subprocess tests use temporary workspaces and stop only the processes the tests started. The tests can time out under heavy machine load. Rerun the tests before treating a timeout as a regression.
-
-## Browser and desktop
-
-Browser specs live with the application in `showcase/examples/<name>/e2e/` or `showcase/patterns/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each pattern with an `e2e` directory.
-
-Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and run:
+Browser specs live in `showcase/{examples,patterns}/<name>/e2e/`. Packaged desktop tests skip unless you set `DESKTOP_EXECUTABLE`:
 
 ```sh
-bunx playwright test tests/e2e/desktop.pw.ts
+DESKTOP_EXECUTABLE=<path> bunx playwright test tests/e2e/desktop.pw.ts
 ```
-
-Without `DESKTOP_EXECUTABLE` the tests skip.
 
 ## Station bridge demo and opt-in recognition
 
-A winding-line host starts a station bridge only when `STATION_HMI_URL` is set. `cd showcase/examples/winding-line && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or recognition worker is configured. To bridge another HMI, set the URL yourself.
+`cd showcase/examples/winding-line && bun run dev:web` starts a fake HMI in the same process, sets `STATION_HMI_URL`, and uses simulator mode unless you configure a recognizer. To bridge a real HMI, set `STATION_HMI_URL` yourself.
 
-The fake HMI shows its counters only as pixels, so reading them needs a [screen recognizer](glossary.md#screen-recognizer):
+The fake HMI draws its counters as pixels, so you need a screen recognizer:
 
-| Variable                                                                                                  | Effect                                                                                                        |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth. For demos and tests only.                                    |
-| `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model, on loopback unless allowlisted. Confidence is agreement across reads. |
-| `STATION_RECOGNITION_WORKER=1`                                                                             | The `recognition-worker` process the deployment policy binds under `processes`, started by the process plugin.       |
-| `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station ID, profile path and observation interval.                                                            |
+| Variable | Effect |
+| --- | --- |
+| `STATION_SIMULATOR=1` | Counters from simulator ground truth. Demos and tests only. |
+| `STATION_VISION_BASE_URL`, `_MODEL`, `_ALLOWED_HOSTS`, `_READS` | Local OpenAI-compatible vision model, loopback unless allowlisted. |
+| `STATION_RECOGNITION_WORKER=1` | The `recognition-worker` process bound under `processes` in the deployment policy. |
+| `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS` | Station, profile path, observation interval. |
 
-`bun run station:golden` in the example runs the [golden test](glossary.md#golden-test) on a profile or recognition change. Without a model configured, it replays recorded expectations, which checks only the wiring. `STATION_GOLDEN_WORKER` names a worker command for the gate as a JSON array, started with an empty environment.
-
-`station:record-golden` re-records the frames from the fake HMI. Exported projects contain no golden images, so a configured model refuses to run there until they are recorded. A result from a live model is recorded apart from the deterministic gate.
-
-## Suite coverage
-
-- **Contracts and runtime:** composition, type inference, catalog validation, rollback, authorization at each point, idempotency, revisions, cancellation, grants and query purity.
-- **Policy:** agreement between object checks, in-memory scopes and SQL. Domain scenarios with several roles, grants, protected fields, scoped counts and permission changes on both storage adapters.
-- **Security scenarios:** a command interrupted mid-flight commits nothing.
-- **Durability and ownership:** processes killed before and after commit, competing owners, path aliases and a killed owner.
-- **HTTP and live queries:** origin checks, one-time launch credentials, revoked sessions, identity spoofing, session-bound cursors and projection. The gap between a snapshot and its live query, and resets that leak no identifiers.
-- **Client and UI context:** out-of-order responses, revocation during a refresh, stable captured targets and fenced updates.
-- **Integration:** effects commit only with their command. Delivery handles failure, rejection, lost completion and targets that are not idempotent.
-- **Capture:** a scanner burst records exactly one result per sample.
-- **Agents:** [agent scenarios](glossary.md#agent-scenario) judge a run by its receipts and approval requests, never its text. CI runs them with the deterministic harness; a live run needs a configured harness and `AGENT_SCENARIOS=live`, and is recorded apart.
-- **Surfaces:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes.
+`bun run station:golden` runs the golden test; it ends with `PASS`. Without a model it replays recorded expectations, which only checks wiring. `STATION_GOLDEN_WORKER` (a JSON array) names a worker command. `bun run station:record-golden` re-records frames from the fake HMI; exported projects have none until you do.
 
 ## Framework packages
 
-The packages in `packages/*`, `workstations/*` and `plugins/*` are published together at one version. Apps, examples and SDKs are private. Each package lists the dependencies its published files import. Framework packages appear as `workspace:*`, and React, React Native and Expo as peers. Packing replaces `workspace:*` with the exact shared version, so a consistent install has one copy of each.
+`packages/*`, `workstations/*` and `plugins/*` publish together at one version, as TypeScript source under the MIT license. Apps, examples and SDKs are private. Framework dependencies are `workspace:*` (packing replaces them with the exact version); React, React Native and Expo are peers.
 
-| Command                                    | What it does                                                                                            |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `bun run check:manifests`                  | Fail when a package's dependencies, repository directory or packed files differ from its source, or versions differ. |
-| `bun run check:framework`                  | Fail when more than one framework version is installed, such as one package pinned apart from the rest. |
-| `bun run changeset`                        | Record a change for the next release. All framework packages are in one fixed group and bump together.  |
-| `bun run release:version`                  | Apply the recorded changes: bump the versions, write changelogs and refresh the lockfile.               |
-| `bun run release:pack`                     | Check the manifests and pack every package into `dist/release`.                                         |
-| `bun run release:serve`                    | Pack, then serve the tarballs as a read-only registry on loopback, for `scaffold new --registry`.       |
-| `bun run release:publish --registry <url>` | Publish the packed tarballs in dependency order to the named registry.                                  |
+| Command | Does |
+| --- | --- |
+| `bun run changeset` | Record a change; all framework packages bump together. |
+| `bun run release:version` | Bump versions, write changelogs, refresh the lockfile. |
+| `bun run release:pack` | Check manifests and pack into `dist/release`. |
+| `bun run release:serve [--port]` | Serve the tarballs as a loopback registry for `scaffold new --registry`. |
+| `bun run release:publish --registry <url>` | Publish in dependency order. Accepts `--dry-run`, `--tag`, `--access`. Never picks a registry itself. |
 
-`bun scripts/check-manifests.ts --write` rewrites the manifests. `release:serve --port` keeps the URL a lockfile records.
-
-`release:publish` uses the named registry's configured credentials and never picks a registry itself. It accepts `--dry-run`, `--tag` and `--access`.
-
-The packages publish TypeScript source. The packages run under Bun and under bundlers that compile dependencies' TypeScript, such as Vite. The framework is MIT licensed. `check:manifests` copies the root `license` field into every package manifest, and `release:pack` puts the root `LICENSE` text in every tarball.
-
-A scaffolded export copies the framework packages in, so it needs neither published packages nor the original checkout. `scaffold new` with `--published` or `--registry <url>` installs the framework from a registry instead. This command exports one example as the hosted application:
+`bun scripts/check-manifests.ts --write` rewrites manifests. Export one example as a standalone project with the framework copied in:
 
 ```sh
 bun run scaffold <target> --name <name> --example <example>
 ```
 
-## Provider checks
-
-Provider checks are opt-in and use an explicitly configured account.
-
-Never discover credentials from unrelated configuration, and never switch silently to a paid key. The in-memory vault is a test fixture and is not a fallback.
+Add `--published` or `--registry <url>` to install the framework from a registry instead.
 
 ## Continuous integration
 
-`.github/workflows/verify.yml` runs on every push and pull request:
+`.github/workflows/verify.yml` runs `bun run check`, `test:e2e` and `test:scaffold:full`; the site install test with nftables on Ubuntu; and packaging on macOS arm64/x64, Windows x64 and Linux x64. It has not yet run remotely.
 
-- **source:** `bun run check`, then `bun run test:e2e` and `bun run test:scaffold:full`.
-- **site-install:** `plugins/site/test/install.test.ts` with `SITE_INSTALL_NATIVE=1` on Ubuntu with nftables.
-- **native:** typecheck, `test:package`, staging, the package smoke test and `package:desktop` on macOS arm64, macOS x64, Windows x64 and Linux x64.
+## See also
 
-The workflow follows the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) and the [Bun CI guide](https://bun.sh/guides/runtime/cicd). It has not yet run remotely.
-
-## References
-
-- [Architecture](architecture.md)
-- [Capability authoring](capability-authoring.md)
-- [Desktop](desktop.md)
-- [Implementation status](implementation-status.md)
+[Architecture](architecture.md) · [Capability authoring](capability-authoring.md) · [Implementation status](implementation-status.md)
