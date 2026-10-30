@@ -8,36 +8,63 @@ import type { DefaultTheme } from 'vitepress';
 
 export const repoRoot = resolve(import.meta.dirname, '../..');
 
-/** The guide pages in reading order: `docs/<file>.md` and the sidebar text. */
-export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
-  ['overview', 'Overview'],
-  ['getting-started', 'Getting started'],
-  ['tutorial', 'Tool crib tutorial'],
-  ['tutorial-assistant', 'In-app assistant'],
-  ['patterns', 'Patterns'],
-  ['architecture', 'Architecture'],
-  ['primitives', 'Primitives'],
-  ['glossary', 'Glossary'],
-  ['capability-authoring', 'Capability authoring'],
-  ['interaction-contract', 'Interaction contract'],
-  ['authorization', 'Authorization'],
-  ['state-and-reactivity', 'State and reactivity'],
-  ['adapters', 'Adapters'],
-  ['systems-of-record', 'Systems of record'],
-  ['operator-workstations', 'Operator workstations'],
-  ['point-of-work-input', 'Point-of-work input'],
-  ['hardware-drivers', 'Hardware drivers'],
-  ['agents', 'Agents'],
-  ['assignments', 'Assignments'],
-  ['hosting', 'Hosting'],
-  ['application-lifecycle', 'Application lifecycle'],
-  ['providers', 'Providers'],
-  ['security-and-compliance', 'Security and compliance'],
-  ['desktop', 'Desktop'],
-  ['mobile', 'Mobile'],
-  ['development-and-testing', 'Development and testing'],
-  ['implementation-status', 'Implementation status'],
-  ['styleguide', 'Documentation styleguide'],
+type Guide = readonly [file: string, text: string];
+
+/** The guide pages by group, in reading order: `docs/<file>.md` and the sidebar text. */
+export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray<Guide>]> = [
+  [
+    'Start',
+    [
+      ['overview', 'Overview'],
+      ['getting-started', 'Getting started'],
+      ['tutorial', 'Tool crib tutorial'],
+      ['tutorial-assistant', 'In-app assistant'],
+      ['patterns', 'Patterns'],
+    ],
+  ],
+  [
+    'Build an application',
+    [
+      ['architecture', 'Architecture'],
+      ['primitives', 'Primitives'],
+      ['capability-authoring', 'Capability authoring'],
+      ['interaction-contract', 'Interaction contract'],
+      ['authorization', 'Authorization'],
+      ['state-and-reactivity', 'State and reactivity'],
+      ['adapters', 'Adapters'],
+    ],
+  ],
+  [
+    'Connect',
+    [
+      ['systems-of-record', 'Systems of record'],
+      ['operator-workstations', 'Operator workstations'],
+      ['point-of-work-input', 'Point-of-work input'],
+      ['hardware-drivers', 'Hardware drivers'],
+      ['agents', 'Agents'],
+      ['assignments', 'Assignments'],
+      ['providers', 'Providers'],
+    ],
+  ],
+  [
+    'Run',
+    [
+      ['hosting', 'Hosting'],
+      ['application-lifecycle', 'Application lifecycle'],
+      ['security-and-compliance', 'Security and compliance'],
+      ['desktop', 'Desktop'],
+      ['mobile', 'Mobile'],
+    ],
+  ],
+  [
+    'Reference',
+    [
+      ['glossary', 'Glossary'],
+      ['development-and-testing', 'Development and testing'],
+      ['implementation-status', 'Implementation status'],
+      ['styleguide', 'Documentation styleguide'],
+    ],
+  ],
 ];
 
 const layers: ReadonlyArray<readonly [directory: string, text: string]> = [
@@ -73,14 +100,14 @@ const skillName = (workspace: string, skill: string): string => {
 };
 
 export function sidebar(): DefaultTheme.Sidebar {
-  const items: DefaultTheme.SidebarItem[] = [
-    {
-      text: 'Guides',
-      items: guides
+  const items: DefaultTheme.SidebarItem[] = guides
+    .map(([group, pages]) => ({
+      text: group,
+      items: pages
         .filter(([file]) => existsSync(join(repoRoot, 'docs', `${file}.md`)))
         .map(([file, text]) => ({ text, link: `/docs/${file}` })),
-    },
-  ];
+    }))
+    .filter((group) => group.items.length);
   const skills: DefaultTheme.SidebarItem[] = [];
   for (const [layer, text] of layers) {
     const names = directories(layer);

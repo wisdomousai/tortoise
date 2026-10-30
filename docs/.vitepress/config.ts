@@ -7,6 +7,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
+import { pageOutline } from './page-outline';
 import { repoRoot, sidebar } from './sidebar';
 
 const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
@@ -65,7 +66,10 @@ export default withMermaid(
       ':layer/:name/skills/:skill/SKILL.md': ':layer/:name/skills/:skill/index.md',
     },
     markdown: {
+      // The page data lists each page's H2s for the outline at the top of the page.
+      headers: { level: [2] },
       config(md) {
+        pageOutline(md);
         const render = md.renderer.rules.link_open;
         md.renderer.rules.link_open = (tokens, index, options, env, self) => {
           const token = tokens[index]!;
@@ -95,7 +99,9 @@ export default withMermaid(
       sidebar: sidebar(),
       search: { provider: 'local' },
       socialLinks: [{ icon: 'github', link: repository }],
-      outline: [2, 3],
+      // The outline sits in the page, above the first H2, instead of in a column beside it.
+      aside: false,
+      outline: false,
     },
   }),
 );
