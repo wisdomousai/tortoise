@@ -59,7 +59,7 @@ test('new writes one generated application and copies no example', async () => {
   // The rest of the site's theme goes along, so the export's docs still build.
   expect(theme).toContain('Tortoise.vue');
   const page = await read(join(target, 'docs/overview.md'));
-  expect(page).toContain('## Request path');
+  expect(page).toContain('## Outbox phases');
   expect(page).not.toContain('<OverviewView');
   // The skeleton ships as templates in the export, so the export can run `scaffold new` again.
   expect(await read(join(target, 'packages/scaffold/templates/application/policy.ts.tpl'))).toBe(
