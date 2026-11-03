@@ -129,6 +129,7 @@
     "@agent-native/react": "workspace:*",
     "@agent-native/receiving": "workspace:*",
     "@agent-native/runtime": "workspace:*",
+    "@agent-native/tool-store": "workspace:*",
     "@agent-native/pattern-base": "workspace:*",
     "@agent-native/pattern-agents": "workspace:*",
     "@agent-native/pattern-assignments": "workspace:*",

@@ -10,3 +10,4 @@ scaffold.manifest.json
 plugins/network/test/golden
 .claude
 scripts/reviewed-surface.json
+*.mdx

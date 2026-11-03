@@ -160,6 +160,5 @@ Tests: `packages/host/test/plugins.test.ts`.
 | [receiving](../showcase/examples/receiving/README.md)              | Goods receipts to an ERP through files. A scaffold export.  |
 | [fleet](../showcase/examples/fleet/README.md)                      | The [fleet](hosting.md#fleet) server that sites report to.        |
 | [tool-store](../showcase/examples/tool-store/README.md)            | The plant tool store from the [tutorial](tutorials/index.md): loans, a counter terminal, an EAM, agents, a site deployment. |
-| [parts-desk](../showcase/examples/parts-desk/README.md)            | The spare parts desk from the [tutorial](tutorials/index.md): quotes and an assistant panel on a local model. |
 
 Stack: Bun, TypeScript, Zod, SQLite or Postgres, CASL, React, Vite, TanStack Query, shadcn, Tailwind, Electron, Expo, Playwright.

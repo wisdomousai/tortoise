@@ -1,5 +1,6 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import sitePolicy from '@repo/showcase/examples/tool-store/site-policy.store-terminal.json?raw';
 
 # Tool store 4: deployment
 
@@ -30,6 +31,10 @@ drain it and uninstall it with purge. Do not apply anything outside the prefix. 
 command and what it printed, and say which steps only stage on this operating system. Run the
 checks the deploy-to-site skill names and report what passed.
 ```
+
+The counter terminal's policy binds the EAM and disables every other destination:
+
+<Code code={sitePolicy} lang="json" title="site-policy.store-terminal.json" />
 
 **Check:** the report lists each command and its output, ending with the uninstall. Nothing outside the prefix changed. On macOS the install writes the service and firewall files but does not load them.
 

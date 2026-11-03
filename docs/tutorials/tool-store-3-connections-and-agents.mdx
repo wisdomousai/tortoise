@@ -1,5 +1,11 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import toolReturn from '@repo/showcase/examples/tool-store/handlers/tool-return.ts?raw';
+import eamTarget from '@repo/showcase/examples/tool-store/contracts/eam-target.ts?raw';
+import triageAgent from '@repo/showcase/examples/tool-store/contracts/repair-triage-agent.ts?raw';
+import cycleCount from '@repo/showcase/examples/tool-store/contracts/cycle-count-assignment.ts?raw';
+import calibration from '@repo/showcase/examples/tool-store/contracts/tool-calibration-due.ts?raw';
+import counter from '@repo/showcase/examples/tool-store/ui/counter.tsx?raw';
 
 # Tool store 3: connections and agents
 
@@ -54,6 +60,31 @@ a lost reply the dispatcher holds and a person resolves, and a stale feed item. 
 connect-system-of-record skill names and report what passed.
 ```
 
+The return enqueues the repair order in the same transaction that closes the loan:
+
+<Code code={region(toolReturn, 'enqueue')} lang="ts" title="handlers/tool-return.ts" />
+
+The target names the records each direction changes and the status it reports:
+
+<Code code={region(eamTarget, 'target')} lang="ts" title="contracts/eam-target.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - contracts/eam-target.ts the target, the repair order payload and the feed item
+  - eam-port.ts the fake EAM
+  - handlers/eam-target.ts completion, the feed and the reconciliation hook
+  - handlers/tool-return.ts enqueues the repair order
+  - ui/eam-target.tsx the EAM screen
+  - test/eam-port.test.ts
+  - test/eam-target.test.ts
+
+</FileTree>
+
+![The counter shows the damaged drill TC-00605 in repair, with repair order RO-000001 from the fake EAM](../assets/screenshots/tool-store/repair-order.png)
+
+![The EAM screen counts the repair orders and lists the held ones](../assets/screenshots/tool-store/eam.png)
+
 **Check:** the standard checks. Return a tool as damaged: its screen shows a repair order number. Start the app with `DEMO_EAM_UNKNOWN_TAGS=TC-00601` and do the same: the screen shows the tool as needing attention.
 
 ## Repair triage agent
@@ -77,6 +108,24 @@ the agent's scripted scenarios for both outcomes. Run the checks the add-capabil
 and report what passed.
 ```
 
+The agent lists `tool.retire` among its operations, and `output: 'request-approval'` turns that command into an approval request:
+
+<Code code={region(triageAgent, 'agent')} lang="ts" title="contracts/repair-triage-agent.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - contracts/repair-triage-agent.ts
+  - contracts/tool-retire.ts
+  - handlers/tool-retire.ts the command and the request check
+  - ui/approvals.tsx the Approvals screen
+  - test/repair-triage-agent.test.ts the scripted scenarios
+  - test/tool-retire.test.ts
+
+</FileTree>
+
+![The Approvals screen shows the request to retire TC-00605 with its rationale and the Approve and Reject buttons](../assets/screenshots/tool-store/approvals.png)
+
 **Check:** the standard checks; the scripted scenarios for both outcomes pass. Proposals appear on the **Approvals** screen.
 
 ## Cycle counts
@@ -99,6 +148,23 @@ Test the lifecycle for each role, a report naming a tag outside the bin, and an 
 refuses a checked-out tool reported missing. Run the checks the assign-work skill names and report
 what passed.
 ```
+
+The assignment kind declares the scope, the brief and the report, and the commands accepting a report may run:
+
+<Code code={region(cycleCount, 'kind')} lang="ts" title="contracts/cycle-count-assignment.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - contracts/cycle-count-assignment.ts
+  - contracts/tool-missing.ts tool.mark-missing and tool.mark-found
+  - handlers/assignments.ts the brief and the accept hook
+  - ui/cycle-count-assignments.tsx the Cycle counts and My cycle counts screens
+  - test/cycle-count-assignment.test.ts
+
+</FileTree>
+
+![The Cycle counts screen shows a draft count of bin A-03 waiting for an assignee](../assets/screenshots/tool-store/cycle-counts.png)
 
 **Check:** the standard checks. Accepting a report that lists a tag as missing sets that tool to `missing`.
 
@@ -130,6 +196,20 @@ tool.calibration-due tool and the calibration-pull workflow resource, calls tool
 revision a tool.get returned, and gets CONFLICT for a stale revision. Run the checks the
 add-capability skill names and report what passed.
 ```
+
+The workflow text names operation IDs only; each surface shows them under its own tool names:
+
+<Code code={region(calibration, 'workflow')} lang="ts" title="contracts/tool-calibration-due.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - contracts/tool-calibration-due.ts the query and the workflow text
+  - handlers/tool-calibration-due.ts
+  - test/tool-calibration-due.test.ts a fixed clock
+  - test/calibration-pull-mcp.test.ts through the MCP adapter
+
+</FileTree>
 
 **Check:** the standard checks. Then start the app, register three tools due for calibration and lend one:
 
@@ -198,6 +278,26 @@ no ui tools. Add a Playwright spec: sign in at the terminal, select a tool on th
 the demo run, see the counter open with the review, submit the bin and see the tool's bin
 change. Run the checks the build-screens skill names and report what passed.
 ```
+
+The work area shares the ticked tools and handles the run's intents itself:
+
+<Code code={region(counter, 'session')} lang="tsx" title="ui/counter.tsx" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - ui/terminal-tools.tsx the Tools tab with a checkbox per row
+  - ui/terminal-agent.tsx the agent panel and the review
+  - ui/terminal-runs.ts the selection and the demo scripts
+  - ui/counter.tsx useUiSession
+  - e2e/terminal-agent.pw.ts
+  - test/terminal-agent-run.test.ts
+
+</FileTree>
+
+The run added a framework change for this step: an intent a run sent carries the run's ID, so the review names the run.
+
+![The counter shows the review Pull TC-00601 for calibration above the edit form, with the bin field focused](../assets/screenshots/tool-store/agent-review.png)
 
 **Check:** the standard checks and the Playwright run, including the new spec.
 

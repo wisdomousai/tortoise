@@ -73,6 +73,7 @@
         "@agent-native/site": "workspace:*",
         "@agent-native/telemetry": "workspace:*",
         "@agent-native/testing": "workspace:*",
+        "@agent-native/tool-store": "workspace:*",
         "@agent-native/webhook": "workspace:*",
         "@agent-native/winding-line": "workspace:*",
         "@agent-native/workflows": "workspace:*",
@@ -845,6 +846,10 @@
       "name": "@agent-native/receiving",
       "version": "0.1.0",
     },
+    "showcase/examples/tool-store": {
+      "name": "@agent-native/tool-store",
+      "version": "0.1.0",
+    },
     "showcase/examples/winding-line": {
       "name": "@agent-native/winding-line",
       "version": "0.1.0",
@@ -1090,6 +1095,8 @@
     "@agent-native/telemetry": ["@agent-native/telemetry@workspace:plugins/telemetry"],
 
     "@agent-native/testing": ["@agent-native/testing@workspace:packages/testing"],
+
+    "@agent-native/tool-store": ["@agent-native/tool-store@workspace:showcase/examples/tool-store"],
 
     "@agent-native/web": ["@agent-native/web@workspace:apps/web"],
 

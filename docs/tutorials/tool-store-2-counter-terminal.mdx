@@ -2,6 +2,8 @@ import { Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import handoverFeature from '@repo/showcase/examples/tool-store/features/handover/feature.ts?raw';
 import policy from '@repo/showcase/examples/tool-store/policy.ts?raw';
+import scanner from '@repo/showcase/examples/tool-store/scanner.ts?raw';
+import application from '@repo/showcase/examples/tool-store/application.ts?raw';
 
 # Tool store 2: counter terminal
 
@@ -47,11 +49,21 @@ The application's side of the contract, the access view:
 <Code code={region(policy, 'handover-access')} lang="ts" title="policy.ts" />
 
 <FileTree>
-  - showcase/examples/tool-store/ - features/handover/ - contracts.ts the browser-safe manifest and
-  operations - feature.ts the slice, handlers and policy - screens.tsx - policy.ts handoverAccess -
-  application.ts mountFeature - manifest.ts - screens.tsx - test/handover-feature.test.ts the
-  conformance suite and the agent refusal
+
+- showcase/examples/tool-store/
+  - features/handover/
+    - contracts.ts the browser-safe manifest and operations
+    - feature.ts the slice, handlers and policy
+    - screens.tsx
+  - policy.ts handoverAccess
+  - application.ts mountFeature
+  - manifest.ts
+  - screens.tsx
+  - test/handover-feature.test.ts the conformance suite and the agent refusal
+
 </FileTree>
+
+![The Handover screen shows the form for shift and text above the entry about torque wrench TC-00601](../assets/screenshots/tool-store/handover.png)
 
 **Check:** the standard checks. The **Handover** screen shows a form and the newest entries first.
 
@@ -72,6 +84,24 @@ Playwright spec as a typed burst. Run the checks the add-scanner-input skill nam
 what passed.
 ```
 
+The scan routes match the same patterns the tool and loan records enforce, so a code the counter accepts is one the command accepts:
+
+<Code code={region(scanner, 'routes')} lang="ts" title="scanner.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - scanner.ts the counter station, its wedge profile and scan routes
+  - ui/counter-scanner.tsx the scanner panel beside every screen
+  - ui/scanner-setup.tsx the Scanner screen
+  - application.ts mounts the device feature
+  - policy.ts deviceAccess
+  - test/scanner.test.ts
+
+</FileTree>
+
+The run added one framework option for this step: `fill` on `CapabilityForm` puts a scanned value into one field and leaves the others as the person typed them. The screenshot of the counter in [part 1](tool-store-1-records-and-screens.mdx#counter-screen) shows a badge scan that filled the borrower.
+
 **Check:** the standard checks and the Playwright run. In the browser, type `TC-00601` quickly and press Enter on any screen: the counter screen for that tool opens.
 
 ## Attendant sign-in
@@ -90,6 +120,25 @@ signs in, checks out a tool as that attendant, refuses a viewer's badge for a ch
 refuses a revoked badge. Run the checks the sign-in-at-a-terminal skill names and report what
 passed.
 ```
+
+The members a new workspace starts with, and the plugins the application composes, the station sign-in plugin among them:
+
+<Code code={region(application, 'members')} lang="ts" title="application.ts" />
+
+<Code code={region(application, 'plugins')} lang="ts" title="application.ts" />
+
+<FileTree>
+
+- showcase/examples/tool-store/
+  - application.ts counterMembers and the sign-in plugin
+  - ui/counter.tsx the terminal: sign-in, then the Counter, Overdue and Tools tabs
+  - ui/operator-form.tsx forms that send as the signed-in attendant
+  - screens.tsx the Terminal and Badges screens
+  - test/terminal-sign-in.test.ts
+
+</FileTree>
+
+![The terminal waits for a badge scan before an attendant can work](../assets/screenshots/tool-store/terminal-sign-in.png)
 
 **Check:** the standard checks. The counter screen asks for a badge and PIN, and a check-out records the signed-in attendant as `checkedOutBy`.
 

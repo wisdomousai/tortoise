@@ -582,6 +582,12 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     record: 'An ERP reached only through exchange folders, completed from receipt files.',
     sources: ['showcase/examples/receiving/erp-port.ts'],
   },
+  'tool-store': {
+    input: 'A wedge scanner and badge sign-in at a shared counter terminal, and an agent over MCP.',
+    record:
+      'A fake plant EAM: repair orders through the outbox and tool master data from its feed.',
+    sources: ['showcase/examples/tool-store/eam-port.ts'],
+  },
   'crm-capture': {
     input: "A remote query of the CRM with the caller's access, then following accounts.",
     record: 'A fake CRM, with follow requests through the outbox and updates from its feed.',

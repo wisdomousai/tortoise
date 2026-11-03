@@ -56,11 +56,20 @@ command and what it printed.
 The export holds the framework packages, the starter under `apps/` and the application:
 
 <FileTree>
-  - showcase/examples/tool-store/ - manifest.ts browser-safe identity, modules, features, plugins -
-  application.ts the server: state, handlers, policy, plugins - screens.tsx the routes and
-  navigation - contracts.ts the module and its operations - contracts/tool.ts the collection -
-  handlers/tool.ts - policy.ts - domain.ts the state and its upgrade - test/ -
-  e2e/default-screens.pw.ts - app.config.json selects the application
+
+- showcase/examples/tool-store/
+  - manifest.ts browser-safe identity, modules, features, plugins
+  - application.ts the server: state, handlers, policy, plugins
+  - screens.tsx the routes and navigation
+  - contracts.ts the module and its operations
+  - contracts/tool.ts the collection
+  - handlers/tool.ts
+  - policy.ts
+  - domain.ts the state and its upgrade
+  - test/
+  - e2e/default-screens.pw.ts
+- app.config.json selects the application
+
 </FileTree>
 
 **Check:** the report shows `bun test` passing and the same tool in the CLI list and the MCP list.
@@ -101,11 +110,22 @@ The policy's rule for the commands, and the reads left open because their handle
 <Code code={region(policy, 'rules')} lang="ts" title="policy.ts" />
 
 <FileTree>
-  - showcase/examples/tool-store/ - contracts/tool.ts the record, categories, statuses and the
-  generated operations - handlers/tool.ts the unique asset tag and the calendar date checks -
-  domain.ts the attendant and viewer roles - policy.ts - ui/tool.tsx the list with its filters and
-  search - test/tool.test.ts - e2e/default-screens.pw.ts - README.md
+
+- showcase/examples/tool-store/
+  - contracts/tool.ts the record, categories, statuses and the generated operations
+  - handlers/tool.ts the unique asset tag and the calendar date checks
+  - domain.ts the attendant and viewer roles
+  - policy.ts
+  - ui/tool.tsx the list with its filters and search
+  - test/tool.test.ts
+  - e2e/default-screens.pw.ts
+  - README.md
+
 </FileTree>
+
+The Tools screen in the finished app, with five tools:
+
+![The Tools screen lists five tools by asset tag, description, bin and status, with search, filters and the New form](../assets/screenshots/tool-store/tools.png)
 
 **Check:** the standard checks, then with the app running:
 
@@ -149,11 +169,19 @@ The check-out handler. `records` reads and writes a collection's rows and declar
 <Code code={region(checkOutHandler, 'handler')} lang="ts" title="handlers/tool-check-out.ts" />
 
 <FileTree>
-  - showcase/examples/tool-store/ - contracts/loan.ts the loan record and its reads -
-  contracts/tool-check-out.ts - contracts/tool-return.ts - handlers/loan.ts -
-  handlers/tool-check-out.ts - handlers/tool-return.ts - ui/loan.tsx the read-only loan screens -
-  test/loan.test.ts no other command writes loans - test/tool-check-out.test.ts -
-  test/tool-return.test.ts
+
+- showcase/examples/tool-store/
+  - contracts/loan.ts the loan record and its reads
+  - contracts/tool-check-out.ts
+  - contracts/tool-return.ts
+  - handlers/loan.ts
+  - handlers/tool-check-out.ts
+  - handlers/tool-return.ts
+  - ui/loan.tsx the read-only loan screens
+  - test/loan.test.ts no other command writes loans
+  - test/tool-check-out.test.ts
+  - test/tool-return.test.ts
+
 </FileTree>
 
 **Check:** the standard checks, then with the tool from the previous step (`bun run cli tool list --output text` shows its id):
@@ -188,8 +216,12 @@ checks the add-capability skill names and report what passed.
 <Code code={region(overdueHandler, 'handler')} lang="ts" title="handlers/loan-overdue.ts" />
 
 <FileTree>
-  - showcase/examples/tool-store/ - contracts/loan-overdue.ts - handlers/loan-overdue.ts -
-  test/loan-overdue.test.ts a fixed clock
+
+- showcase/examples/tool-store/
+  - contracts/loan-overdue.ts
+  - handlers/loan-overdue.ts
+  - test/loan-overdue.test.ts a fixed clock
+
 </FileTree>
 
 **Check:** the standard checks. Check out a tool with `--due-at` in the past; `bun run cli loan overdue --output text` lists it.
@@ -226,11 +258,25 @@ The application names the resource kind a screen may share with a run:
 <Code code={region(application, 'selectable')} lang="ts" title="application.ts" />
 
 <FileTree>
-  - showcase/examples/tool-store/ - ui/tool.tsx the list and the counter screen - ui/overdue.tsx -
-  screens.tsx the Overdue navigation item - application.ts selectableResources - contracts/tool.ts
-  tool.get returns the revision - test/ui-bindings.test.ts - e2e/default-screens.pw.ts the overdue
-  flow
+
+- showcase/examples/tool-store/
+  - ui/tool.tsx the list and the counter screen
+  - ui/overdue.tsx
+  - screens.tsx the Overdue navigation item
+  - application.ts selectableResources
+  - contracts/tool.ts tool.get returns the revision
+  - test/ui-bindings.test.ts
+  - e2e/default-screens.pw.ts the overdue flow
+
 </FileTree>
+
+In the finished app the counter is a tab of the terminal, after the attendant signs in, and a scan has filled the borrower:
+
+![The counter shows tool TC-00601 with its details, the check-out form with the borrower filled, past loans and the edit form](../assets/screenshots/tool-store/counter.png)
+
+The Overdue tab of the finished app:
+
+![The Overdue tab lists the insulation tester TC-00602, lent to E004217 for WO-58812 and due on 30 October](../assets/screenshots/tool-store/overdue.png)
 
 **Check:** the standard checks and the Playwright run. In the browser, an open tool shows a check-out form when it is available and a return form when it is out. The **Overdue** tab is in the navigation.
 

@@ -24,6 +24,8 @@ export async function shot(
     path: join(directory, `${name}.png`),
     animations: 'disabled',
     mask: options.mask,
+    // A masked value, such as a run ID or a clock time, shows as a quiet bar.
+    maskColor: '#d4d4d8',
     ...('goto' in target ? { fullPage: options.fullPage } : {}),
   });
 }

@@ -11,7 +11,6 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import starlightLinksValidator from 'starlight-links-validator';
 import { repoRoot, sidebar } from './sidebar';
-import { promptBlocks } from './src/plugins/ec-prompt';
 import { pageOutline } from './src/plugins/page-outline';
 import { repoLinks } from './src/plugins/repo-links';
 
@@ -52,7 +51,6 @@ export default defineConfig({
         PageTitle: './src/components/PageTitle.astro',
         SiteTitle: './src/components/SiteTitle.astro',
       },
-      expressiveCode: { plugins: [promptBlocks()] },
       plugins: [starlightLinksValidator()],
     }),
   ],

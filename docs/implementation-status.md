@@ -36,7 +36,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Catalog, runtime and storage
 
 - **Proven:** 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms. A triggered agent requested approval on a real local model.
-- **Not yet:** no host route starts an agent run from an agent definition. No browser test for approval request review.
+- **Not yet:** no host route starts an agent run from an agent definition.
 - **Limits:** row storage serializes every row to find the change, so commit CPU grows with state. The instance keeps receipts by default. The phone's snapshot storage has no rows or retention. No encryption at rest.
 
 ### Hosted instance
@@ -65,6 +65,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Install
 
 - **Proven (by hand, 27 Oct):** `app install` from the fleet agent's staging folder with `--prefix --service systemd` and no `--apply` rendered the unit and `egress.nft`. `app status` verified the release. `app uninstall --purge --trust` drained and removed it. A CI job (`site-install`, Ubuntu) runs `systemd-analyze verify` and `nft -c -f` but has not run yet.
+- **Proven (by hand, 3 Nov, macOS arm64):** `showcase/examples/tool-store` with `site-policy.store-terminal.json`. `bundle create` built a 48-file `darwin-arm64` bundle. `verify` accepted it, and `admit` refused it until approved. The bundled binary's `install --prefix --service none` placed the release and the policy, migrated an empty workspace, and rendered no service or firewall file. `status` verified the release. `drain` exited 0 with nothing pending for `eam`. `uninstall --purge --trust` without `--apply` removed the release and the data.
 - **Not yet:** `--apply` loading a service or firewall on Linux or Windows; the Windows path beyond rendering; kiosk mode; purge with undelivered effects.
 
 ### Application lifecycle
@@ -81,7 +82,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Station sign-in
 
-- **Proven:** `workstations/sign-in/test/sign-in.test.ts` covers badge and PIN, lockout, expiry, one session per terminal, badge revocation, and no badge or PIN in the database. By hand in Chrome, `showcase/patterns/sign-in` ran with keyboard-wedge badges.
+- **Proven:** `workstations/sign-in/test/sign-in.test.ts` covers badge and PIN, lockout, expiry, one session per terminal, badge revocation, and no badge or PIN in the database. By hand in Chrome, `showcase/patterns/sign-in` ran with keyboard-wedge badges. In the browser, `showcase/examples/tool-store` signs attendants in at its counter terminal with the badge typed as a key burst, refuses a viewer's check-out, and signs out after five idle minutes on the page's clock.
 - **Not yet:** a physical badge reader.
 - **Limits:** signing in does not take screen control from an agent. A page reload loses the operator token.
 
@@ -109,7 +110,11 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Proven (live, 18 Oct):** Gemma 4 E4B-it Q4_0 on llama.cpp `llama-server`, Apple M3. `plugins/model-server/test/live.test.ts` passed 5 of 5 (22–31 s each): the model requested approval for `note.add` and the run recorded the measured digest. `plugins/automation/test/live.test.ts` passed 3 of 3 (41–68 s): a trigger started `lot.reviewer`, a viewer's approval failed and an inspector's committed.
 - **Partly proven (27 Oct):** `showcase/patterns/local-model/test/live.test.ts` passed once, but the model's revision key was malformed. Two later runs timed out under heavy load.
 - **Proven (browser, by hand):** `showcase/patterns/agents` and `showcase/patterns/local-model` showed approval requests and UI review on screen.
+- **Proven (browser):** on the Approvals screen of `showcase/examples/tool-store`, an attendant approved one request to retire a tool, which retired it, and rejected another, which left the tool in repair. The requests came over HTTP from the owner, not from an agent run.
 - **Not yet:** ChatGPT sign-in, Claude or AI SDK inference, vLLM, fine-tunes, weights as bundle artifacts. Agent scenarios have passed with the deterministic harness only.
+- **Not yet:** a model following the `calibration-pull` workflow of `showcase/examples/tool-store` over MCP. Its test reads the workflow resource and calls the tools it names through the MCP adapter, with no model.
+- **Proven (browser):** at the counter terminal of `showcase/examples/tool-store`, a run on the deterministic harness, started from the ticked tools, opened a tool on the Counter tab and asked for a review above its edit form. The attendant saved the bin and acknowledged the review. The run acts as the terminal's session, the owner.
+- **Not yet:** a provider model at that terminal. Without an agent definition such a run holds the owner's whole grant, and only its instruction keeps it from `tool.update`.
 
 ### Execution host
 
@@ -119,6 +124,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Systems of record
 
 - **Proven (by hand):** `showcase/patterns/system-of-record` against its fake LIMS: register, hold after six attempts, resolve as applied, reject with the LIMS's reason, import through the feed.
+- **Proven (browser):** `showcase/examples/tool-store` against its fake EAM: a damaged return shows the repair order number on the tool, and with `DEMO_EAM_UNKNOWN_TAGS` the refused repair order (`ASSET_UNKNOWN`) shows as needing attention and is counted on the EAM screen. Its held repair orders are tested through the instance only.
 - **Not yet:** any real ERP, CRM, EAM or LIMS; extraction on a model provider; asset-survey's live comparison.
 - **Limits:** two dispatcher processes cannot share a local workspace. Capture timings are synthetic.
 
@@ -131,7 +137,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Assignments
 
 - **Proven (browser):** `showcase/patterns/assignments/e2e/rounds.pw.ts` (person assignees) and `showcase/patterns/worklist/e2e/worklist.pw.ts` (peer assignee across two hosts).
-- **Not yet:** an agent assignee on a model; an assignment target outside tests.
+- **Not yet:** an agent assignee on a model; an assignment target outside tests; the cycle count screens of `showcase/examples/tool-store` in a browser. Those screens act as the terminal's session, so an attendant signed in at the counter cannot work a count there.
 - **Limits:** an app that fills no slots shows the brief as JSON.
 
 ### Connector plugins
@@ -173,6 +179,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Layers and scaffold
 
 - **Proven:** `bun run test:scaffold:full` (27 Oct, 16 tests): `scaffold new`, `add collection/capability/target`, a complete source export and an install from a loopback registry all pass their checks and Playwright specs. By hand, the [tutorials](tutorials/index.md) ran prompt by prompt from a fresh session and the [getting-started](getting-started.md) export passed its tests.
+- **Proven (3 Nov):** `scripts/tutorial-run.ts` ran the 14 tool store prompts with Claude Code in an export, one step at a time, steps 1 to 6 on Sonnet and 7 to 14 on Opus. Every step passed its checks. Step 6 failed its Playwright check until `bunx playwright install chromium` restored the browser, which a process outside the run had deleted. The run needed two framework changes, both kept: `fill` on `CapabilityForm` for a scan, and the run's ID on a UI intent. The result is `showcase/examples/tool-store`.
 - **Open gaps from those runs:** `CollectionScreen` has no filters; the generic form cannot clear an optional field. The PIN keypad takes no typed digits. An agent run in a terminal acts as the terminal, not the operator. In an export, `check:skills` fails on links to omitted examples and patterns.
 - **Limits:** `device-link` and the `device` feature do not compose together. No package is on npm. Packages ship TypeScript source. An instance hosts one application.
 

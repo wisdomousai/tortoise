@@ -43,7 +43,6 @@ The scaffold starts an application and its parts. `scaffold new` exports the fra
 | `showcase/examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
 | `showcase/examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
 | `showcase/examples/tool-store` | the tool store tutorial's application: loans, a counter terminal with scanning and sign-in, repair orders to an EAM, a triage agent, cycle counts, a site deployment |
-| `showcase/examples/parts-desk` | the parts desk tutorial's application: quotes and an assistant panel beside every screen, served from a local model |
 | `showcase/patterns/*` | one concept each on an oil lab's test requests for power transformers in service, as `docs/patterns.md` lists them. Exports leave them out |
 
 `bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.
