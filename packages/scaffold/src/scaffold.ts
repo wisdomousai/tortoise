@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import {
   lstat,
   mkdir,
@@ -216,6 +217,15 @@ const overviewFile = (path: string) =>
 const withoutOverview = (context: ExportContext) =>
   context.excluded.length > 0 || context.framework !== undefined;
 
+/** Whether every example a page names exists in the source and goes into the export. */
+function examplesPresent(source: string, sourceRoot: string, context: ExportContext) {
+  return [...source.matchAll(/showcase\/examples\/([a-z0-9-]+)\//g)].every(
+    ([, name]) =>
+      existsSync(join(sourceRoot, 'showcase/examples', name!)) &&
+      !context.excluded.some(({ directory }) => directory === `showcase/examples/${name}`),
+  );
+}
+
 async function exportedFiles(
   locations: { requestedSourceRoot: string; sourceRoot: string },
   context: ExportContext,
@@ -236,10 +246,7 @@ async function exportedFiles(
     }
     const source = await readFile(join(sourceRoot, path), 'utf8');
     // A tutorial page shows files of its example; without the example it has nothing to show.
-    if (
-      path.startsWith('docs/tutorials/') &&
-      context.excluded.some(({ directory }) => source.includes(`${directory}/`))
-    )
+    if (path.startsWith('docs/tutorials/') && !examplesPresent(source, sourceRoot, context))
       continue;
     if (source.includes(sourceRoot) || source.includes(requestedSourceRoot))
       throw new Error(`Source file contains checkout-specific absolute path: ${path}`);

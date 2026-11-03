@@ -1,0 +1,107 @@
+import { Code, FileTree } from '@astrojs/starlight/components';
+import { region } from '@site/region';
+import handoverFeature from '@repo/showcase/examples/tool-store/features/handover/feature.ts?raw';
+import policy from '@repo/showcase/examples/tool-store/policy.ts?raw';
+
+# Tool store 2: counter terminal
+
+The store counter is one shared terminal. Shifts leave notes for each other, a keyboard-wedge scanner reads asset tags and employee badges, and an attendant signs in with a badge and a PIN before lending anything. This part adds the handover log as a reusable feature, the scan routes and workstation sign-in to the application from [part 1](tool-store-1-records-and-screens.mdx).
+
+## Setup
+
+Open Claude Code or Codex at the root of the exported `tool-store` repository. Every step's check starts with these commands, which end with no errors and `0 fail`:
+
+```sh
+bun run format && bun run generate && bun run typecheck
+bun test showcase/examples/tool-store
+bun run build
+bunx playwright test showcase/examples/tool-store
+```
+
+## Shift handover
+
+**Goal:** a handover log, written as a reusable feature. **Skill:** [write-a-feature](../../packages/host/skills/write-a-feature/SKILL.md).
+
+A feature is a domain part an application mounts once: modules whose operation IDs start with the feature's ID, a state slice under that ID, handlers and a policy. It never reads application state. The application supplies an access view that answers who may read and who may record, and hooks for IDs and the clock, so the same feature mounts in another application with other roles. The application's policy does not list the feature's operations; the feature's policy decides them from the access view, and tells an agent run from a person with `isDelegated`. The [feature](../primitives.md#feature) primitive lists what the framework already ships as features.
+
+```text prompt
+Use the write-a-feature skill. For the application in showcase/examples/tool-store, run
+from the repository root:
+
+bun run scaffold add feature handover --screens
+
+Shape it into the handover log between store shifts. An entry records the shift (early, late or
+night), the text, recordedBy and recordedAt. Attendants record entries, and only a person may
+record one, never an agent. Every member reads them. The Handover screen lists the latest
+entries first with a form above them. Keep the feature's access view and conformance test, and
+remove any application policy rule the feature now owns. Run the checks the write-a-feature skill
+names and report what passed.
+```
+
+The feature's policy refuses a delegated run before it asks the access view:
+
+<Code code={region(handoverFeature, 'policy')} lang="ts" title="features/handover/feature.ts" />
+
+The application's side of the contract, the access view:
+
+<Code code={region(policy, 'handover-access')} lang="ts" title="policy.ts" />
+
+<FileTree>
+  - showcase/examples/tool-store/ - features/handover/ - contracts.ts the browser-safe manifest and
+  operations - feature.ts the slice, handlers and policy - screens.tsx - policy.ts handoverAccess -
+  application.ts mountFeature - manifest.ts - screens.tsx - test/handover-feature.test.ts the
+  conformance suite and the agent refusal
+</FileTree>
+
+**Check:** the standard checks. The **Handover** screen shows a form and the newest entries first.
+
+## Asset tag scanning
+
+**Goal:** a keyboard-wedge scanner does what the attendant would type. **Skill:** [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md).
+
+A scan is input from the person who scans and grants nothing by itself. A wedge source reads the burst of keystrokes a scanner types, told apart from typing by its speed and terminator, and keeps the burst from firing keyboard shortcuts. A scan router matches the code against the application's routes, a regular expression or a GS1 application identifier each, and turns the first match into an intent: open a screen or fill a field. The intent becomes an ordinary command that the policy still authorizes, and here the attendant confirms it. Scanner profiles and routes are per-station configuration kept by the device feature, which the application mounts with an access view over its own roles. [Point-of-work input](../point-of-work-input.md) describes sources, profiles and routing.
+
+```text prompt
+Use the add-scanner-input skill. In showcase/examples/tool-store, add a keyboard wedge scanner at
+the store counter. A scan route for asset tags (TC- followed by five digits) opens that tool's
+counter screen from any screen. On the counter screen's check-out form, a scan of an employee
+badge (E followed by six digits) fills the borrower. A scan never submits a command by itself;
+the attendant confirms. Mount the device feature with its access view, and keep a scan burst
+from firing keyboard shortcuts. Test both routes and an unknown code, and add the scan to the
+Playwright spec as a typed burst. Run the checks the add-scanner-input skill names and report
+what passed.
+```
+
+**Check:** the standard checks and the Playwright run. In the browser, type `TC-00601` quickly and press Enter on any screen: the counter screen for that tool opens.
+
+## Attendant sign-in
+
+**Goal:** badge and PIN sign-in at the shared store terminal. **Skill:** [sign-in-at-a-terminal](../../workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md).
+
+A terminal is a principal whose screen may sign people in. An attendant scans a badge and enters a PIN; the terminal's screen then holds a short-lived operator token in memory and acts as that person, with that person's own role under the application's policy, never the terminal's. The work screen is mounted at one route alone, and leaving it ends the session, so the counter and the overdue list become tabs inside it. The terminal signs the operator out after the idle time, the workspace owner enrolls badges, and a badge that is also an employee number is no secret: the PIN and the lockout are. The frame components that send through the terminal's own session stay outside this screen.
+
+```text prompt
+Use the sign-in-at-a-terminal skill. In showcase/examples/tool-store, the store counter has one
+shared terminal. Put the counter screen and the Overdue screen behind workstation sign-in with an
+attendant badge (E followed by six digits) and a PIN, and sign the attendant out after five idle
+minutes. Check-outs and returns record the signed-in attendant as checkedOutBy and returnedBy.
+The workspace owner enrolls badges on the badge screen. Write an HTTP test that enrolls a badge,
+signs in, checks out a tool as that attendant, refuses a viewer's badge for a check-out, and
+refuses a revoked badge. Run the checks the sign-in-at-a-terminal skill names and report what
+passed.
+```
+
+**Check:** the standard checks. The counter screen asks for a badge and PIN, and a check-out records the signed-in attendant as `checkedOutBy`.
+
+## Limits
+
+The scanner is a typed burst and the badge reader a scan of the same kind; no hardware is involved. [Part 3](tool-store-3-connections-and-agents.mdx) connects the store to the plant's EAM and adds its agents.
+
+## References
+
+- [Tool store 3: connections and agents](tool-store-3-connections-and-agents.mdx)
+- [Primitives](../primitives.md)
+- [Point-of-work input](../point-of-work-input.md)
+- [Operator workstations](../operator-workstations.md)
+- [showcase/patterns/sign-in](../../showcase/patterns/sign-in/README.md)
+- [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)

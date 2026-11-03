@@ -132,6 +132,14 @@ test('an example export keeps only that example and configures it as the hosted 
         `export default defineManifest({ id: '${name}-app', title: 'T', modules: [] });`,
       );
     }
+    // A tutorial page imports its example's files, so it goes with the example.
+    await mkdir(join(source, 'docs', 'tutorials'), { recursive: true });
+    for (const name of ['alpha', 'beta'])
+      await writeFile(
+        join(source, 'docs', 'tutorials', `${name}-1.mdx`),
+        `import manifest from '@repo/showcase/examples/${name}/manifest.ts?raw';\n\n# ${name}\n`,
+      );
+    await writeFile(join(source, 'docs', 'tutorials', 'index.md'), '# Tutorials\n');
     await writeFile(
       join(source, 'package.json'),
       JSON.stringify({
@@ -185,6 +193,8 @@ test('an example export keeps only that example and configures it as the hosted 
     expect(manifest.files.map((file) => file.path)).toEqual([
       'app.config.json',
       'bun.lock',
+      'docs/tutorials/beta-1.mdx',
+      'docs/tutorials/index.md',
       'package.json',
       'showcase/examples/beta/manifest.ts',
       'showcase/examples/beta/package.json',

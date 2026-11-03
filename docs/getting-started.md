@@ -12,7 +12,7 @@ You need Bun and a clone of this repository.
 bun install --frozen-lockfile
 ```
 
-You should see: `1291 packages installed`.
+You should see the count of installed packages.
 
 **2. Export a new app.** Use a path outside this repository that does not exist yet:
 
@@ -23,7 +23,7 @@ bun run scaffold new /tmp/inspection-desk --name inspection-desk --display-name 
 You should see:
 
 ```text
-Exported 1320 source files for inspection-desk to /tmp/inspection-desk
+Exported <count> source files for inspection-desk to /tmp/inspection-desk
 Next: bun install --frozen-lockfile && bun run format && bun run generate && bun run typecheck && bun test
 ```
 
@@ -52,7 +52,13 @@ bun run dev:web
 
 You should see one JSON line with `"application":"inspection-desk"` and a `launchUrl` like `http://127.0.0.1:4317/#launch=...`.
 
-**5. Open the `launchUrl` in a browser.** It works once, within one minute. You should see an **Inspections** table (Id, Title, Status, Created By, Created At) and a **New** form with a Title field and a **Create** button. Create one inspection.
+**5. Open the `launchUrl` in a browser.** It works once, within one minute. You should see an **Inspections** table (Id, Title, Status, Created By, Created At) and a **New** form with a Title field and a **Create** button.
+
+![The Inspections screen of the fresh export: the empty table and the New form](assets/screenshots/getting-started/05-inspections.png)
+
+Create one inspection. The row appears in the table without a reload, and opening it shows the record with its Edit form.
+
+![The record screen of one inspection: its fields and the Edit form](assets/screenshots/getting-started/05-inspection.png)
 
 **6. Use the CLI.** In a second terminal, from `/tmp/inspection-desk`:
 
@@ -271,7 +277,7 @@ You should see `1 passed`.
 ## Next
 
 - Send finished inspections to a quality system: [Systems of record](systems-of-record.md).
-- Build a bigger app with Claude Code or Codex: [Tutorial](tutorial.md).
+- Build a bigger app with Claude Code or Codex: [Tutorials](tutorials/index.md).
 - Read a finished app: `cd showcase/examples/quality-inspection && bun run dev:web`, then its [README](../showcase/examples/quality-inspection/README.md).
 - Start from an example instead of a blank app: `bun run scaffold /tmp/my-app --name my-app --example field-service`.
 - Install the framework from a registry instead of copying it: add `--registry <url>` (or `--published`) to `scaffold new`, and use `bun install` without `--frozen-lockfile`. No registry has the packages yet; `bun run release:serve` runs a local one.

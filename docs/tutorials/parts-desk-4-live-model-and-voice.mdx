@@ -1,0 +1,85 @@
+import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { region } from '@site/region';
+
+# Parts desk 4: live model and voice
+
+One real conversation with a model on the desk's machine, and a microphone button that dictates into the composer. This part runs the application from [part 3](parts-desk-3-context-and-scenarios.mdx) on `llama-server` with real weights, records what the model did, and adds on-device speech recognition.
+
+## Setup
+
+Open Claude Code or Codex at the root of the exported `parts-desk` repository. Install llama.cpp's `llama-server` and download a GGUF instruction model that calls tools, such as Gemma 4 E4B. The standard check, from the export root, ends with `0 fail`:
+
+```sh
+bun run format && bun run generate && bun run typecheck
+bun test showcase/examples/parts-desk
+```
+
+Steps that change screens add:
+
+```sh
+bun run build
+bunx playwright test showcase/examples/parts-desk
+```
+
+## Live run
+
+**Goal:** one real conversation with a local model. **Skill:** [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md).
+
+With `LOCAL_MODEL_GGUF` set, the launch measures the weights into the model entry and starts `llama-server` on them through the process port; the run records keep the model's digest as verified. The conversation goes through the same panel, runs and approvals as the stand-in, and the receipts show what the model called, asked and requested. A live run is evidence to record, not a test to pass: a small model fails some turns, and the README says where. [Agents](../agents.md#evaluation) describes live scenarios and [Providers](../providers.md#local-models) the local harness.
+
+```text prompt
+Use the serve-a-local-model skill. Start showcase/examples/parts-desk with bun run dev:web and
+LOCAL_MODEL_GGUF set to the GGUF weights of an instruction model that calls tools. Through
+Playwright, hold this conversation in the assistant panel, each message after the previous run
+ends:
+
+1. On the Inquiries screen: "A caller from Northgrid reads TR-404 off the plate. Which
+   transformer is it?" Answer its question with TR-40471.
+2. "Which HV bushings fit it, and are they in stock?"
+3. "Prepare a quote for two of them."
+4. Create the draft in the builder, then: "They want 15 percent off because of a late delivery."
+5. "Cancel that quote, the utility found spares in its own store."
+
+Report for each turn the calls with their outcomes, the questions, the approval requests, the
+text and the time it took, and say where the model went wrong. Save a screenshot of the panel
+after each turn. Add an opt-in test that holds turns 1 and 4 through the run route when
+LOCAL_MODEL_GGUF is set and judges the receipts, not the text. Run the checks the
+serve-a-local-model skill names and report what passed. Do not change prompts or code to make the
+model succeed; record what it did in the README.
+```
+
+**Check:** the report lists each turn's calls, questions and approvals, with screenshots. A small model may fail some turns; the README records where. When the script drives the browser, open the launch link at once: it works once, for one minute.
+
+## Voice input
+
+**Goal:** dictate into the composer; the person still sends. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+
+The browser's speech recognition runs on the device when the browser offers an on-device model for the language, so no audio leaves the machine; the button hides otherwise. Dictation only fills the text area, and sending stays with the person, so the run and its grant are unchanged. Headless Chromium has no on-device recognition, so the browser tests stub the recognizer.
+
+```text prompt
+Use the build-screens skill. In showcase/examples/parts-desk, add a microphone button to the
+assistant composer. It uses the browser's speech recognition only with on-device processing, so
+no audio leaves the machine, and it hides when the browser offers no on-device recognition for
+English. While it listens, the button shows a pulsing ring in the primary color and the interim
+words appear in the text area; the person edits and sends them. Extend the Playwright spec: the
+button hides when the browser lacks on-device recognition, and with a stubbed recognizer the
+dictated words fill the text area and the composer sends nothing. Say in the README where
+dictation ran against a real microphone. Run the checks the build-screens skill names and
+report what passed.
+```
+
+**Check:** the standard check and Playwright. Headless Chromium crashes on `SpeechRecognition.available()`, so the specs report recognition as unavailable.
+
+## Limits
+
+- The framework has no chat component. The panel is application code on the run route, run events and the UI session.
+- Runs keep no history, so the panel sends earlier turns in each prompt. A reload starts a new conversation.
+- A run keeps its last 256 events. A model asks questions only in a run started with a UI session.
+
+## References
+
+- [Tutorials](index.md)
+- [Agents](../agents.md)
+- [Providers](../providers.md)
+- [Implementation status](../implementation-status.md)
+- [showcase/examples/parts-desk](../../showcase/examples/parts-desk/README.md)

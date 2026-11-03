@@ -1,7 +1,8 @@
 /**
  * Rewrites a page's relative links. The pages keep their repository paths, so a link to another
  * page becomes that page's site route and a link to a source file or directory, which has no
- * page, becomes the same path on GitHub in a new tab. Absolute URLs and anchors stay. A page
+ * page, becomes the same path on GitHub in a new tab, as does a link to a page an export left
+ * out. Absolute URLs and anchors stay. A page
  * names its source in the `repoPath` frontmatter the collector writes; a page without one is
  * resolved from its place in the content directory, which mirrors the repository.
  */
@@ -43,13 +44,15 @@ export function repoLinks(options: RepoLinkOptions): MdastPluginEntry {
         if (!file) return;
         const target = normalize(join(directory, file)).split(sep).join('/');
         if (target.startsWith('..')) return;
+        const absolute = join(repoRoot, target);
+        if (!existsSync(absolute)) return;
+        // A page the repository holds is a route; a page an export left out, such as an example's
+        // README or a tutorial of that example, is the page in the upstream repository.
         const page = pageOf(target);
-        if (page) {
+        if (page && existsSync(join(contentRoot, page))) {
           ctx.setProperty(node, 'url', `${routeOf(target, base)}${anchor ? `#${anchor}` : ''}`);
           return;
         }
-        const absolute = join(repoRoot, target);
-        if (!existsSync(absolute)) return;
         const kind = statSync(absolute).isDirectory() ? 'tree' : 'blob';
         ctx.setProperty(node, 'url', `${repository}/${kind}/main/${target}`);
         ctx.setProperty(node, 'data', {

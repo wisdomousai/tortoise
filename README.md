@@ -55,7 +55,7 @@ id                                    revision  name            site    closed
 | You want to                                         | Read                                                             |
 | --------------------------------------------------- | ---------------------------------------------------------------- |
 | Make your own app, step by step                     | [Getting started](docs/getting-started.md)                       |
-| Build a larger app with Claude Code or Codex        | [Tutorial](docs/tutorial.md), [Assistant tutorial](docs/tutorial-assistant.md) |
+| Build a larger app with Claude Code or Codex        | [Tutorials](docs/tutorials/index.md)                             |
 | Write commands, queries and screens                 | [Capability authoring](docs/capability-authoring.md)             |
 | Send data to an ERP or other system                 | [Systems of record](docs/systems-of-record.md)                   |
 | See how the pieces fit                              | [Overview](docs/overview.md), [Architecture](docs/architecture.md) |

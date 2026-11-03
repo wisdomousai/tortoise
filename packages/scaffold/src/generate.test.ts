@@ -64,6 +64,8 @@ test('new writes one generated application and copies no example', async () => {
   const page = await read(join(target, 'docs/overview.md'));
   expect(page).toContain('## Outbox phases');
   expect(page).not.toContain('<OverviewView');
+  // The tutorials show the examples' files, so only their index goes along.
+  expect(await readdir(join(target, 'docs/tutorials'))).toEqual(['index.md']);
   // The skeleton ships as templates in the export, so the export can run `scaffold new` again.
   expect(await read(join(target, 'packages/scaffold/templates/application/policy.ts.tpl'))).toBe(
     await read(join(import.meta.dir, '../templates/application/policy.ts.tpl')),

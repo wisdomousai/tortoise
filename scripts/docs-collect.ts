@@ -122,7 +122,7 @@ export function page(source: string, text: string): { body: string; mdx: boolean
     const paragraph = body
       .split(/\r?\n\r?\n/)
       .map((block) => block.trim())
-      .find((block) => block && !/^[#<>|\-*`!:[]/.test(block));
+      .find((block) => block && !/^[#<>|\-*`!:[]/.test(block) && !/^(import|export) /.test(block));
     if (paragraph) description = plain(paragraph.replace(/\s+/g, ' '));
   }
   let mdx = source.endsWith('.mdx');

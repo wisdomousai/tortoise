@@ -66,7 +66,7 @@ Notes:
 | `bun run bundle` | Make a signing key, or create, verify and admit a site bundle. |
 | `bun run package:stage`, `package:desktop` | Package the [desktop](desktop.md) app. |
 | `bun run dev:mobile`, `mobile:prebuild`, `check:mobile-bundle` | Start Metro / generate native projects / bundle `apps/mobile` for Android. |
-| `bun run docs:dev`, `docs:build`, `docs:preview` | The [documentation site](site/README.md): serve it with a page watcher, build `dist/docs`, serve the build. CI publishes it on push to main. `docs:collect` mirrors the pages on its own. |
+| `bun run docs:dev`, `docs:build`, `docs:preview` | The [documentation site](site/README.md): serve it with a page watcher, build `dist/docs`, serve the build. CI publishes it on push to main. `docs:collect` mirrors the pages on its own; `docs:screenshots` regenerates the tutorial screenshots in `docs/assets/screenshots/` from the examples' `e2e/*.shots.ts` specs. |
 
 Browser specs live in `showcase/{examples,patterns}/<name>/e2e/`. Packaged desktop tests skip unless you set `DESKTOP_EXECUTABLE`:
 

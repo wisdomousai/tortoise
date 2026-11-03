@@ -28,6 +28,7 @@
     "docs:collect",
     "docs:dev",
     "docs:preview",
+    "docs:screenshots",
     "format",
     "generate",
     "mcp",

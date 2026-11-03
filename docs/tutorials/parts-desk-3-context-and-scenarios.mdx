@@ -1,0 +1,110 @@
+import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { region } from '@site/region';
+
+# Parts desk 3: context and scenarios
+
+"This transformer" means the one on the screen, and "prepare a quote" fills the quote builder for the person to create. This part lets the screens of the application from [part 2](parts-desk-2-assistant.mdx) hand their record to the assistant, handles the assistant's UI intents, and writes the scripted scenarios that test the assistant without a model.
+
+## Setup
+
+Open Claude Code or Codex at the root of the exported `parts-desk` repository. The standard check, from the export root, ends with `0 fail`:
+
+```sh
+bun run format && bun run generate && bun run typecheck
+bun test showcase/examples/parts-desk
+```
+
+Steps that change screens add:
+
+```sh
+bun run build
+bunx playwright test showcase/examples/parts-desk
+```
+
+## Screen context
+
+**Goal:** "this transformer" means the one on the screen. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+
+A screen registers the records a person selected, each with the revision it observed, as its UI session context. The host checks that the caller may read each one, and a run started from that session captures the context; a later selection change does not retarget it. The panel sits beside the routes, so a screen's own session does not reach the panel's runs: the screens hand their record to the panel through a small store, and the panel's session names it. [Interaction contract](../interaction-contract.md#ui-session-context) describes the context.
+
+```text prompt
+Use the build-screens skill. In showcase/examples/parts-desk, let each screen publish the record
+it shows (inquiry, transformer, part or quote) and the person's selection to the assistant panel,
+and let the panel send them through its UI session, so each run's context names them.
+
+The panel sits beside the routes, so a screen's own UI session does not reach its runs: the screens hand their record to the panel through a small store, and the panel's session names it. The panel's header shows what the next run will see, such as "TR-40417 · Northgrid Energy", with
+a control to leave it out. The composer offers up to three requests drawn from the screen, such
+as "Which HV bushings fit TR-40417?" on a transformer, "Discount Q-00003 by 12 percent" on a
+draft quote, and the inquiry's subject on an inquiry. Add a unit test of the requests for each
+kind of record, and extend the Playwright spec: open TR-40417, see its requests, send one, and
+check through GET /api/v1/runs that the run's UI context names the transformer. Run the checks
+the build-screens skill names and report what passed.
+```
+
+**Check:** the standard check and Playwright. On `TR-40417`, the panel header shows `TR-40417 · Northgrid Energy` and suggests requests about it.
+
+## UI intents
+
+**Goal:** the assistant opens screens and fills the quote form; the person creates the quote. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+
+A run that captured a UI session gets four run tools: `ui.open`, `ui.select`, `ui.prepare` and `ui.request-review`. Each sends one intent to that session and only that session; the screen polls for them and handles each, and an intent changes no records and leaves no journal entry. A prepared form must belong to a command with a UI binding, its values are untrusted, and the command validates them when the person submits, so the quote exists only after the click on Create draft. [Interaction contract](../interaction-contract.md#ui-intents) lists the intents and the checks on each.
+
+```text prompt
+Use the build-screens skill. In showcase/examples/parts-desk, handle the assistant's UI intents
+in the panel's UI session: open goes to the record's screen, select selects it, and prepare on
+quote.create fills the quote builder through usePreparedInput. The builder shows a notice that
+the assistant prepared the form, with Discard, and creates nothing until the person clicks
+Create draft. The quote builder is a route of its own, so the panel passes a `prepare` handler that
+navigates to it. Calls to ui.open and ui.prepare show as chips that say what opened or which form
+they filled; a run's events name the call but not its input, so the handlers note what they received.
+The panel narrows every screen, so lay the screens out by the width of the screen, not of the
+window.
+
+Extend responder.ts: "prepare a quote" for a serial and parts calls transformer.find, part.search
+and ui.prepare on quote.create. Extend the Playwright spec: ask for a quote of two HV bushings for
+TR-40417, see the builder open with the lines, create the draft and check that the person, not
+the run, created the quote. Run the checks the build-screens skill names and report
+what passed.
+```
+
+**Check:** the standard check and Playwright. Ask for a quote of two HV bushings for TR-40417: the quote builder opens filled in, and the app creates nothing until the click on **Create draft**.
+
+## Scripted scenarios
+
+**Goal:** tests that judge what the assistant committed and requested and which calls the policy refused, without a model. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+
+An agent scenario gives an agent a task and a starting state, then checks the receipts, the approval requests and the refusals, never the text. On the deterministic harness the run follows a script of calls, so a scenario is repeatable in CI; the same scenarios run on a real model with `AGENT_SCENARIOS=live`. A scripted run cannot use a result and ends at its first refused call, which shapes what one scenario can cover. [Agents](../agents.md#evaluation) covers scenarios and the gate a fine-tune passes.
+
+```text prompt
+Use the add-capability skill. In showcase/examples/parts-desk, write the assistant's scripted
+scenarios with runAgentScenarios and the deterministic harness:
+
+- A quote: the run finds TR-40417, searches its bushings, creates a draft quote with two of them
+  and sets 5 percent. It commits the quote.
+- A cancellation without approval: the run calls quote.cancel on a submitted quote and gets
+  FORBIDDEN; nothing commits and the quote stays submitted.
+- A cancellation with approval: the run requests approval for quote.cancel with a rationale. It
+  commits nothing; a supervisor approves, and the cancellation runs as the supervisor.
+- A discount above the limit: the policy refuses quote.discount at 15 percent and accepts
+  approval.request for it.
+- A clarifying question: for TR-404 the run asks which transformer and gets the answer TR-40471,
+  then searches that transformer's parts. The scenario expects one question.
+
+A scripted run cannot use a result and ends at its first refused call, so the discount on the
+created quote takes the fixture's next record ID, and the refusal and the approval request of the
+discount are two scenarios. Put them in test/agent-scenarios.test.ts. Run the checks the
+add-capability skill names and report what passed.
+```
+
+**Check:** `bun test showcase/examples/parts-desk/test/agent-scenarios.test.ts` shows five passing scenarios.
+
+## Limits
+
+The scenarios and the browser tests run on the deterministic harness and the stand-in. [Part 4](parts-desk-4-live-model-and-voice.mdx) holds one real conversation with a local model and adds dictation.
+
+## References
+
+- [Parts desk 4: live model and voice](parts-desk-4-live-model-and-voice.mdx)
+- [Interaction contract](../interaction-contract.md)
+- [Agents](../agents.md)
+- [showcase/examples/parts-desk](../../showcase/examples/parts-desk/README.md)

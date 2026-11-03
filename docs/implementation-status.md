@@ -172,7 +172,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Layers and scaffold
 
-- **Proven:** `bun run test:scaffold:full` (27 Oct, 16 tests): `scaffold new`, `add collection/capability/target`, a complete source export and an install from a loopback registry all pass their checks and Playwright specs. By hand, the [tutorials](tutorial.md) ran prompt by prompt from a fresh session and the [getting-started](getting-started.md) export passed its tests.
+- **Proven:** `bun run test:scaffold:full` (27 Oct, 16 tests): `scaffold new`, `add collection/capability/target`, a complete source export and an install from a loopback registry all pass their checks and Playwright specs. By hand, the [tutorials](tutorials/index.md) ran prompt by prompt from a fresh session and the [getting-started](getting-started.md) export passed its tests.
 - **Open gaps from those runs:** `CollectionScreen` has no filters; the generic form cannot clear an optional field. The PIN keypad takes no typed digits. An agent run in a terminal acts as the terminal, not the operator. In an export, `check:skills` fails on links to omitted examples and patterns.
 - **Limits:** `device-link` and the `device` feature do not compose together. No package is on npm. Packages ship TypeScript source. An instance hosts one application.
 

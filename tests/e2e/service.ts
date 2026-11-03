@@ -3,17 +3,19 @@ import { spawn, type ChildProcess } from 'node:child_process';
 /**
  * Start the real starter service for one application on an ephemeral port and wait for its
  * listening line. It serves that application's web build (`globalSetup` builds every example).
+ * `cwd` runs the service of another checkout, such as a fresh export.
  */
 export async function startService(
   application: string,
   workspace: string,
   env: Record<string, string> = {},
+  cwd: string = process.cwd(),
 ) {
   let child: ChildProcess | undefined;
   const started = await new Promise<{ launchUrl: string; connectionFile: string }>(
     (resolveStarted, reject) => {
       child = spawn('bun', ['apps/service/src/index.ts'], {
-        cwd: process.cwd(),
+        cwd,
         env: {
           ...process.env,
           AGENT_NATIVE_APPLICATION: application,

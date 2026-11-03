@@ -24,8 +24,6 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
     'Tutorials',
     [
       ['tutorials/index', 'Tutorials'],
-      ['tutorial', 'Tool store'],
-      ['tutorial-assistant', 'In-app assistant'],
       ['tutorials/tool-store-1-records-and-screens', 'Tool store 1: records and screens'],
       ['tutorials/tool-store-2-counter-terminal', 'Tool store 2: counter terminal'],
       ['tutorials/tool-store-3-connections-and-agents', 'Tool store 3: connections and agents'],

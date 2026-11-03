@@ -1,12 +1,12 @@
 /**
  * Run a tutorial's prompts with Claude Code, one step after another, so the page is the source
- * of what ran. The prompts are the page's ```text prompt fences in order. Step 1 runs in this
- * repository with the export directory substituted for `/path/to/<app>`; later steps run in the
- * export. After each step the standard check runs in the export and the export commits, so a
+ * of what ran. The prompts are the page's ```text prompt fences in order. The step whose prompt
+ * names `/path/to/<app>` runs in this repository with the export directory substituted; the
+ * others run in the export. After each step the standard check runs in the export and the export commits, so a
  * failed step can be redone with `--from`. Each step's report and check output go to
  * `artifacts/tutorial-runs/<app>/<nn>-<slug>.md`.
  *
- *   bun scripts/tutorial-run.ts docs/tutorial.md --export ~/repos/tutorial-runs/tool-store [--from 2] [--to 5] [--model sonnet]
+ *   bun scripts/tutorial-run.ts docs/tutorials/tool-store-1-records-and-screens.mdx --export ~/repos/tutorial-runs/tool-store [--from 2] [--to 5] [--model sonnet]
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -24,7 +24,7 @@ const page = process.argv[2];
 const exportDirectory = option('--export');
 if (!page || !exportDirectory) {
   console.error(
-    'Usage: bun scripts/tutorial-run.ts <page.md> --export <dir> [--from n] [--to n] [--model sonnet]',
+    'Usage: bun scripts/tutorial-run.ts <page.mdx> --export <dir> [--from n] [--to n] [--model sonnet]',
   );
   process.exit(2);
 }
@@ -80,7 +80,7 @@ const checks = [
 
 for (let n = from; n <= to; n++) {
   const step = steps[n - 1]!;
-  const first = n === 1;
+  const first = step.prompt.includes(`/path/to/${app}`);
   const cwd = first ? root : exportDirectory;
   const prompt = step.prompt.replace(new RegExp(`/path/to/${app}`, 'g'), exportDirectory);
   if (!first && !existsSync(join(exportDirectory, 'package.json')))

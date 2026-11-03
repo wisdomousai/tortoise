@@ -50,6 +50,7 @@
     "docs:dev": "bun run generate && bun scripts/docs-collect.ts --watch & bun --cwd docs/site astro dev",
     "docs:build": "bun run generate && bun run docs:collect && bun --cwd docs/site astro build",
     "docs:preview": "bun --cwd docs/site astro preview",
+    "docs:screenshots": "playwright test --config tests/docs/playwright.config.ts --pass-with-no-tests",
     "check:manifests": "bun scripts/check-manifests.ts",
     "check:framework": "bun packages/scaffold/src/cli.ts versions",
     "check": "bun run check:format && bun run typecheck && bun run check:boundaries && bun run check:manifests && bun run check:framework && bun run check:skills && bun run check:size && bun run generate && bun run check:registry:operator && bun test && bun run test:portable && bun run test:sandbox && bun run build",
