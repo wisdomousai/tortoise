@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { AnyCapability, InputOf, JsonObject, OutputOf } from '@agent-native/contracts';
 import type { Receipt } from '@agent-native/client';
 import { useCapabilityForm } from '@agent-native/react/form';
@@ -163,6 +163,12 @@ interface FormProps<C extends AnyCapability> {
   /** The button text; the capability's display label, else "Submit". */
   submitLabel?: string;
   onCommitted?: (receipt: Receipt<OutputOf<C>>) => void;
+  /**
+   * Values the screen puts into rendered fields while the person edits the form, such as a
+   * scanned badge. Each new `key` sets them once; the other fields keep what the person typed,
+   * and nothing submits.
+   */
+  fill?: { readonly key: string | number; readonly values: Readonly<Record<string, string>> };
 }
 
 function FormBody<C extends AnyCapability>({
@@ -170,6 +176,7 @@ function FormBody<C extends AnyCapability>({
   fixed = {},
   submitLabel = capability.display?.label ?? 'Submit',
   onCommitted,
+  fill,
   prepared,
   dismiss,
 }: FormProps<C> & {
@@ -192,6 +199,13 @@ function FormBody<C extends AnyCapability>({
       form.reset();
       onCommitted?.(receipt);
     },
+  });
+  const filled = useRef<string | number>(undefined);
+  useEffect(() => {
+    if (!fill || filled.current === fill.key) return;
+    filled.current = fill.key;
+    for (const [name, value] of Object.entries(fill.values))
+      if (fields.some((field) => field.name === name)) form.setFieldValue(name, value);
   });
   // One prefix per form, so two forms for the same command on a page keep their labels apart.
   const prefix = useId();
@@ -260,7 +274,8 @@ function RunPrefillNotice({ onDismiss }: { onDismiss: () => void }) {
  * screen in one line, then replace it with a purpose-built capture surface where seconds matter.
  * Validation, idempotency and field-level server errors come from `useCapabilityForm`. A prefill
  * an OS request prepared for this capability fills the fields and shows where it came from; the
- * person still submits, and fixed inputs are never taken from it.
+ * person still submits, and fixed inputs are never taken from it. `fill` sets fields from the
+ * screen itself, such as a scan, under the same rule.
  */
 export function CapabilityForm<C extends AnyCapability>(props: FormProps<C>) {
   const { prepared, dismiss } = usePreparedInput(props.capability.id);

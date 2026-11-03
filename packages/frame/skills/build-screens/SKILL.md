@@ -36,7 +36,7 @@ Screens are the browser half of an application. They read through live queries a
 5. Merge them with `defineScreens({ manifest, features, plugins })`, listed in the manifest's order. It fails on duplicate routes, on targets no route declares, and on unit screens that the manifest does not compose, are out of its order, or open capabilities outside the unit's namespace.
 6. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one idempotency key until the command commits, so a double tap or a scanner's double Enter records once. Do not create a key per click.
 7. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
-8. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
+8. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured. To put a scanned value into a `CapabilityForm` for the person to confirm, pass `fill` with a new `key` per scan; the other fields keep what the person typed, and nothing submits.
 9. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
 10. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
 11. Rebuild the frame registry with `bun run build:registry`.
