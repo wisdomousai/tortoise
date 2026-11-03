@@ -17,6 +17,8 @@ export interface PendingUiIntent {
   readonly id: string;
   readonly intent: UiIntent;
   readonly expiresAt: number;
+  /** The agent run that sent the intent; absent when the session's own host session sent it. */
+  readonly runId?: string;
 }
 interface Entry {
   token: string;
@@ -244,7 +246,7 @@ export class UiSessionStore {
     await this.ports.validateIntent(context, copied);
     if (this.runEntry(context, id) !== entry)
       throw new ApplicationError('NOT_FOUND', 'UI session unavailable');
-    return this.queue(entry, copied);
+    return this.queue(entry, copied, context.runId);
   }
   private runEntry(context: ExecutionContext, id: string): Entry {
     this.clean();
@@ -257,7 +259,7 @@ export class UiSessionStore {
       throw new ApplicationError('NOT_FOUND', 'UI session unavailable');
     return entry;
   }
-  private queue(entry: Entry, intent: UiIntent): string {
+  private queue(entry: Entry, intent: UiIntent, runId?: string): string {
     if (entry.intents.size >= 64)
       throw new ApplicationError('CONFLICT', 'UI intent capacity reached');
     const intentId = randomUUID();
@@ -266,6 +268,7 @@ export class UiSessionStore {
       intent,
       status: 'pending',
       expiresAt: this.now() + (this.ports.intentTtlMs ?? 60_000),
+      ...(runId ? { runId } : {}),
     });
     return intentId;
   }

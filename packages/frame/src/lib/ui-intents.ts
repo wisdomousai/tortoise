@@ -7,6 +7,8 @@ export interface UiReview {
   readonly operations: readonly string[];
   /** Records to look at, such as approval requests; each opens through `screens.resources`. */
   readonly resources: readonly string[];
+  /** The agent run that asked for the review, so the screen can name it. */
+  readonly runId?: string;
 }
 
 /** One selected resource, as `<kind>:<id>`, and the revision the screen shows for it. */
@@ -40,12 +42,14 @@ export interface UiIntentHandlers {
 
 /**
  * Apply one intent. An open, a selection or a prepared form completes as accepted or rejected; a
- * review completes when the person acknowledges it, so it returns nothing here.
+ * review completes when the person acknowledges it, so it returns nothing here. `runId` is the
+ * run that sent the intent, when a run sent it.
  */
 export async function applyUiIntent(
   id: string,
   intent: UiIntent,
   handlers: UiIntentHandlers,
+  runId?: string,
 ): Promise<'accepted' | 'rejected' | undefined> {
   if (intent.type === 'requestReview') {
     handlers.review({
@@ -53,6 +57,7 @@ export async function applyUiIntent(
       title: intent.title,
       operations: intent.operations,
       resources: intent.resources ?? [],
+      ...(runId ? { runId } : {}),
     });
     return undefined;
   }

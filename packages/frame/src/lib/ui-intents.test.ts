@@ -66,6 +66,19 @@ test('a review is shown with its resources and left for the person to complete',
   ]);
 });
 
+test('a review a run asked for names the run', async () => {
+  const { reviews, handlers } = recorder();
+  await applyUiIntent(
+    '8',
+    { type: 'requestReview', title: 'Check the bin', operations: ['tool.update'] },
+    handlers,
+    'run-1',
+  );
+  expect(reviews).toEqual([
+    { id: '8', title: 'Check the bin', operations: ['tool.update'], resources: [], runId: 'run-1' },
+  ]);
+});
+
 test('a selection of several resources registers each with the revision the screen shows', () => {
   expect(
     uiSelection([

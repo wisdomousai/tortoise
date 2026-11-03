@@ -57,15 +57,41 @@ async function bindSession(
  * and acknowledged as accepted or rejected.
  */
 async function receiveIntents(sessionId: string, handlers: UiIntentHandlers, signal: AbortSignal) {
-  const intents = await hostJson<{ id: string; intent: UiIntent }[]>(
+  const intents = await hostJson<{ id: string; intent: UiIntent; runId?: string }[]>(
     `ui/sessions/${sessionId}/intents`,
     undefined,
     signal,
   );
   for (const entry of intents) {
-    const status = await applyUiIntent(entry.id, entry.intent, handlers);
+    const status = await applyUiIntent(entry.id, entry.intent, handlers, entry.runId);
     if (status) await hostJson(`ui/sessions/${sessionId}/ack`, { id: entry.id, status }, signal);
   }
+}
+
+/**
+ * The review an agent asked for, shown until the person acknowledges it. A review stays pending
+ * on the host until then, so a poll answered just before the acknowledgement returns it once
+ * more; an acknowledged review never shows again.
+ */
+function useReview(sessionId: string | undefined) {
+  const [review, setReview] = useState<UiReview>();
+  const acknowledged = useRef(new Set<string>());
+  return {
+    review,
+    show(value: UiReview) {
+      if (!acknowledged.current.has(value.id)) setReview(value);
+    },
+    async acknowledge(accepted: boolean) {
+      if (sessionId && review) {
+        acknowledged.current.add(review.id);
+        await hostJson(`ui/sessions/${sessionId}/ack`, {
+          id: review.id,
+          status: accepted ? 'accepted' : 'rejected',
+        });
+      }
+      setReview(undefined);
+    },
+  };
 }
 
 /**
@@ -77,7 +103,7 @@ async function receiveIntents(sessionId: string, handlers: UiIntentHandlers, sig
  */
 export function useUiSession(resource: Selected, handlers: UiSessionHandlers = {}) {
   const [sessionId, setSessionId] = useState<string>();
-  const [review, setReview] = useState<UiReview>();
+  const reviews = useReview(sessionId);
   const screens = useScreens();
   const router = useRouter();
   const latest: UiIntentHandlers = {
@@ -87,7 +113,7 @@ export function useUiSession(resource: Selected, handlers: UiSessionHandlers = {
         await router.navigate({ to: await resourcePath(screens, target) } as never);
       }),
     ...(handlers.select ? { select: handlers.select } : {}),
-    review: setReview,
+    review: reviews.show,
     prepare: handlers.prepare
       ? (operation, input) => handlers.prepare!(operation, input)
       : async (operation, input, id) => {
@@ -140,18 +166,11 @@ export function useUiSession(resource: Selected, handlers: UiSessionHandlers = {
   }, []);
   return {
     sessionId,
-    review,
+    review: reviews.review,
     async prepare() {
       const bound = await synchronize(current.current);
       return { sessionId: bound.sessionId, version: bound.version };
     },
-    async acknowledgeReview(accepted: boolean) {
-      if (sessionId && review)
-        await hostJson(`ui/sessions/${sessionId}/ack`, {
-          id: review.id,
-          status: accepted ? 'accepted' : 'rejected',
-        });
-      setReview(undefined);
-    },
+    acknowledgeReview: reviews.acknowledge,
   };
 }
