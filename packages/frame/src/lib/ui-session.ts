@@ -29,9 +29,10 @@ export interface UiSessionHandlers {
   readonly open?: (resource: string) => Promise<void>;
   /**
    * Fill a command's form; by default the prefill is held for the form that binds the command
-   * (`usePreparedInput`, which `CapabilityForm` reads) and its capability screen opens.
+   * (`usePreparedInput`, which `CapabilityForm` reads) and its capability screen opens. A handler
+   * that opens another screen holds it with `holdRunPrefill(id, operation, input)` itself.
    */
-  readonly prepare?: (operation: string, input: JsonObject) => Promise<void>;
+  readonly prepare?: (operation: string, input: JsonObject, id: string) => Promise<void>;
 }
 type Selection = ReturnType<typeof uiSelection>;
 
@@ -114,13 +115,13 @@ export function useUiSession(resource: Selected, handlers: UiSessionHandlers = {
       }),
     ...(handlers.select ? { select: handlers.select } : {}),
     review: reviews.show,
-    prepare: handlers.prepare
-      ? (operation, input) => handlers.prepare!(operation, input)
-      : async (operation, input, id) => {
-          holdRunPrefill(id, operation, input);
-          const to = screenForCapability(screens, operation);
-          if (to) await router.navigate({ to } as never);
-        },
+    prepare:
+      handlers.prepare ??
+      (async (operation, input, id) => {
+        holdRunPrefill(id, operation, input);
+        const to = screenForCapability(screens, operation);
+        if (to) await router.navigate({ to } as never);
+      }),
   };
   // The polling loop starts once; it reads the handlers of the latest render.
   const intentHandlers = useRef(latest);

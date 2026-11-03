@@ -75,11 +75,12 @@ function ShellPanel({ onFind }: { onFind: () => void }) {
 }
 
 /**
- * On a narrow viewport: a bar with the title, a menu button that opens the panel as a sheet, and
- * the palette button. The sheet closes when a link in it navigates.
+ * On a narrow viewport: a bar with the title, a menu button that opens the panel as a sheet, the
+ * aside's button when the application declares one, and the palette button. The sheet closes
+ * when a link in it navigates.
  */
 function CompactBar({ onFind }: { onFind: () => void }) {
-  const { title } = useScreens();
+  const { title, asideButton: AsideButton } = useScreens();
   const [menu, setMenu] = useState(false);
   const location = useRouterState({ select: (state) => state.location.href });
   useEffect(() => setMenu(false), [location]);
@@ -98,6 +99,7 @@ function CompactBar({ onFind }: { onFind: () => void }) {
       <a href="#/" className="flex-1 truncate px-1 font-semibold tracking-tight">
         {title ?? 'Application'}
       </a>
+      {AsideButton ? <AsideButton /> : null}
       <button type="button" aria-label="Find an action" onClick={onFind} className={control}>
         <Search className="size-5" aria-hidden />
       </button>
@@ -155,7 +157,9 @@ export function AppShell() {
           </aside>
         </div>
       )}
-      <main className="min-w-0 space-y-4 px-4 py-5 lg:px-10 lg:py-8">
+      {/* The size container `main`: the aside narrows it, so screens lay out with `@<size>/main:`
+          variants by the width they get, not by the window's. */}
+      <main className="@container/main min-w-0 space-y-4 px-4 py-5 lg:px-10 lg:py-8">
         {origin.shown ? (
           <OsProvenanceNotice provenance={origin.shown.provenance} onDismiss={origin.dismiss} />
         ) : null}

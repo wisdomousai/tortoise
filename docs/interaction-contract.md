@@ -66,7 +66,7 @@ The UI session store accepts an intent from a run only for the session it captur
 
 A review's operations must be in the catalog. A prepared form must belong to a command with a UI binding; its values are untrusted, and the command validates them when the person submits. A failed check refuses the intent, and the run sees the error.
 
-Intents change no records and leave no journal entry. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired. An intent a run sent carries the run's ID, so a review can name the run that asked for it. By default the screen holds a prepared form for the form that binds the command, as it holds an OS request's prefill, and `CapabilityForm` shows it with a notice.
+Intents change no records and leave no journal entry. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired. An intent a run sent carries the run's ID, so a review can name the run that asked for it. By default the screen holds a prepared form for the form that binds the command, as it holds an OS request's prefill, and `CapabilityForm` shows it with a notice. A screen whose form has a route of its own passes a `prepare` handler. The handler gets the intent's ID, holds the prefill with `holdRunPrefill` and opens that route.
 
 ## Results
 

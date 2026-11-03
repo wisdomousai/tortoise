@@ -61,9 +61,16 @@ export interface ApplicationScreens {
   /**
    * A panel docked at the right of every shell screen, such as an assistant. It renders inside
    * the router and query context, stays mounted across navigation and sets its own width; on a
-   * compact viewport it decides itself how to show, for example behind a button.
+   * compact viewport it decides itself how to show, for example as a sheet behind `asideButton`.
+   * It narrows the screens, so they lay out by the shell's size container `main` (`@lg/main:`).
    */
   readonly aside?: ComponentType;
+  /**
+   * A control in the compact bar, before the palette button, such as the button that opens the
+   * aside as a sheet on a compact viewport. It renders only there; the aside and the button
+   * share their open state through the application's own store.
+   */
+  readonly asideButton?: ComponentType;
   /** Screens of the features the manifest lists. `defineScreens` merges them into the above. */
   readonly features?: readonly FeatureScreens[];
   /** Screens of the plugins the manifest lists. `defineScreens` merges them into the above. */
