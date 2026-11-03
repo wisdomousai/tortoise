@@ -46,6 +46,7 @@
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/os": "workspace:*",
         "@agent-native/os-shortcuts": "workspace:*",
+        "@agent-native/parts-desk": "workspace:*",
         "@agent-native/pattern-agents": "workspace:*",
         "@agent-native/pattern-assignments": "workspace:*",
         "@agent-native/pattern-base": "workspace:*",
@@ -838,6 +839,10 @@
       "name": "@agent-native/fleet",
       "version": "0.1.0",
     },
+    "showcase/examples/parts-desk": {
+      "name": "@agent-native/parts-desk",
+      "version": "0.1.0",
+    },
     "showcase/examples/quality-inspection": {
       "name": "@agent-native/quality-inspection",
       "version": "0.1.0",
@@ -1039,6 +1044,8 @@
     "@agent-native/os": ["@agent-native/os@workspace:plugins/os"],
 
     "@agent-native/os-shortcuts": ["@agent-native/os-shortcuts@workspace:plugins/os-shortcuts"],
+
+    "@agent-native/parts-desk": ["@agent-native/parts-desk@workspace:showcase/examples/parts-desk"],
 
     "@agent-native/pattern-agents": ["@agent-native/pattern-agents@workspace:showcase/patterns/agents"],
 

@@ -1,5 +1,8 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import screenContext from '@repo/showcase/examples/parts-desk/ui/screen-context.ts?raw';
+import intents from '@repo/showcase/examples/parts-desk/ui/assistant-intents.ts?raw';
+import scenarios from '@repo/showcase/examples/parts-desk/test/agent-scenarios.test.ts?raw';
 
 # Parts desk 3: context and scenarios
 
@@ -41,7 +44,24 @@ check through GET /api/v1/runs that the run's UI context names the transformer. 
 the build-screens skill names and report what passed.
 ```
 
-**Check:** the standard check and Playwright. On `TR-40417`, the panel header shows `TR-40417 · Northgrid Energy` and suggests requests about it.
+A screen publishes its records while it is mounted, and clears only what it published:
+
+<Code code={region(screenContext, 'publish')} lang="ts" title="ui/screen-context.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - ui/screen-context.ts the store between the screens and the panel
+  - ui/screen-records.ts
+  - ui/assistant-context.tsx the header and the requests from the screen
+  - ui/assistant-session.ts
+  - test/screen-requests.test.ts
+
+</FileTree>
+
+![TR-40417 with the assistant panel beside it: the header reads Sees TR-40417 · Stadtwerke Nordhafen, and three requests about the transformer sit above the message field](../assets/screenshots/parts-desk/screen-context.png)
+
+**Check:** the standard check and Playwright. On `TR-40417`, the panel header shows `TR-40417 · Stadtwerke Nordhafen` and suggests requests about it.
 
 ## UI intents
 
@@ -66,6 +86,25 @@ TR-40417, see the builder open with the lines, create the draft and check that t
 the run, created the quote. Run the checks the build-screens skill names and report
 what passed.
 ```
+
+The builder is a route of its own, so the panel's `prepare` handler holds the prefill and navigates there:
+
+<Code code={region(intents, 'prepare')} lang="ts" title="ui/assistant-intents.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - ui/assistant-intents.ts open, select and prepare
+  - ui/quote-drafts.ts
+  - ui/quote-builder.tsx the notice and Discard
+  - responder.ts prepare a quote
+  - e2e/assistant.pw.ts
+
+</FileTree>
+
+The run added two framework changes for this step: a `prepare` handler gets the intent's ID, which `holdRunPrefill` needs, and the shell's `main` is a size container, so a screen the panel narrows lays out by its own width.
+
+![The quote builder filled in by the assistant, with the notice The assistant prepared this quote and Discard, and the panel's chips for Find transformer, Search parts and Filled New Quote for TR-40417](../assets/screenshots/parts-desk/prepared-quote.png)
 
 **Check:** the standard check and Playwright. Ask for a quote of two HV bushings for TR-40417: the quote builder opens filled in, and the app creates nothing until the click on **Create draft**.
 
@@ -95,6 +134,10 @@ created quote takes the fixture's next record ID, and the refusal and the approv
 discount are two scenarios. Put them in test/agent-scenarios.test.ts. Run the checks the
 add-capability skill names and report what passed.
 ```
+
+A scenario states the task and the script, and judges the commits, the approval requests and the outcome:
+
+<Code code={region(scenarios, 'approval')} lang="ts" title="test/agent-scenarios.test.ts" />
 
 **Check:** `bun test showcase/examples/parts-desk/test/agent-scenarios.test.ts` shows five passing scenarios.
 

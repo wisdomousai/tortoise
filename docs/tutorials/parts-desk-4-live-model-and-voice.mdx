@@ -1,5 +1,6 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import dictation from '@repo/showcase/examples/parts-desk/ui/assistant-dictation.tsx?raw';
 
 # Parts desk 4: live model and voice
 
@@ -48,6 +49,19 @@ serve-a-local-model skill names and report what passed. Do not change prompts or
 model succeed; record what it did in the README.
 ```
 
+On 3 November 2026 the run held the conversation on Gemma 4 E4B-it Q4_0 through llama-server on an Apple M3, with a new workspace of trial records:
+
+| Turn | Calls | Time | What the assistant did |
+| --- | --- | --- | --- |
+| 1 | `transformer.find` | 147 s | Listed TR-40417 and TR-40471 and asked which one in its text, not through the question tool, so the panel showed no choices. |
+| 1, answer TR-40471 | `inquiry.list` | 199 s | Said that TR-40471 belongs to Alpental Energie, which has no open inquiry. |
+| 2 | `part.search` | 96 s | Named BSH-145-1250 with 2 in stock and 84 days of lead time, as the records hold. |
+| 3 | `ui.prepare` | 86 s | Filled the builder with 2 × BSH-145-1250 at €29,600.00, and named a draft ID that no record holds. |
+| 4 | `approval.request` | 65 s | Requested 15 percent for a late delivery. Its base revisions named the record with a token of Gemma's tool-call format in the key, so a supervisor's approval fails with `FORBIDDEN`. |
+| 5 | `approval.request` refused with `INVALID_INPUT`, then `approval.request` | 122 s | Requested the cancellation of Q-00001 with the caller's reason; a supervisor's approval cancelled it. |
+
+A first attempt called `transformer.get` and `transformer.list` instead of `transformer.find`, so the same model makes different calls for the same messages. `test/assistant-live.test.ts` holds turns 1 and 4 when `LOCAL_MODEL_GGUF` is set, and failed both on this model.
+
 **Check:** the report lists each turn's calls, questions and approvals, with screenshots. A small model may fail some turns; the README records where. When the script drives the browser, open the launch link at once: it works once, for one minute.
 
 ## Voice input
@@ -67,6 +81,19 @@ dictated words fill the text area and the composer sends nothing. Say in the REA
 dictation ran against a real microphone. Run the checks the build-screens skill names and
 report what passed.
 ```
+
+The button shows only for a recognizer that can check for and require on-device recognition:
+
+<Code code={region(dictation, 'recognizer')} lang="tsx" title="ui/assistant-dictation.tsx" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - ui/assistant-dictation.tsx
+  - e2e/recognizer.ts the stub recognizer
+  - e2e/assistant.pw.ts
+
+</FileTree>
 
 **Check:** the standard check and Playwright. Headless Chromium crashes on `SpeechRecognition.available()`, so the specs report recognition as unavailable.
 

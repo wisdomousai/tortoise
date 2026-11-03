@@ -1,5 +1,8 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import partSearch from '@repo/showcase/examples/parts-desk/handlers/part-search.ts?raw';
+import policy from '@repo/showcase/examples/parts-desk/policy.ts?raw';
+import transformerFind from '@repo/showcase/examples/parts-desk/contracts/transformer-find.ts?raw';
 
 # Parts desk 1: records and quotes
 
@@ -97,6 +100,27 @@ the Playwright spec and the application README. Run the checks the add-capabilit
 and report what passed.
 ```
 
+The search filters by the transformer's model, the category and the text before it counts and pages:
+
+<Code code={region(partSearch, 'handler')} lang="ts" title="handlers/part-search.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - contracts/customer.ts
+  - contracts/transformer.ts
+  - contracts/part.ts
+  - contracts/inquiry.ts
+  - contracts/transformer-find.ts
+  - contracts/part-search.ts
+  - handlers/transformer-find.ts
+  - handlers/part-search.ts
+  - trial-records.ts the seed records
+  - dev.ts seeds them before the launch
+  - policy.ts
+
+</FileTree>
+
 **Check:** the standard check. Start the app with `bun run --cwd showcase/examples/parts-desk dev:web`, set `AGENT_NATIVE_CONNECTION` to `showcase/examples/parts-desk/.workspace/.connection.json`, then:
 
 ```sh
@@ -143,6 +167,24 @@ a discount, and the inquiry set to quoted. Run the checks the add-capability ski
 report what passed.
 ```
 
+The rule reads the role from stored state and the percent from the validated input, and refuses a run under an agent definition more than the desk's limit:
+
+<Code code={region(policy, 'discount')} lang="ts" title="policy.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - contracts/quote.ts
+  - contracts/quote-discount.ts
+  - contracts/quote-submit.ts
+  - contracts/quote-cancel.ts
+  - handlers/quote.ts numbering, fitting parts and the inquiry set to quoted
+  - handlers/quote-discount.ts
+  - policy.ts the supervisor role and the discount rule
+  - test/quote-discount.test.ts
+
+</FileTree>
+
 **Check:** the standard check. The new tests cover 10 percent allowed and 12 percent refused for desk, and 12 percent allowed for a supervisor.
 
 ## Desk screens
@@ -184,6 +226,33 @@ set 8 percent, create the draft and submit it. Run the checks the build-screens 
 report what passed.
 ```
 
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - screens.tsx routes and navigation
+  - ui/inquiry.tsx Inquiries and the call form
+  - ui/transformer.tsx the rating plate and the assembly cards
+  - ui/part.tsx the parts lookup
+  - ui/outline.tsx the assembly outlines
+  - ui/quote-builder.tsx
+  - e2e/screens.pw.ts
+
+</FileTree>
+
+A call on Inquiries, where the first digits of a serial match two transformers:
+
+![The Log a call form with TR-404 in the serial field and the two matching transformers TR-40417 and TR-40471 below it](../assets/screenshots/parts-desk/inquiries.png)
+
+The transformer with the parts that fit each assembly:
+
+![TR-40417 with its rating plate and assembly cards for HV bushings, LV bushings, tap changer, tank cover, conservator and protection, each part with a stock badge and lead time](../assets/screenshots/parts-desk/transformer.png)
+
+![The parts lookup on the Bushings tab, with BSH-145-1250 added twice to the quote](../assets/screenshots/parts-desk/parts.png)
+
+At 12 percent the builder says that a supervisor must approve:
+
+![The quote builder with two HV bushings and a discount of 12 percent above the 10 percent mark on its track](../assets/screenshots/parts-desk/quote-builder.png)
+
 **Check:** the standard check and Playwright. Open `TR-40417` in the browser: the assembly cards show parts and stock badges.
 
 ## Capability descriptions
@@ -203,6 +272,16 @@ approval instead. quote.cancel says it needs a reason. Keep each description und
 Add a test that every capability and every input property of the application has a description.
 Run the checks the add-capability skill names and report what passed.
 ```
+
+<Code code={region(transformerFind, 'description')} lang="ts" title="contracts/transformer-find.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - contracts/ every description
+  - test/descriptions.test.ts
+
+</FileTree>
 
 **Check:** the standard check, including the new test that every capability and input property has a description.
 

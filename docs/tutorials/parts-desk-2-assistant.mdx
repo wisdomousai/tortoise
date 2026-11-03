@@ -1,5 +1,7 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
+import assistantAgent from '@repo/showcase/examples/parts-desk/contracts/assistant-agent.ts?raw';
+import model from '@repo/showcase/examples/parts-desk/model.ts?raw';
 
 # Parts desk 2: assistant
 
@@ -54,6 +56,21 @@ approval.request and not quote.cancel. Run the checks the add-capability skill n
 what passed.
 ```
 
+The operations and the requests make the grant; the model, budgets and output follow:
+
+<Code code={region(assistantAgent, 'grant')} lang="ts" title="contracts/assistant-agent.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - contracts/assistant-agent.ts
+  - application.ts mounts the approval feature
+  - ui/approvals.tsx
+  - policy.ts approvalAccess
+  - test/assistant-agent.test.ts
+
+</FileTree>
+
 **Check:** the standard check. The grant test shows `approval.request` and no `quote.cancel`.
 
 ## Local model
@@ -87,6 +104,21 @@ Test that a run started through POST /api/v1/runs with the assistant's agentId a
 runs on the model server's harness, and that the stand-in's run for TR-40417 calls
 transformer.find. Run the checks the serve-a-local-model skill names and report what passed.
 ```
+
+The entry names the base weights by digest and admits only the assistant:
+
+<Code code={region(model, 'entry')} lang="ts" title="model.ts" />
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - model.ts the entry and the stand-in weights
+  - responder.ts plays the model for the stand-in
+  - dev.ts writes the site policy
+  - application.ts composes the site, network, process and model server plugins
+  - test/assistant-model.test.ts
+
+</FileTree>
 
 **Check:** the standard check. `bun run --cwd showcase/examples/parts-desk dev:web` prints which model server runs (the stand-in by default).
 
@@ -133,6 +165,30 @@ TR-40417 and see the transformer.find chip link to it; ask for TR-404 and answer
 with TR-40471; ask for 15 percent off a draft and see the approval card. Run the checks the
 build-screens skill names and report what passed.
 ```
+
+<FileTree>
+
+- showcase/examples/parts-desk/
+  - ui/assistant.tsx the aside, its width and the compact button
+  - ui/assistant-run.ts starts runs and joins their events
+  - ui/assistant-conversation.tsx messages
+  - ui/assistant-calls.tsx the call chips
+  - ui/assistant-approval.tsx the approval card
+  - contracts/member-current.ts
+  - e2e/prepare.ts the workspace and the stand-in for the browser test
+  - e2e/assistant.pw.ts
+
+</FileTree>
+
+The run added a framework change for this step: `asideButton` in `defineScreens` puts the panel's button in the compact bar, so the panel opens as a sheet on a narrow viewport.
+
+For TR-404 the assistant asks through the question tool, with a button per transformer:
+
+![The assistant panel asks which transformer TR-404 means, with buttons for TR-40417 and TR-40471](../assets/screenshots/parts-desk/assistant-question.png)
+
+For 15 percent it requests approval, and the card says that a supervisor decides:
+
+![The assistant panel shows an approval request for a 15 percent discount on Q-00001 with its reason, pending, and the note that a supervisor must decide](../assets/screenshots/parts-desk/assistant-approval.png)
 
 **Check:** the standard check and Playwright. In the browser, ask "TR-404": the assistant asks which transformer is meant.
 

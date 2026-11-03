@@ -588,6 +588,11 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
       'A fake plant EAM: repair orders through the outbox and tool master data from its feed.',
     sources: ['showcase/examples/tool-store/eam-port.ts'],
   },
+  'parts-desk': {
+    input: 'Desk screens and an assistant panel on a local model, with dictation in the browser.',
+    record: 'None; quotes stay in the desk, and discounts above the limit go to a supervisor.',
+    sources: ['showcase/examples/parts-desk/contracts/assistant-agent.ts'],
+  },
   'crm-capture': {
     input: "A remote query of the CRM with the caller's access, then following accounts.",
     record: 'A fake CRM, with follow requests through the outbox and updates from its feed.',
