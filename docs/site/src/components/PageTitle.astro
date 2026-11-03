@@ -1,0 +1,50 @@
+---
+// The site title and the sidebar group of the current page above the page title. A page that is
+// not in the sidebar, such as the home page or AGENTS.md, shows no breadcrumb.
+import type { SidebarEntry } from '@astrojs/starlight/utils/routing/types';
+
+const { sidebar, siteTitle, siteTitleHref, entry } = Astro.locals.starlightRoute;
+
+const hasCurrent = (entries: SidebarEntry[]): boolean =>
+  entries.some((item) => (item.type === 'link' ? item.isCurrent : hasCurrent(item.entries)));
+const group = sidebar.find((item) => item.type === 'group' && hasCurrent(item.entries))?.label;
+---
+
+{
+  group && (
+    <nav class="doc-breadcrumb" aria-label="Breadcrumb">
+      <a href={siteTitleHref}>{siteTitle}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{group}</span>
+    </nav>
+  )
+}
+<h1 id="_top">{entry.data.title}</h1>
+
+<style>
+  .doc-breadcrumb {
+    margin-top: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  .doc-breadcrumb a {
+    color: var(--sl-color-text-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  h1 {
+    margin-top: 1rem;
+    font-size: var(--sl-text-h1);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .doc-breadcrumb + h1 {
+    margin-top: 0.75rem;
+  }
+</style>

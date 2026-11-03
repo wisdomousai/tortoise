@@ -25,6 +25,7 @@
     "dev:mobile",
     "dev:web",
     "docs:build",
+    "docs:collect",
     "docs:dev",
     "docs:preview",
     "format",

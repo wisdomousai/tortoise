@@ -68,4 +68,4 @@ out of the box, under the hood, at its core, simply, of course, note that, impor
 - **Skills** are operational guides for a task. Preserve their frontmatter and keep instructions, paths and checks valid. Link to deeper explanations rather than copying them, and distinguish a deterministic check from live evidence.
 - **References** make definitions or facts easy to find. The [implementation status](implementation-status.md) records dated evidence and known gaps that automated checks cannot establish.
 
-Use relative links to repository files. Put commands in the directory where they work, or say which directory to use. Say which file a configuration fragment belongs in, and link to a complete example when one exists. Add a new guide page to a group in `docs/.vitepress/sidebar.ts`.
+Use relative links to repository files. Put commands in the directory where they work, or say which directory to use. Say which file a configuration fragment belongs in, and link to a complete example when one exists. Add a new guide page to a group in `docs/site/sidebar.ts`.

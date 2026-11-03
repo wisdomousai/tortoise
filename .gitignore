@@ -29,5 +29,6 @@ plugins/*/LICENSE
 /*.sln
 /*.slnx
 
-# VitePress cache, written by `bun run docs:dev`.
-docs/.vitepress/cache/
+# The documentation site's mirrored pages and Astro cache, written by `bun run docs:collect`.
+docs/site/src/content/docs/
+docs/site/.astro/

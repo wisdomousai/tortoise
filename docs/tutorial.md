@@ -1,34 +1,34 @@
-# Tutorial: a tool crib app
+# Tutorial: a tool store app
 
-You will build the tool crib of a transformer plant: attendants lend torque wrenches, crimpers and testers to employees, and each tool has an asset tag like `TC-00601`. Use Claude Code or Codex. Each step gives you the goal, the prompt to paste, and how to check the result.
+You will build the tool store of a transformer plant: the room where attendants lend shared tools such as torque wrenches, crimpers and insulation testers to employees and take them back. Each tool has an asset tag like `TC-00601`. Use Claude Code or Codex. Each step gives you the goal, the prompt to paste, and how to check the result.
 
 Do [Getting started](getting-started.md) first, so you know what the prompts ask for.
 
 ## Setup
 
 1. Install Bun and the browser for Playwright: `bunx playwright install chromium`.
-2. Open Claude Code or Codex at the root of this repository for step 1. From step 2 on, open it at the root of the exported `tool-crib` repository. `bun install` there links the skills into `.claude/skills/` and `.agents/skills/`.
+2. Open Claude Code or Codex at the root of this repository for step 1. From step 2 on, open it at the root of the exported `tool-store` repository. `bun install` there links the skills into `.claude/skills/` and `.agents/skills/`.
 3. For each step: paste the prompt, wait, run the check, then commit. One commit per step lets you redo a step with `git reset --hard HEAD`.
 
 Every step's check starts with these commands. You should see no errors and `0 fail`:
 
 ```sh
 bun run format && bun run generate && bun run typecheck
-bun test showcase/examples/tool-crib
+bun test showcase/examples/tool-store
 ```
 
 Steps that change screens add:
 
 ```sh
 bun run build
-bunx playwright test showcase/examples/tool-crib   # all passed
+bunx playwright test showcase/examples/tool-store   # all passed
 ```
 
 To try the app by hand, run it in one terminal and point the CLI at it from another:
 
 ```sh
-bun run --cwd showcase/examples/tool-crib dev:web
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-crib/.workspace/.connection.json
+bun run --cwd showcase/examples/tool-store dev:web
+export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
 ```
 
 Do not run `bun run check:skills` in the export: it fails on links to examples the export left out.
@@ -37,15 +37,15 @@ Do not run `bun run check:skills` in the export: it fails on links to examples t
 
 **Goal:** a new repository with a `tool` collection, default screens and tests. **Skill:** `create-agent-native-app`.
 
-```text
-Use the create-agent-native-app skill. Create the application for the tool crib of a power
-transformer plant at /path/to/tool-crib, with the name tool-crib, the display name "Tool Crib"
-and the first collection tool. Attendants at the crib window lend torque wrenches, crimpers,
-insulation testers and gauges to employees. One build serves the crib for 180 days.
+```text prompt
+Use the create-agent-native-app skill. Create the application for the tool store of a power
+transformer plant at /path/to/tool-store, with the name tool-store, the display name "Tool Store"
+and the first collection tool. Attendants at the store counter lend torque wrenches, crimpers,
+insulation testers and gauges to employees. One build serves the store for 180 days.
 
 Export it with scaffold new and initialize Git in the new directory. Install it, run the checks
 the scaffold prints, and commit the result. Then start it with bun run dev:web in
-showcase/examples/tool-crib, and from the new repository's root create one tool through the CLI,
+showcase/examples/tool-store, and from the new repository's root create one tool through the CLI,
 list the tools through the CLI and through the MCP bridge, and stop the instance. Report each
 command and what it printed.
 ```
@@ -54,11 +54,11 @@ command and what it printed.
 
 ## 2. Tool records
 
-**Goal:** replace the generated title and status with the crib's real tool fields, and rename `editor` to `attendant`. **Skills:** `add-capability`, `build-screens`.
+**Goal:** replace the generated title and status with the store's real tool fields, and rename `editor` to `attendant`. **Skills:** `add-capability`, `build-screens`.
 
-```text
-Use the add-capability skill and the build-screens skill. In showcase/examples/tool-crib,
-replace the generated tool record with the crib's tool record. Keep id, createdBy and createdAt.
+```text prompt
+Use the add-capability skill and the build-screens skill. In showcase/examples/tool-store,
+replace the generated tool record with the store's tool record. Keep id, createdBy and createdAt.
 
 - assetTag: the etched tag, TC- followed by five digits, unique among tools.
 - description: such as "Torque wrench 20-100 Nm".
@@ -72,7 +72,7 @@ duplicate asset tag. tool.update changes description, category, bin and calibrat
 asset tag is the record's title. Rename the editor role to attendant; attendants write and
 viewers read. The tool list shows asset tag, description, bin and status, filters by status and
 category, and searches asset tag and description. The workspace holds only trial records, so
-delete .workspace at the repository root instead of writing a state migration. Update the
+delete showcase/examples/tool-store/.workspace instead of writing a state migration. Update the
 tests, the Playwright spec and the application README for the new record. Run the checks the
 add-capability skill names and report what passed.
 ```
@@ -90,8 +90,8 @@ You should see the first tool with `"status":"available"`, then an error and a n
 
 **Goal:** check a tool out and back in. Only these two commands write loans. **Skill:** `add-capability`.
 
-```text
-Use the add-capability skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the add-capability skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add collection loan
@@ -126,8 +126,8 @@ You should see the tool `checked-out`, then `CONFLICT` with `exit 5`, then the t
 
 **Goal:** a query that lists loans past their due time. **Skill:** `add-capability`.
 
-```text
-Use the add-capability skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the add-capability skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add capability loan.overdue --kind query --description "List open loans past their due time, oldest due first. Members."
@@ -145,9 +145,9 @@ checks the add-capability skill names and report what passed.
 
 **Goal:** the screen the attendant uses at the window. **Skill:** `build-screens`.
 
-```text
-Use the build-screens skill. In showcase/examples/tool-crib, replace the default tool record
-screen with the crib counter screen:
+```text prompt
+Use the build-screens skill. In showcase/examples/tool-store, replace the default tool record
+screen with the counter screen:
 
 - the tool's asset tag, description, bin, status and calibration due date;
 - when the tool is available, a check-out form for borrower, work order and due time;
@@ -168,13 +168,13 @@ passed.
 
 **Goal:** a handover log, written as a reusable feature. **Skill:** `write-a-feature`.
 
-```text
-Use the write-a-feature skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the write-a-feature skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add feature handover --screens
 
-Shape it into the handover log between crib shifts. An entry records the shift (early, late or
+Shape it into the handover log between store shifts. An entry records the shift (early, late or
 night), the text, recordedBy and recordedAt. Attendants record entries, and only a person may
 record one, never an agent. Every member reads them. The Handover screen lists the latest
 entries first with a form above them. Keep the feature's access view and conformance test, and
@@ -188,9 +188,9 @@ names and report what passed.
 
 **Goal:** a keyboard-wedge scanner does what the attendant would type. **Skill:** `add-scanner-input`.
 
-```text
-Use the add-scanner-input skill. In showcase/examples/tool-crib, add a keyboard wedge scanner at
-the crib window. A scan route for asset tags (TC- followed by five digits) opens that tool's
+```text prompt
+Use the add-scanner-input skill. In showcase/examples/tool-store, add a keyboard wedge scanner at
+the store counter. A scan route for asset tags (TC- followed by five digits) opens that tool's
 counter screen from any screen. On the counter screen's check-out form, a scan of an employee
 badge (E followed by six digits) fills the borrower. A scan never submits a command by itself;
 the attendant confirms. Mount the device feature with its access view, and keep a scan burst
@@ -203,10 +203,10 @@ what passed.
 
 ## 8. Attendant sign-in
 
-**Goal:** badge and PIN sign-in at the shared crib terminal. **Skill:** `sign-in-at-a-terminal`.
+**Goal:** badge and PIN sign-in at the shared store terminal. **Skill:** `sign-in-at-a-terminal`.
 
-```text
-Use the sign-in-at-a-terminal skill. In showcase/examples/tool-crib, the crib window has one
+```text prompt
+Use the sign-in-at-a-terminal skill. In showcase/examples/tool-store, the store counter has one
 shared terminal. Put the counter screen and the Overdue screen behind workstation sign-in with an
 attendant badge (E followed by six digits) and a PIN, and sign the attendant out after five idle
 minutes. Check-outs and returns record the signed-in attendant as checkedOutBy and returnedBy.
@@ -222,8 +222,8 @@ passed.
 
 **Goal:** a damaged return sends a repair order to the plant's EAM through the outbox. The EAM is a fake. **Skill:** `connect-system-of-record`.
 
-```text
-Use the connect-system-of-record skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the connect-system-of-record skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add target eam --collection tool
@@ -248,8 +248,8 @@ connect-system-of-record skill names and report what passed.
 
 **Goal:** an agent that proposes retiring worn-out tools; an attendant approves. **Skill:** `add-capability`.
 
-```text
-Use the add-capability skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the add-capability skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add agent repair-triage --collection tool
@@ -269,8 +269,8 @@ and report what passed.
 
 **Goal:** hand a bin count to an attendant and accept the report. **Skill:** `assign-work`.
 
-```text
-Use the assign-work skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the assign-work skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add assignment-kind cycle-count --collection tool
@@ -290,8 +290,8 @@ what passed.
 
 **Goal:** Claude Code uses the app over MCP while you watch the records change in the CLI. **Skill:** `add-capability`.
 
-```text
-Use the add-capability skill. For the application in showcase/examples/tool-crib, run
+```text prompt
+Use the add-capability skill. For the application in showcase/examples/tool-store, run
 from the repository root:
 
 bun run scaffold add capability tool.calibration-due --kind query --description "List tools whose calibration falls due within a number of days, soonest first. Members."
@@ -316,8 +316,8 @@ add-capability skill names and report what passed.
 **Check:** the standard checks. Then start the app, register three tools due for calibration and lend one:
 
 ```sh
-bun run --cwd showcase/examples/tool-crib dev:web
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-crib/.workspace/.connection.json
+bun run --cwd showcase/examples/tool-store dev:web
+export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
 bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --calibration-due 2026-10-31 --key create-wrench
 bun run cli tool create --asset-tag TC-00602 --description "Insulation tester 5 kV" --category insulation-tester --bin B-01 --calibration-due 2026-11-05 --key create-tester
 bun run cli tool create --asset-tag TC-00603 --description "Crimper 6-50 mm2" --category crimper --bin C-02 --calibration-due 2026-11-09 --key create-crimper
@@ -327,9 +327,9 @@ bun run cli tool check-out --tool-id <crimper id> --borrower E104233 --work-orde
 Give Claude Code the app's MCP tools only, and the task:
 
 ```sh
-claude mcp add --scope project tool-crib -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
-claude -p "Pull the tools due for calibration in the tool-crib application. Read the calibration-pull workflow resource first and follow it." \
-  --allowedTools mcp__tool-crib ListMcpResourcesTool ReadMcpResourceTool \
+claude mcp add --scope project tool-store -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
+claude -p "Pull the tools due for calibration in the tool-store application. Read the calibration-pull workflow resource first and follow it." \
+  --allowedTools mcp__tool-store ListMcpResourcesTool ReadMcpResourceTool \
   --disallowedTools Bash Edit Write
 bun run --silent cli tool list --output text
 ```
@@ -343,14 +343,14 @@ TC-00602  Insulation tester 5 kV   CAL-01  available    2026-11-05
 TC-00601  Torque wrench 20-100 Nm  CAL-01  available    2026-10-31
 ```
 
-The model chooses its own calls, so another run can differ. Remove the server with `claude mcp remove --scope project tool-crib`.
+The model chooses its own calls, so another run can differ. Remove the server with `claude mcp remove --scope project tool-store`.
 
 ## 13. Selection and UI intents
 
 **Goal:** the attendant selects tools, starts an agent run on them, and the run opens a tool and asks the attendant to review a change. The run never writes. **Skill:** `build-screens`.
 
-```text
-Use the build-screens skill. In showcase/examples/tool-crib, let an attendant signed in at the
+```text prompt
+Use the build-screens skill. In showcase/examples/tool-store, let an attendant signed in at the
 terminal start an agent run on the tools selected in the terminal's work area, and let the run
 open a tool at the counter and ask the attendant to review a change.
 
@@ -385,9 +385,9 @@ change. Run the checks the build-screens skill names and report what passed.
 
 **Goal:** a signed install bundle, installed under a temporary prefix and removed again. **Skills:** `deploy-to-site`, `decommission-an-application`.
 
-```text
-Use the deploy-to-site skill and the decommission-an-application skill. In the tool-crib
-repository, write a deployment policy for the crib terminal that binds the EAM destination to
+```text prompt
+Use the deploy-to-site skill and the decommission-an-application skill. In the tool-store
+repository, write a deployment policy for the store terminal that binds the EAM destination to
 https://eam.plant.example, and disables every other destination. Check it with the site check,
 export the network rules, build the CLI, and create, verify and admit a signed bundle with a
 throwaway key. Install the bundle under a temporary prefix with no service, show its status,

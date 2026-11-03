@@ -1,0 +1,177 @@
+/*
+ * The manual look: system fonts, a white top bar and sidebar with one rule between them and the
+ * page, a 752px text column, inline code in the text color so it does not read as a link.
+ * Starlight's own rules sit in cascade layers, so these plain rules win without extra selectors.
+ */
+:root {
+  --sl-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sl-content-width: 47rem;
+  --sl-sidebar-width: 17rem;
+  --sl-text-h1: 2.375rem;
+  --sl-text-h2: 1.375rem;
+  --sl-text-h3: 1.125rem;
+  --sl-color-bg-nav: var(--sl-color-bg);
+  --sl-color-bg-sidebar: var(--sl-color-bg);
+  --sl-color-hairline-shade: var(--sl-color-hairline);
+  /* The text column starts at the sidebar instead of centering in the free space. */
+  --sl-content-margin-inline: 0;
+}
+
+/* The top bar: the title column holds the tortoise and the name; the rest is empty or the theme switch. */
+header.header {
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+/* Sidebar pages are plain text under their group; the current page has a bar and a tint. */
+nav.sidebar .sidebar-content .top-level > li + li {
+  margin-top: 1.25rem;
+}
+
+nav.sidebar .sidebar-content summary {
+  padding-inline: 0;
+}
+
+nav.sidebar .sidebar-content .group-label .large {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+nav.sidebar .sidebar-content ul ul li {
+  margin-inline-start: 0;
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+nav.sidebar .sidebar-content a {
+  border-inline-start: 3px solid transparent;
+  border-radius: 0;
+  padding: 0.25em 0.625rem;
+  font-size: var(--sl-text-sm);
+  font-weight: 400;
+  color: var(--sl-color-white);
+}
+
+nav.sidebar .sidebar-content a:hover,
+nav.sidebar .sidebar-content a:focus {
+  color: var(--sl-color-text-accent);
+}
+
+nav.sidebar .sidebar-content a[aria-current='page'],
+nav.sidebar .sidebar-content a[aria-current='page']:hover,
+nav.sidebar .sidebar-content a[aria-current='page']:focus {
+  border-inline-start-color: var(--sl-color-text-accent);
+  background-color: var(--sl-color-gray-6);
+  font-weight: 500;
+  color: var(--sl-color-text-accent);
+}
+
+/* The paragraph under the page title reads as its summary, unless it introduces a list. */
+.sl-markdown-content > p:first-child:not(:has(+ ul, + ol)) {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+}
+
+/* Section headings carry a rule below them. */
+.sl-markdown-content h2 {
+  margin-top: 3.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  font-weight: 600;
+}
+
+.sl-markdown-content h3 {
+  margin-top: 2rem;
+  font-weight: 600;
+}
+
+.sl-markdown-content code {
+  color: inherit;
+}
+
+/* Tables have a full grid and a gray header row, without striped rows. */
+.sl-markdown-content table {
+  border-collapse: collapse;
+}
+
+.sl-markdown-content :is(th, td) {
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.5rem 0.75rem;
+}
+
+.sl-markdown-content th {
+  background-color: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+}
+
+/* A page opened at an anchor shows the heading below the fixed top bar, not under it. */
+.sl-markdown-content :is(h2, h3, h4)[id] {
+  scroll-margin-top: calc(var(--sl-nav-height) + 1.5rem);
+}
+
+/* The page's sections as a row of links, before the first H2. */
+.sl-markdown-content .page-outline {
+  margin: 2rem 0 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--sl-color-hairline);
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content .page-outline-title {
+  margin: 0 0 0.25rem;
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.sl-markdown-content .page-outline ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sl-markdown-content .page-outline li {
+  margin: 0;
+}
+
+.sl-markdown-content .page-outline a {
+  font-size: var(--sl-text-sm);
+  line-height: 1.5rem;
+}
+
+.sl-markdown-content .page-outline + h2 {
+  margin-top: 2.5rem;
+}
+
+/* A prompt for Claude Code or Codex: a plain frame that wraps, with the title as its label. */
+.sl-markdown-content .expressive-code .frame.prompt {
+  --ec-frm-trmTtbBg: var(--sl-color-gray-6);
+  --ec-frm-trmTtbDotsFg: transparent;
+}
+
+.sl-markdown-content .expressive-code .frame.prompt .header::before {
+  display: none;
+}
+
+.sl-markdown-content .expressive-code .frame.prompt .header .title {
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+/* An image floated beside a paragraph, such as the tortoise on the home page. */
+.sl-markdown-content img[align='right'] {
+  float: right;
+  margin: 0 0 1rem 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .sl-markdown-content img[align='right'] {
+    float: none;
+    width: 140px;
+    margin: 0 0 1rem;
+  }
+}

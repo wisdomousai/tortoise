@@ -53,11 +53,14 @@ test('new writes one generated application and copies no example', async () => {
   expect(await read(join(app, 'test/conformance.test.ts'))).toContain("name: 'note_list'");
   // The overview map cites the examples the export leaves out; the page keeps its prose.
   expect(await readdir(join(target, 'scripts'))).not.toContain('overview.ts');
-  const theme = await readdir(join(target, 'docs/.vitepress/theme'));
-  expect(theme).not.toContain('overview');
-  expect(theme).not.toContain('OverviewView.vue');
-  // The rest of the site's theme goes along, so the export's docs still build.
-  expect(theme).toContain('Tortoise.vue');
+  const site = await readdir(join(target, 'docs/site/src'));
+  expect(site).not.toContain('overview');
+  expect(await readdir(join(target, 'docs/site/src/components'))).not.toContain(
+    'OverviewView.astro',
+  );
+  // The rest of the site goes along, so the export's docs still build.
+  expect(await readdir(join(target, 'docs/site/src/components'))).toContain('Tortoise.astro');
+  expect(site).not.toContain('content');
   const page = await read(join(target, 'docs/overview.md'));
   expect(page).toContain('## Outbox phases');
   expect(page).not.toContain('<OverviewView');
@@ -91,7 +94,7 @@ test('a published-framework export depends on framework versions instead of copy
   expect(await readdir(join(target, 'scripts'))).toContain('skills-link.ts');
   expect(await readdir(join(target, 'scripts'))).toContain('skills-stamp.ts');
   const root = JSON.parse(await read(join(target, 'package.json')));
-  expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*']);
+  expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*', 'docs/site']);
   expect(root.dependencies).toMatchObject({
     '@agent-native/kernel': version,
     '@agent-native/site': version,

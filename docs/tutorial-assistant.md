@@ -24,7 +24,7 @@ Steps that change screens add `bun run build` and `bunx playwright test showcase
 
 **Goal:** a new repository with an `inquiry` collection. **Skill:** `create-agent-native-app`.
 
-```text
+```text prompt
 Use the create-agent-native-app skill. Create the application for the spare parts customer
 service desk of a power transformer plant at /path/to/parts-desk, with the name parts-desk, the
 display name "Parts Desk" and the first collection inquiry. Utilities call the desk about
@@ -45,7 +45,7 @@ report what passed.
 
 **Goal:** the records the desk looks up, plus seed data. Two serials share a prefix, so `TR-404` is ambiguous. **Skill:** `add-capability`.
 
-```text
+```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
 repository root:
 
@@ -97,7 +97,7 @@ You should see two rows: `TR-40417` and `TR-40471`. If the flag differs, `bun ru
 
 **Goal:** quotes, and the rule that a discount above 10 percent needs a supervisor. **Skill:** `add-capability`.
 
-```text
+```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
 repository root:
 
@@ -135,7 +135,7 @@ report what passed.
 
 **Goal:** the screens the desk uses during a call. **Skill:** `build-screens`.
 
-```text
+```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, replace the default list and record
 screens with these, written as custom TSX layouts from the starter's shadcn components (Card,
 Badge, Button, Tabs, Table, Input, Separator, Tooltip, Kbd) and Tailwind classes:
@@ -174,7 +174,7 @@ report what passed.
 
 **Goal:** descriptions a model can pick tools by. **Skill:** `add-capability`.
 
-```text
+```text prompt
 Use the add-capability skill. In showcase/examples/parts-desk, rewrite the description of every
 command and query, and of every input property, for a model that picks tools by description.
 Each says what the capability does, when to call it, what it returns or changes and what it
@@ -192,7 +192,7 @@ Run the checks the add-capability skill names and report what passed.
 
 **Goal:** define the assistant and what it may do. **Skill:** `add-capability`.
 
-```text
+```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
 repository root:
 
@@ -225,7 +225,7 @@ what passed.
 
 **Goal:** serve the assistant from a model on the desk's own machine. Tests use a stand-in for `llama-server`, so you need no weights until step 12. **Skill:** `serve-a-local-model`.
 
-```text
+```text prompt
 Use the serve-a-local-model skill. In showcase/examples/parts-desk, serve the assistant from a
 local model through the model server plugin on llama-server. Define the model entry
 parts-desk-assistant for a GGUF base with 16384 context tokens, for the assistant only, and name
@@ -257,7 +257,7 @@ transformer.find. Run the checks the serve-a-local-model skill names and report 
 
 **Goal:** the chat panel docked beside every screen. **Skill:** `build-screens`.
 
-```text
+```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, add the assistant panel as the
 aside of defineScreens, written as custom TSX from the starter's shadcn components and Tailwind
 classes.
@@ -301,7 +301,7 @@ build-screens skill names and report what passed.
 
 **Goal:** "this transformer" means the one on the screen. **Skill:** `build-screens`.
 
-```text
+```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, let each screen publish the record
 it shows (inquiry, transformer, part or quote) and the person's selection to the assistant panel,
 and let the panel send them through its UI session, so each run's context names them.
@@ -321,7 +321,7 @@ the build-screens skill names and report what passed.
 
 **Goal:** the assistant opens screens and fills the quote form; the person creates the quote. **Skill:** `build-screens`.
 
-```text
+```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, handle the assistant's UI intents
 in the panel's UI session: open goes to the record's screen, select selects it, and prepare on
 quote.create fills the quote builder through usePreparedInput. The builder shows a notice that
@@ -345,7 +345,7 @@ what passed.
 
 **Goal:** tests that judge what the assistant committed and requested and which calls the policy refused, without a model. **Skill:** `add-capability`.
 
-```text
+```text prompt
 Use the add-capability skill. In showcase/examples/parts-desk, write the assistant's scripted
 scenarios with runAgentScenarios and the deterministic harness:
 
@@ -372,7 +372,7 @@ add-capability skill names and report what passed.
 
 **Goal:** one real conversation with a local model. **Skill:** `serve-a-local-model`.
 
-```text
+```text prompt
 Use the serve-a-local-model skill. Start showcase/examples/parts-desk with bun run dev:web and
 LOCAL_MODEL_GGUF set to the GGUF weights of an instruction model that calls tools. Through
 Playwright, hold this conversation in the assistant panel, each message after the previous run
@@ -399,7 +399,7 @@ model succeed; record what it did in the README.
 
 **Goal:** dictate into the composer; the person still sends. **Skill:** `build-screens`.
 
-```text
+```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, add a microphone button to the
 assistant composer. It uses the browser's speech recognition only with on-device processing, so
 no audio leaves the machine, and it hides when the browser offers no on-device recognition for

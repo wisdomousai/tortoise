@@ -209,11 +209,10 @@ const leftOut = (path: string, excluded: readonly ExcludedExample[]) =>
 const overviewFiles = new Set([
   'scripts/overview.ts',
   'scripts/overview-curated.ts',
-  'docs/.vitepress/overview.data.ts',
-  'docs/.vitepress/theme/OverviewView.vue',
+  'docs/site/src/components/OverviewView.astro',
 ]);
 const overviewFile = (path: string) =>
-  overviewFiles.has(path) || path.startsWith('docs/.vitepress/theme/overview/');
+  overviewFiles.has(path) || path.startsWith('docs/site/src/overview/');
 const withoutOverview = (context: ExportContext) =>
   context.excluded.length > 0 || context.framework !== undefined;
 
@@ -236,6 +235,12 @@ async function exportedFiles(
       continue;
     }
     const source = await readFile(join(sourceRoot, path), 'utf8');
+    // A tutorial page shows files of its example; without the example it has nothing to show.
+    if (
+      path.startsWith('docs/tutorials/') &&
+      context.excluded.some(({ directory }) => source.includes(`${directory}/`))
+    )
+      continue;
     if (source.includes(sourceRoot) || source.includes(requestedSourceRoot))
       throw new Error(`Source file contains checkout-specific absolute path: ${path}`);
     if (path.endsWith('.pem') && /-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----/.test(source))

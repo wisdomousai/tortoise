@@ -25,7 +25,7 @@ const overview = existsSync(overviewScript)
 const outputs = [
   ['controls.json', json(controls)] as const,
   ['controls.md', controlsMarkdown(controls)] as const,
-  // The overview map's data, read by `docs/.vitepress/overview.data.ts`.
+  // The overview map's data, read by `docs/site/src/components/OverviewView.astro`.
   ...(overview ? [['overview.json', json(await overview(root, manifests))] as const] : []),
   ...manifests.flatMap((manifest) =>
     [...artifacts(manifest)].map(([name, content]) => [join(manifest.id, name), content] as const),

@@ -1,0 +1,32 @@
+---
+// The sidebar starts with the search box, then the groups. The box opens Starlight's search on
+// Ctrl+K or Cmd+K as well.
+import Search from '@astrojs/starlight/components/Search.astro';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+
+const { sidebar } = Astro.locals.starlightRoute;
+---
+
+<div class="sidebar-search print:hidden">
+  <Search />
+</div>
+
+<SidebarPersister>
+  <SidebarSublist sublist={sidebar} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>
+
+<style>
+  .sidebar-search {
+    margin-bottom: 1rem;
+  }
+
+  .sidebar-search :global(button[data-open-modal]) {
+    width: 100%;
+  }
+</style>

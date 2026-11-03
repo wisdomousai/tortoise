@@ -4,7 +4,7 @@
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import type { DefaultTheme } from 'vitepress';
+import type { StarlightUserConfig } from '@astrojs/starlight/types';
 
 export const repoRoot = resolve(import.meta.dirname, '../..');
 
@@ -17,9 +17,23 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
     [
       ['overview', 'Overview'],
       ['getting-started', 'Getting started'],
-      ['tutorial', 'Tool crib tutorial'],
-      ['tutorial-assistant', 'In-app assistant'],
       ['patterns', 'Patterns'],
+    ],
+  ],
+  [
+    'Tutorials',
+    [
+      ['tutorials/index', 'Tutorials'],
+      ['tutorial', 'Tool store'],
+      ['tutorial-assistant', 'In-app assistant'],
+      ['tutorials/tool-store-1-records-and-screens', 'Tool store 1: records and screens'],
+      ['tutorials/tool-store-2-counter-terminal', 'Tool store 2: counter terminal'],
+      ['tutorials/tool-store-3-connections-and-agents', 'Tool store 3: connections and agents'],
+      ['tutorials/tool-store-4-deployment', 'Tool store 4: deployment'],
+      ['tutorials/parts-desk-1-records-and-quotes', 'Parts desk 1: records and quotes'],
+      ['tutorials/parts-desk-2-assistant', 'Parts desk 2: assistant'],
+      ['tutorials/parts-desk-3-context-and-scenarios', 'Parts desk 3: context and scenarios'],
+      ['tutorials/parts-desk-4-live-model-and-voice', 'Parts desk 4: live model and voice'],
     ],
   ],
   [
@@ -63,6 +77,7 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
       ['development-and-testing', 'Development and testing'],
       ['implementation-status', 'Implementation status'],
       ['styleguide', 'Documentation styleguide'],
+      ['site/README', 'Documentation site'],
     ],
   ],
 ];
@@ -99,16 +114,23 @@ const skillName = (workspace: string, skill: string): string => {
   return /^name:\s*(.+)$/m.exec(text)?.[1]?.trim() ?? skill;
 };
 
-export function sidebar(): DefaultTheme.Sidebar {
-  const items: DefaultTheme.SidebarItem[] = guides
+/** `docs/<file>.md` or `.mdx` exists; `site/README` and `tutorials/index` are their directories' pages. */
+const guideExists = (file: string) =>
+  ['md', 'mdx'].some((extension) => existsSync(join(repoRoot, 'docs', `${file}.${extension}`)));
+
+/** The site route of a guide: `docs/site/README.md` is `/docs/site/`, `docs/tutorials/index.md` `/docs/tutorials/`. */
+const guideLink = (file: string) => `/docs/${file.replace(/\/(README|index)$/, '')}`;
+
+export function sidebar(): StarlightUserConfig['sidebar'] {
+  const items: NonNullable<StarlightUserConfig['sidebar']> = guides
     .map(([group, pages]) => ({
-      text: group,
+      label: group,
       items: pages
-        .filter(([file]) => existsSync(join(repoRoot, 'docs', `${file}.md`)))
-        .map(([file, text]) => ({ text, link: `/docs/${file}` })),
+        .filter(([file]) => guideExists(file))
+        .map(([file, text]) => ({ label: text, link: guideLink(file) })),
     }))
     .filter((group) => group.items.length);
-  const skills: DefaultTheme.SidebarItem[] = [];
+  const skills: { label: string; link: string }[] = [];
   for (const [layer, text] of layers) {
     const names = directories(layer);
     const withReadmes = names.filter((name) =>
@@ -116,22 +138,22 @@ export function sidebar(): DefaultTheme.Sidebar {
     );
     if (withReadmes.length)
       items.push({
-        text,
+        label: text,
         collapsed: true,
-        items: withReadmes.map((name) => ({ text: name, link: `/${layer}/${name}/` })),
+        items: withReadmes.map((name) => ({ label: name, link: `/${layer}/${name}/` })),
       });
     for (const name of names)
       for (const skill of skillsOf(`${layer}/${name}`))
         skills.push({
-          text: skillName(`${layer}/${name}`, skill),
+          label: skillName(`${layer}/${name}`, skill),
           link: `/${layer}/${name}/skills/${skill}/`,
         });
   }
   if (skills.length)
     items.push({
-      text: 'Skills',
+      label: 'Skills',
       collapsed: true,
-      items: skills.sort((a, b) => a.text!.localeCompare(b.text!)),
+      items: skills.sort((a, b) => a.label.localeCompare(b.label)),
     });
   return items;
 }

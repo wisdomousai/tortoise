@@ -49,17 +49,20 @@ const excludedDirectories = new Set([
   'provider-runs',
   'provider-conversations',
   '.expo',
+  '.astro',
   // .NET and Python build output and environments.
   'bin',
   'obj',
   '__pycache__',
   '.venv',
 ]);
-// Native projects and entries that `expo prebuild` and `mobile:prepare` regenerate.
+// Native projects and entries that `expo prebuild` and `mobile:prepare` regenerate, and the
+// pages `docs:collect` mirrors.
 const generatedDirectories = new Set([
   'apps/mobile/ios',
   'apps/mobile/android',
   'apps/mobile/generated',
+  'docs/site/src/content/docs',
 ]);
 const sourceExtensions = new Set([
   '.ts',
@@ -74,8 +77,9 @@ const sourceExtensions = new Set([
   '.yml',
   '.html',
   '.css',
-  // Components of the documentation site's theme.
-  '.vue',
+  // Pages and components of the documentation site.
+  '.mdx',
+  '.astro',
   '.sh',
   '.py',
   '.toml',

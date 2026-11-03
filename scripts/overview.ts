@@ -26,21 +26,10 @@ const layerTitles: Record<string, string> = {
   sdks: 'Driver SDKs',
 };
 
+import { slug } from './markdown-links';
+
 const read = (root: string, path: string) => readFileSync(join(root, path), 'utf8');
 const stripLinks = (text: string) => text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-
-/** The heading slug VitePress gives a heading (`@mdit-vue/shared` slugify). */
-export function slug(heading: string): string {
-  return heading
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[\u0000-\u001f]/g, '')
-    .replace(/[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g, '-')
-    .replace(/-{2,}/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/^(\d)/, '_$1')
-    .toLowerCase();
-}
 
 /** The first paragraph after the title, with links reduced to their text. */
 function readmeLead(markdown: string): string {

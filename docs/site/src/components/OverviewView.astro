@@ -1,0 +1,35 @@
+---
+// One overview view, rendered in the browser from the data `bun run generate` wrote. The views
+// build their own DOM, so the same code renders a standalone page.
+interface Props {
+  view: string;
+}
+
+const { view } = Astro.props;
+---
+
+<div class="overview-view" data-view={view}></div>
+
+<script>
+  import data from '@reference/overview.json';
+  import { mount, type Links, type Overview, type ViewName } from '@site/overview';
+
+  const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const links: Links = {
+    doc: (reference) => {
+      const [page, anchor] = reference.split('#');
+      return `${base}/docs/${page}/${anchor ? `#${anchor}` : ''}`;
+    },
+    workspace: (directory) => `${base}/${directory}/`,
+    source: (path) => `${repository}/blob/main/${path}`,
+  };
+
+  for (const element of document.querySelectorAll<HTMLElement>('.overview-view[data-view]'))
+    mount(element.dataset.view as ViewName, element, data as Overview, links);
+
+  // The browser scrolled to the anchor before the views had a height; scroll again after they
+  // pushed it down.
+  const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (target) requestAnimationFrame(() => target.scrollIntoView());
+</script>

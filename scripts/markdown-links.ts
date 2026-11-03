@@ -44,7 +44,7 @@ export function brokenLinks(path: string, text = readFileSync(path, 'utf8')): st
     const [file, anchor] = target!.split('#') as [string, string | undefined];
     const resolved = file ? resolve(dirname(path), file) : path;
     if (!existsSync(resolved)) problems.push(`link to missing file ${target}`);
-    else if (anchor && resolved.endsWith('.md') && !anchorsOf(resolved).has(anchor))
+    else if (anchor && /\.mdx?$/.test(resolved) && !anchorsOf(resolved).has(anchor))
       problems.push(`link to missing heading ${target}`);
   }
   return problems;
