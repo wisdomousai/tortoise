@@ -71,12 +71,11 @@ export async function applyBlobChanges<State, Services>(
     }
     const { ref, resource } = change;
     const record = ownRecord(snapshot, ref.digest);
+    const store = storeOf(kernel, context.workspaceId);
     const permitted =
-      kernel.uploads.isStaged(context, ref.digest) ||
+      (await kernel.uploads.isStaged(context, ref.digest, store)) ||
       (record !== undefined && (await readable(kernel, context, snapshot, record)));
-    const stored = permitted
-      ? await storeOf(kernel, context.workspaceId).stat(ref.digest)
-      : undefined;
+    const stored = permitted ? await store.stat(ref.digest) : undefined;
     if (!stored || stored.size !== ref.size || (record && record.mediaType !== ref.mediaType))
       throw new ApplicationError('INVALID_INPUT', 'Blob is unavailable');
     defineOwn(snapshot.blobs, ref.digest, {

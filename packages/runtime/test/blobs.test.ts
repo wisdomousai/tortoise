@@ -94,11 +94,12 @@ const reviewer: ExecutionContext = { workspaceId: 'w', principalId: 'reviewer' }
 const stranger: ExecutionContext = { workspaceId: 'w', principalId: 'stranger' };
 const grace = 60_000;
 
-function fixture() {
+/** `store` stands for the blob store a restarted instance opens again. */
+function fixture(options: { store?: ReturnType<typeof createMemoryBlobStore> } = {}) {
   let now = 1_000_000;
   const clock = () => now;
   const storage = createMemoryStorage<State>({ captures: {} });
-  const store = createMemoryBlobStore(clock);
+  const store = options.store ?? createMemoryBlobStore(clock);
   const audit: AuditRecord[] = [];
   const bind = createHandlerFactory<State, {}>();
   let effects = 0;
@@ -235,6 +236,22 @@ describe('blob references', () => {
     const late = await app.putBlob(photo(4), 'image/jpeg', owner);
     advance(grace + 1);
     expect(await invoke('photo.attach', { capture: 'c3', photo: late }).catch(code)).toBe(
+      'INVALID_INPUT',
+    );
+  });
+
+  test('an upload stays attachable by its uploader after a restart, within the grace period', async () => {
+    const before = fixture();
+    const ref = await before.app.putBlob(photo(12), 'image/jpeg', owner);
+    const after = fixture({ store: before.store });
+    expect(
+      await after.invoke('photo.attach', { capture: 's1', photo: ref }, stranger).catch(code),
+    ).toBe('INVALID_INPUT');
+    await after.invoke('photo.attach', { capture: 'c1', photo: ref });
+    const late = await before.app.putBlob(photo(13), 'image/jpeg', owner);
+    const later = fixture({ store: before.store });
+    later.advance(grace + 1);
+    expect(await later.invoke('photo.attach', { capture: 'c2', photo: late }).catch(code)).toBe(
       'INVALID_INPUT',
     );
   });

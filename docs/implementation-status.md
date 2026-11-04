@@ -42,7 +42,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 - **Proven (by hand, 18 and 27 Oct):** against Postgres 17, two pools raced for one workspace lease and one won. A second `serve --hosted-workspace` got `CONFLICT` (exit 5). After the holder paused or stopped, a new instance took the lease with fencing token 2. `showcase/patterns/hosted` signed in against a stand-in identity provider, driven with curl.
 - **Not yet:** a hosted instance behind public TLS with workforce OIDC; a real orchestrator; Linux; a paused holder's commit caught by the fence in a live run.
-- **Limits:** one process serves one workspace. Blobs, run history, the audit log and plugin files stay in the local directory. `sync`, `drain`, `backup`, `restore`, `migrate` and `--embedded` open a local workspace only. No Cloudflare Durable Object host.
+- **Limits:** one process serves one workspace. Run history, workforce sessions, the audit log and plugin files stay in the local directory; blobs are in the database, tested on PGlite only. `sync`, `drain`, `backup`, `restore`, `migrate` and `--embedded` open a local workspace only. No Cloudflare Durable Object host.
 
 ### Fleet agent
 
@@ -181,7 +181,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### OS integration
 
 - **Proven (browser):** `showcase/examples/field-service/e2e/os.pw.ts` covers the web manifest's handlers, `?os=` launch URLs, file and share-target prefill, reminders, shortcuts and `navigator.share` (replaced with a recorder).
-- **Not yet:** anything through a real OS: Electron wiring, installed web apps, Expo bindings, real share sheets, real notifications, Android intents, launcher shortcuts. A restart loses staged uploads.
+- **Not yet:** anything through a real OS: Electron wiring, installed web apps, Expo bindings, real share sheets, real notifications, Android intents, launcher shortcuts.
 
 ### Layers and scaffold
 

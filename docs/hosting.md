@@ -47,7 +47,8 @@ Code: `packages/adapters/src/postgres-lease.ts`. Tests: `packages/testing/test/p
 ### Instance layout
 
 - One instance serves one workspace. For many workspaces, run one instance each behind a router.
-- The local `--workspace` directory still holds blobs, agent run history, the audit log and plugin files. Put it on a volume that follows the instance.
+- Blobs live in the database (`workspace_blobs`). An instance reads a blob an earlier release kept in the local directory from there and copies it in.
+- The local `--workspace` directory still holds agent run history, workforce sessions, the audit log and plugin files. Put it on a volume that follows the instance.
 - Don't host an app that needs a site: a site-scoped destination, a device, an exchange folder or a station process. Nothing refuses it at startup; check the requirements in the security manifest from `bun run generate`.
 
 ## Fleet

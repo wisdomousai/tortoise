@@ -121,7 +121,7 @@ implemented · [`packages/kernel/src/migrations.ts`](../packages/kernel/src/migr
 
 ### Blob store
 
-_Content-addressed bytes, such as photos and documents, that commands reference from resources._
+_Content-addressed bytes, such as photos and documents, that commands reference from resources. An upload stays attachable by its uploader for the grace period, across a restart. A hosted instance keeps blobs in Postgres. No retention setting or thumbnails yet._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/client`](../packages/client/README.md) [`packages/kernel`](../packages/kernel/README.md)
 

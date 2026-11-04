@@ -199,6 +199,15 @@ export interface BlobStore {
   get(digest: string): Promise<Uint8Array | undefined>;
   remove(digest: string): Promise<void>;
   list(): Promise<readonly string[]>;
+  /**
+   * Remember until `until` that a principal uploaded a blob, by an opaque `key`, so the uploader
+   * can still attach it after a restart. A store without these keeps staging in memory only.
+   */
+  stage?(key: string, until: number): Promise<void>;
+  /** When the staging that `key` names ends, or undefined when there is none. */
+  stagedUntil?(key: string): Promise<number | undefined>;
+  /** Forget staging that ended at or before `now`. */
+  unstage?(now: number): Promise<void>;
 }
 export interface HandlerContext<State, Services> {
   readonly state: State;

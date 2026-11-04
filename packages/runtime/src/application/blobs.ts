@@ -93,7 +93,7 @@ async function putBlob<State, Services>(
     const store = storeOf(kernel, context.workspaceId);
     await kernel.uploads.exclusive(context.workspaceId, () => store.put(digest, data));
     kernel.guard.trusted(context);
-    kernel.uploads.stage(context, digest);
+    await kernel.uploads.stage(context, digest, store);
     return { digest, size: data.byteLength, mediaType };
   });
 }
@@ -162,6 +162,7 @@ function sweepBlobs<State, Services>(
         await store.remove(digest);
         removed++;
       }
+      await store.unstage?.(kernel.now());
       return { removed };
     }),
   );

@@ -116,6 +116,8 @@
     "./src/ownership WorkspaceOwnedError",
     "./src/ownership acquireWorkspaceOwnership",
     "./src/ownership readInstanceMetadata",
+    "./src/postgres-blobs PostgresBlobStoreOptions",
+    "./src/postgres-blobs createPostgresBlobStore",
     "./src/postgres-bun bunPostgres",
     "./src/postgres-lease LeaseOptions",
     "./src/postgres-lease WorkspaceLease",

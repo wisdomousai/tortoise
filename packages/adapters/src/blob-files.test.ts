@@ -55,3 +55,17 @@ test('a digest that is not a SHA-256 reference never becomes a path', async () =
   await expect(blobs.get('sha256:../../etc/passwd')).rejects.toThrow('Invalid blob digest');
   await expect(blobs.put('md5:abc', new Uint8Array())).rejects.toThrow('Invalid blob digest');
 });
+
+test('staging records outlast the store object and name no principal', async () => {
+  const { directory, blobs } = store();
+  const key = 'local\nada@plant\nsha256:00';
+  await blobs.stage!(key, 2_000);
+  const reopened = createFileBlobStore(directory);
+  expect(await reopened.stagedUntil!(key)).toBe(2_000);
+  expect(await reopened.stagedUntil!('local\nben@plant\nsha256:00')).toBeUndefined();
+  expect(readdirSync(join(directory, 'staged')).join()).not.toContain('ada');
+  await reopened.unstage!(1_999);
+  expect(await reopened.stagedUntil!(key)).toBe(2_000);
+  await reopened.unstage!(2_000);
+  expect(await reopened.stagedUntil!(key)).toBeUndefined();
+});
