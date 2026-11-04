@@ -15,7 +15,7 @@ export const hubDestinationComponent = defineHostComponent({
         id: 'hub',
         purpose: 'Deliver field records and their photos to the hub, and read assignments.',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         authenticated: true,
         dataClasses: ['field-record', 'photo'],
@@ -46,7 +46,7 @@ export const hubLinkPluginManifest = definePluginManifest({
       key: 'hub-url',
       env: 'TORTOISE_HUB_URL',
       kind: 'string',
-      description: 'origin of the hub to pair with, such as https://hub.site.example:8443',
+      description: 'origin of the hub to pair with, such as https://hub.plant.example:8443',
     },
     {
       key: 'enrollment-code',

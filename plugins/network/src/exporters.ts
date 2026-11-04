@@ -25,8 +25,8 @@ export interface ExportOptions {
   readonly executable?: string;
   readonly workspace?: string;
   readonly auditLog?: string;
-  /** Site policy path the service is started with. */
-  readonly sitePolicy?: string;
+  /** Deployment policy path the service is started with. */
+  readonly deploymentPolicy?: string;
   /** Container image for the Kubernetes and compose manifests. */
   readonly image?: string;
 }

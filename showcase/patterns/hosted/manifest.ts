@@ -1,6 +1,6 @@
 import { defineManifest } from '@tortoise/host/manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 
 /**
@@ -12,5 +12,5 @@ export default defineManifest({
   id: 'test-requests-hosted',
   title: 'Lab request desk',
   modules: [testRequestsModule],
-  plugins: [sitePluginManifest, networkPluginManifest],
+  plugins: [deploymentPluginManifest, networkPluginManifest],
 });

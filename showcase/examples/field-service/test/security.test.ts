@@ -7,11 +7,11 @@ import { openJsonlEventLog, readEvents, segmentName, verifyEventLog } from '@tor
 import { startHost } from '@tortoise/host/host';
 import { auditServiceOf } from '@tortoise/audit';
 import { networkServiceOf } from '@tortoise/network';
-import { siteServiceOf } from '@tortoise/site';
+import { deploymentServiceOf } from '@tortoise/deployment';
 import { openEmbeddedInstance } from '@tortoise/host/embedded';
 import fieldService from '../application';
 
-// The site, network and audit plugins are generic; field-service is only the fixture application.
+// The deployment, network and audit plugins are generic; field-service is only the fixture application.
 
 const withWorkspace = async (run: (directory: string) => Promise<void>) => {
   const directory = await mkdtemp(join(tmpdir(), 'security-'));
@@ -27,7 +27,7 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
     const host = await startHost(fieldService, { workspacePath: directory, integration: false });
     const auditLog = auditServiceOf(host.services).logDirectory;
     try {
-      expect(siteServiceOf(host.services).policy.mode).toBe('isolated');
+      expect(deploymentServiceOf(host.services).policy.mode).toBe('isolated');
       const localUser = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' });
       const response = await fetch(`${host.url}/api/v1/commands/work-order.create`, {
         method: 'POST',
@@ -62,7 +62,7 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
   });
 });
 
-test('an unusable site policy refuses startup and releases the workspace', async () => {
+test('an unusable deployment policy refuses startup and releases the workspace', async () => {
   await withWorkspace(async (directory) => {
     const policy = join(directory, 'zero-trust.json');
     // Zero trust refuses the trusted local-user identity and an unforwarded audit log.
@@ -72,9 +72,9 @@ test('an unusable site policy refuses startup and releases the workspace', async
       startHost(fieldService, {
         workspacePath,
         integration: false,
-        settings: { 'site-policy': policy },
+        settings: { 'deployment-policy': policy },
       }),
-    ).rejects.toThrow(/Site policy rejected \(zero-trust\)[\s\S]*IDENTITY_FLOOR/);
+    ).rejects.toThrow(/Deployment policy rejected \(zero-trust\)[\s\S]*IDENTITY_FLOOR/);
     const host = await startHost(fieldService, { workspacePath, integration: false });
     await host.close();
   });
@@ -121,9 +121,9 @@ test('startup resolves a command accepted before a crash', async () => {
   });
 });
 
-test('provider network access is denied unless the site policy binds it', async () => {
+test('provider network access is denied unless the deployment policy binds it', async () => {
   await withWorkspace(async (directory) => {
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -136,7 +136,7 @@ test('provider network access is denied unless the site policy binds it', async 
     const host = await startHost(fieldService, {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     try {
       const providerFetch = networkServiceOf(host.services).guard.routedFetch([

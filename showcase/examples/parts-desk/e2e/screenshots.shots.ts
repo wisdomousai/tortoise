@@ -1,6 +1,6 @@
 /**
  * The screenshots of the parts desk tutorial (`docs/tutorials/parts-desk-*.mdx`). `prepare.ts`
- * creates the trial records, mara as a supervisor and the draft Q-00001, and the site policy of
+ * creates the trial records, mara as a supervisor and the draft Q-00001, and the deployment policy of
  * the llama-server stand-in, which plays the assistant from `responder.ts`. The browser logs a
  * call, builds a quote and holds the assistant conversations the pages describe. Run with
  * `bun run docs:screenshots`.

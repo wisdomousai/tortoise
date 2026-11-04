@@ -49,10 +49,10 @@ await writeFile(
   ),
 );
 
-const sitePolicy =
-  process.env.TORTOISE_SITE_POLICY === undefined
-    ? resolve(prepared.root, 'apps/desktop/site-policy.json')
-    : process.env.TORTOISE_SITE_POLICY.trim();
+const deploymentPolicy =
+  process.env.TORTOISE_DEPLOYMENT_POLICY === undefined
+    ? resolve(prepared.root, 'apps/desktop/deployment-policy.json')
+    : process.env.TORTOISE_DEPLOYMENT_POLICY.trim();
 const electronBinary = require('electron') as string;
 console.log(`Opening ${prepared.title}…`);
 const child = spawn(electronBinary, [appDir], {
@@ -67,7 +67,7 @@ const child = spawn(electronBinary, [appDir], {
     TORTOISE_BUN: process.execPath,
     TORTOISE_DEV_ROOT: prepared.root,
     PORT: prepared.port ?? '4317',
-    ...(sitePolicy ? { TORTOISE_SITE_POLICY: sitePolicy } : {}),
+    ...(deploymentPolicy ? { TORTOISE_DEPLOYMENT_POLICY: deploymentPolicy } : {}),
   },
   stdio: 'inherit',
 });

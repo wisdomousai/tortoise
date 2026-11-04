@@ -13,14 +13,14 @@ export class FleetUnavailable extends Error {
   }
 }
 
-/** Calls to the fleet as this site, through the network port's `fleet` destination. */
+/** Calls to the fleet as this instance, through the network port's `fleet` destination. */
 export interface FleetLink {
   command<T>(operation: string, input: unknown, idempotencyKey: string): Promise<T>;
   query<T>(operation: string, input?: unknown): Promise<T>;
   blob(digest: string): Promise<Uint8Array>;
 }
 
-/** Keep the fleet's wording of each failure; the site's status screen shows it. */
+/** Keep the fleet's wording of each failure; the instance's status screen shows it. */
 async function asFleet<T>(run: () => Promise<T>): Promise<T> {
   try {
     return await run();
@@ -42,7 +42,7 @@ const fleetCall = (network: () => NetworkPort, token?: string) =>
   });
 
 /**
- * The fleet's HTTP API with the site credential on every call. The credential is sent only to
+ * The fleet's HTTP API with the instance credential on every call. The credential is sent only to
  * the bound `fleet` origin (the network port resolves the path against it), and redirects are
  * errors, so it never reaches another host.
  */
@@ -57,7 +57,7 @@ export function fleetLink(network: () => NetworkPort, token: string): FleetLink 
   };
 }
 
-/** Exchange a one-use enrollment code for the site's credential. */
+/** Exchange a one-use enrollment code for the instance's credential. */
 export async function enroll(network: () => NetworkPort, code: string): Promise<string> {
   const { token } = await asFleet(() =>
     fleetCall(network).post<{ token?: unknown }>(fleetEnrollPath, { code }),

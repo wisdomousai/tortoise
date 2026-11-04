@@ -16,7 +16,7 @@ A build stamps its time. `scripts/application-entry.ts` writes the entry these c
 
 The entry stamps the definition with the build time (`packages/kernel/src/build.ts`). A run from source has no stamp and no date. The best-before date is build date plus shelf life, in UTC — the last day within the shelf life.
 
-`bun run bundle create` stamps the binary and the site bundle with the same time and signs the date into `bundle.json`. A new release records a new date. A changed date fails verification.
+`bun run bundle create` stamps the binary and the bundle with the same time and signs the date into `bundle.json`. A new release records a new date. A changed date fails verification.
 
 The date shows in these places:
 
@@ -36,7 +36,7 @@ The posture check reports `info` for a build without a date, never `fail`. Comma
 
 An effect in the outbox exists only in the workspace. Once the outbox is empty and a person has decided every held effect, the systems of record store every record a target receives.
 
-What exists only in the data directory (`var/lib/tortoise/<app>` on a site):
+What exists only in the data directory (`var/lib/tortoise/<app>` on the host):
 
 - Records that no target receives
 - The audit log
@@ -50,7 +50,7 @@ What exists only in the data directory (`var/lib/tortoise/<app>` on a site):
 - Held effects
 - Effects awaiting the target's decision
 
-While any remain, the purge fails with `CONFLICT` and the counts in the error details — every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target completes, and the override.
+While any remain, the purge fails with `CONFLICT` and the counts in the error details — every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/deployment/test/install.test.ts` covers the refusal, a purge after the target completes, and the override.
 
 ## Decommissioning procedure
 
@@ -66,7 +66,7 @@ Here `app` stands for the application's CLI and `<app>` for its ID.
 3. Deliver what remains, and repeat until `drain` exits 0:
 
    ```sh
-   app drain --workspace /var/lib/tortoise/<app>/workspace --site-policy /etc/tortoise/<app>/site-policy.json --audit-log /var/lib/tortoise/<app>/audit
+   app drain --workspace /var/lib/tortoise/<app>/workspace --deployment-policy /etc/tortoise/<app>/deployment-policy.json --audit-log /var/lib/tortoise/<app>/audit
    ```
 
 4. Copy `/var/lib/tortoise/<app>` when a retention rule covers its records or audit log.
@@ -76,7 +76,7 @@ Here `app` stands for the application's CLI and `<app>` for its ID.
    app uninstall --purge --trust key.pub.json --apply
    ```
 
-6. On the fleet, revoke the site's device on the Devices screen, then remove the site on its Sites screen.
+6. On the fleet, revoke the instance's device on the Devices screen, then remove the instance on its Instances screen.
 7. On each peer application that enrolled this one, revoke it with `peer.revoke`.
 8. Close the accounts at the systems of record that the security manifest's destinations name.
 
@@ -102,6 +102,6 @@ A hosted instance delivers while it serves, and its fleet report counts what rem
 - [Desktop](desktop.md)
 - [Mobile](mobile.md)
 - [Implementation status](implementation-status.md#application-lifecycle)
-- [`@tortoise/site`](../plugins/site/README.md)
-- [decommission-an-application](../plugins/site/skills/decommission-an-application/SKILL.md)
-- [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md)
+- [`@tortoise/deployment`](../plugins/deployment/README.md)
+- [decommission-an-application](../plugins/deployment/skills/decommission-an-application/SKILL.md)
+- [deploy-an-application](../plugins/deployment/skills/deploy-an-application/SKILL.md)

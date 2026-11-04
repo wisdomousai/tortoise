@@ -11,7 +11,7 @@ import {
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   connectPeerTarget,
   connectTarget,
@@ -46,7 +46,7 @@ export interface ReceivingOptions {
   services?: Services;
   /** People who work in a new workspace besides the local user, who is always an editor. */
   members?: Record<string, Role>;
-  /** The ERP port; the exchange folders the site policy binds when omitted. */
+  /** The ERP port; the exchange folders the deployment policy binds when omitted. */
   erp?: SystemOfRecordPort<AsnLine>;
   /** How long a notice export must be unchanged before it is imported; 2 s when omitted. */
   quietMs?: number;
@@ -57,9 +57,9 @@ export interface ReceivingOptions {
 export const receivingPeerLinkPlugin = createPeerLinkPlugin({ targets: [qualityPeer] });
 
 /**
- * The Goods receiving application with the approval and reconciliation features and the site,
+ * The Goods receiving application with the approval and reconciliation features and the deployment,
  * network, audit, compliance and peer link plugins. The ERP is reached through exchange
- * folders; until the site policy binds them, notices are not imported and posted receipts wait
+ * folders; until the deployment policy binds them, notices are not imported and posted receipts wait
  * in the outbox. Quality inspection is reached as a peer; until it is connected, inspection requests wait
  * in the outbox and lot searches report it unavailable.
  */
@@ -87,7 +87,13 @@ export function createReceivingApplication(options: ReceivingOptions = {}) {
         { access: reconciliationAccess, hooks: { onResolved: onReceiptResolved } },
       ),
     ],
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, receivingPeerLinkPlugin],
+    plugins: [
+      deploymentPlugin,
+      networkPlugin,
+      auditPlugin,
+      compliancePlugin,
+      receivingPeerLinkPlugin,
+    ],
     // The records a screen may hand to an agent run, such as the line the assistant panel sees.
     selectableResources: {
       delivery: operations.deliveryGet.id,

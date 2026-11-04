@@ -8,7 +8,7 @@
  * - STATION_VISION_BASE_URL + STATION_VISION_MODEL: a local OpenAI-compatible vision model
  *   (loopback, or hosts listed in STATION_VISION_ALLOWED_HOSTS), STATION_VISION_READS reads each;
  * - STATION_GOLDEN_WORKER: a JSON array command for a JSON-lines recognition worker, started here
- *   with an empty environment (a host starts its worker from the site policy instead);
+ *   with an empty environment (a host starts its worker from the deployment policy instead);
  * - otherwise the manifest's expected values replayed as a fixture, which checks wiring only.
  * Nothing is discovered: without explicit configuration no model is called. Exits non-zero when
  * a screen is misidentified or any reading is confident and wrong.

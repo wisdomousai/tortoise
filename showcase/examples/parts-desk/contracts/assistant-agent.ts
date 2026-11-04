@@ -5,7 +5,7 @@ import { DESK_DISCOUNT_LIMIT } from './quote';
 /** The model entry the assistant runs on. The deployment chooses its weights (`model.ts`). */
 export const ASSISTANT_MODEL = 'parts-desk-assistant';
 
-/** The process the model server starts, which the site policy binds to llama-server and pins. */
+/** The process the model server starts, which the deployment policy binds to llama-server and pins. */
 export const ASSISTANT_MODEL_PROCESS = 'llm';
 export const assistantModelServer = modelServer({
   id: ASSISTANT_MODEL_PROCESS,

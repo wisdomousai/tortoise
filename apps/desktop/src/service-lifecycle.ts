@@ -78,8 +78,8 @@ interface ServiceOptions {
   args?: string[];
   webRoot: string;
   runtimeManifest?: string;
-  /** Site policy file for the service; absent leaves the service isolated (loopback only). */
-  sitePolicy?: string;
+  /** Deployment policy file for the service; absent leaves the service isolated (loopback only). */
+  deploymentPolicy?: string;
   /** The application's URL scheme, passed to the OS plugin as `TORTOISE_OS_SCHEME`. */
   scheme?: string;
   startupTimeoutMs?: number;
@@ -131,7 +131,7 @@ function serviceEnvironment(options: ServiceOptions, workspace: string): NodeJS.
     WEB_ROOT: options.webRoot,
   });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
-  if (options.sitePolicy) env.TORTOISE_SITE_POLICY = options.sitePolicy;
+  if (options.deploymentPolicy) env.TORTOISE_DEPLOYMENT_POLICY = options.deploymentPolicy;
   // The OS plugin handles links in this scheme; an application without it ignores the key.
   if (options.scheme) env.TORTOISE_OS_SCHEME = options.scheme;
   return env;
@@ -255,7 +255,7 @@ function awaitReady(service: OwnedService, options: ServiceOptions): Promise<voi
 /** Attach first; otherwise let the service's OS-held workspace lock arbitrate startup.
  * Only the exact child process launched here is owned and eligible for shutdown.
  * `extraEnv` is for the source development launch. Workspace, port, web root, runtime
- * manifest and site policy are applied after it, so those keys cannot be overridden.
+ * manifest and deployment policy are applied after it, so those keys cannot be overridden.
  * Packaged startup does not set `extraEnv`. */
 export async function ensureService(options: ServiceOptions): Promise<ServiceHandle> {
   const workspace = await realpath(options.workspace);

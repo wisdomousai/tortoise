@@ -19,8 +19,8 @@ import {
   type ExecutionContext,
   type HandlerContext,
 } from '@tortoise/runtime';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { modelServer } from '../src/contracts';
 import { createModelServer, type ModelServerOptions } from '../src/plugin';
 import { modelServerPluginManifest } from '../src/plugin-manifest';
@@ -103,7 +103,7 @@ export function notesApplication(options: ModelServerOptions) {
       modules: [notesModule],
       components: [modelServer({ id: 'llm', runtime: 'llama-server' })],
       plugins: [
-        sitePluginManifest,
+        deploymentPluginManifest,
         networkPluginManifest,
         processPluginManifest,
         modelServerPluginManifest,
@@ -115,7 +115,7 @@ export function notesApplication(options: ModelServerOptions) {
       authorize: ({ context }) => ({ allowed: context.principalId === 'ann' }),
       canReadEvent: () => true,
     },
-    plugins: [sitePlugin, networkPlugin, processPlugin, models.plugin],
+    plugins: [deploymentPlugin, networkPlugin, processPlugin, models.plugin],
   });
   return { application, models };
 }

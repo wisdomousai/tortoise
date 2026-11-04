@@ -74,7 +74,7 @@ function application(options: { failCompletions?: number; now?: () => number } =
               id: 'erp-api',
               purpose: 'Test system of record',
               direction: 'outbound',
-              scope: 'site',
+              scope: 'local',
               protocol: 'https',
               targets: ['erp'],
               dataClasses: ['test-record'],

@@ -6,7 +6,7 @@ import { FakePlant } from './fake-plant';
  * Run by `bun run dev:web` before the launch. It starts the plant stand-in, the chamber OPC UA
  * gateway on 127.0.0.1:4374 and the humidity broker on 127.0.0.1:4373, and binds both
  * destinations to it. Chamber 1 holds its setpoint with a little noise; chamber 2's humidity
- * drifts out of tolerance and back every two minutes. An explicit `TORTOISE_SITE_POLICY`
+ * drifts out of tolerance and back every two minutes. An explicit `TORTOISE_DEPLOYMENT_POLICY`
  * wins.
  */
 const plant = new FakePlant(defaultChambers);
@@ -21,7 +21,7 @@ setInterval(() => {
   plant.setTemperature('chamber-2', 23);
   plant.setHumidity('chamber-2', round(55 + 12 * wave));
 }, 3_000).unref();
-process.env.TORTOISE_SITE_POLICY ??= resolve(import.meta.dir, 'site-policy.dev.json');
+process.env.TORTOISE_DEPLOYMENT_POLICY ??= resolve(import.meta.dir, 'deployment-policy.dev.json');
 console.log(
   `Plant stand-in: OPC UA opc.tcp://127.0.0.1:${ports.gateway}, MQTT tcp://127.0.0.1:${ports.broker}`,
 );

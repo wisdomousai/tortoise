@@ -90,17 +90,17 @@ function setup() {
     operations: {
       ...targetRules(erp),
       [record.id]: {
-        container: () => 'site',
+        container: () => 'plant',
         roles: ['operator'],
         commit: 'previous',
         allow: ({ input, state }) => !own(state.readings, String(input.id)),
       },
-      [withdraw.id]: { container: () => 'site', roles: ['operator'] },
+      [withdraw.id]: { container: () => 'plant', roles: ['operator'] },
       [roleSet.id]: 'open',
     },
     // Only operators read readings, so a revoked operator stops seeing their outcome.
     events: {
-      reading: { container: () => 'site' },
+      reading: { container: () => 'plant' },
       code: () => true,
       sync: () => true,
       role: () => true,

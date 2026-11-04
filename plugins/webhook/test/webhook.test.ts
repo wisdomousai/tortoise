@@ -13,8 +13,8 @@ import { createMemoryStorage, type AuthorizationPort } from '@tortoise/runtime';
 import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { webhookOperations } from '../contracts';
 import { createWebhookPlugin } from '../plugin';
 import { webhookPluginManifest } from '../plugin-manifest';
@@ -53,9 +53,9 @@ function fixtureNetwork(receive: (body: unknown) => Response) {
 }
 
 type Provider = ReturnType<typeof fixtureNetwork>;
-/** The framework's network plugin and the site plugin it requires. */
+/** The framework's network plugin and the deployment plugin it requires. */
 const guarded = [
-  { manifest: sitePluginManifest, plugin: sitePlugin },
+  { manifest: deploymentPluginManifest, plugin: deploymentPlugin },
   { manifest: networkPluginManifest, plugin: networkPlugin },
 ];
 

@@ -1,5 +1,5 @@
 import { ApplicationError } from '@tortoise/contracts';
-import type { ResolvedPolicy, ResolvedProcess } from '@tortoise/site/policy';
+import type { ResolvedPolicy, ResolvedProcess } from '@tortoise/deployment/policy';
 import type { HostPorts, PluginOpenContext, ProcessAvailability } from '@tortoise/host/plugin';
 
 /** What deciding a start needs: the resolved policy and the opening context. */
@@ -20,9 +20,9 @@ export function availability({ policy, context }: Decision, processId: string) {
   const declared = context.catalog.requirements.processes.find((item) => item.id === processId);
   if (!declared) return no(`Process ${processId} is not declared by any module or component`);
   if (policy.disabledProcesses.has(processId))
-    return no(`Process ${processId} is disabled by the site policy`);
+    return no(`Process ${processId} is disabled by the deployment policy`);
   const binding = policy.processes.get(processId);
-  if (!binding) return no(`Process ${processId} is not bound by the site policy`);
+  if (!binding) return no(`Process ${processId} is not bound by the deployment policy`);
   if (declared.secrets?.length && !context.secrets)
     return no(`Process ${processId} needs secrets, and this platform keeps none`);
   if (declared.network?.length && !context.serving)

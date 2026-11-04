@@ -1,6 +1,6 @@
 # @tortoise/fleet-agent
 
-The site side of a fleet. Compose `createFleetAgentPlugin` after the site, network and audit plugins. It reports health, forwards the audit log and stages assigned releases, all over outbound calls through the `fleet` destination, and relays remote requests to the site's own API when enabled.
+The instance side of a fleet. Compose `createFleetAgentPlugin` after the deployment, network and audit plugins. It reports health, forwards the audit log and stages assigned releases, all over outbound calls through the `fleet` destination, and relays remote requests to the instance's own API when enabled.
 
 ## Trust boundary
 
@@ -15,6 +15,6 @@ Primitives:
 
 ## References
 
-- [connect-a-site-to-a-fleet](skills/connect-a-site-to-a-fleet/SKILL.md)
+- [connect-an-instance-to-a-fleet](skills/connect-an-instance-to-a-fleet/SKILL.md)
 - [Hosting: fleet](../../docs/hosting.md#fleet)
 - `bun test plugins/fleet-agent`

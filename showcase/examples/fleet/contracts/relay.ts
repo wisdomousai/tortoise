@@ -10,21 +10,21 @@ import {
 import { relayResponseSchema, relayRequestSchema } from '@tortoise/fleet-agent/contracts';
 
 /**
- * A remote-access request to one site's API and, once the site responded, its response. The
- * request's headers are dropped when the site takes it, so a site session passed in
+ * A remote-access request to one instance's API and, once the instance responded, its response. The
+ * request's headers are dropped when the instance takes it, so an instance session passed in
  * `authorization` stays in the request's state only while it waits. The command receipt of
  * `relay.request` keeps the input as well, for as long as receipts are kept.
  */
 export const relaySchema = z.strictObject({
   id: recordKeySchema,
-  site: recordKeySchema,
+  instance: recordKeySchema,
   method: relayRequestSchema.shape.method,
   path: relayRequestSchema.shape.path,
   status: z.enum(['queued', 'claimed', 'responded']),
   requestedBy: z.string().max(128),
   requestedAt: z.number().int().nonnegative(),
   respondedAt: z.number().int().nonnegative().optional(),
-  /** The HTTP status the site's API returned. */
+  /** The HTTP status the instance's API returned. */
   response: relayResponseSchema.shape.status.optional(),
   responseHeaders: relayResponseSchema.shape.headers.optional(),
   /** Base64 response body. */
@@ -46,21 +46,21 @@ export const relayOperations = {
   relayList: collectionList(relays, {
     id: 'relay',
     description:
-      'List remote-access requests, newest first, with the status the site returned. Filter by site or status.',
-    filters: ['site', 'status'],
+      'List remote-access requests, newest first, with the status the instance returned. Filter by instance or status.',
+    filters: ['instance', 'status'],
   }),
   relayGet: collectionGet(relays, {
     id: 'relay',
-    description: 'Read one remote-access request and the response body the site returned.',
+    description: 'Read one remote-access request and the response body the instance returned.',
   }),
   relayRequest: defineCapability({
     id: 'relay.request',
     kind: 'command',
     description:
-      'Ask a site to forward one request to its own API, under /api/v1/. The site adds no credential: put a session the site issued in headers.authorization, or the site returns 403. The site takes the request on its next relay poll. People only, operators only.',
+      'Ask an instance to forward one request to its own API, under /api/v1/. The instance adds no credential: put a session the instance issued in headers.authorization, or the instance returns 403. The instance takes the request on its next relay poll. People only, operators only.',
     input: jsonSchema(
       z.strictObject({
-        site: recordKeySchema,
+        instance: recordKeySchema,
         method: relayRequestSchema.shape.method,
         path: relayRequestSchema.shape.path,
         headers: relayRequestSchema.shape.headers.optional(),
@@ -72,6 +72,6 @@ export const relayOperations = {
     permission: { action: 'write', resourceType: 'Relay' },
     dependencies: ['relay'],
     ui: { binding: 'relay.request' },
-    audit: { fields: ['site', 'method', 'path'] },
+    audit: { fields: ['instance', 'method', 'path'] },
   }),
 } as const;

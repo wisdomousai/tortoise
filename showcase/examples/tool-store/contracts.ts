@@ -50,7 +50,7 @@ export const toolStoreModule = defineModule({
         purpose:
           'Send repair orders for damaged returns to the plant EAM and pull the master data of the store tools.',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         targets: [eamTarget.target],
         dataClasses: ['tool', 'repair-order'],

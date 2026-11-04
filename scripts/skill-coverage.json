@@ -9,7 +9,7 @@
     "skills": ["assign-work"]
   },
   "packages/bundle": {
-    "skills": ["deploy-to-site", "decommission-an-application"]
+    "skills": ["deploy-an-application", "decommission-an-application"]
   },
   "packages/client": {
     "skills": ["build-screens"]
@@ -72,19 +72,19 @@
     "skills": ["add-os-integration"]
   },
   "plugins/audit": {
-    "skills": ["deploy-to-site"]
+    "skills": ["deploy-an-application"]
   },
   "plugins/automation": {
     "skills": ["add-capability"]
   },
   "plugins/compliance": {
-    "skills": ["deploy-to-site"]
+    "skills": ["deploy-an-application"]
   },
   "plugins/connector-driver": {
     "skills": ["write-hardware-driver"]
   },
   "plugins/connector-files": {
-    "skills": ["connect-system-of-record", "deploy-to-site"]
+    "skills": ["connect-system-of-record", "deploy-an-application"]
   },
   "plugins/connector-http": {
     "skills": ["connect-system-of-record"]
@@ -102,7 +102,7 @@
     "skills": ["run-agent-tools-in-a-sandbox"]
   },
   "plugins/fleet-agent": {
-    "skills": ["connect-a-site-to-a-fleet"]
+    "skills": ["connect-an-instance-to-a-fleet"]
   },
   "plugins/hub-link": {
     "skills": ["extend-mobile-host"]
@@ -117,7 +117,7 @@
     "skills": ["serve-a-local-model"]
   },
   "plugins/network": {
-    "skills": ["deploy-to-site"]
+    "skills": ["deploy-an-application"]
   },
   "plugins/notifications": {
     "skills": ["add-os-integration"]
@@ -132,13 +132,13 @@
     "skills": ["connect-two-applications", "connect-system-of-record"]
   },
   "plugins/process": {
-    "skills": ["write-hardware-driver", "deploy-to-site"]
+    "skills": ["write-hardware-driver", "deploy-an-application"]
   },
   "plugins/share-target": {
     "skills": ["add-os-integration"]
   },
-  "plugins/site": {
-    "skills": ["deploy-to-site", "decommission-an-application"]
+  "plugins/deployment": {
+    "skills": ["deploy-an-application", "decommission-an-application"]
   },
   "plugins/telemetry": {
     "skills": ["export-telemetry"]

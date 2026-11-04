@@ -8,20 +8,20 @@ import {
 } from '@tortoise/contracts';
 
 /**
- * The fleet protocol: the operations a fleet application serves to the sites enrolled with it.
- * A site calls them over the fleet's HTTP API as its own enrolled principal; the fleet returns data
- * only about that site. Browser-safe data, shared by `plugins/fleet-agent` (the site side) and
- * any fleet application, which composes `fleetSiteModule` and implements the handlers.
+ * The fleet protocol: the operations a fleet application serves to the instances enrolled with it.
+ * An instance calls them over the fleet's HTTP API as its own enrolled principal; the fleet returns data
+ * only about that instance. Browser-safe data, shared by `plugins/fleet-agent` (the instance side) and
+ * any fleet application, which composes `fleetInstanceModule` and implements the handlers.
  */
 
-/** Where a site exchanges an enrollment code for its credential: the fleet's device-link route. */
+/** Where an instance exchanges an enrollment code for its credential: the fleet's device-link route. */
 export const fleetEnrollPath = '/api/v1/link/enroll';
 
 const count = z.number().int().min(0);
 const id = z.string().min(1).max(128);
 const headers = z.record(z.string().max(64), z.string().max(8192));
 
-export const siteReportSchema = z.strictObject({
+export const instanceReportSchema = z.strictObject({
   application: id,
   /** The instance that reported; changes on every restart. */
   instance: id,
@@ -44,7 +44,7 @@ export const siteReportSchema = z.strictObject({
   }),
   /** The local audit chain's head sequence, so the fleet sees how far its copy lags. */
   auditHead: count.optional(),
-  /** The newest release the site staged for activation, by fleet release ID. */
+  /** The newest release the instance staged for activation, by fleet release ID. */
   staged: z.strictObject({ release: id, version: z.string().min(1).max(64) }).optional(),
   /** The running build's best-before date, `YYYY-MM-DD`, when the application has a shelf life. */
   bestBefore: z
@@ -52,7 +52,7 @@ export const siteReportSchema = z.strictObject({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
 });
-export type SiteReport = z.infer<typeof siteReportSchema>;
+export type InstanceReport = z.infer<typeof instanceReportSchema>;
 
 export const releaseSchema = z.strictObject({
   id,
@@ -67,7 +67,7 @@ export type FleetRelease = z.infer<typeof releaseSchema>;
 export const relayRequestSchema = z.strictObject({
   id,
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-  /** A path on the site's own API, under `/api/v1/`. */
+  /** A path on the instance's own API, under `/api/v1/`. */
   path: z
     .string()
     .regex(/^\/api\/v1\/[^\s#]*$/)
@@ -86,82 +86,84 @@ export const relayResponseSchema = z.strictObject({
 });
 export type RelayResponse = z.infer<typeof relayResponseSchema>;
 
-const site = { action: 'write', resourceType: 'Site' } as const;
-const siteRead = { action: 'read', resourceType: 'Site' } as const;
-const calledBySites = { exception: 'Called by enrolled sites over HTTP, never from a screen' };
+const instance = { action: 'write', resourceType: 'Instance' } as const;
+const instanceRead = { action: 'read', resourceType: 'Instance' } as const;
+const calledByInstances = {
+  exception: 'Called by enrolled instances over HTTP, never from a screen',
+};
 
-export const fleetSiteOperations = {
+export const fleetInstanceOperations = {
   report: defineCapability({
-    id: 'fleet.site.report',
+    id: 'fleet.instance.report',
     kind: 'command',
     description:
-      "Record the calling site's health: its application, instance, outbox backlog by target, audit head and staged release.",
-    input: jsonSchema(siteReportSchema),
+      "Record the calling instance's health: its application, instance, outbox backlog by target, audit head and staged release.",
+    input: jsonSchema(instanceReportSchema),
     output: jsonSchema(z.strictObject({})),
-    permission: site,
-    ui: calledBySites,
+    permission: instance,
+    ui: calledByInstances,
   }),
   desired: defineCapability({
-    id: 'fleet.site.desired',
+    id: 'fleet.instance.desired',
     kind: 'query',
-    description: 'The release the calling site should run, from the channel it is assigned to.',
+    description: 'The release the calling instance should run, from the channel it is assigned to.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(z.strictObject({ release: releaseSchema.optional() })),
-    permission: siteRead,
-    ui: calledBySites,
+    permission: instanceRead,
+    ui: calledByInstances,
   }),
   auditCursor: defineCapability({
     id: 'fleet.audit.cursor',
     kind: 'query',
     description:
-      'The last audit sequence the fleet holds for the calling site; the site sends what follows it.',
+      'The last audit sequence the fleet holds for the calling instance; the instance sends what follows it.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(z.strictObject({ afterSeq: count })),
-    permission: siteRead,
-    ui: calledBySites,
+    permission: instanceRead,
+    ui: calledByInstances,
   }),
   auditIngest: defineCapability({
     id: 'fleet.audit.ingest',
     kind: 'command',
     description:
-      "Append the calling site's audit events, each as the JSON line of its local log, in sequence order directly after the fleet's last one. Returns the new last sequence.",
+      "Append the calling instance's audit events, each as the JSON line of its local log, in sequence order directly after the fleet's last one. Returns the new last sequence.",
     input: jsonSchema(
       z.strictObject({ events: z.array(z.string().min(2).max(65_536)).min(1).max(100) }),
     ),
     output: jsonSchema(z.strictObject({ afterSeq: count })),
-    permission: site,
-    ui: calledBySites,
+    permission: instance,
+    ui: calledByInstances,
   }),
   relayClaim: defineCapability({
     id: 'fleet.relay.claim',
     kind: 'command',
     description:
-      'Take the oldest remote-access request waiting for the calling site, if any, so the site forwards it to its own API.',
+      'Take the oldest remote-access request waiting for the calling instance, if any, so the instance forwards it to its own API.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(z.strictObject({ request: relayRequestSchema.optional() })),
-    permission: site,
-    ui: calledBySites,
+    permission: instance,
+    ui: calledByInstances,
   }),
   relayRespond: defineCapability({
     id: 'fleet.relay.respond',
     kind: 'command',
-    description: "Record the site API's response to a remote-access request the site took.",
+    description: "Record the instance API's response to a remote-access request the instance took.",
     input: jsonSchema(relayResponseSchema),
     output: jsonSchema(z.strictObject({})),
-    permission: site,
-    ui: calledBySites,
+    permission: instance,
+    ui: calledByInstances,
   }),
 } as const;
 
 /** The operations above as a module, for a fleet application's manifest. */
-export const fleetSiteModule = defineModule({
-  id: 'fleet-site',
-  capabilities: Object.values(fleetSiteOperations),
+export const fleetInstanceModule = defineModule({
+  id: 'fleet-instance',
+  capabilities: Object.values(fleetInstanceOperations),
 });
 /** Every protocol operation, as a fleet's device-link sync grant names them. */
-export const fleetSiteOperationIds = Object.values(fleetSiteOperations).map((op) => op.id);
+export const fleetInstanceOperationIds = Object.values(fleetInstanceOperations).map((op) => op.id);
 
-/** The fleet destination and the folder bundles are staged in; a site policy binds both. */
+/** The fleet destination and the folder bundles are staged in; a deployment policy binds both. */
 export const fleetLinkComponent = defineHostComponent({
   id: 'fleet-link',
   description:
@@ -176,7 +178,7 @@ export const fleetLinkComponent = defineHostComponent({
         scope: 'internet',
         protocol: 'https',
         authenticated: true,
-        dataClasses: ['site-health', 'audit-event', 'release-bundle', 'remote-access'],
+        dataClasses: ['instance-health', 'audit-event', 'release-bundle', 'remote-access'],
         availability: 'optional',
         offline: 'queue',
       },

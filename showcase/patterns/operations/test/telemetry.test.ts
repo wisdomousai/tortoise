@@ -24,8 +24,8 @@ test('test request commands reach the collector as counts, and the export is in 
   cleanup.push(collector.stop);
   const directory = await mkdtemp(join(tmpdir(), 'pattern-operations-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));
-  // The same shape as site-policy.dev.json, bound to this test's collector.
-  const policy = join(directory, 'site-policy.json');
+  // The same shape as deployment-policy.dev.json, bound to this test's collector.
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -42,7 +42,7 @@ test('test request commands reach the collector as counts, and the export is in 
     {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     },
   );
   cleanup.push(() => host.close());

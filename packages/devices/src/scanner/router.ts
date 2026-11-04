@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ScanEvent } from './decode';
 
 /**
- * Deterministic mapping from scans to intents. Site configuration names, for example, that
+ * Deterministic mapping from scans to intents. Device configuration names, for example, that
  * `^WO\d{7}$` is a work order and GS1 AI 00 is a pallet; the station then opens the order or
  * confirms the pallet without a model turn. Routes are plain JSON so they are stored per station
  * through the device configuration module and reviewed like any other configuration.

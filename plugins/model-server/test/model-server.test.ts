@@ -36,7 +36,7 @@ async function freePort() {
 }
 
 /** Weights on disk, the entry naming them, and a host serving them through the stand-in. */
-async function site() {
+async function openShare() {
   const directory = await mkdtemp(join(tmpdir(), 'model-server-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));
   const base = randomBytes(4096);
@@ -55,7 +55,7 @@ async function site() {
   let hosts = 0;
   async function open(overrides: Partial<ModelServerOptions> = {}) {
     const port = await freePort();
-    const policy = join(directory, `site-policy-${++hosts}.json`);
+    const policy = join(directory, `deployment-policy-${++hosts}.json`);
     const call = {
       name: toolName('approval.request'),
       arguments: {
@@ -94,7 +94,7 @@ async function site() {
     const host = await startHost(application, {
       workspacePath: join(directory, `workspace-${hosts}`),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     cleanup.push(() => host.close());
     // Wait until the server is ready or has refused.
@@ -126,7 +126,7 @@ const expectsOther: AgentScenario = {
 
 describe('a managed model server', () => {
   test('weights that do not match the entry refuse the start, and the harness says why', async () => {
-    const share = await site();
+    const share = await openShare();
     const { models } = await share.open({
       entry: { ...share.entry, base: { ...share.entry.base, digest: `sha256:${'0'.repeat(64)}` } },
     });
@@ -137,7 +137,7 @@ describe('a managed model server', () => {
   });
 
   test('a fine-tune without a passing activation for its digests does not serve', async () => {
-    const share = await site();
+    const share = await openShare();
     const failed: ModelActivation = {
       entry: ENTRY,
       base: share.entry.base.digest,
@@ -164,7 +164,7 @@ describe('a managed model server', () => {
   });
 
   test('the gate judges the fine-tune on an evaluation server; once it passes, runs record the measured digests', async () => {
-    const share = await site();
+    const share = await openShare();
     const evaluation = await share.open({ evaluation: true });
     expect(evaluation.models.status().state).toBe('ready');
     expect((await evaluation.models.harness.availability()).available).toBe(false);
@@ -213,7 +213,7 @@ describe('a managed model server', () => {
   });
 
   test('a harness serving another entry is refused for an agent that names its model', async () => {
-    const share = await site();
+    const share = await openShare();
     const { models, host } = await share.open({ evaluation: true });
     const other = { ...requestsNote, agent: 'note.suggester' };
     const result = await runAgentScenario(other, {

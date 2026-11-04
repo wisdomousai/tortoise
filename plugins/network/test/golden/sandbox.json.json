@@ -12,7 +12,7 @@
     {
       "destination": "audit-collector",
       "owner": "plant",
-      "scope": "site",
+      "scope": "local",
       "transport": "tcp",
       "port": 6514,
       "host": "10.20.0.40",
@@ -25,7 +25,7 @@
     {
       "destination": "mes-api",
       "owner": "plant",
-      "scope": "site",
+      "scope": "local",
       "transport": "tcp",
       "port": 8443,
       "host": "mes.plant.local",

@@ -3,7 +3,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import { crmTarget } from './contracts/target';
@@ -52,7 +52,7 @@ export function createCrmCaptureApplication(
     authorization: crmPolicy,
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { account: operations.accountGet.id },
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    plugins: [deploymentPlugin, networkPlugin, auditPlugin, compliancePlugin],
     sources: {
       crm: createRemoteSource({ target: 'crm', port: crm, credentials: crm.credentials }),
     },

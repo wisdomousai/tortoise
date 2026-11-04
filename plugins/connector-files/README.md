@@ -11,5 +11,5 @@ Primitives:
 ## References
 
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md)
+- [deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
 - `bun test plugins/connector-files`

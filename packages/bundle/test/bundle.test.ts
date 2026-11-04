@@ -21,7 +21,7 @@ let key: SigningKey;
 
 const requirements: BundleRequirements = {
   network: [
-    { id: 'erp', direction: 'outbound', scope: 'site', host: 'erp.local', protocol: 'https' },
+    { id: 'erp', direction: 'outbound', scope: 'local', host: 'erp.local', protocol: 'https' },
   ],
   devices: [],
   processes: [{ id: 'helper', executable: 'helper' }],
@@ -36,7 +36,7 @@ const description = (overrides: Partial<BundleDescription> = {}): BundleDescript
   requirements,
   ...overrides,
 });
-const site = { platform: 'linux-x64', storageSchemas: [2] };
+const target = { platform: 'linux-x64', storageSchemas: [2] };
 
 beforeEach(async () => {
   directory = await mkdtemp(join(tmpdir(), 'bundle-'));
@@ -118,20 +118,20 @@ test('an incompatible platform, storage schema or application is refused', async
     application: 'winding-line',
     requirementsDigest: requirementsDigest(requirements),
   };
-  expect(admissionRefusals(installed, site, undefined, approval)).toEqual([]);
+  expect(admissionRefusals(installed, target, undefined, approval)).toEqual([]);
   const windows = await build('windows', { platform: 'win32-x64' });
-  expect(admissionRefusals(windows, site, installed)).toEqual([
+  expect(admissionRefusals(windows, target, installed)).toEqual([
     'Built for win32-x64, not linux-x64',
   ]);
   const newer = await build('newer', { storageSchema: 3 });
-  expect(admissionRefusals(newer, site, installed)).toEqual([
+  expect(admissionRefusals(newer, target, installed)).toEqual([
     'Storage schema 3 is not readable here',
   ]);
   const foreign = await build('foreign', { application: 'crm-capture' });
-  expect(admissionRefusals(foreign, site, installed)[0]).toContain('Installed application');
+  expect(admissionRefusals(foreign, target, installed)[0]).toContain('Installed application');
 });
 
-test('widened requirements need a site approval for exactly those requirements', async () => {
+test('widened requirements need an install approval for exactly those requirements', async () => {
   const installed = await build('v1');
   const widened: BundleRequirements = {
     ...requirements,
@@ -145,17 +145,17 @@ test('widened requirements need a site approval for exactly those requirements',
     { kind: 'os-action', id: 'share', change: 'added' },
   ]);
   const candidate = await build('v2', { version: '1.3.0', requirements: widened });
-  expect(admissionRefusals(candidate, site, installed)[0]).toContain('without site approval');
+  expect(admissionRefusals(candidate, target, installed)[0]).toContain('without install approval');
   const stale = {
     application: 'winding-line',
     requirementsDigest: requirementsDigest(requirements),
   };
-  expect(admissionRefusals(candidate, site, installed, stale)).toHaveLength(1);
+  expect(admissionRefusals(candidate, target, installed, stale)).toHaveLength(1);
   const approved = { application: 'winding-line', requirementsDigest: requirementsDigest(widened) };
-  expect(admissionRefusals(candidate, site, installed, approved)).toEqual([]);
+  expect(admissionRefusals(candidate, target, installed, approved)).toEqual([]);
   // The same requirements, or narrower ones, need no approval.
   const same = await build('v3', { version: '1.3.1' });
-  expect(admissionRefusals(same, site, installed)).toEqual([]);
+  expect(admissionRefusals(same, target, installed)).toEqual([]);
   const narrower = await build('v4', { requirements: { ...requirements, processes: [] } });
-  expect(admissionRefusals(narrower, site, installed)).toEqual([]);
+  expect(admissionRefusals(narrower, target, installed)).toEqual([]);
 });

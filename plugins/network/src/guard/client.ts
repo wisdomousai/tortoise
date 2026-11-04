@@ -1,5 +1,5 @@
 import type { DestinationClient } from '../guard';
-import type { ResolvedBinding } from '@tortoise/site/policy';
+import type { ResolvedBinding } from '@tortoise/deployment/policy';
 import { NetworkDenied } from './denial';
 import {
   audit,
@@ -58,7 +58,7 @@ async function guardedFetch(
   const binding = await bindingFor(kernel, destinationId);
   let url = targetUrl(input, binding);
   const tls = tlsFor(binding);
-  // The binding's own timeout, when the site set one, replaces the guard's default.
+  // The binding's own timeout, when the policy set one, replaces the guard's default.
   const timeout = AbortSignal.timeout(binding.timeoutMs ?? kernel.timeoutMs);
   const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
   let method = init.method ?? 'GET';

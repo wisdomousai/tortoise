@@ -2,7 +2,7 @@
 '@tortoise/kernel': minor
 '@tortoise/host': minor
 '@tortoise/mobile': minor
-'@tortoise/site': minor
+'@tortoise/deployment': minor
 '@tortoise/testing': minor
 '@tortoise/scaffold': minor
 '@tortoise/operator-ui': minor

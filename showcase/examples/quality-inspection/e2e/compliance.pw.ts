@@ -11,7 +11,7 @@ test('the compliance screen shows posture and a new denial without a reload', as
     await page.goto(host.launchUrl);
     await page.getByRole('link', { name: 'Compliance', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Security posture' })).toBeVisible();
-    // No site policy: the service runs isolated, and says which destinations that closes.
+    // No deployment policy: the service runs isolated, and says which destinations that closes.
     await expect(page.getByText('network isolated', { exact: false })).toBeVisible();
     await expect(page.getByRole('row', { name: /openai-api/ })).toContainText('isolated');
     await expect(page.getByText('chain verified', { exact: false })).toBeVisible();

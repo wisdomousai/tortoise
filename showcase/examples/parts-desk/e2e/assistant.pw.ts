@@ -9,7 +9,7 @@ import { hear, stubbed, stubRecognizer } from './recognizer';
 test.beforeEach(({ page }) => stubRecognizer(page));
 
 /**
- * The workspace and the stand-in's site policy for one test, from `prepare.ts`. The spec runs
+ * The workspace and the stand-in's deployment policy for one test, from `prepare.ts`. The spec runs
  * under Node, so a Bun script opens the application to create the records.
  */
 function prepare(directory: string) {

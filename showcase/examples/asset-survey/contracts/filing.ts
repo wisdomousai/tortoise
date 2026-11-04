@@ -32,9 +32,9 @@ export const eamTarget = defineTarget({
 });
 
 /**
- * A directory the site names: each filing becomes a folder with its record as JSON and its
+ * A directory the deployment policy names: each filing becomes a folder with its record as JSON and its
  * evidence photos, for systems that import files instead of offering an API. The declared
- * `filing-export` process writes it, so the site policy decides the directory. No feed: a
+ * `filing-export` process writes it, so the deployment policy decides the directory. No feed: a
  * written folder is the outcome.
  */
 export const exportTarget = defineTarget({
@@ -92,7 +92,7 @@ export const filingOperations = {
     output: filingSchema,
     permission: { action: 'file', resourceType: 'Filing' },
     description:
-      'Export a node with its accepted attributes and the photos they were read from to the export directory the site names, as a folder of JSON and photos. The receipt proves the local request; filing.list shows when the folder is written. Independent of filing the node into the EAM.',
+      'Export a node with its accepted attributes and the photos they were read from to the export directory the deployment policy names, as a folder of JSON and photos. The receipt proves the local request; filing.list shows when the folder is written. Independent of filing the node into the EAM.',
     dependencies: ['filing', 'node'],
     forwards: 'export',
     blobs: photoLimits,

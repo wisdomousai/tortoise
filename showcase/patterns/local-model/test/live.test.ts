@@ -37,7 +37,7 @@ live(
     await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
     const { port } = server.address() as { port: number };
     await new Promise((done) => server.close(done));
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -70,7 +70,7 @@ live(
     const host = await startHost(application, {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     cleanup.push(() => host.close());
     for (let tries = 0; tries < 600; tries++) {

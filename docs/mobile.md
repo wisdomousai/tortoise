@@ -46,11 +46,11 @@ Each side owns its workspace and is its only writer; nothing synchronizes two wr
 
 A `field-sync` device acts as `device:<id>`, within the capabilities the application grants it. An `attached` tablet acts as the person who enrolled it, narrowed to the capabilities chosen at enrollment.
 
-Over the LAN, the hub listens with TLS under a hardening profile that allows it (`site-hub`, `sandbox`). The device must trust the site CA, which device management installs. An emulator reaches a development hub on loopback through `adb reverse`.
+Over the LAN, the hub listens with TLS under a hardening profile that allows it (`hub`, `sandbox`). The device must trust the local CA, which device management installs. An emulator reaches a development hub on loopback through `adb reverse`.
 
 ## Trust boundary
 
-- **No network guard.** The plugin providing the network port has the platform's `fetch` and is the only network path. Hub-link reaches only the paired origin and refuses redirects — weaker than the desktop's network guard and the site firewall rules.
+- **No network guard.** The plugin providing the network port has the platform's `fetch` and is the only network path. Hub-link reaches only the paired origin and refuses redirects — weaker than the desktop's network guard and the exported firewall rules.
 - **The local user.** Whoever has the unlocked device is the local user. The app sandbox is the only isolation between apps.
 - **The device credential** lives in secure storage, readable after first unlock, and never moves to another device through a backup.
 - **The WebView** in attached mode loads only the hub origin and opens no new windows. No script bridge, no file access, cookies in a private store. The device credential never enters it — the WebView gets a one-use launch key and its own session.

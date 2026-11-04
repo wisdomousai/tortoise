@@ -3,14 +3,14 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { SitePolicyInput } from '@tortoise/site/policy';
+import type { DeploymentPolicyInput } from '@tortoise/deployment/policy';
 import { startHost } from '@tortoise/host/host';
 import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { openMobileInstance } from '@tortoise/mobile';
 import { hubLinkServiceOf } from '@tortoise/hub-link/plugin';
 import { devicePlatform, fieldApplication, hubApplication } from './fixtures';
 
-/** A throwaway site CA and a server certificate for `localhost` signed by it. */
+/** A throwaway local CA and a server certificate for `localhost` signed by it. */
 async function issueCertificates(directory: string) {
   const openssl = async (...args: string[]) => {
     const child = Bun.spawn(['openssl', ...args], {
@@ -30,11 +30,11 @@ async function issueCertificates(directory: string) {
     '-days',
     '1',
     '-keyout',
-    'site-ca.key',
+    'local-ca.key',
     '-out',
-    'site-ca.pem',
+    'local-ca.pem',
     '-subj',
-    '/CN=site-ca',
+    '/CN=local-ca',
   );
   await writeFile(
     join(directory, 'hub.ext'),
@@ -58,9 +58,9 @@ async function issueCertificates(directory: string) {
     '-in',
     'hub.csr',
     '-CA',
-    'site-ca.pem',
+    'local-ca.pem',
     '-CAkey',
-    'site-ca.key',
+    'local-ca.key',
     '-CAcreateserial',
     '-days',
     '1',
@@ -80,34 +80,34 @@ async function freePort() {
 }
 
 test.skipIf(!Bun.which('openssl'))(
-  'a site hub listens over TLS, and a phone that trusts the site CA pairs and delivers',
+  'a hub listens over TLS, and a phone that trusts the local CA pairs and delivers',
   async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'site-hub-'));
+    const directory = await mkdtemp(join(tmpdir(), 'hub-'));
     const { platform, cleanup } = devicePlatform();
     try {
       await issueCertificates(directory);
       const port = await freePort();
-      const policy: SitePolicyInput = {
-        profile: 'site-hub',
+      const policy: DeploymentPolicyInput = {
+        profile: 'hub',
         grants: { maxTtlSeconds: 600 },
         ingress: { listen: 'tls', host: 'localhost', port, cert: 'hub.pem', key: 'hub.key' },
       };
-      await writeFile(join(directory, 'site-policy.json'), JSON.stringify(policy));
-      const hub = await startHost(hubApplication({ site: true }), {
+      await writeFile(join(directory, 'deployment-policy.json'), JSON.stringify(policy));
+      const hub = await startHost(hubApplication({ deployed: true }), {
         workspacePath: join(directory, 'workspace'),
         integration: false,
         settings: {
-          'site-policy': join(directory, 'site-policy.json'),
+          'deployment-policy': join(directory, 'deployment-policy.json'),
           'device-link-sync-operations': 'captures.ingest,assignments.feed',
         },
       });
       try {
         expect(hub.url).toBe(`https://localhost:${port}`);
-        // Without the site CA the phone cannot complete the handshake.
+        // Without the local CA the phone cannot complete the handshake.
         await expect(fetch(`${hub.url}/health`, { keepalive: false })).rejects.toThrow();
 
-        // The site CA reaches the phone through device management; here, through `fetch`.
-        const ca = Bun.file(join(directory, 'site-ca.pem'));
+        // The local CA reaches the phone through device management; here, through `fetch`.
+        const ca = Bun.file(join(directory, 'local-ca.pem'));
         const trusting = ((input: string | URL | Request, init?: RequestInit) =>
           fetch(input, { ...init, tls: { ca } } as RequestInit)) as typeof fetch;
         const field = await openMobileInstance(fieldApplication({ fetch: trusting }), {

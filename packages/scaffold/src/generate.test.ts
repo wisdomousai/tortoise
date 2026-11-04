@@ -99,7 +99,7 @@ test('a published-framework export depends on framework versions instead of copy
   expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*', 'docs/site']);
   expect(root.dependencies).toMatchObject({
     '@tortoise/kernel': version,
-    '@tortoise/site': version,
+    '@tortoise/deployment': version,
     '@field-notes/application': 'workspace:*',
   });
   expect(root.scripts.scaffold).toBe('bun node_modules/@tortoise/scaffold/src/cli.ts');
@@ -130,28 +130,28 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(added.written).toContain('contracts/note-archive.ts');
   // The capability acts on the note collection its ID names.
   expect(await read(join(app, 'contracts/note-archive.ts'))).toContain("resourceType: 'Note'");
-  await scaffoldAdd({ kind: 'collection', name: 'site', tree: true }, { root: target });
-  const sites = await read(join(app, 'contracts/site.ts'));
+  await scaffoldAdd({ kind: 'collection', name: 'plant', tree: true }, { root: target });
+  const plants = await read(join(app, 'contracts/plant.ts'));
   for (const key of [
     "parent: 'parentId',",
-    'siteTree: collectionTree(',
-    'siteMove: collectionMove(',
+    'plantTree: collectionTree(',
+    'plantMove: collectionMove(',
   ])
-    expect(sites).toContain(key);
-  expect(await read(join(app, 'ui/site.tsx'))).toContain('<CollectionTree');
+    expect(plants).toContain(key);
+  expect(await read(join(app, 'ui/plant.tsx'))).toContain('<CollectionTree');
   const ledger = await scaffoldAdd(
     { kind: 'target', name: 'ledger', collection: 'note' },
     { root: target },
   );
   // The target's required destination is switched off in the desktop policy until it is bound.
-  expect(ledger.policy).toBe('apps/desktop/site-policy.json');
+  expect(ledger.policy).toBe('apps/desktop/deployment-policy.json');
   expect(
-    JSON.parse(await read(join(target, 'apps/desktop/site-policy.json'))).destinations[
+    JSON.parse(await read(join(target, 'apps/desktop/deployment-policy.json'))).destinations[
       'ledger-api'
     ],
   ).toMatchObject({ disabled: true });
   const contracts = await read(join(app, 'contracts.ts'));
-  for (const key of ['noteArchive,', '...siteOperations,', 'ledgerSync: ledgerTarget.sync,'])
+  for (const key of ['noteArchive,', '...plantOperations,', 'ledgerSync: ledgerTarget.sync,'])
     expect(contracts).toContain(key);
   expect(
     contracts
@@ -161,8 +161,8 @@ test('add extends the application at its markers and refuses to overwrite a part
   ).toHaveLength(1);
   const policy = await read(join(app, 'policy.ts'));
   expect(policy).toContain('[operations.noteArchive.id]: editor,');
-  expect(policy).toContain("[operations.siteTree.id]: 'open',");
-  expect(policy).toContain('[operations.siteRetire.id]: editor,');
+  expect(policy).toContain("[operations.plantTree.id]: 'open',");
+  expect(policy).toContain('[operations.plantRetire.id]: editor,');
   expect(policy).toContain('targetAllowlist(ledgerTarget');
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
@@ -177,7 +177,7 @@ test('add extends the application at its markers and refuses to overwrite a part
   );
   expect(closer.written).not.toContain('handlers/approvals.ts');
   const second = await scaffoldAdd(
-    { kind: 'agent', name: 'reviewer', collection: 'site' },
+    { kind: 'agent', name: 'reviewer', collection: 'plant' },
     { root: target },
   );
   expect(second.written).not.toContain('ui/approvals.tsx');
@@ -223,14 +223,14 @@ test('add extends the application at its markers and refuses to overwrite a part
       'test/inspection-assignment.test.ts',
     ]),
   );
-  const siteCheck = await scaffoldAdd(
-    { kind: 'assignment-kind', name: 'site-check', collection: 'site' },
+  const plantCheck = await scaffoldAdd(
+    { kind: 'assignment-kind', name: 'plant-check', collection: 'plant' },
     { root: target },
   );
-  expect(siteCheck.written).not.toContain('contracts/assignees.ts');
-  expect(await read(join(app, 'contracts/assignments.ts'))).toMatch(/inspection,\n\s*siteCheck,/);
+  expect(plantCheck.written).not.toContain('contracts/assignees.ts');
+  expect(await read(join(app, 'contracts/assignments.ts'))).toMatch(/inspection,\n\s*plantCheck,/);
   expect(await read(join(app, 'handlers/assignments.ts'))).toContain(
-    "'site-check': siteCheckHooks,",
+    "'plant-check': plantCheckHooks,",
   );
   const mounted = await read(join(app, 'application.ts'));
   expect(mounted.match(/assignmentFeature\(assignments\)/g)).toHaveLength(1);
@@ -246,9 +246,9 @@ test('add extends the application at its markers and refuses to overwrite a part
   await expect(scaffoldAdd({ kind: 'feature', name: 'Stock' }, { root: target })).rejects.toThrow(
     'Feature ID must be lowercase words',
   );
-  await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
-    'Refusing to overwrite contracts/site.ts',
-  );
+  await expect(
+    scaffoldAdd({ kind: 'collection', name: 'plant' }, { root: target }),
+  ).rejects.toThrow('Refusing to overwrite contracts/plant.ts');
   await expect(
     scaffoldAdd({ kind: 'target', name: 'erp', collection: 'missing' }, { root: target }),
   ).rejects.toThrow('No collection missing');
@@ -263,9 +263,9 @@ test('add extends the application at its markers and refuses to overwrite a part
 test('add refuses an application that was not generated', async () => {
   const { target } = await fresh();
   await rm(join(target, 'showcase/examples/field-notes/policy.ts'));
-  await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
-    'was not created by scaffold new',
-  );
+  await expect(
+    scaffoldAdd({ kind: 'collection', name: 'plant' }, { root: target }),
+  ).rejects.toThrow('was not created by scaffold new');
 });
 
 test('a missing marker fails instead of editing unmarked code', () => {
@@ -405,7 +405,7 @@ acceptance(
     };
     await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
     const cli = ['bun', 'run', 'scaffold', 'add'];
-    await run([...cli, 'collection', 'site', '--tree']);
+    await run([...cli, 'collection', 'plant', '--tree']);
     await run([
       ...cli,
       'capability',

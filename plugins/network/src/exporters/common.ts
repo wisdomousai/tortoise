@@ -1,4 +1,4 @@
-import { parseCidr } from '@tortoise/site/cidr';
+import { parseCidr } from '@tortoise/deployment/cidr';
 import type { ExportFormat, ExportOptions } from '../exporters';
 import type { RuleSet } from '../rules';
 
@@ -15,7 +15,7 @@ export function defaults(rules: RuleSet, options: ExportOptions) {
     executable: options.executable ?? `/opt/${name}/service`,
     workspace: options.workspace ?? `/var/lib/${name}/workspace`,
     auditLog: options.auditLog ?? `/var/lib/${name}/audit`,
-    sitePolicy: options.sitePolicy ?? `/etc/${name}/site-policy.json`,
+    deploymentPolicy: options.deploymentPolicy ?? `/etc/${name}/deployment-policy.json`,
     image: options.image ?? `${name}:latest`,
   };
 }
@@ -26,7 +26,7 @@ export const header = (rules: RuleSet, format: ExportFormat, comment: string) =>
     `${comment} Policy ${rules.policyDigest.slice(0, 16)} (${rules.profile}, ${rules.mode}). Default: deny all outbound connections except loopback and the rules below.`,
     ...rules.unresolved.map(
       (gap) =>
-        `${comment} NOT ENFORCED: ${gap.destination} (${gap.host}) ${gap.reason === 'HOSTNAME_ONLY' ? 'has no addresses in the site policy' : 'has no port'}; it stays blocked here.`,
+        `${comment} NOT ENFORCED: ${gap.destination} (${gap.host}) ${gap.reason === 'HOSTNAME_ONLY' ? 'has no addresses in the deployment policy' : 'has no port'}; it stays blocked here.`,
     ),
     ...(rules.dns.needed && !rules.dns.resolvers.length
       ? [
@@ -73,6 +73,6 @@ export const serviceArgs = (d: ReturnType<typeof defaults>) => [
   d.workspace,
   '--audit-log',
   d.auditLog,
-  '--site-policy',
-  d.sitePolicy,
+  '--deployment-policy',
+  d.deploymentPolicy,
 ];

@@ -91,7 +91,7 @@ export const networkExemptions: Readonly<Record<string, string>> = {
     'Operator verb only, never inside an instance: `runs` calls the run route of the loopback instance its connection file names.',
   'packages/testing/src/agent-scenarios.ts':
     'Test tooling only: with `AGENT_SCENARIOS=live`, the scenario harness reaches the model server at a loopback `AGENT_SCENARIOS_URL` and refuses any other address.',
-  'plugins/site/src/install/native.ts':
+  'plugins/deployment/src/install/native.ts':
     'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':
     "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the network CONNECT proxy, which applies the destination rules.",
@@ -100,11 +100,11 @@ export const networkExemptions: Readonly<Record<string, string>> = {
   'plugins/execution-host/test/fixtures/':
     'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
   'plugins/model-server/src/testing/':
-    'Stand-in for llama-server in tests and development launches, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
+    'Stand-in for llama-server in tests and development launches, started as a child through the process port: it listens on the loopback port the deployment policy binds to local-inference.',
   'packages/adapters/src/postgres-bun.ts':
     "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':
-    'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
+    'Starts declared child processes from deployment-policy bindings with a built environment; the process port is the only caller.',
   'workstations/screen-bridge/src/recognition/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'showcase/examples/winding-line/fake-hmi/':
@@ -127,7 +127,7 @@ export const portableSource =
   /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|schema-version|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|patterns)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
-  /^(?:node:|bun:|@tortoise\/(?:host|agents|station)(?:\/|$)|@tortoise\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@tortoise\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@tortoise\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
+  /^(?:node:|bun:|@tortoise\/(?:host|agents|station)(?:\/|$)|@tortoise\/(?:deployment|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@tortoise\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@tortoise\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
 /** Node and Bun globals; React Native declares `process` too, so the type check alone misses it. */
 export const nonPortableGlobal =
   /(?<![\w$.])(?:Bun|process|Buffer|__dirname|__filename|require)\s*[.(]/;

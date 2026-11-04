@@ -3,9 +3,9 @@ import { defineCapability, defineModule, jsonSchema, recordKeySchema } from '@to
 import { mqttBroker } from '@tortoise/connector-mqtt/contracts';
 import { opcUaServer } from '@tortoise/connector-opcua/contracts';
 
-/** The OPC UA server of the chamber controllers; the site policy binds its address. */
+/** The OPC UA server of the chamber controllers; the deployment policy binds its address. */
 export const CHAMBER_GATEWAY = 'chamber-gateway';
-/** The MQTT broker the humidity edge nodes publish Sparkplug B to; the site policy binds it. */
+/** The MQTT broker the humidity edge nodes publish Sparkplug B to; the deployment policy binds it. */
 export const CHAMBER_BROKER = 'chamber-broker';
 
 export const chamberGateway = opcUaServer({

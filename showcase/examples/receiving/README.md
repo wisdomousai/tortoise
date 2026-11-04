@@ -2,14 +2,14 @@
 
 A receiving team counts deliveries against advance shipping notices from an ERP. When a count differs, an editor records a reason before posting the goods receipt. The application saves the count and the posting locally; the ERP decides later whether to accept the receipt. A line marked for inspection also creates a request in the [quality-inspection application](../quality-inspection/README.md). Three exchange folders stand in for the ERP.
 
-Make the folders and a site policy:
+Make the folders and a deployment policy:
 
 ```sh
 mkdir -p /tmp/erp/asn /tmp/erp/goods-receipts /tmp/erp/receipts
-cp apps/desktop/site-policy.json /tmp/erp/site-policy.json
+cp apps/desktop/deployment-policy.json /tmp/erp/deployment-policy.json
 ```
 
-Add this key to `/tmp/erp/site-policy.json`:
+Add this key to `/tmp/erp/deployment-policy.json`:
 
 ```json
 {
@@ -26,7 +26,7 @@ Drop a notice and start the app with the policy. The launch prints a `CLI:` line
 ```sh
 printf 'id,purchaseOrder,supplier,sku,description,expected\nASN-1-1,PO-1,Acme,M8,Bolt,10\n' > /tmp/erp/asn/asn-1.csv
 cd showcase/examples/receiving
-TORTOISE_SITE_POLICY=/tmp/erp/site-policy.json bun run dev:web
+TORTOISE_DEPLOYMENT_POLICY=/tmp/erp/deployment-policy.json bun run dev:web
 ```
 
 ## What to try

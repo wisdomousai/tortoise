@@ -24,7 +24,7 @@ A model entry names the weights by digest. At each start, the model server plugi
    - `license`, `contextTokens` and `agents`.
 2. Name the entry on the agent with `models: ['<entry id>']` in `defineAgent`, so the agent never runs on another model.
 3. Declare `modelServer({ id, runtime })` from `@tortoise/model-server/contracts` in the manifest's `components`.
-4. Add `modelServerPluginManifest` to the manifest, after the site, network and process manifests.
+4. Add `modelServerPluginManifest` to the manifest, after the deployment, network and process manifests.
 5. Call `createModelServer({ process, runtime, entry, files, activation })`. Add its `plugin` to `plugins`.
 6. Give its `harness` to the automation plugin's `agentHarnesses` for trigger runs. The plugin also offers it to the host's run route, so a run a person starts with an `agentId` and no `harnessId` runs on it when the agent's model requirement admits it.
 7. In the deployment policy, bind `local-inference` to a loopback URL.

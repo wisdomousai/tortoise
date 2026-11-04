@@ -30,14 +30,14 @@ beforeAll(async () => {
     Object.values(erpFolders).map((folder) => [folder, { path: join(directory, 'share', folder) }]),
   );
   for (const { path } of Object.values(folders)) await mkdir(path, { recursive: true });
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
   );
   instance = await openEmbeddedInstance(
     createReceivingApplication({ quietMs: 0, services: { now: () => 1_000 } }),
-    { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+    { workspacePath: join(directory, 'workspace'), settings: { 'deployment-policy': policy } },
   );
   await writeFile(join(directory, 'share', erpFolders.inbox, 'asn-1001.csv'), notice);
   // The ERP's notices only: quality inspection is not connected here.

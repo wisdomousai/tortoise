@@ -37,7 +37,7 @@ const result = async (id: string) =>
 describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
   beforeAll(async () => {
     directory = await mkdtemp(join(tmpdir(), 'lab-sandbox-'));
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -49,7 +49,7 @@ describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
     host = await startHost(createTestRequestsSandboxApplication({ members: { ben: 'viewer' } }), {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     ({ token } = JSON.parse(await readFile(host.connectionFile!, 'utf8')) as { token: string });
     request = (

@@ -41,8 +41,8 @@ const notice = [
 type Folder = keyof typeof erpFolders;
 type Binding = { path: string } | { disabled: true; reason: string };
 
-/** A workspace and the ERP's exchange folders, bound by a site policy file the host loads. */
-async function site() {
+/** A workspace and the ERP's exchange folders, bound by a deployment policy file the host loads. */
+async function openShare() {
   const directory = await mkdtemp(join(tmpdir(), 'receiving-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));
   const path = (folder: Folder) => join(directory, 'share', erpFolders[folder]);
@@ -56,7 +56,7 @@ async function site() {
       ...(decide ? { decide } : {}),
     });
   async function open(bindings: Partial<Record<Folder, Binding>> = {}) {
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     const folders = Object.fromEntries(
       (Object.keys(erpFolders) as Folder[]).map((folder) => [
         erpFolders[folder],
@@ -73,7 +73,7 @@ async function site() {
         quietMs: 0,
         services: { now: () => 1_000 },
       }),
-      { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+      { workspacePath: join(directory, 'workspace'), settings: { 'deployment-policy': policy } },
     );
     cleanup.push(() => instance.close());
     let keys = 0;
@@ -100,7 +100,7 @@ async function site() {
 
 describe('receiving through the ERP exchange folders', () => {
   test('a notice becomes lines; a short count is classified by an approved approval request and posted as a file the ERP completes', async () => {
-    const share = await site();
+    const share = await openShare();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
     await host.sync();
@@ -181,8 +181,8 @@ describe('receiving through the ERP exchange folders', () => {
     ).rejects.toMatchObject({ code: 'CONFLICT' });
   });
 
-  test('with the drop folder unbound a receipt waits in the outbox, and is delivered once the site binds it', async () => {
-    const share = await site();
+  test('with the drop folder unbound a receipt waits in the outbox, and is delivered once the deployment policy binds it', async () => {
+    const share = await openShare();
     let host = await share.open({ drop: { disabled: true, reason: 'Share not mounted yet' } });
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
     await host.sync();
@@ -202,7 +202,7 @@ describe('receiving through the ERP exchange folders', () => {
   });
 
   test('an unreadable receipt holds the posting until an editor says whether the ERP booked it', async () => {
-    const share = await site();
+    const share = await openShare();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
     await host.sync();
@@ -233,7 +233,7 @@ describe('receiving through the ERP exchange folders', () => {
   });
 
   test('a rejected receipt reopens the line, which can be recounted and posted again', async () => {
-    const share = await site();
+    const share = await openShare();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
     await host.sync();
@@ -256,7 +256,7 @@ describe('receiving through the ERP exchange folders', () => {
   });
 
   test('a corrected notice updates an uncounted line only, and a malformed export applies nothing', async () => {
-    const share = await site();
+    const share = await openShare();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
     await host.sync();

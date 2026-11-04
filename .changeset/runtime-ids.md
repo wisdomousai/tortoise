@@ -3,7 +3,7 @@
 '@tortoise/adapters': minor
 '@tortoise/frame': minor
 '@tortoise/mobile': minor
-'@tortoise/site': minor
+'@tortoise/deployment': minor
 '@tortoise/network': minor
 '@tortoise/telemetry': minor
 '@tortoise/peer-link': minor

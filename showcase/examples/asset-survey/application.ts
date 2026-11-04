@@ -13,7 +13,7 @@ import { createDeviceLinkPlugin } from '@tortoise/device-link/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { processPlugin } from '@tortoise/process/plugin';
 import { bunProcesses, type NetworkPort } from '@tortoise/host/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import { createWorkflowsPlugin, type WorkflowsOptions } from '@tortoise/workflows/plugin';
 import manifest from './manifest';
 import { assignments, eamTarget, exportTarget, operations, structureOperations } from './contracts';
@@ -45,7 +45,7 @@ export const FIELD_SYNC_OPERATIONS = assignments.assignees.device.operations;
 
 /**
  * The asset survey hub. Demo defaults: the nameplate-text extractor instead of a model, and an
- * in-memory EAM, so the reference needs no account. Exports go to the directory the site binds
+ * in-memory EAM, so the reference needs no account. Exports go to the directory the deployment policy binds
  * the `filing-export` process to; unbound, they wait. A deploying application passes its own
  * extractor and EAM port. `members` are the people of a new workspace and their roles; by
  * default the local user is the only manager.
@@ -120,7 +120,7 @@ export function createAssetSurveyApplication(
       'assignment-report': operations.reportGet.id,
     },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       processPlugin,
       auditPlugin,
@@ -139,7 +139,7 @@ export function createAssetSurveyApplication(
       return {
         integrations: [
           connectTarget<AssetChange>({ ...common, target: eamTarget, port: eam }),
-          // Unbound, the export target keeps its filings pending until the site binds the process.
+          // Unbound, the export target keeps its filings pending until the deployment policy binds the process.
           connectTarget({
             ...common,
             target: exportTarget,

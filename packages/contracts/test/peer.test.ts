@@ -91,7 +91,7 @@ describe('peer target', () => {
     expect(target.destination).toMatchObject({
       id: 'quality-peer',
       direction: 'outbound',
-      scope: 'site',
+      scope: 'local',
       protocol: 'https',
       authenticated: true,
       targets: ['quality'],

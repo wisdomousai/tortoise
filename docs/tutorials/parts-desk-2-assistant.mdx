@@ -83,11 +83,11 @@ A model entry names the weights by digest. At each start the model server plugin
 Use the serve-a-local-model skill. In showcase/examples/parts-desk, serve the assistant from a
 local model through the model server plugin on llama-server. Define the model entry
 parts-desk-assistant for a GGUF base with 16384 context tokens, for the assistant only, and name
-it on the agent with model local. Compose the site, network and process plugins if the
+it on the agent with model local. Compose the deployment, network and process plugins if the
 application lacks them, then the model server.
 
 Extend dev.ts to write a deployment policy into a temporary directory and set
-TORTOISE_SITE_POLICY unless it is already set. The policy binds local-inference to
+TORTOISE_DEPLOYMENT_POLICY unless it is already set. The policy binds local-inference to
 http://127.0.0.1:4389 with a timeout of 300 seconds and the llm process to that port. By default
 the process is the llama-server stand-in from @tortoise/model-server/testing with
 showcase/examples/parts-desk/responder.ts as FIXTURE_RESPONDER. With LOCAL_MODEL_GGUF set, it is
@@ -114,8 +114,8 @@ The entry names the base weights by digest and admits only the assistant:
 - showcase/examples/parts-desk/
   - model.ts the entry and the stand-in weights
   - responder.ts plays the model for the stand-in
-  - dev.ts writes the site policy
-  - application.ts composes the site, network, process and model server plugins
+  - dev.ts writes the deployment policy
+  - application.ts composes the deployment, network, process and model server plugins
   - test/assistant-model.test.ts
 
 </FileTree>

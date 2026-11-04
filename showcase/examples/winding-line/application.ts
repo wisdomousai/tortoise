@@ -23,7 +23,7 @@ import { processPlugin } from '@tortoise/process/plugin';
 import type { ProcessPort } from '@tortoise/host/plugin';
 import { createDriverPlugin } from '@tortoise/connector-driver/plugin';
 import { driverServiceOf } from '@tortoise/connector-driver/open';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import manifest from './manifest';
 import { mesTarget } from './contracts';
 import { migrations, type LineState } from './domain';
@@ -61,7 +61,7 @@ export const stationAutomationPlugin = createDriverPlugin({
  * Demo only: bridge the simulated winder HMI when `STATION_HMI_URL` names it (start it with
  * `bun run dev:hmi`, or `bun run dev` in this directory). Counters come from
  * `STATION_VISION_BASE_URL` + `STATION_VISION_MODEL` (a local vision model),
- * `STATION_RECOGNITION_WORKER=1` (the `recognition-worker` process the site policy binds), or, with `STATION_SIMULATOR=1` (the HMI is
+ * `STATION_RECOGNITION_WORKER=1` (the `recognition-worker` process the deployment policy binds), or, with `STATION_SIMULATOR=1` (the HMI is
  * the simulator), from its ground truth; the simulator also reports local input then. Explicit
  * configuration only; a deploying application passes its own station list, and the framework
  * never reads these.
@@ -99,7 +99,7 @@ export function demoStations(
 
 /**
  * Demo only: with `STATION_ROUTE=automation`, station `STATION_ID` (default `winder-1`) is reached
- * through the station automation driver instead of its screen. The site policy binds the
+ * through the station automation driver instead of its screen. The deployment policy binds the
  * `station-automation-driver` process, with `STATION_AUTOMATION_SIM_DIR` for the simulated
  * station or `STATION_AUTOMATION_PROGID` for the station software's COM server.
  */
@@ -234,7 +234,7 @@ export function createWindingLineApplication(
     },
     features: windingLineFeatures(),
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       processPlugin,
       auditPlugin,

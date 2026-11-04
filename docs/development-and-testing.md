@@ -65,7 +65,7 @@ Notes:
 | `bun run --silent cli <noun> <verb>` | The CLI from source. `bun run mcp` runs the MCP server. |
 | `bun run build:cli` / `build:web` / `build:web:examples` | Compile the CLI / build the web frame / build every example into `dist/web/<id>`. |
 | `bun run build:registry[:operator\|compliance\|native\|driver]` | Build a shadcn registry. |
-| `bun run bundle` | Make a signing key, or create, verify and admit a site bundle. |
+| `bun run bundle` | Make a signing key, or create, verify and admit a bundle. |
 | `bun run package:stage`, `package:desktop` | Package the [desktop](desktop.md) app. |
 | `bun run dev:mobile`, `mobile:prebuild`, `check:mobile-bundle` | Start Metro / generate native projects / bundle `apps/mobile` for Android. |
 | `bun run docs:dev`, `docs:build`, `docs:preview` | The [documentation site](site/README.md): serve it with a page watcher, build `dist/docs`, serve the build. CI publishes it on push to main. `docs:collect` mirrors the pages on its own; `docs:screenshots` regenerates the tutorial screenshots in `docs/assets/screenshots/` from the examples' `e2e/*.shots.ts` specs. |
@@ -113,7 +113,7 @@ Add `--published` or `--registry <url>` to install the framework from a registry
 
 ## Continuous integration
 
-`.github/workflows/verify.yml` runs `bun run check`, `test:e2e` and `test:scaffold:full`; the site install test with nftables on Ubuntu; and packaging on macOS arm64/x64, Windows x64 and Linux x64. It has not yet run remotely.
+`.github/workflows/verify.yml` runs `bun run check`, `test:e2e` and `test:scaffold:full`; the install test with nftables on Ubuntu; and packaging on macOS arm64/x64, Windows x64 and Linux x64. It has not yet run remotely.
 
 ## See also
 

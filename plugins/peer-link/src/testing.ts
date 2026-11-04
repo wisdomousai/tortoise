@@ -57,7 +57,7 @@ export interface PeerPairOptions {
   readonly reach?: (url: URL, init: RequestInit | undefined, callee: URL) => Promise<Response>;
   /**
    * Further host options of each side, such as a fixed port or plugin settings. A caller that
-   * composes the real network plugin and binds the destination in its site policy ignores
+   * composes the real network plugin and binds the destination in its deployment policy ignores
    * `network` and `reach`.
    */
   readonly hosts?: {

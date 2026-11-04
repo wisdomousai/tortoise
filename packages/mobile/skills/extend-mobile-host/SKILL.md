@@ -40,7 +40,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
     bun run dev:mobile            # Metro for a development build on a device or emulator
     ```
 
-14. Reach a development hub from an emulator on loopback through `adb reverse`. A hub on the LAN needs a deployment policy whose profile allows listening with TLS, and a device that trusts the site CA.
+14. Reach a development hub from an emulator on loopback through `adb reverse`. A hub on the LAN needs a deployment policy whose profile allows listening with TLS, and a device that trusts the local CA.
 
 ## Checks
 

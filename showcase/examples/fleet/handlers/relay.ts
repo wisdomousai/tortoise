@@ -1,5 +1,5 @@
 import { ApplicationError } from '@tortoise/contracts';
-import { fleetSiteOperations } from '@tortoise/fleet-agent/contracts';
+import { fleetInstanceOperations } from '@tortoise/fleet-agent/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,
@@ -8,16 +8,16 @@ import {
 } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { RELAYS_KEPT, relays, type Relay } from '../contracts/relay';
-import { sites } from '../contracts/sites';
+import { instances } from '../contracts/instances';
 import type { AppState, StoredRelay } from '../domain';
 import { compact, handler, newId, now, type Context, type Services } from './context';
-import { callingSite } from './sites';
+import { callingInstance } from './instances';
 
 type List = typeof operations.relayList;
 type Get = typeof operations.relayGet;
 const store = (state: AppState) => state.relays;
 const visible = () => true;
-/** What a caller sees: never the outgoing headers, which may carry a site session. */
+/** What a caller sees: never the outgoing headers, which may carry an instance session. */
 const present = ({ outgoing: _outgoing, ...relay }: StoredRelay): Relay => relay;
 const newest = (a: Relay, b: Relay) => b.requestedAt - a.requestedAt || (a.id < b.id ? 1 : -1);
 
@@ -43,11 +43,11 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
       present,
     }),
     handler(operations.relayRequest, (input, ctx) => {
-      records(ctx, sites, ctx.state.sites).getExisting(input.site);
+      records(ctx, instances, ctx.state.instances).getExisting(input.instance);
       const id = newId(ctx);
       records(ctx, relays, ctx.state.relays).insert(id, {
         id,
-        site: input.site,
+        instance: input.instance,
         method: input.method,
         path: input.path,
         status: 'queued',
@@ -60,10 +60,10 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
       });
       return { id };
     }),
-    handler(fleetSiteOperations.relayClaim, (_input, ctx) => {
-      const site = callingSite(ctx);
+    handler(fleetInstanceOperations.relayClaim, (_input, ctx) => {
+      const instance = callingInstance(ctx);
       const oldest = Object.values(ctx.state.relays)
-        .filter((relay) => relay.site === site && relay.status === 'queued')
+        .filter((relay) => relay.instance === instance && relay.status === 'queued')
         .sort((a, b) => a.requestedAt - b.requestedAt || (a.id < b.id ? -1 : 1))[0];
       if (!oldest) return {};
       const { outgoing } = oldest;
@@ -81,10 +81,10 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
         }),
       };
     }),
-    handler(fleetSiteOperations.relayRespond, (input, ctx) => {
+    handler(fleetInstanceOperations.relayRespond, (input, ctx) => {
       const relay = records(ctx, relays, ctx.state.relays).getExisting(input.id);
-      if (relay.site !== callingSite(ctx) || relay.status !== 'claimed')
-        throw new ApplicationError('CONFLICT', 'This site did not take that request');
+      if (relay.instance !== callingInstance(ctx) || relay.status !== 'claimed')
+        throw new ApplicationError('CONFLICT', 'This instance did not take that request');
       records(ctx, relays, ctx.state.relays).update(input.id, (record) =>
         Object.assign(
           record,

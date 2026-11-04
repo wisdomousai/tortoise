@@ -16,7 +16,7 @@ HTTP ───┘                                                          ├�
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/*`                             | The framework. Names no domain.                                                                                                   |
 | `workstations/*`                         | Screen bridge and workstation sign-in. Import the framework only. |
-| `plugins/*`                              | [Host plugins](#host-plugins): network, audit, site policy, compliance and more.                                                  |
+| `plugins/*`                              | [Host plugins](#host-plugins): network, audit, deployment policy, compliance and more.                                                  |
 | `apps/*`                                 | The starter: service, web, desktop and mobile wrappers. Runs the app named in `app.config.json`.           |
 | `showcase/examples/*`, `showcase/patterns/*` | Applications. Yours goes here too.                                                                                            |
 | `sdks/*`                                 | [Driver](hardware-drivers.md) SDKs for Python and C#.                                                                             |
@@ -44,7 +44,7 @@ export function createInspectionDeskApplication(options: InspectionDeskOptions =
     upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     handlers: createHandlers(),
     authorization: appPolicy,
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    plugins: [deploymentPlugin, networkPlugin, auditPlugin, compliancePlugin],
     connect: () => ({ integrations: [] }),
   });
 }
@@ -102,13 +102,13 @@ A host plugin adds a cross-cutting concern. It provides ports; without it, the s
 | --------- | --------------------------- | ----------------------------------- |
 | Network   | refuse every destination    | `plugins/network` (network guard) |
 | Ingress   | loopback only               | `plugins/network` (TLS, mTLS)       |
-| Identity  | trust the local user       | `plugins/site`                      |
+| Identity  | trust the local user       | `plugins/deployment`                      |
 | Audit log | none                        | `plugins/audit`                     |
 | Shell     | no OS integration           | `plugins/os`                        |
 | Processes | refuse every child process  | `plugins/process`                   |
-| Folders   | none                        | `plugins/site`                      |
+| Folders   | none                        | `plugins/deployment`                      |
 
-To use a plugin, list it in both `manifest.ts` (`sitePluginManifest`) and `application.ts` (`sitePlugin`), in the same order. To write one, follow [write-host-plugin](../packages/host/skills/write-host-plugin/SKILL.md).
+To use a plugin, list it in both `manifest.ts` (`deploymentPluginManifest`) and `application.ts` (`deploymentPlugin`), in the same order. To write one, follow [write-host-plugin](../packages/host/skills/write-host-plugin/SKILL.md).
 
 ### Features and host plugins
 
@@ -158,8 +158,8 @@ Tests: `packages/host/test/plugins.test.ts`.
 | [asset-survey](../showcase/examples/asset-survey/README.md)        | Assignments for paired phones, photo extraction, a fake EAM.      |
 | [asset-survey-field](../showcase/examples/asset-survey-field/README.md) | The phone side of asset-survey on the [mobile host](mobile.md). |
 | [receiving](../showcase/examples/receiving/README.md)              | Goods receipts to an ERP through files. A scaffold export.  |
-| [fleet](../showcase/examples/fleet/README.md)                      | The [fleet](hosting.md#fleet) server that sites report to.        |
+| [fleet](../showcase/examples/fleet/README.md)                      | The [fleet](hosting.md#fleet) server that instances report to.        |
 | [parts-desk](../showcase/examples/parts-desk/README.md)            | The spare parts desk from the [tutorial](tutorials/index.md): quotes and an assistant panel on a local model. |
-| [tool-store](../showcase/examples/tool-store/README.md)            | The plant tool store from the [tutorial](tutorials/index.md): loans, a counter terminal, an EAM, agents, a site deployment. |
+| [tool-store](../showcase/examples/tool-store/README.md)            | The plant tool store from the [tutorial](tutorials/index.md): loans, a counter terminal, an EAM, agents, a deployment policy. |
 
 Stack: Bun, TypeScript, Zod, SQLite or Postgres, CASL, React, Vite, TanStack Query, shadcn, Tailwind, Electron, Expo, Playwright.

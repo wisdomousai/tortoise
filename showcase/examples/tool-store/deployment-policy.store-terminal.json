@@ -1,0 +1,43 @@
+{
+  "profile": "hub",
+  "mode": "connected",
+  "destinations": {
+    "eam-api": {
+      "url": "https://eam.plant.example"
+    },
+    "anthropic-api": {
+      "disabled": true,
+      "reason": "No cloud inference from the store terminal."
+    },
+    "openai-api": {
+      "disabled": true,
+      "reason": "No cloud inference from the store terminal."
+    },
+    "openai-auth": {
+      "disabled": true,
+      "reason": "No ChatGPT sign-in at the store terminal."
+    },
+    "local-inference": {
+      "disabled": true,
+      "reason": "No local model server at the store terminal."
+    },
+    "audit-collector": {
+      "disabled": true,
+      "reason": "The audit log stays on the terminal; no collector is bound."
+    },
+    "workforce-idp": {
+      "disabled": true,
+      "reason": "Attendants sign in with badge and PIN at the terminal, not through the workforce identity provider."
+    }
+  },
+  "audit": {
+    "mode": "fail-closed"
+  },
+  "identity": "local-user",
+  "ingress": {
+    "listen": "loopback"
+  },
+  "grants": {
+    "maxTtlSeconds": 3600
+  }
+}

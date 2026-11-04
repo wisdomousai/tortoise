@@ -8,9 +8,9 @@ import {
   jsonSchema,
 } from '@tortoise/contracts';
 import { releaseSchema } from '@tortoise/fleet-agent/contracts';
-import { channelIdSchema } from './sites';
+import { channelIdSchema } from './instances';
 
-/** A release ID is also the site's staging directory name. */
+/** A release ID is also the instance's staging directory name. */
 export const releaseIdSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/);
 
 /** A published release: the signed bundle manifest and signature, its files held as blobs. */
@@ -35,7 +35,7 @@ export const releases = defineCollection({
   label: { one: 'Release', many: 'Releases' },
 });
 
-/** A release channel and the release its sites should run. */
+/** A release channel and the release its instances should run. */
 export const channelSchema = z.strictObject({
   id: channelIdSchema,
   release: releaseIdSchema,
@@ -68,7 +68,7 @@ export const releaseOperations = {
     id: 'release.publish',
     kind: 'command',
     description:
-      'Publish a signed site bundle: its bundle.json as manifest, its bundle.sig as signature, and each file under files/ uploaded first as a blob. Every manifest file needs exactly one blob of its digest and size. Sites verify the signature against their own trusted keys before staging. Operators only; publishing an existing ID conflicts.',
+      'Publish a signed bundle: its bundle.json as manifest, its bundle.sig as signature, and each file under files/ uploaded first as a blob. Every manifest file needs exactly one blob of its digest and size. Instances verify the signature against their own trusted keys before staging. Operators only; publishing an existing ID conflicts.',
     input: jsonSchema(
       z.strictObject({
         release: releaseSchema.extend({ id: releaseIdSchema }),
@@ -97,7 +97,7 @@ export const releaseOperations = {
     id: 'channel.assign',
     kind: 'command',
     description:
-      'Point a release channel at a published release, creating the channel if needed. Sites on it stage that release on their next cycle. Operators only.',
+      'Point a release channel at a published release, creating the channel if needed. Instances on it stage that release on their next cycle. Operators only.',
     input: jsonSchema(z.strictObject({ id: channelIdSchema, release: releaseIdSchema })),
     output: jsonSchema(channelSchema),
     permission: { action: 'write', resourceType: 'Channel' },

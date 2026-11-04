@@ -107,7 +107,7 @@ const set =
     records(ctx, lots, ctx.state.lots).update(input.id, { status });
     return { id: input.id, status };
   };
-const operator = { container: () => 'site', roles: ['operator'] as Role[] };
+const operator = { container: () => 'plant', roles: ['operator'] as Role[] };
 
 function application() {
   let ids = 0;
@@ -126,7 +126,7 @@ function application() {
         'lot.hold': operator,
         'lot.get': 'open',
         'approval.request': 'open',
-        'approval.approve': { container: () => 'site', person: true },
+        'approval.approve': { container: () => 'plant', person: true },
         'approval.reject': { ...operator, person: true },
         'approval.expire': 'open',
         'approval.list': 'open',

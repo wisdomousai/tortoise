@@ -17,8 +17,8 @@ import {
   type ExecutionContext,
   type HandlerContext,
 } from '@tortoise/runtime';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { executionSandbox } from '../src/contracts';
 import { createExecutionHostPlugin } from '../src/plugin';
 import { executionHostPluginManifest } from '../src/plugin-manifest';
@@ -107,7 +107,7 @@ export function notesApplication(options: ExecutionHostOptions) {
         executionSandbox({ id: 'offline', description: 'Tools without network' }),
       ],
       plugins: [
-        sitePluginManifest,
+        deploymentPluginManifest,
         networkPluginManifest,
         processPluginManifest,
         executionHostPluginManifest,
@@ -116,6 +116,6 @@ export function notesApplication(options: ExecutionHostOptions) {
     createState: () => ({ notes: { notes: {} } }),
     handlers: handlers as never,
     authorization: policy,
-    plugins: [sitePlugin, networkPlugin, processPlugin, createExecutionHostPlugin(options)],
+    plugins: [deploymentPlugin, networkPlugin, processPlugin, createExecutionHostPlugin(options)],
   });
 }

@@ -39,7 +39,7 @@ export interface ApplicationManifest<
   /**
    * Non-module parts this application brings, such as a screen bridge or device drivers, with
    * the network destinations, devices and processes they need. The host adds its own; the
-   * composed requirements are what a site policy binds. Pure data. Includes the plugins'.
+   * composed requirements are what a deployment policy binds. Pure data. Includes the plugins'.
    */
   readonly components?: readonly HostComponent[];
   /** Features mounted into this application, in the order their slices are composed. */
@@ -136,7 +136,7 @@ function checkUnitIds(features: readonly FeatureManifest[], plugins: readonly Pl
 /**
  * A feature or plugin that declares operations owns its namespace: no other unit shares it, and
  * the application's own operations stay out of it. A unit without operations claims none, so a
- * plugin such as `site` leaves `site.*` to the application.
+ * plugin such as `deployment` leaves `deployment.*` to the application.
  */
 function checkUnitManifests(
   own: readonly CapabilityModule[],

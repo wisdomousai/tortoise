@@ -3,7 +3,7 @@ import { executionSandbox } from '@tortoise/execution-host/contracts';
 import { executionHostPluginManifest } from '@tortoise/execution-host/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { processPluginManifest } from '@tortoise/process/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { testResultsModule } from './contracts';
 import {
@@ -14,7 +14,7 @@ import {
 /**
  * The test requests module, test results with the result analyst, and the sandbox its tool runs
  * in. The sandbox declares no destinations, so it reaches nothing but the host's own API. The
- * site, network and process plugins come before the execution host, which needs the process port.
+ * deployment, network and process plugins come before the execution host, which needs the process port.
  * Browser-safe.
  */
 export default defineManifest({
@@ -28,7 +28,7 @@ export default defineManifest({
     }),
   ],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     processPluginManifest,
     executionHostPluginManifest,

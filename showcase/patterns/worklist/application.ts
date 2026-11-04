@@ -2,7 +2,7 @@ import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoi
 import { defineApplication } from '@tortoise/host/application';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   connectWorklist,
   createWorklistSlice,
@@ -61,7 +61,7 @@ export function createTestRequestsWorklistApplication(options: TestRequestsWorkl
     ]),
     ...(options.services ? { services: options.services } : {}),
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       createPeerLinkPlugin({ targets: [worklist.target] }),

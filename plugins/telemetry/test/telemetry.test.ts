@@ -22,7 +22,7 @@ async function start(collector?: string) {
   const directory = await mkdtemp(join(tmpdir(), 'telemetry-'));
   cleanups.push(() => rm(directory, { recursive: true, force: true }));
   await writeFile(
-    join(directory, 'site-policy.json'),
+    join(directory, 'deployment-policy.json'),
     JSON.stringify({
       profile: 'desktop-local',
       audit: { mode: 'best-effort' },
@@ -32,7 +32,7 @@ async function start(collector?: string) {
   const host = await startHost(telemetryApplication(), {
     workspacePath: join(directory, 'workspace'),
     integration: false,
-    settings: { 'site-policy': join(directory, 'site-policy.json') },
+    settings: { 'deployment-policy': join(directory, 'deployment-policy.json') },
   });
   cleanups.push(() => host.close());
   const telemetry = host.services.telemetry as TelemetryService;

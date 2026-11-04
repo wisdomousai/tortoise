@@ -340,7 +340,7 @@ export interface PluginEntry {
 
 /**
  * The calling application: the peer link calling the quality application, after the plugins
- * that give it a network (the fixture network, or the site and network plugins).
+ * that give it a network (the fixture network, or the deployment and network plugins).
  */
 export function receivingApplication(network: PluginEntry | readonly PluginEntry[]) {
   const entries: readonly PluginEntry[] = 'manifest' in network ? [network] : network;

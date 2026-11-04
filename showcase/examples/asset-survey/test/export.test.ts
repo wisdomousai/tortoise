@@ -9,8 +9,8 @@ const worker = resolve(import.meta.dir, '../export/worker.ts');
 const directory = await mkdtemp(join(tmpdir(), 'tortoise-survey-export-'));
 afterAll(() => rm(directory, { recursive: true, force: true }));
 
-/** A site policy that binds the reference export process to `exportDirectory` under Bun. */
-async function sitePolicy(exportDirectory: string) {
+/** A deployment policy that binds the reference export process to `exportDirectory` under Bun. */
+async function deploymentPolicy(exportDirectory: string) {
   const path = join(directory, `policy-${crypto.randomUUID()}.json`);
   await writeFile(
     path,
@@ -22,7 +22,7 @@ async function sitePolicy(exportDirectory: string) {
       },
     }),
   );
-  return { 'site-policy': path };
+  return { 'deployment-policy': path };
 }
 
 /** A hub with breaker =G1-Q2 surveyed and its serial accepted from one nameplate photo. */
@@ -70,7 +70,7 @@ describe('export directory', () => {
   test('a bound export writes one folder with the record and its photos', async () => {
     const exportDirectory = join(directory, 'out');
     await mkdir(exportDirectory);
-    const { survey, q2, photo } = await surveyed(await sitePolicy(exportDirectory));
+    const { survey, q2, photo } = await surveyed(await deploymentPolicy(exportDirectory));
     await expect(survey.command('filing.export', { nodeId: q2.id }, rita)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });

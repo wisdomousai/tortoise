@@ -20,7 +20,7 @@ const kinds: Record<string, string> = {
   'past-best-before': 'Past best-before date',
 };
 
-/** Every site that needs a look, and why. */
+/** Every instance that needs a look, and why. */
 export function HealthScreen() {
   const health = useQuery(live.liveQueryOptions(operations.fleetHealth, {}));
   const issues = health.data?.issues ?? [];
@@ -29,25 +29,25 @@ export function HealthScreen() {
       <header className="space-y-1">
         <h1 className="text-xl font-semibold">Health</h1>
         <p className="text-sm text-muted-foreground tabular-nums">
-          {health.data?.sites ?? 0} sites, {new Set(issues.map((issue) => issue.site)).size} with
-          issues
+          {health.data?.instances ?? 0} instances,{' '}
+          {new Set(issues.map((issue) => issue.instance)).size} with issues
         </p>
       </header>
       {issues.length ? (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Site</TableHead>
+              <TableHead>Instance</TableHead>
               <TableHead>Issue</TableHead>
               <TableHead>Detail</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {issues.map((issue) => (
-              <TableRow key={`${issue.site}:${issue.kind}`}>
+              <TableRow key={`${issue.instance}:${issue.kind}`}>
                 <TableCell>
-                  <Link to="/sites/$id" params={{ id: issue.site }} className="underline">
-                    {issue.site}
+                  <Link to="/instances/$id" params={{ id: issue.instance }} className="underline">
+                    {issue.instance}
                   </Link>
                 </TableCell>
                 <TableCell>{kinds[issue.kind] ?? issue.kind}</TableCell>
@@ -57,7 +57,7 @@ export function HealthScreen() {
           </TableBody>
         </Table>
       ) : (
-        <p className="text-sm text-muted-foreground">No site needs a look.</p>
+        <p className="text-sm text-muted-foreground">No instance needs a look.</p>
       )}
     </div>
   );

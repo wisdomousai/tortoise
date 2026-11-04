@@ -12,7 +12,7 @@ import { isAbsolute } from 'node:path';
  * flag and keeps digest checks. The service child receives the developer environment
  * already present on that launch (the same process environment as the browser `dev`
  * command). It cannot override the workspace, port, web root, runtime manifest or
- * site policy the host just chose, and Electron's own variables are not copied.
+ * deployment policy the host just chose, and Electron's own variables are not copied.
  * Renderer isolation is unchanged.
  *
  * Failure: a missing Bun path, service entry, web root or repository root throws
@@ -24,7 +24,7 @@ const reservedServiceKeys = new Set([
   'WORKSPACE_PATH',
   'WEB_ROOT',
   'AGENT_RUNTIME_MANIFEST',
-  'TORTOISE_SITE_POLICY',
+  'TORTOISE_DEPLOYMENT_POLICY',
 ]);
 
 /** Packaged Electron never takes this path, even if the development flag is set. */
@@ -63,7 +63,7 @@ export interface DevelopmentServiceLaunch {
   port: string;
   cwd: string;
   extraEnv: Record<string, string>;
-  sitePolicy?: string;
+  deploymentPolicy?: string;
   mirror: true;
 }
 
@@ -82,9 +82,9 @@ export function developmentServiceLaunch(
   if (!workspace || !isAbsolute(workspace)) throw new Error('Workspace must be an absolute path');
   const port = env.PORT ?? '4317';
   if (!/^\d+$/.test(port)) throw new Error('PORT must be a numeric port');
-  const sitePolicy = env.TORTOISE_SITE_POLICY;
-  if (sitePolicy && !isAbsolute(sitePolicy))
-    throw new Error('TORTOISE_SITE_POLICY must be an absolute path');
+  const deploymentPolicy = env.TORTOISE_DEPLOYMENT_POLICY;
+  if (deploymentPolicy && !isAbsolute(deploymentPolicy))
+    throw new Error('TORTOISE_DEPLOYMENT_POLICY must be an absolute path');
   return {
     workspace,
     executable: absolute(env, 'TORTOISE_BUN'),
@@ -93,7 +93,7 @@ export function developmentServiceLaunch(
     port,
     cwd: absolute(env, 'TORTOISE_DEV_ROOT'),
     extraEnv: developmentServiceEnvironment(env),
-    ...(sitePolicy ? { sitePolicy } : {}),
+    ...(deploymentPolicy ? { deploymentPolicy } : {}),
     mirror: true,
   };
 }

@@ -1,8 +1,8 @@
 import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /**
- * Declare one broker as a host component: a `tcp` destination on the site network that only
- * reads. The site policy binds its address (`tcp://broker:1883`, or with `tls: true` for 8883).
+ * Declare one broker as a host component: a `tcp` destination on the local network that only
+ * reads. The deployment policy binds its address (`tcp://broker:1883`, or with `tls: true` for 8883).
  */
 export function mqttBroker(options: {
   readonly id: string;
@@ -21,7 +21,7 @@ export function mqttBroker(options: {
           id: options.destination,
           purpose: options.description,
           direction: 'outbound',
-          scope: 'site',
+          scope: 'local',
           protocol: 'tcp',
           dataClasses: options.dataClasses,
           availability: options.availability ?? 'optional',

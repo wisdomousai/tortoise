@@ -28,7 +28,7 @@ const authorizeParams = z.strictObject({
 
 /**
  * Network and process requirements of the provider harnesses, as data. Importing this file loads
- * no SDK. Every destination is optional and `unavailable` offline: without a site-policy binding
+ * no SDK. Every destination is optional and `unavailable` offline: without a deployment-policy binding
  * the deterministic harness keeps working and model runs report why not. The local model's
  * destination is loopback-scoped, so the guard refuses any binding that leaves this host.
  */
@@ -113,7 +113,7 @@ export const anthropicComponent = defineHostComponent({
   },
 });
 
-/** The destination a local model server is bound to; the site policy supplies its address. */
+/** The destination a local model server is bound to; the deployment policy supplies its address. */
 export const LOCAL_INFERENCE_DESTINATION = 'local-inference';
 
 export const localInferenceComponent = defineHostComponent({

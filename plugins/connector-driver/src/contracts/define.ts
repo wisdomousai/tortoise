@@ -68,7 +68,7 @@ export interface DriverEvent {
   readonly maxRateHz?: number;
 }
 
-/** The driver executable, as the process requirement the site policy binds. */
+/** The driver executable, as the process requirement the deployment policy binds. */
 export interface DriverProcessDeclaration {
   readonly id: string;
   readonly purpose: string;

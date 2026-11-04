@@ -5,7 +5,7 @@ import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
 import { deviceLinkPluginManifest } from '@tortoise/device-link/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { processPluginManifest } from '@tortoise/process/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { workflowsPluginManifest } from '@tortoise/workflows/plugin-manifest';
 import { assignments, surveyModules } from './contracts';
 
@@ -16,7 +16,7 @@ export default defineManifest({
   modules: surveyModules,
   features: [assignments.manifest, approvalFeatureManifest],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     processPluginManifest,
     auditPluginManifest,

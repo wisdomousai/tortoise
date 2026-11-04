@@ -4,13 +4,13 @@ import { openAudit } from './open';
 import { auditPluginManifest } from './plugin-manifest';
 
 /**
- * The audit plugin. It provides the kernel's event-log port: a hash-chained log in the site
+ * The audit plugin. It provides the kernel's event-log port: a hash-chained log in the deployment
  * policy's audit mode, forwarded off the host when the policy says so. Its `ready` attests and
  * recovers, and it adds `audit verify`. An application without it keeps no audit log.
  */
 export const auditPlugin = defineHostPlugin({
   manifest: auditPluginManifest,
-  requires: ['site'],
+  requires: ['deployment'],
   commands: [auditCliCommand],
   open: openAudit,
 });

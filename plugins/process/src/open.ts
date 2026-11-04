@@ -1,5 +1,5 @@
 import { ApplicationError, type AuditRecord } from '@tortoise/contracts';
-import type { ResolvedProcess } from '@tortoise/site/policy';
+import type { ResolvedProcess } from '@tortoise/deployment/policy';
 import type {
   BunProcessPort,
   HostPorts,
@@ -8,7 +8,7 @@ import type {
   ProcessSpawnOptions,
   SpawnedProcess,
 } from '@tortoise/host/plugin';
-import { siteServiceOf } from '@tortoise/site/open';
+import { deploymentServiceOf } from '@tortoise/deployment/open';
 import { availability, bindingFor, environment, type Decision } from './decide';
 import { baseEnvironment, digestFile, startChild, terminateTree } from './spawn';
 
@@ -78,7 +78,7 @@ function track(
 }
 
 /**
- * The process port over the site policy's bindings:
+ * The process port over the deployment policy's bindings:
  *
  * 1. Decide availability from the declaration, the policy and the platform (`decide.ts`).
  * 2. Before each start, check the executable's pin, then build the child's environment.
@@ -89,7 +89,7 @@ function track(
  * recorded as `child.refused` with that code.
  */
 export async function openProcesses(context: PluginOpenContext): Promise<PluginInstance> {
-  const { policy } = siteServiceOf(context.services);
+  const { policy } = deploymentServiceOf(context.services);
   const decision: Decision = { policy, context };
   const ports = context.ports;
   const children = new Set<SpawnedProcess>();

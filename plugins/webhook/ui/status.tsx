@@ -25,8 +25,8 @@ export function WebhookScreen() {
       <CardHeader>
         <CardTitle>Webhook</CardTitle>
         <CardDescription>
-          Change notifications posted to the site&apos;s webhook destination. Only resource ids and
-          revisions leave the machine.
+          Change notifications posted to the webhook destination. Only resource ids and revisions
+          leave the machine.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">

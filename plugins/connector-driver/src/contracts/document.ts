@@ -48,9 +48,9 @@ export const driverContractText = (contract: DriverContract) =>
   canonicalJson(driverContractDocument(contract));
 
 /**
- * The host component that declares what the driver needs: its process (an executable the site
+ * The host component that declares what the driver needs: its process (an executable the deployment
  * policy binds, carrying the outbox target named after the contract), its devices and its network
- * destinations. The driver plugin's manifest lists it, so the security manifest, the site policy
+ * destinations. The driver plugin's manifest lists it, so the security manifest, the deployment policy
  * check and the firewall exports see it.
  */
 export function driverComponent(contract: DriverContract): HostComponent {

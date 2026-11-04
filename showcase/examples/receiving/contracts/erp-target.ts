@@ -39,7 +39,7 @@ export const erpTarget = defineTarget({
   },
 });
 
-/** The folders shared with the ERP, by folder ID; the site policy binds each to a directory. */
+/** The folders shared with the ERP, by folder ID; the deployment policy binds each to a directory. */
 export const erpFolders = {
   inbox: 'erp-asn',
   drop: 'erp-goods-receipts',

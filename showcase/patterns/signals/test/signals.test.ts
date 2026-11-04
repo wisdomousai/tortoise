@@ -33,7 +33,7 @@ const until = async (condition: () => boolean, ms = 2_000) => {
 };
 
 /**
- * An embedded instance, the plant stand-in on free ports and both chamber observers. The site
+ * An embedded instance, the plant stand-in on free ports and both chamber observers. The deployment
  * policy binds the gateway and the broker to the stand-in unless `bound` is false; the observers
  * reach them through the instance's network port, as the running host's do.
  */
@@ -43,7 +43,7 @@ async function open({ bound = true } = {}) {
   const plant = new FakePlant(defaultChambers);
   const ports = plant.start();
   cleanup.push(() => plant.stop());
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -63,7 +63,7 @@ async function open({ bound = true } = {}) {
       members: { viewer: 'viewer' },
       services: { newId: () => `r${++next}` },
     }),
-    { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+    { workspacePath: join(directory, 'workspace'), settings: { 'deployment-policy': policy } },
   );
   cleanup.push(() => instance.close());
   const observers = createChamberObservers({
@@ -223,7 +223,7 @@ test('viewers read chambers but cannot place a sample', async () => {
   );
 });
 
-test('without a site binding neither source is reached and no condition is recorded', async () => {
+test('without a policy binding neither source is reached and no condition is recorded', async () => {
   const { plant, observe, chambers } = await open({ bound: false });
   await observe();
   await Bun.sleep(50);

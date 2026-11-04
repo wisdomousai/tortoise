@@ -40,7 +40,7 @@ A driver is an executable in any language. The host starts it as a child process
 8. Check the driver with `app driver check <id> -- <executable>`. The check never invokes an action, so it is safe against connected equipment.
 9. Build a self-contained executable with PyInstaller, Nuitka or a .NET single-file build.
 10. Print the process IDs and contract digests to bind with `app driver list`.
-11. Bind the driver's process ID to the executable's absolute path and hash in the deployment policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+11. Bind the driver's process ID to the executable's absolute path and hash in the deployment policy. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) covers the policy.
    - The driver starts with no `PATH` or `PYTHONPATH`, and the policy may not set them, because they change what code the child loads. Pass the absolute path of each program the driver runs as a variable in the binding's `env`.
    - A driver bound to an interpreter instead of a built executable needs the SDK installed in that interpreter's environment, such as a virtual environment's `python`.
 

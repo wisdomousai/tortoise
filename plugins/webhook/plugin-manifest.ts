@@ -2,7 +2,7 @@ import { defineHostComponent } from '@tortoise/contracts';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { webhookModule } from './contracts';
 
-/** The one destination this plugin may reach. A site policy binds it to an address. */
+/** The one destination this plugin may reach. A deployment policy binds it to an address. */
 export const webhookDeliveryComponent = defineHostComponent({
   id: 'webhook-delivery',
   description: 'Posts change notifications to the configured webhook.',
@@ -12,7 +12,7 @@ export const webhookDeliveryComponent = defineHostComponent({
         id: 'webhook-target',
         purpose: 'Notify a downstream system that observed resources changed.',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         dataClasses: ['change-notification'],
         availability: 'optional',

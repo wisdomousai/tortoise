@@ -1,9 +1,9 @@
-import type { ResolvedPolicy } from '@tortoise/site/policy';
+import type { ResolvedPolicy } from '@tortoise/deployment/policy';
 import type { IngressPort } from '@tortoise/host/plugin';
 
 /**
- * The TLS listener a site policy selects, on the policy's host name and fixed port. With `mtls`
- * the TLS layer admits only clients with a certificate from the site's client CA; with `tls` any
+ * The TLS listener a deployment policy selects, on the policy's host name and fixed port. With `mtls`
+ * the TLS layer admits only clients with a certificate from the local client CA; with `tls` any
  * client on the network reaches it. Either way every API call still needs a session or a
  * credential a plugin issued. Undefined when the policy keeps the kernel's loopback listener.
  */

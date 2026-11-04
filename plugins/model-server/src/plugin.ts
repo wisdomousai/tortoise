@@ -82,7 +82,7 @@ const reasonOf = (status: ModelServerStatus) =>
  *
  * Trust boundary: the deployment chooses the files, the entry and the activation; the plugin
  * proves only that the files are the ones the entry names. The server is a child of the host and
- * is trusted to serve what it loaded; the site policy pins its executable.
+ * is trusted to serve what it loaded; the deployment policy pins its executable.
  */
 export function createModelServer(options: ModelServerOptions) {
   const entry = defineModelEntry(options.entry);

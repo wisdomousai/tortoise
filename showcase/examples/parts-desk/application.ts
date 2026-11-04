@@ -4,7 +4,7 @@ import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { createModelServer } from '@tortoise/model-server/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { processPlugin } from '@tortoise/process/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import manifest from './manifest';
 import { ASSISTANT_MODEL_PROCESS } from './contracts/assistant-agent';
 import { assistantModelFrom, type AssistantModel } from './model';
@@ -29,7 +29,7 @@ export interface PartsDeskOptions {
 }
 
 /**
- * The Parts Desk application with the site, network, process, audit, compliance and model server
+ * The Parts Desk application with the deployment, network, process, audit, compliance and model server
  * plugins, and the model server's handle. The model server measures the assistant's weights
  * against the `parts-desk-assistant` entry and starts llama-server through the process port.
  * It offers its harness to the host's run route, so a run of the assistant started without a
@@ -68,7 +68,7 @@ export function composePartsDesk(options: PartsDeskOptions = {}) {
       quote: operations.quoteGet.id,
     },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       processPlugin,
       auditPlugin,

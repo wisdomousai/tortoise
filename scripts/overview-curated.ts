@@ -460,18 +460,18 @@ export const properties: readonly Property[] = [
     ],
   },
   {
-    property: 'A site keeps committing and delivering while the fleet is unreachable.',
+    property: 'An instance keeps committing and delivering while the fleet is unreachable.',
     mechanism: 'The fleet agent reports outbound only and queues its reports.',
     doc: 'hosting#fleet-agent',
     tests: [
       {
         file: 'plugins/fleet-agent/test/fleet-agent.test.ts',
-        test: 'while the fleet is unreachable the site commits, and the next report shows the backlog',
+        test: 'while the fleet is unreachable the instance commits, and the next report shows the backlog',
       },
     ],
   },
   {
-    property: 'A site bundle with a changed file is refused before install.',
+    property: 'A bundle with a changed file is refused before install.',
     mechanism: 'The bundle is signed with Ed25519 and lists a digest for every file.',
     doc: 'security-and-compliance#compliance-bundle',
     tests: [
@@ -512,7 +512,7 @@ export const ports: readonly PortEntry[] = [
     port: 'identity',
     title: 'Identity',
     fallback: 'Admits the trusted local user',
-    providers: [{ plugin: 'site', source: 'plugins/site/src/open.ts' }],
+    providers: [{ plugin: 'deployment', source: 'plugins/deployment/src/open.ts' }],
   },
   {
     port: 'eventLog',
@@ -536,7 +536,7 @@ export const ports: readonly PortEntry[] = [
     port: 'folders',
     title: 'Folders',
     fallback: 'No exchange folders',
-    providers: [{ plugin: 'site', source: 'plugins/site/src/open.ts' }],
+    providers: [{ plugin: 'deployment', source: 'plugins/deployment/src/open.ts' }],
   },
 ];
 
@@ -615,7 +615,7 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     sources: ['showcase/examples/field-service/os.ts'],
   },
   fleet: {
-    input: 'Reports and audit events from enrolled sites.',
+    input: 'Reports and audit events from enrolled instances.',
     record: 'None; the fleet keeps its own records.',
     sources: ['showcase/examples/fleet/domain.ts'],
   },

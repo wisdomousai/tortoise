@@ -4,7 +4,7 @@ import { assignments, samplingApi } from '@tortoise/pattern-assignments/contract
 /**
  * The sampling rounds the oil lab sends this application over the peer link, and the samples
  * recorded here for them. Operations are `worklist.*`; the target is `lab`, reached through the
- * `lab-peer` destination the site policy binds.
+ * `lab-peer` destination the deployment policy binds.
  */
 export const worklist = defineWorklist({
   namespace: 'worklist',

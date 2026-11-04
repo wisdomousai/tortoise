@@ -137,7 +137,7 @@ The framework is not real-time. Keep loops under a second, motion and closed-loo
 - Drivers never operate safety functions; nothing here is safety-rated.
 - The proxy confines only HTTP and HTTPS. Only the exported OS rules confine raw sockets (Modbus TCP, OPC UA).
 - A driver that declares secrets needs a platform secret store; the Bun platform has none.
-- The policy pins executables by hash; nothing signs them, and site bundles leave them out.
+- The policy pins executables by hash; nothing signs them, and bundles leave them out.
 - Not built: remote drivers over mTLS, a non-journaled fast reading stream, remote queries over driver state, Android in-process drivers, a C++ SDK.
 
 ## See also

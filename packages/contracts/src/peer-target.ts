@@ -83,7 +83,7 @@ export function definePeerTarget<
     id: declared.id,
     purpose: declared.purpose,
     direction: 'outbound',
-    scope: declared.scope ?? 'site',
+    scope: declared.scope ?? 'local',
     protocol: 'https',
     ...(declared.port === undefined ? {} : { port: declared.port }),
     authenticated: true,

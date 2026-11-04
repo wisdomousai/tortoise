@@ -24,7 +24,7 @@ let host: Awaited<ReturnType<typeof startHost>>;
 let models: ReturnType<typeof composePartsDesk>['models'];
 let token: string;
 
-/** A loopback port no listener holds, for the stand-in the site policy binds. */
+/** A loopback port no listener holds, for the stand-in the deployment policy binds. */
 function freePort() {
   const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: () => new Response() });
   const { port } = server;
@@ -35,7 +35,7 @@ function freePort() {
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'parts-desk-model-'));
   const port = freePort();
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   // The policy dev.ts writes for the stand-in, on a port of the test's own.
   await writeFile(
     policy,
@@ -60,7 +60,7 @@ beforeAll(async () => {
   host = await startHost(composed.application, {
     workspacePath: join(directory, 'workspace'),
     integration: false,
-    settings: { 'site-policy': policy },
+    settings: { 'deployment-policy': policy },
   });
   await seedTrialRecords(host.application);
   for (let tries = 0; tries < 400; tries++) {

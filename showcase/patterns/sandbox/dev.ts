@@ -4,13 +4,16 @@ import { join } from 'node:path';
 
 /**
  * Run by `bun run dev:web` before the launch. On Linux with bubblewrap at `/usr/bin/bwrap`
- * (`BWRAP` to change it), it writes a site policy that binds the analysis sandbox to it. Elsewhere
+ * (`BWRAP` to change it), it writes a deployment policy that binds the analysis sandbox to it. Elsewhere
  * it writes none, and the request screen shows why the sandbox cannot run. An explicit
- * `TORTOISE_SITE_POLICY` wins.
+ * `TORTOISE_DEPLOYMENT_POLICY` wins.
  */
 const bwrap = process.env.BWRAP ?? '/usr/bin/bwrap';
 if (process.platform === 'linux' && existsSync(bwrap)) {
-  const policy = join(mkdtempSync(join(tmpdir(), 'test-requests-sandbox-')), 'site-policy.json');
+  const policy = join(
+    mkdtempSync(join(tmpdir(), 'test-requests-sandbox-')),
+    'deployment-policy.json',
+  );
   writeFileSync(
     policy,
     JSON.stringify(
@@ -23,7 +26,7 @@ if (process.platform === 'linux' && existsSync(bwrap)) {
       2,
     ),
   );
-  process.env.TORTOISE_SITE_POLICY ??= policy;
+  process.env.TORTOISE_DEPLOYMENT_POLICY ??= policy;
   console.log(`Analysis sandbox: ${bwrap}`);
 } else {
   console.log('Analysis sandbox: unavailable without Linux bubblewrap');

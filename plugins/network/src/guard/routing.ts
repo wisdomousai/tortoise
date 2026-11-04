@@ -1,4 +1,4 @@
-import { portOf } from '@tortoise/site/policy';
+import { portOf } from '@tortoise/deployment/policy';
 import { destinationClient } from './client';
 import { auditAllowed, checkAddresses, deny, originOf, type GuardKernel } from './kernel';
 

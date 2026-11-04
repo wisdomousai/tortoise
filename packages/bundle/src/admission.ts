@@ -9,19 +9,19 @@ export interface RequirementChange {
   readonly change: 'added' | 'widened';
   readonly detail?: string;
 }
-/** What the site decided: the exact requirements digest it approved for one application. */
-export interface SiteApproval {
+/** What a person decided: the exact requirements digest approved for one application. */
+export interface InstallApproval {
   readonly application: string;
   readonly requirementsDigest: string;
 }
 /** The host a bundle would run on. */
-export interface SiteTarget {
+export interface InstallTarget {
   readonly platform: string;
-  /** Storage schema versions this site's storage reads. */
+  /** Storage schema versions the target's storage reads. */
   readonly storageSchemas: readonly number[];
 }
 
-const scopeRank: Record<string, number> = { loopback: 0, site: 1, internet: 2 };
+const scopeRank: Record<string, number> = { loopback: 0, local: 1, internet: 2 };
 
 export const requirementsDigest = (requirements: BundleRequirements) =>
   createHash('sha256').update(canonicalJson(requirements)).digest('hex');
@@ -84,14 +84,14 @@ export function requirementChanges(
 /** Why a verified bundle may not be installed here; an empty list admits it. */
 export function admissionRefusals(
   candidate: BundleManifest,
-  site: SiteTarget,
+  target: InstallTarget,
   installed?: BundleManifest,
-  approval?: SiteApproval,
+  approval?: InstallApproval,
 ): string[] {
   const refusals: string[] = [];
-  if (candidate.platform !== site.platform)
-    refusals.push(`Built for ${candidate.platform}, not ${site.platform}`);
-  if (!site.storageSchemas.includes(candidate.storageSchema))
+  if (candidate.platform !== target.platform)
+    refusals.push(`Built for ${candidate.platform}, not ${target.platform}`);
+  if (!target.storageSchemas.includes(candidate.storageSchema))
     refusals.push(`Storage schema ${candidate.storageSchema} is not readable here`);
   if (installed && installed.application !== candidate.application)
     refusals.push(`Installed application is ${installed.application}`);
@@ -102,7 +102,7 @@ export function admissionRefusals(
     approval.requirementsDigest === requirementsDigest(candidate.requirements);
   if (changes.length && !approved)
     refusals.push(
-      `Requirements widen without site approval: ${changes.map((change) => `${change.kind} ${change.id} ${change.change}`).join(', ')}`,
+      `Requirements widen without install approval: ${changes.map((change) => `${change.kind} ${change.id} ${change.change}`).join(', ')}`,
     );
   return refusals;
 }

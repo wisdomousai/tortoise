@@ -96,7 +96,7 @@ if (import.meta.main) {
   const host = await runService(await configuredApplication(), starterConfig(), {
     ...(hostedWorkspace ? { hostedWorkspace } : {}),
   });
-  // Without a launch link, as under external identity, people sign in through the site plugin.
+  // Without a launch link, as under external identity, people sign in through the deployment plugin.
   console.log(
     host.launchUrl
       ? `\n${prepared.title}: open ${host.launchUrl}\n` +

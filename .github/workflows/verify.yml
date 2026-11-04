@@ -19,7 +19,7 @@ jobs:
         with:
           name: browser-evidence
           path: test-results
-  site-install:
+  deployment-install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: sudo apt-get install -y nftables
       # Installs into a staged prefix, then has systemd verify the unit and the kernel check the rules.
-      - run: SITE_INSTALL_NATIVE=1 bun test plugins/site/test/install.test.ts
+      - run: DEPLOYMENT_INSTALL_NATIVE=1 bun test plugins/deployment/test/install.test.ts
   native:
     strategy:
       fail-fast: false

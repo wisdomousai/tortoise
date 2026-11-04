@@ -4,7 +4,7 @@ import type { Extractor, ModelIdentity } from '../ports';
 
 /**
  * JSON-lines protocol for local recognition runtimes (OCR engines, classifiers, vision or audio
- * models in Python, ONNX Runtime, llama.cpp, whatever the site runs). One process, one model:
+ * models in Python, ONNX Runtime, llama.cpp, whatever the host runs). One process, one model:
  *
  * - On start the worker prints `{"type":"ready","model":{"id","version","digest"}}`, with
  *   `adapterDigest` and `datasetDigest` for a fine-tuned model.
@@ -33,7 +33,7 @@ export interface WorkerExtractorOptions {
   readonly modality: Extractor['modality'];
   /**
    * Start the worker process. A host passes its process port's start for the declared
-   * `recognition-worker` process, so the site policy decides the executable and the process
+   * `recognition-worker` process, so the deployment policy decides the executable and the process
    * plugin builds its environment. Called again after the worker exits.
    */
   readonly start: () => Promise<WorkerProcess>;

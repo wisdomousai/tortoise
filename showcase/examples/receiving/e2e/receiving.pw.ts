@@ -22,7 +22,7 @@ test('a short line is counted, classified and posted through the exchange folder
       'ASN-1001-2,PO-4711,Acme Fasteners,W8,Washer 8 mm,600',
     ].join('\n'),
   );
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -36,7 +36,7 @@ test('a short line is counted, classified and posted through the exchange folder
     }),
   );
   const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
-    TORTOISE_SITE_POLICY: policy,
+    TORTOISE_DEPLOYMENT_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);
@@ -111,7 +111,7 @@ test('a receipt the ERP left unreadable is held, and an editor records that it w
       'ASN-1001-1,PO-4711,Acme Fasteners,M8-40,Hex bolt,500',
     ].join('\n'),
   );
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -125,7 +125,7 @@ test('a receipt the ERP left unreadable is held, and an editor records that it w
     }),
   );
   const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
-    TORTOISE_SITE_POLICY: policy,
+    TORTOISE_DEPLOYMENT_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);

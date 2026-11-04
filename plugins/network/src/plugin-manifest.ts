@@ -2,7 +2,7 @@ import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /**
  * The browser-safe part of the network plugin. It declares nothing of its own: it binds what the
- * application and the other plugins declare, under the site plugin's policy.
+ * application and the other plugins declare, under the deployment plugin's policy.
  */
 export const networkPluginManifest = definePluginManifest({
   id: 'network',

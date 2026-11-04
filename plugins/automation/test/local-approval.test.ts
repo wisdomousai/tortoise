@@ -67,7 +67,7 @@ async function until(check: () => Promise<boolean>) {
 
 test('a received lot starts a local-model run that requests approval for its inspection, and an inspector approves it', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'automation-local-'));
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -86,7 +86,7 @@ test('a received lot starts a local-model run that requests approval for its ins
     {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     },
   );
   const app = host.application;

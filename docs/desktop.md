@@ -35,7 +35,7 @@ An attached host stays owned by the process that started it; closing an attachin
 
 ## Deployment policy
 
-The build ships `apps/desktop/site-policy.json` under the `desktop-local` hardening profile. It binds only the OpenAI and Anthropic provider endpoints and asks for a fail-closed audit log. An application that composes the site plugin also needs the network and audit plugins, or startup refuses (`plugins/site/src/needs.ts`). `desktop-local` is the only profile that accepts a best-effort audit log ([security and compliance](security-and-compliance.md#hardening-profiles)). `TORTOISE_SITE_POLICY` in the trusted host environment substitutes another policy.
+The build ships `apps/desktop/deployment-policy.json` under the `desktop-local` hardening profile. It binds only the OpenAI and Anthropic provider endpoints and asks for a fail-closed audit log. An application that composes the deployment plugin also needs the network and audit plugins, or startup refuses (`plugins/deployment/src/needs.ts`). `desktop-local` is the only profile that accepts a best-effort audit log ([security and compliance](security-and-compliance.md#hardening-profiles)). `TORTOISE_DEPLOYMENT_POLICY` in the trusted host environment substitutes another policy.
 
 ## OS integration
 
@@ -75,7 +75,7 @@ It needs no developer Bun, Node, Codex or Claude installation. The staging confi
 
 `bun run dev`, from the repository root or an example, opens the window without packaging. The launcher builds the web assets, bundles the main and preload scripts and starts Electron in development mode. Electron starts the host from source in that workspace, or attaches when one already runs there. An example's dev script keeps its fakes alive until the window closes.
 
-A packaged build ignores development mode. The source host inherits the developer's environment, but workspace, port, web root, runtime manifest and deployment policy from Electron take precedence. The desktop deployment policy is the default, so provider sign-in behaves as in a packaged build. Set `TORTOISE_SITE_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
+A packaged build ignores development mode. The source host inherits the developer's environment, but workspace, port, web root, runtime manifest and deployment policy from Electron take precedence. The desktop deployment policy is the default, so provider sign-in behaves as in a packaged build. Set `TORTOISE_DEPLOYMENT_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
 
 ## Build and smoke test
 

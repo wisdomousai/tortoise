@@ -30,7 +30,7 @@ function driverWorkflow(contract: DriverContract) {
  * The browser-safe part of the driver plugin for one application's drivers:
  * - the status query, with one workflow per driver naming each action's delivery mode and risk
  *   level, so the generated agent skill says what acting on the equipment means;
- * - per driver a component naming its process, devices and network, so the site policy, the
+ * - per driver a component naming its process, devices and network, so the deployment policy, the
  *   generated security manifest and the frame see every driver the application can start.
  *
  * The application lists the result in its manifest and passes the same contracts to

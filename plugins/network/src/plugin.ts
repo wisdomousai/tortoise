@@ -10,7 +10,7 @@ import { networkPluginManifest } from './plugin-manifest';
  */
 export const networkPlugin = defineHostPlugin({
   manifest: networkPluginManifest,
-  requires: ['site'],
+  requires: ['deployment'],
   commands: [networkCliCommand],
   open: openNetwork,
 });

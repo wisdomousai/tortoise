@@ -9,7 +9,7 @@ const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
  * Tools not retired whose calibration date is on or before today plus `days`, soonest first.
- * Today is the UTC date of the instance clock: the instance keeps no site time zone, and
+ * Today is the UTC date of the instance clock: the instance keeps no plant time zone, and
  * `calibrationDue` is a plain date. Every member sees every tool (the policy's caller gate keeps
  * everyone else out), so the filters run on all rows, then the count, then the page. Dates of the
  * form YYYY-MM-DD compare as text in calendar order.

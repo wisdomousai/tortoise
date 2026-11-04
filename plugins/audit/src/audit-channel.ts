@@ -1,5 +1,5 @@
 import { failClosedAuditMode, type AuditMode, type EventLogPort } from '@tortoise/contracts';
-import type { ResolvedPolicy } from '@tortoise/site/policy';
+import type { ResolvedPolicy } from '@tortoise/deployment/policy';
 import {
   forwardingEventLog,
   openJsonlEventLog,

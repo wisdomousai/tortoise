@@ -1,4 +1,4 @@
-import { parseCidr } from '@tortoise/site/cidr';
+import { parseCidr } from '@tortoise/deployment/cidr';
 import type { ExportOptions } from '../exporters';
 import type { RuleSet } from '../rules';
 import { defaults, header } from './common';

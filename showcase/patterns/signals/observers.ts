@@ -13,7 +13,7 @@ export interface ChamberObserverOptions {
   readonly workspaceId: string;
   readonly network: NetworkPort;
   readonly chambers: readonly ChamberDefinition[];
-  /** What the gateway expects to be told; the address itself comes from the site policy. */
+  /** What the gateway expects to be told; the address itself comes from the deployment policy. */
   readonly endpointUrl?: string;
   readonly heartbeatMs?: number;
   readonly retryMs?: number;

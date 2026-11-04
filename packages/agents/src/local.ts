@@ -20,7 +20,7 @@ export interface LocalModel {
 
 /**
  * A fetch bound to the `local-inference` destination: relative paths resolve against the address
- * the site policy bound, which the guard keeps on loopback. A network port `client` is one.
+ * the deployment policy bound, which the guard keeps on loopback. A network port `client` is one.
  */
 export interface LocalModelClient {
   readonly fetch: (input: string, init?: RequestInit) => Promise<Response>;

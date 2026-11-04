@@ -159,7 +159,7 @@ const qualityApi: NetworkDestination = {
   id: 'quality-api',
   purpose: 'Forward results',
   direction: 'outbound',
-  scope: 'site',
+  scope: 'local',
   protocol: 'https',
   targets: ['quality-system'],
   dataClasses: ['inspection-result'],

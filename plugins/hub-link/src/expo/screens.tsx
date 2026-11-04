@@ -64,7 +64,7 @@ function Pairing() {
           <TextInput
             value={origin}
             onChangeText={setOrigin}
-            placeholder="https://hub.site"
+            placeholder="https://hub.plant"
             accessibilityLabel="Hub address"
             autoCapitalize="none"
             autoCorrect={false}

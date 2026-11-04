@@ -5,7 +5,7 @@ import type {
   EventLogPort,
   ProcessRequirement,
 } from '@tortoise/contracts';
-import { portOf, type ResolvedPolicy } from '@tortoise/site/policy';
+import { portOf, type ResolvedPolicy } from '@tortoise/deployment/policy';
 import { destinationClient } from './guard/client';
 import { NetworkDenied } from './guard/denial';
 import {
@@ -84,7 +84,7 @@ async function socket<Data>(
 
 /**
  * Deny-by-default outbound access. Only destinations that are both declared (by a module or host
- * component) and bound (by the site policy) are reachable, and only at their bound origin.
+ * component) and bound (by the deployment policy) are reachable, and only at their bound origin.
  * Every decision is audited; with a required network log, a connection that cannot be logged is
  * not opened.
  *

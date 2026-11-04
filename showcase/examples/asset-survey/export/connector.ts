@@ -7,7 +7,7 @@ import type { EvidenceReader } from '../connectors/fake-eam';
 import { exportResultSchema, type ExportRequest } from './protocol';
 
 export interface ExportPortOptions {
-  /** Start the declared `filing-export` process; the site policy decides what runs. */
+  /** Start the declared `filing-export` process; the deployment policy decides what runs. */
   readonly start: (signal: AbortSignal) => Promise<SpawnedProcess>;
   readonly readBlob: EvidenceReader;
   readonly timeoutMs?: number;
@@ -89,7 +89,7 @@ function readResult(
  * hands it the filing and its photos, and accepts once the process returns the folder it
  * wrote; the folder name is the external reference. Everything else (the process unbound or
  * unable to start, an error result, no result) leaves the filing pending and retried, since a
- * site fixes its directory rather than the filing. Delivery is idempotent: the process returns
+ * deployment policy fixes its directory rather than the filing. Delivery is idempotent: the process returns
  * a folder that already holds the effect as written.
  */
 export function createExportPort(options: ExportPortOptions): SystemOfRecordPort {

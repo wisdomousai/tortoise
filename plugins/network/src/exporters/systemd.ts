@@ -33,7 +33,7 @@ export function systemd(rules: RuleSet, options: ExportOptions): string {
     '# Hides serial, HID and camera devices. For declared devices, remove it and add DeviceAllow=.',
     'PrivateDevices=yes',
     `ReadWritePaths=${d.workspace} ${d.auditLog}`,
-    `ReadOnlyPaths=${d.sitePolicy}`,
+    `ReadOnlyPaths=${d.deploymentPolicy}`,
     'CapabilityBoundingSet=',
     'AmbientCapabilities=',
     'RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6',

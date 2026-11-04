@@ -106,13 +106,13 @@ async function partFor(request: AddRequest, app: AppNames, directory: string): P
 }
 
 /**
- * The desktop site policy with a new target's destination listed as disabled, or undefined when
+ * The desktop deployment policy with a new target's destination listed as disabled, or undefined when
  * there is no policy or it already names the destination. A target's destination is required,
- * so a policy that names neither a binding nor a deliberate switch-off fails `site check`;
+ * so a policy that names neither a binding nor a deliberate switch-off fails `policy check`;
  * disabled, effects stay queued until someone binds it to the system of record's URL.
  */
 async function policyWithTarget(root: string, name: string): Promise<string | undefined> {
-  const path = join(root, 'apps/desktop/site-policy.json');
+  const path = join(root, 'apps/desktop/deployment-policy.json');
   if (!(await exists(path))) return;
   const policy = JSON.parse(await readFile(path, 'utf8')) as {
     destinations?: Record<string, unknown>;
@@ -152,10 +152,10 @@ export async function scaffoldAdd(request: AddRequest, options: AddOptions = {})
       flag: Object.hasOwn(part.files, path) ? 'wx' : 'w',
     });
   }
-  if (policy) await writeFile(join(root, 'apps/desktop/site-policy.json'), policy);
+  if (policy) await writeFile(join(root, 'apps/desktop/deployment-policy.json'), policy);
   return {
     directory: relative(root, directory),
     written: Object.keys(next).sort(),
-    ...(policy ? { policy: 'apps/desktop/site-policy.json' } : {}),
+    ...(policy ? { policy: 'apps/desktop/deployment-policy.json' } : {}),
   };
 }

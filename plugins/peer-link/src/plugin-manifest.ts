@@ -5,7 +5,7 @@ import { peerLinkModule } from './contracts';
  * Calls between two agent-native applications. The called application enrolls the caller with a
  * one-use code; every request that presents the peer credential acts as the peer's service
  * principal or, with a signed subject assertion, as the person the subject maps to. It runs on a
- * serving Bun host that a site policy opens to the network.
+ * serving Bun host that a deployment policy opens to the network.
  */
 export const peerLinkPluginManifest = definePluginManifest({
   id: 'peer-link',

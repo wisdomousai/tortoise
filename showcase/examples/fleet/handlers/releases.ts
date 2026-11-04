@@ -21,7 +21,7 @@ const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id 
 /**
  * Publishing a release and pointing channels at it. The fleet checks that the manifest is a bundle
  * manifest and that the uploaded blobs are exactly its files; it does not judge the signature,
- * which each site checks against its own trusted keys before it stages anything.
+ * which each instance checks against its own trusted keys before it stages anything.
  */
 export function releaseHandlers(): HandlerContribution<AppState, Services>[] {
   return [

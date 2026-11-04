@@ -3,17 +3,17 @@ import type { TrustedKey } from '@tortoise/bundle';
 import { defineHostPlugin, type HostPorts, type PluginStartContext } from '@tortoise/host/plugin';
 import { forwardAudit, type AuditSource } from './audit';
 import {
-  fleetSiteOperations,
+  fleetInstanceOperations,
   type FleetRelease,
   type RelayRequest,
-  type SiteReport,
+  type InstanceReport,
 } from './contracts';
 import { credentialStore } from './credential';
 import { enroll, fleetLink, type FleetLink } from './link';
 import { fleetAgentPluginManifest } from './plugin-manifest';
-import { forwardToSite } from './relay';
+import { forwardToInstance } from './relay';
 import { stageRelease } from './releases';
-import { siteReport } from './report';
+import { instanceReport } from './report';
 
 export interface FleetAgentStatus {
   readonly enrolled: boolean;
@@ -57,13 +57,13 @@ async function readTrust(path: string): Promise<TrustedKey[]> {
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 /**
- * The site side of a fleet. Outbound only: on a serving host it enrolls with the fleet once,
+ * The instance side of a fleet. Outbound only: on a serving host it enrolls with the fleet once,
  * then every cycle reports health, forwards the audit events the fleet lacks and stages the
  * release the fleet assigns, each through the network port's `fleet` destination. With
  * `fleet-relay` set to `on` it also forwards remote-access requests to the host's own API.
  *
- * Nothing here writes to the workspace, and nothing the site does waits on the fleet: a cycle
- * that fails records the reason in `status().lastError` and the next one tries again, so the site
+ * Nothing here writes to the workspace, and nothing the instance does waits on the fleet: a cycle
+ * that fails records the reason in `status().lastError` and the next one tries again, so the instance
  * keeps committing and delivering while the fleet is unreachable.
  */
 export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
@@ -112,7 +112,7 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
       async function stage(fleet: FleetLink, host: PluginStartContext) {
         if (!trust) return;
         const { release } = await fleet.query<{ release?: FleetRelease }>(
-          fleetSiteOperations.desired.id,
+          fleetInstanceOperations.desired.id,
         );
         if (!release || status.staged?.release === release.id) return;
         const folder = host.ports.folders.folder('fleet-releases').path;
@@ -126,7 +126,7 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
         try {
           const fleet = await connect();
           if (!fleet) return;
-          const report: SiteReport = await siteReport(host.application, {
+          const report: InstanceReport = await instanceReport(host.application, {
             workspaceId: host.workspaceId,
             application: context.manifest.id,
             instance: context.instance,
@@ -138,7 +138,7 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
             ...(context.build?.bestBefore ? { bestBefore: context.build.bestBefore } : {}),
           });
           await fleet.command(
-            fleetSiteOperations.report.id,
+            fleetInstanceOperations.report.id,
             report,
             `report:${context.instance}:${++reportCount}`,
           );
@@ -158,13 +158,17 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
           const fleet = await connect();
           if (!fleet) return false;
           const { request } = await fleet.command<{ request?: RelayRequest }>(
-            fleetSiteOperations.relayClaim.id,
+            fleetInstanceOperations.relayClaim.id,
             {},
             `relay-take:${context.instance}:${++takeCount}`,
           );
           if (!request) return false;
-          const response = await forwardToSite(host.origin, request);
-          await fleet.command(fleetSiteOperations.relayRespond.id, response, `relay:${request.id}`);
+          const response = await forwardToInstance(host.origin, request);
+          await fleet.command(
+            fleetInstanceOperations.relayRespond.id,
+            response,
+            `relay:${request.id}`,
+          );
           update({ relayed: status.relayed + 1 });
           return true;
         } catch (error) {

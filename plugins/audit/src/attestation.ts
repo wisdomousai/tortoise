@@ -1,6 +1,6 @@
 import type { AuditRecord } from '@tortoise/contracts';
 import type { BuildFacts } from '@tortoise/kernel/build';
-import type { ResolvedPolicy } from '@tortoise/site/policy';
+import type { ResolvedPolicy } from '@tortoise/deployment/policy';
 
 /**
  * What is running: `config.loaded` carries the executable, catalog and policy digests so an

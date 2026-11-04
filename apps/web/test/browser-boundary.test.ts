@@ -14,7 +14,7 @@ async function installed() {
   for (const [name, directory] of [
     ['runtime', 'packages/runtime'],
     ['contracts', 'packages/contracts'],
-    ['site', 'plugins/site'],
+    ['deployment', 'plugins/deployment'],
   ] as const) {
     await mkdir(join(root, 'node_modules/@tortoise', name, 'src'), { recursive: true });
     await writeFile(
@@ -39,7 +39,9 @@ test('an installed framework file meets the rule for the directory it was publis
     );
   const file = (path: string) => join(root, 'node_modules/@tortoise', path);
   expect(() => load(file('runtime/src/runtime.ts'))).toThrow('Browser bundle includes host module');
-  expect(() => load(file('site/src/plugin.ts'))).toThrow('Browser bundle includes host module');
-  expect(load(file('site/src/plugin-manifest.ts'))).toBeNull();
+  expect(() => load(file('deployment/src/plugin.ts'))).toThrow(
+    'Browser bundle includes host module',
+  );
+  expect(load(file('deployment/src/plugin-manifest.ts'))).toBeNull();
   expect(load(file('contracts/src/index.ts'))).toBeNull();
 });

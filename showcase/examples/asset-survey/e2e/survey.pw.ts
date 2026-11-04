@@ -135,7 +135,7 @@ test('prepare, send to a phone, review what the model read and file it into the 
       page.getByRole('list', { name: 'Filings' }).getByText(/Filed as EAM-2001/),
     ).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('EAM EAM-2001')).toBeVisible();
-    // No site binds the export process here, so the export waits.
+    // No deployment policy binds the export process here, so the export waits.
     await page.getByRole('button', { name: 'Export to the export directory' }).click();
     await expect(
       page.getByRole('list', { name: 'Filings' }).getByText('Waiting for the export'),

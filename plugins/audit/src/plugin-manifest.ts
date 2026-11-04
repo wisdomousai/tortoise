@@ -1,7 +1,7 @@
 import { defineHostComponent } from '@tortoise/contracts';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
-/** The off-host audit forwarder's destination; bound by `audit.forwardTo` in the site policy. */
+/** The off-host audit forwarder's destination; bound by `audit.forwardTo` in the deployment policy. */
 export const auditCollectorComponent = defineHostComponent({
   id: 'audit',
   description: 'Audit plugin: forwards audit events off the host as RFC 5424 syslog.',
@@ -11,7 +11,7 @@ export const auditCollectorComponent = defineHostComponent({
         id: 'audit-collector',
         purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'tcp',
         dataClasses: ['audit-event'],
         availability: 'optional',

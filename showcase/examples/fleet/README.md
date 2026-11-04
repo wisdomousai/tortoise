@@ -1,6 +1,6 @@
-# Fleet for site applications
+# Fleet for instance applications
 
-A fleet operator monitors applications at separate sites. Each site's fleet agent enrolls with a one-use code and calls outbound to report health, forward audit events and ask which signed release its channel selects. A site keeps its local work going when the fleet is unavailable.
+A fleet operator monitors applications at separate instances. Each instance's fleet agent enrolls with a one-use code and calls outbound to report health, forward audit events and ask which signed release its channel selects. An instance keeps its local work going when the fleet is unavailable.
 
 ```sh
 cd showcase/examples/fleet
@@ -10,8 +10,8 @@ bun run dev:web
 ## What to try
 
 - On **Devices** (port 4340), create a `field-sync` enrollment code.
-- Start the [site pattern](../../patterns/site/README.md) against this fleet; it walks through reporting, signing and staging a release on one machine.
-- Watch **Sites** and **Health** flag a stale report, held effects, a broken audit chain or release drift.
+- Start the [instance pattern](../../patterns/fleet-agent/README.md) against this fleet; it walks through reporting, signing and staging a release on one machine.
+- Watch **Instances** and **Health** flag a stale report, held effects, a broken audit chain or release drift.
 
 ## References
 

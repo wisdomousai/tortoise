@@ -1,6 +1,6 @@
 # Operate and migrate the lab desk
 
-This pattern runs the [base lab desk](../base/README.md) with the site policy, audit and telemetry plugins and adds a state migration: version 2 renames `sampleId`, `unit` and `tests` to `sample`, `transformer` and `method`, after which the base pattern refuses to open the workspace. Telemetry exports operation identifiers, outcomes, durations and counts through the bound network port and leaves out sample values, descriptions, request IDs and principals; a missing destination fails the export but not the lab's commands.
+This pattern runs the [base lab desk](../base/README.md) with the deployment policy, audit and telemetry plugins and adds a state migration: version 2 renames `sampleId`, `unit` and `tests` to `sample`, `transformer` and `method`, after which the base pattern refuses to open the workspace. Telemetry exports operation identifiers, outcomes, durations and counts through the bound network port and leaves out sample values, descriptions, request IDs and principals; a missing destination fails the export but not the lab's commands.
 
 ```sh
 cd showcase/patterns/operations

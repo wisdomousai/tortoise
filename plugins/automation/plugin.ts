@@ -24,7 +24,7 @@ export interface AutomationOptions {
   readonly jobs?: Readonly<Record<string, Job>>;
   /**
    * A model on this host for agents that require `local` (or allow `any`), reached only through
-   * the network port's `local-inference` destination, which the site policy binds to a loopback
+   * the network port's `local-inference` destination, which the deployment policy binds to a loopback
    * address. Listed before `agentHarnesses`, so it is preferred where both qualify.
    */
   readonly localModel?: LocalModel;

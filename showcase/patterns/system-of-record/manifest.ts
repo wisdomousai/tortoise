@@ -1,7 +1,7 @@
 import { defineManifest } from '@tortoise/host/manifest';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { publishingModule } from './contracts';
 
@@ -13,5 +13,5 @@ export default defineManifest({
   id: 'test-requests-system-of-record',
   title: 'Lab request publishing',
   modules: [testRequestsModule, publishingModule],
-  plugins: [sitePluginManifest, networkPluginManifest, auditPluginManifest],
+  plugins: [deploymentPluginManifest, networkPluginManifest, auditPluginManifest],
 });

@@ -13,8 +13,8 @@ import { defineManifest } from '@tortoise/kernel/manifest';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { createHandlerFactory, type EffectOutcome } from '@tortoise/runtime';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { createTelemetryPlugin } from '../src/plugin';
 import { telemetryPluginManifest } from '../src/plugin-manifest';
 
@@ -46,7 +46,7 @@ const erp = defineHostComponent({
         id: 'erp-api',
         purpose: 'Fixture destination.',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         dataClasses: ['note'],
         availability: 'optional',
@@ -69,7 +69,7 @@ export function telemetryApplication() {
       modules: [defineModule({ id: 'notes', capabilities: [noteAdd, noteComplete] })],
       components: [erp],
       plugins: [
-        sitePluginManifest,
+        deploymentPluginManifest,
         networkPluginManifest,
         auditPluginManifest,
         telemetryPluginManifest,
@@ -106,7 +106,7 @@ export function telemetryApplication() {
       canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       createTelemetryPlugin({ intervalMs: 3_600_000, maxSpans: 8 }),

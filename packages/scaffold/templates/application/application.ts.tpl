@@ -2,7 +2,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import manifest from './manifest';
 import { createState, upgradeState, type AppState, type Role } from './domain';
 import { appPolicy, createHandlers, type Services } from './server';
@@ -15,7 +15,7 @@ export interface {{app.pascal}}Options {
   // scaffold:options
 }
 
-/** The {{displayName}} application with the site, network, audit and compliance plugins. */
+/** The {{displayName}} application with the deployment, network, audit and compliance plugins. */
 export function create{{app.pascal}}Application(options: {{app.pascal}}Options = {}) {
   const state = (localUserId: string) => createState(localUserId, options.members);
   return defineApplication<AppState, Services>({
@@ -27,7 +27,7 @@ export function create{{app.pascal}}Application(options: {{app.pascal}}Options =
     ],
     handlers: createHandlers(),
     authorization: appPolicy,
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    plugins: [deploymentPlugin, networkPlugin, auditPlugin, compliancePlugin],
     ...(options.services ? { services: options.services } : {}),
     connect: ({ application, workspaceId }) => ({
       integrations: [

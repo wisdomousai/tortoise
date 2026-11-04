@@ -6,7 +6,7 @@ import { FakeRestSystem } from '../src/testing';
 
 const signal = () => new AbortController().signal;
 
-/** A network port that binds every destination to one origin, as a site policy would. */
+/** A network port that binds every destination to one origin, as a deployment policy would. */
 const networkTo = (origin: string): NetworkPort => ({
   client: (destination) => ({
     destination,

@@ -1,6 +1,6 @@
 /**
  * The browser session cookie. Browsers scope a cookie by host and ignore the port, so two hosts
- * on one machine, such as a fleet on 4340 and a site on 4359, would overwrite each other's
+ * on one machine, such as a fleet on 4340 and a fleet agent on 4359, would overwrite each other's
  * session under one name. A host on a port other than its scheme's default names the cookie
  * after its port.
  */

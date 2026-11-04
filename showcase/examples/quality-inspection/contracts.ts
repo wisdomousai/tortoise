@@ -33,7 +33,7 @@ export const qualityInspectionModule = defineModule({
         purpose:
           'Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.',
         direction: 'outbound',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         targets: ['quality-system'],
         dataClasses: ['inspection-result', 'defect', 'usage-decision'],

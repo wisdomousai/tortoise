@@ -12,7 +12,7 @@ import {
 import { PacketReader, encodePublish } from '../src/packets';
 import { FakeBroker, encodeSparkplug, matches } from '../src/testing';
 
-/** A network port whose one `tcp` destination is the test broker, as a site policy would bind it. */
+/** A network port whose one `tcp` destination is the test broker, as a deployment policy would bind it. */
 const networkTo = (port: number): NetworkPort =>
   ({
     client: () => {

@@ -8,7 +8,7 @@ import { readPluginSettings } from '@tortoise/host';
  * environment the native host prepares. The application CLI (`./cli.ts`) offers the same
  * instance as `serve` with flags. Without `WEB_ROOT`, the web build of this application is served.
  * Plugin settings come from the environment variables the composed plugins declare, for example
- * the security plugin's `TORTOISE_SITE_POLICY` and `TORTOISE_AUDIT_LOG`. With `identity`,
+ * the security plugin's `TORTOISE_DEPLOYMENT_POLICY` and `TORTOISE_AUDIT_LOG`. With `identity`,
  * the application's URL scheme is the default for the OS plugin's scheme setting. With
  * `hostedWorkspace`, the workspace lives in the Postgres database `TORTOISE_DATABASE_URL` names.
  */

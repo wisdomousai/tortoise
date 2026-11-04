@@ -32,8 +32,8 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
       description: 'Annual sample.',
       method: 'IEC 60567 dissolved gas analysis',
     });
-    // The site policy binds the worklist's destination to the oil lab this test started.
-    const policy = join(workspace, 'site-policy.json');
+    // The deployment policy binds the worklist's destination to the oil lab this test started.
+    const policy = join(workspace, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -43,7 +43,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
       }),
     );
     crew = await startService('@tortoise/pattern-worklist', join(workspace, 'crew'), {
-      TORTOISE_SITE_POLICY: policy,
+      TORTOISE_DEPLOYMENT_POLICY: policy,
     });
     // Both applications sign in on 127.0.0.1, so each gets its own cookie jar.
     const issuer = await (await browser.newContext()).newPage();

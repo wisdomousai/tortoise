@@ -20,7 +20,7 @@ export function compose(rules: RuleSet, options: ExportOptions): string {
           volumes: [
             `${d.name}-workspace:${d.workspace}`,
             `${d.name}-audit:${d.auditLog}`,
-            `./site-policy.json:${d.sitePolicy}:ro`,
+            `./deployment-policy.json:${d.deploymentPolicy}:ro`,
           ],
           networks: [`${d.name}-network`],
         },

@@ -10,9 +10,9 @@ import { startHost } from '@tortoise/host/host';
 import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
-import type { SitePolicyInput } from '@tortoise/site/policy';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
+import type { DeploymentPolicyInput } from '@tortoise/deployment/policy';
 import { conformanceEffect } from '@tortoise/testing/connectors';
 import { peerLinkServiceOf } from '../src/service';
 import {
@@ -22,7 +22,7 @@ import {
   receivingApplication,
 } from './fixtures';
 
-/** A throwaway site CA and a server certificate for `localhost` signed by it. */
+/** A throwaway local CA and a server certificate for `localhost` signed by it. */
 async function issueCertificates(directory: string) {
   const openssl = async (...args: string[]) => {
     const child = Bun.spawn(['openssl', ...args], {
@@ -42,11 +42,11 @@ async function issueCertificates(directory: string) {
     '-days',
     '1',
     '-keyout',
-    'site-ca.key',
+    'local-ca.key',
     '-out',
-    'site-ca.pem',
+    'local-ca.pem',
     '-subj',
-    '/CN=site-ca',
+    '/CN=local-ca',
   );
   await writeFile(
     join(directory, 'quality.ext'),
@@ -70,9 +70,9 @@ async function issueCertificates(directory: string) {
     '-in',
     'quality.csr',
     '-CA',
-    'site-ca.pem',
+    'local-ca.pem',
     '-CAkey',
-    'site-ca.key',
+    'local-ca.key',
     '-CAcreateserial',
     '-days',
     '1',
@@ -92,22 +92,22 @@ async function freePort() {
 }
 
 const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
-/** The plugins that open, bind and record the site network, as a site deployment composes them. */
-const site = [
-  { manifest: sitePluginManifest, plugin: sitePlugin },
+/** The plugins that open, bind and record the local network, as a deployment composes them. */
+const deployment = [
+  { manifest: deploymentPluginManifest, plugin: deploymentPlugin },
   { manifest: networkPluginManifest, plugin: networkPlugin },
   { manifest: auditPluginManifest, plugin: auditPlugin },
 ];
 
 test.skipIf(!Bun.which('openssl'))(
-  'two applications connect over TLS through the site network, trusting the site CA',
+  'two applications connect over TLS through the local network, trusting the local CA',
   async () => {
     const directory = await mkdtemp(join(tmpdir(), 'peer-tls-'));
     try {
       await issueCertificates(directory);
       const port = await freePort();
-      const calleePolicy: SitePolicyInput = {
-        profile: 'site-hub',
+      const calleePolicy: DeploymentPolicyInput = {
+        profile: 'hub',
         grants: { maxTtlSeconds: 600 },
         ingress: {
           listen: 'tls',
@@ -117,31 +117,31 @@ test.skipIf(!Bun.which('openssl'))(
           key: 'quality.key',
         },
       };
-      const callerPolicy: SitePolicyInput = {
+      const callerPolicy: DeploymentPolicyInput = {
         mode: 'connected',
         destinations: {
           'quality-api': {
             url: `https://localhost:${port}`,
             addresses: ['127.0.0.1/32', '::1/128'],
-            ca: 'site-ca.pem',
+            ca: 'local-ca.pem',
           },
         },
       };
       await writeFile(join(directory, 'quality-policy.json'), JSON.stringify(calleePolicy));
       await writeFile(join(directory, 'receiving-policy.json'), JSON.stringify(callerPolicy));
-      const quality = await startHost(qualityApplication({}, site), {
+      const quality = await startHost(qualityApplication({}, deployment), {
         workspacePath: join(directory, 'quality'),
         integration: false,
-        settings: { 'site-policy': join(directory, 'quality-policy.json') },
+        settings: { 'deployment-policy': join(directory, 'quality-policy.json') },
       });
       try {
         expect(quality.url).toBe(`https://localhost:${port}`);
-        // Without the site CA no client completes the handshake.
+        // Without the local CA no client completes the handshake.
         await expect(fetch(`${quality.url}/health`, { keepalive: false })).rejects.toThrow();
-        const receiving = await startHost(receivingApplication(site), {
+        const receiving = await startHost(receivingApplication(deployment), {
           workspacePath: join(directory, 'receiving'),
           integration: false,
-          settings: { 'site-policy': join(directory, 'receiving-policy.json') },
+          settings: { 'deployment-policy': join(directory, 'receiving-policy.json') },
         });
         try {
           const { result } = await quality.application.invokeRaw(

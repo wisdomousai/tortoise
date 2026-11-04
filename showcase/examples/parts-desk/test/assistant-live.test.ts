@@ -44,7 +44,7 @@ beforeAll(async () => {
   if (!weights || !executable) return;
   directory = await mkdtemp(join(tmpdir(), 'parts-desk-live-'));
   const port = freePort();
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   // The policy dev.ts writes for LOCAL_MODEL_GGUF, on a port of the test's own.
   await writeFile(
     policy,
@@ -82,7 +82,7 @@ beforeAll(async () => {
   host = await startHost(application, {
     workspacePath: join(directory, 'workspace'),
     integration: false,
-    settings: { 'site-policy': policy },
+    settings: { 'deployment-policy': policy },
   });
   await seedTrialRecords(host.application);
   for (let tries = 0; tries < 1200; tries++) {
