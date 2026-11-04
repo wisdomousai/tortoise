@@ -19,7 +19,7 @@ export function opcUaServer(options: {
         {
           id: options.destination,
           purpose: options.description,
-          direction: 'egress',
+          direction: 'outbound',
           scope: 'site',
           protocol: 'tcp',
           dataClasses: options.dataClasses,

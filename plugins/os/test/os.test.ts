@@ -86,7 +86,7 @@ function memoryLog(records: AuditRecord[]) {
       open: async () => ({
         ports: {
           eventLog: {
-            mode: { commands: 'best-effort', queries: 'best-effort', egress: 'best-effort' },
+            mode: { commands: 'best-effort', queries: 'best-effort', network: 'best-effort' },
             append: async (batch: readonly AuditRecord[]) => {
               records.push(...batch);
               return [];

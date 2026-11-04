@@ -20,7 +20,7 @@ Outbox effects commit with their command. Acknowledgements and imported changes 
 
 Each declared change increments the resource's revision. A commit gives each resource one revision and one journal entry, even when several nested calls declared it. The entry records the type and operation of the innermost call.
 
-Optimistic concurrency is opt-in: a command names the revisions it expects, and a mismatch conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts policy changes.
+Optimistic concurrency is opt-in: a command names the revisions it expects, and a mismatch conflicts. Two callers with the same revision cannot both overwrite it. The authorization revision counts policy changes.
 
 ## Snapshots and storage
 

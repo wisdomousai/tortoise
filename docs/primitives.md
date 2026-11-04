@@ -103,7 +103,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/ad
 
 ### Membership
 
-_Roles that people hold in a container: a work order, plant or station._
+_Roles that people have in a container: a work order, plant or station._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
@@ -157,7 +157,7 @@ partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](.
 
 ### Workspace lease
 
-_One instance's hold on a workspace kept in a shared database, with a fencing token that every commit checks. A stalled holder cannot overwrite the instance that took the workspace over._
+_One instance's right to write a workspace, kept in a shared database, with a fencing token that every commit checks. A stalled holder cannot overwrite the instance that took the workspace over._
 
 implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/host`](../packages/host/README.md)
 
@@ -437,7 +437,7 @@ _An operator signing in at a shared workstation terminal by badge and PIN, for a
 
 partial · [`workstations/sign-in`](../workstations/sign-in/README.md) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts)
 
-### Egress guard
+### Network guard
 
 _The path from server code, and from declared child processes, to the network. `bun run check:boundaries` fails a direct network call outside the reviewed exemptions in `scripts/boundary-rules.ts`._
 
@@ -445,7 +445,7 @@ implemented · [`plugins/network`](../plugins/network/README.md) [`scripts/bound
 
 ### Audit log
 
-_An injected, tamper-evident record of every command, query, denial, outbox transition, session, egress connection and agent run._
+_An injected, tamper-evident record of every command, query, denial, outbox transition, session, outbound connection and agent run._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/event-log`](../packages/event-log/README.md) [`plugins/audit`](../plugins/audit/README.md)
 
@@ -523,7 +523,7 @@ partial · [`plugins/fleet-agent`](../plugins/fleet-agent/README.md)
 
 ### Telemetry
 
-_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target, and agent and job runs. The plugin derives them from the audit log and the outbox and exports them through the egress guard without record contents._
+_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target, and agent and job runs. The plugin derives them from the audit log and the outbox and exports them through the network guard without record contents._
 
 partial · [`plugins/telemetry`](../plugins/telemetry/README.md)
 

@@ -57,7 +57,7 @@ const counterComponent = defineHostComponent({
       {
         id: 'counter-sink',
         purpose: 'Fixture destination.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         dataClasses: ['counter-value'],

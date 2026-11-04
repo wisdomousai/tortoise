@@ -19,7 +19,7 @@ export const postureCheckSchema = z.strictObject({
 export const destinationPostureSchema = z.strictObject({
   id: z.string(),
   owner: z.string(),
-  direction: z.enum(['egress', 'ingress']),
+  direction: z.enum(['outbound', 'inbound']),
   scope: z.enum(['loopback', 'site', 'internet']),
   availability: z.enum(['required', 'optional']),
   state: z.enum(['bound', 'disabled', 'unbound', 'isolated', 'local']),
@@ -136,7 +136,7 @@ export const complianceOperations = {
     id: 'compliance.events.list',
     kind: 'query',
     description:
-      'Page through the audit log in sequence order. Filter by event kinds (for example egress.denied or command.denied) and outcome; pass the returned nextAfterSeq to continue. Inputs appear only as digests unless a capability allow-lists a field.',
+      'Page through the audit log in sequence order. Filter by event kinds (for example network.denied or command.denied) and outcome; pass the returned nextAfterSeq to continue. Inputs appear only as digests unless a capability allow-lists a field.',
     input: jsonSchema(
       z.strictObject({
         afterSeq: count
@@ -155,7 +155,7 @@ export const complianceOperations = {
           .array(z.string().min(1).max(64))
           .max(20)
           .optional()
-          .describe('Event kinds to include, such as egress.denied; every kind when left out.'),
+          .describe('Event kinds to include, such as network.denied; every kind when left out.'),
         outcome: outcome
           .optional()
           .describe('Only events with this outcome; every outcome when left out.'),
@@ -198,7 +198,7 @@ export const complianceModule = defineModule({
     {
       id: 'review-compliance-posture',
       operations: ['compliance.posture.get', 'compliance.events.list', 'compliance.log.verify'],
-      text: 'Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.',
+      text: 'Start with the posture. For any check that is not passing, list the matching audit events (for example kinds network.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.',
     },
   ],
 });

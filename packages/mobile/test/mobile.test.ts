@@ -116,7 +116,7 @@ test('a deployment that needs sockets, a listener or a child process refuses to 
         {
           id: 'inbound',
           purpose: 'fixture',
-          direction: 'ingress',
+          direction: 'inbound',
           scope: 'loopback',
           protocol: 'https',
           dataClasses: ['test-record'],

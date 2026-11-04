@@ -20,10 +20,10 @@ export { osManifest, osTables, type OsManifest } from './os-manifest';
 export { controls, controlsMarkdown, type Control } from './controls';
 export { cycloneDx, parseBunLock, type SbomOptions } from './sbom';
 export {
-  accumulateEgress,
+  accumulateNetworkUsage,
   assessPosture,
   postureMarkdown,
-  type EgressUsage,
+  type NetworkUsage,
   type PostureInput,
 } from './posture';
 export {

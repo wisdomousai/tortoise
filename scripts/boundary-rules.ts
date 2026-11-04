@@ -31,9 +31,9 @@ export const kernelForbiddenImport = /^@tortoise\/event-log(?:\/|$)|(?:^|\/)pack
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
  * the network port, whose guard is in `plugins/network`, so every connection is declared, bound by the deployment policy and audited.
- * A match outside `egressExemptions` fails `check:boundaries`.
+ * A match outside `networkExemptions` fails `check:boundaries`.
  */
-export const directEgress: readonly { readonly api: string; readonly pattern: RegExp }[] = [
+export const directNetwork: readonly { readonly api: string; readonly pattern: RegExp }[] = [
   {
     api: 'global fetch',
     pattern: /(?<![\w$.])fetch\s*\(|(?:\?\?|\|\|)\s*(?:globalThis\.)?fetch\b|globalThis\.fetch\b/,
@@ -55,7 +55,7 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
   },
 ];
 /**
- * Server source the egress rule applies to. Browser code (packages, the frame, content screens)
+ * Server source the network rule applies to. Browser code (packages, the frame, content screens)
  * reaches only its own origin and cannot open sockets, so it is out of scope.
  */
 export const serverSource =
@@ -65,11 +65,11 @@ export const browserSource =
 
 /**
  * Reviewed exceptions, each with the reason it is safe. Keep this list short: it is what an
- * auditor reads to see every path that does not pass through the egress guard. A listed path
+ * auditor reads to see every path that does not pass through the network guard. A listed path
  * that no longer matches is reported, so the list cannot go stale.
  */
-export const egressExemptions: Readonly<Record<string, string>> = {
-  'plugins/network/src/guard': 'The egress guard and its socket client themselves.',
+export const networkExemptions: Readonly<Record<string, string>> = {
+  'plugins/network/src/guard': 'The network guard and its socket client themselves.',
   'plugins/network/src/proxy.ts': 'The CONNECT proxy for declared child processes.',
   'packages/agents/src/process.ts':
     'Launches declared harness processes; the host passes the proxy environment for the process ID.',
@@ -90,7 +90,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':
-    "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the egress CONNECT proxy, which applies the destination rules.",
+    "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the network CONNECT proxy, which applies the destination rules.",
   'plugins/execution-host/sandbox/':
     'Runs only inside a bubblewrap sandbox, whose network namespace has loopback only: the launcher relays loopback ports to the host relays and starts the task.',
   'plugins/execution-host/test/fixtures/':
@@ -110,7 +110,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'plugins/fleet-agent/src/relay.ts':
     "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",
   'plugins/hub-link/src/plugin.ts':
-    'Provides the network port on a paired device, where no egress guard runs: one destination, the paired hub origin over https (http on loopback only), redirects refused; the enrollment exchange posts to the origin being paired.',
+    'Provides the network port on a paired device, where no network guard runs: one destination, the paired hub origin over https (http on loopback only), redirects refused; the enrollment exchange posts to the origin being paired.',
 };
 
 /**

@@ -34,7 +34,7 @@ The posture check reports `info` for a build without a date, never `fail`. Comma
 
 ## What decommissioning removes
 
-An effect in the outbox exists only in the workspace. Once the outbox is empty and a person has decided every held effect, the systems of record hold every record a target receives.
+An effect in the outbox exists only in the workspace. Once the outbox is empty and a person has decided every held effect, the systems of record store every record a target receives.
 
 What exists only in the data directory (`var/lib/tortoise/<app>` on a site):
 

@@ -62,7 +62,7 @@ const sbomServices = (manifest: SecurityManifest | undefined) =>
     trustZone: destination.scope,
     'x-trust-boundary': destination.scope !== 'loopback',
     data: destination.dataClasses.map((classification) => ({
-      flow: destination.direction === 'egress' ? 'outbound' : 'inbound',
+      flow: destination.direction === 'outbound' ? 'outbound' : 'inbound',
       classification,
     })),
     properties: [

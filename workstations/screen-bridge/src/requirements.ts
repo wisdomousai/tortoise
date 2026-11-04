@@ -18,7 +18,7 @@ export const stationBridgeComponent = defineHostComponent({
         id: 'station-vision',
         purpose:
           'Local OpenAI-compatible vision model reading counters and other pixel-only fields.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'loopback',
         protocol: 'http',
         dataClasses: ['screen-frame'],
@@ -30,7 +30,7 @@ export const stationBridgeComponent = defineHostComponent({
         id: 'station-vision-site',
         purpose:
           'Vision model on a site host the deployment allowlists explicitly (STATION_VISION_ALLOWED_HOSTS).',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         dataClasses: ['screen-frame'],

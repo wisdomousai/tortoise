@@ -23,7 +23,7 @@ export interface UnresolvedRule {
 }
 
 /**
- * The firewall-neutral rule set every exporter renders: default-deny egress, loopback always
+ * The firewall-neutral rule set every exporter renders: default-deny outbound connections, loopback always
  * open, the bound destinations' addresses and ports, DNS only to named resolvers, and the
  * ingress listener. Deterministic for a given policy and options.
  */
@@ -33,7 +33,7 @@ export interface RuleSet {
   readonly profile: ResolvedPolicy['profile'];
   readonly mode: ResolvedPolicy['mode'];
   readonly policyDigest: string;
-  readonly defaultEgress: 'deny';
+  readonly defaultNetwork: 'deny';
   readonly ingress: ResolvedPolicy['policy']['ingress'];
   readonly allow: readonly AllowRule[];
   readonly dns: { readonly resolvers: readonly string[]; readonly needed: boolean };
@@ -62,7 +62,7 @@ export function networkRules(policy: ResolvedPolicy, options: RuleOptions): Rule
   let needsDns = false;
   for (const [id, binding] of policy.bindings) {
     const declared = binding.destination;
-    if (declared.direction !== 'egress' || declared.scope === 'loopback') continue;
+    if (declared.direction !== 'outbound' || declared.scope === 'loopback') continue;
     const host = binding.url.hostname.replace(/^\[|\]$/g, '');
     const literal = isIP(host) !== 0;
     const port = portOf(binding.url) ?? (binding.url.port ? Number(binding.url.port) : undefined);
@@ -101,7 +101,7 @@ export function networkRules(policy: ResolvedPolicy, options: RuleOptions): Rule
     profile: policy.profile,
     mode: policy.mode,
     policyDigest: policy.digest,
-    defaultEgress: 'deny',
+    defaultNetwork: 'deny',
     ingress: policy.policy.ingress,
     allow: allow.sort(byDestination),
     dns: { resolvers: [...(options.resolvers ?? [])].sort(), needed: needsDns },

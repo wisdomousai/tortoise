@@ -82,11 +82,11 @@ You should see `watermark`, `lastSyncAt`, then `pending`, `accepted`, `rejected`
 
 Before sending, the dispatcher claims the effect for 120 s with a growing fencing token. A stalled worker's late write fails with `CONFLICT`. Two dispatchers on one target need different worker names.
 
-Before the first claim, the dispatcher re-checks that the committer is still allowed. If not, it holds the effect.
+Before the first claim, the dispatcher re-checks that the committer is still allowed. If not, it puts the effect in `held`.
 
 ## Held effects
 
-The dispatcher holds an effect when nobody knows if the target applied it:
+The dispatcher puts an effect in `held` when nobody knows if the target applied it:
 
 - delivery broke off mid-send;
 - the lookup can't tell;
@@ -104,7 +104,7 @@ A target may also return `pending` (acknowledged). The dispatcher then polls its
 | Phase                    | Meaning                                    |
 | ------------------------ | ------------------------------------------ |
 | `queued`                 | committed, never tried                     |
-| `claimed`                | a worker holds it                          |
+| `claimed`                | a worker has claimed it                          |
 | `retrying`               | failed, waiting for backoff                |
 | `acknowledged`           | target has it, hasn't decided              |
 | `held`                   | waiting for a person                       |
@@ -178,7 +178,7 @@ An orchestrator keeps a sandbox's workspace until `drain` exits 0. `bun run test
 | 2    | `INVALID_INPUT`              | bad input or usage; `site check` / `network export` errors                 |
 | 3    | `NOT_FOUND`                  | not found                                                                  |
 | 4    | `FORBIDDEN`                  | forbidden                                                                  |
-| 5    | `CONFLICT`                   | conflict, including a workspace another instance holds                     |
+| 5    | `CONFLICT`                   | conflict, including a workspace another instance has                     |
 | 6    | `IDEMPOTENCY_CONFLICT`       | key reused with different input                                            |
 | 7    | `CANCELLED`                  | cancelled                                                                  |
 | 8    | `UNAVAILABLE`                | unavailable                                                                |

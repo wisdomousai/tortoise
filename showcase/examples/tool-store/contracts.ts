@@ -49,7 +49,7 @@ export const toolStoreModule = defineModule({
         id: 'eam-api',
         purpose:
           'Send repair orders for damaged returns to the plant EAM and pull the master data of the store tools.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         targets: [eamTarget.target],

@@ -20,9 +20,10 @@ bun install --frozen-lockfile
 | `typecheck` | `tsconfig.json` or `tsconfig.native.json` (React Native) has type errors. |
 | `check:boundaries` | An import crosses layers, server code reaches a browser bundle, or code uses network or process APIs outside `scripts/boundary-rules.ts`. Portable code may not use `node:`, `bun:` or their globals. |
 | `check:manifests` | A package manifest would not install on its own. |
-| `check:framework` | `node_modules` holds more than one framework version. |
+| `check:framework` | `node_modules` contains more than one framework version. |
 | `check:skills` | Skill metadata, links, paths or coverage are wrong, or a public surface changed since its last skill review. Coverage: `scripts/skill-coverage.json`. |
-| `check:size` | A package `src/index.ts` holds more than re-exports. Long files and functions are hints only; split only when a file has a second job. |
+| `check:size` | A package `src/index.ts` contains more than re-exports. Long files and functions are hints only; split only when a file has a second job. |
+| `check:words` | Markdown outside code uses a word from the Plain words lists in the [styleguide](styleguide.md). `bun run check:words <file>` or `-` (stdin) checks one file or a draft. |
 | `generate` | A catalog fails to document. Output goes to `dist/reference/<id>/`; do not commit it. |
 | `check:registry:operator` | Operator registry files are stale. Fix with `bun run build:registry:operator`. |
 | `bun test` | Any test fails. |

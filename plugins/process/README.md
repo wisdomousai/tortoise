@@ -7,7 +7,7 @@ Primitives:
 - [Process port](../../docs/primitives.md#process-port)
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration)
 - [Deployment policy](../../docs/primitives.md#deployment-policy)
-- [Egress guard](../../docs/primitives.md#egress-guard)
+- [Network guard](../../docs/primitives.md#network-guard)
 - [Audit log](../../docs/primitives.md#audit-log)
 - [Host plugin](../../docs/primitives.md#host-plugin)
 

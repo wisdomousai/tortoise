@@ -402,8 +402,8 @@ export const properties: readonly Property[] = [
   {
     property: 'An undeclared or unbound destination is refused and recorded.',
     mechanism:
-      'The egress guard is the network port; the deployment policy binds each destination.',
-    doc: 'security-and-compliance#egress-guard',
+      'The network guard is the network port; the deployment policy binds each destination.',
+    doc: 'security-and-compliance#network-guard',
     tests: [
       {
         file: 'plugins/network/test/guard.test.ts',

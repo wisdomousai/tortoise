@@ -71,17 +71,17 @@ The handler scopes a list to what you may see before filtering, sorting, paging 
 Effective access is your current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and bind to a principal, workspace and run. An agent run keeps its starting grant. A resource-scoped grant may change only those records; its `creates` list lets it add records of named types (e.g. `approval-request`).
 
 - **Retry:** the same idempotency key returns the stored receipt after authorizing again, including each nested command (`replay` phase). An old receipt can't recover revoked access.
-- **Dispatch:** before the first claim of an outbox effect, the runtime authorizes the committing person again without delegation (`dispatch` phase). A denial holds the effect for a person.
+- **Dispatch:** before the first claim of an outbox effect, the runtime authorizes the committing person again without delegation (`dispatch` phase). A denial puts the effect in `held` for a person.
 
 ## Revocation and live updates
 
 Membership changes serialize with business changes and bump the authorization revision. The runtime rechecks grant expiry and run cancellation after every await. A session revoked while its command waits still commits ([known defect](implementation-status.md#known-defects)).
 
-Journal entries carry references and revisions, not contents, and the stream filters delivery inside the storage read. When the authorization revision changes, streams reset without leaking newly forbidden IDs, and live queries drop old data. Nothing can withdraw bytes already sent, so screens hide sensitive drafts after a revocation.
+Journal entries contain references and revisions, not contents, and the stream filters delivery inside the storage read. When the authorization revision changes, streams reset without leaking newly forbidden IDs, and live queries drop old data. Nothing can withdraw bytes already sent, so screens hide sensitive drafts after a revocation.
 
 ## UI sessions
 
-A UI session context holds navigation and selection, bound to the live credential, principal and workspace. The host checks selections against authorized queries and freezes them when a run captures them. UI intents go only to the captured session, the run reads each named record under its grant, and no intent commits records. A leaked session ID grants nothing.
+A UI session context stores navigation and selection, bound to the live credential, principal and workspace. The host checks selections against authorized queries and freezes them when a run captures them. UI intents go only to the captured session, the run reads each named record under its grant, and no intent commits records. A leaked session ID grants nothing.
 
 ## Process boundary
 

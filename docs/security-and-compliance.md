@@ -1,6 +1,6 @@
 # Security and compliance
 
-Your app declares what it needs outside the process. A site's deployment policy allows some of it. The egress guard blocks the rest, and the audit log records everything in a hash chain.
+Your app declares what it needs outside the process. A site's deployment policy allows some of it. The network guard blocks the rest, and the audit log records everything in a hash chain.
 
 Try it on the default app (field-service), from the repo root, after `bun run dev:web` has run once:
 
@@ -11,19 +11,19 @@ bun run cli audit verify --log .workspace/audit
 bun run cli compliance report --log .workspace/audit --site apps/desktop/site-policy.json --format markdown
 ```
 
-You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultEgress": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Security posture: field-service" report with a checks table.
+You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultNetwork": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Security posture: field-service" report with a checks table.
 
 ## Controls and plugins
 
 1. **Declare** what you need (destinations, folders, devices, processes).
 2. **Bind** it in the site's deployment policy. Unbound means unreachable.
-3. **Enforce** with the egress guard, plus exported firewall rules.
+3. **Enforce** with the network guard, plus exported firewall rules.
 4. **Record** in the audit log.
 
 | Plugin       | Does                                                       | CLI verb            |
 | ------------ | ---------------------------------------------------------- | ------------------- |
 | `site`       | Loads the deployment policy; enforces profile floors and identity | `site check`  |
-| `network`    | Egress guard, proxy for child processes, TLS/mTLS ingress  | `network export`    |
+| `network`    | Network guard, proxy for child processes, TLS/mTLS ingress  | `network export`    |
 | `audit`      | Hash-chained audit log, forwarding, crash recovery         | `audit verify`      |
 | `compliance` | Auditor queries, posture monitor, Compliance screen        | `compliance report` |
 
@@ -42,7 +42,7 @@ export const auditCollectorComponent = defineHostComponent({
       {
         id: 'audit-collector',
         purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site', // loopback | site | internet
         protocol: 'tcp',
         dataClasses: ['audit-event'],
@@ -118,11 +118,11 @@ Use `site-hub` for a hub that paired phones reach (see [device-link](../plugins/
 
 `tls` serves the site's certificate to anyone; `mtls` also requires a client certificate from `clientCa`. Every API call still needs a session or device credential. The host reads certificates but never issues or renews them. Expired certificates refuse startup; within 30 days of expiry you get a warning.
 
-## Egress
+## Network access
 
-### Egress guard
+### Network guard
 
-All outbound traffic from the host goes through the guard. It allows only bound scheme, host, port and addresses, checks every redirect, and caps size and time. Child processes go through a loopback proxy that only reaches their declared destinations. A refusal returns `UNAVAILABLE` (HTTP 503, CLI exit 8) and logs `egress.denied`.
+All outbound traffic from the host goes through the guard. It allows only bound scheme, host, port and addresses, checks every redirect, and caps size and time. Child processes go through a loopback proxy that only reaches their declared destinations. A refusal returns `UNAVAILABLE` (HTTP 503, CLI exit 8) and logs `network.denied`.
 
 `bun run check:boundaries` fails if server code opens sockets, fetches or spawns processes directly. `scripts/boundary-rules.ts` lists the exemptions.
 
@@ -132,10 +132,10 @@ All outbound traffic from the host goes through the guard. It allows only bound 
 
 | Format              | Output                                         |
 | ------------------- | ---------------------------------------------- |
-| `nftables`          | Egress for the host user, by address and port. |
+| `nftables`          | Outbound connections of the host user, by address and port. |
 | `windows-firewall`  | Program-scoped rules.                          |
 | `systemd`           | A hardened unit.                               |
-| `k8s-networkpolicy`, `k8s-pod` | Pod egress/ingress; pod hardening.  |
+| `k8s-networkpolicy`, `k8s-pod` | Pod outbound and inbound traffic; pod hardening.  |
 | `compose`           | Container hardening only.                      |
 | `json`              | Neutral rule set.                              |
 
@@ -143,7 +143,7 @@ Golden files: `plugins/network/test/golden`. None has run on a real firewall her
 
 ### Agent tool sandboxes
 
-The execution host runs agent tools in bubblewrap sandboxes: new namespaces, only declared tools on disk, seccomp, loopback-only network. Two relays lead out: the host API (token bound to the run's grant) and the egress proxy. Linux only.
+The execution host runs agent tools in bubblewrap sandboxes: new namespaces, only declared tools on disk, seccomp, loopback-only network. Two relays lead out: the host API (token bound to the run's grant) and the network proxy. Linux only.
 
 ### Local models
 
@@ -156,7 +156,7 @@ The peer link lets another app call your peer API.
 | Threat                         | Control                                                                 |
 | ------------------------------ | ----------------------------------------------------------------------- |
 | A stranger enrolls             | One-use code, 10 min, 10 failed tries per minute.                       |
-| Peer calls beyond the API      | Its grant holds only the peer API's operations.                          |
+| Peer calls beyond the API      | Its grant includes only the peer API's operations.                          |
 | Peer acts as anyone            | Needs a signed subject assertion and a subject mapping. |
 | Peer does more than the person may | The mapped person's own policy applies.                             |
 | Assertion replayed             | Binds to audience, request and body; 120 s; one use.                    |
@@ -167,7 +167,7 @@ Tests: `plugins/peer-link/test/security.test.ts`, `link.test.ts`, `tls.test.ts`.
 
 ## Audit log
 
-The audit log records commands, queries, denials, outbox transitions, egress decisions, child processes, sessions, grants, agent runs, OS actions and startup. Event kinds: `packages/contracts/src/audit.ts`. It stores inputs as a digest plus the allowed fields.
+The audit log records commands, queries, denials, outbox transitions, network decisions, child processes, sessions, grants, agent runs, OS actions and startup. Event kinds: `packages/contracts/src/audit.ts`. It stores inputs as a digest plus the allowed fields.
 
 The log lives in `.workspace/audit/` (SHA-256 chain, synced on every append, one writer).
 
@@ -204,7 +204,7 @@ From the repo, `app` is `bun run cli`. While running, the posture monitor re-che
 
 ## Isolated operation
 
-Without a policy, the app listens on loopback only, outbox targets queue, and model providers report unavailable. `bun run test:isolated` fails on any non-loopback connection. `bun run test:sandbox` runs the compiled binary in an empty environment and checks it made no egress.
+Without a policy, the app listens on loopback only, outbox targets queue, and model providers report unavailable. `bun run test:isolated` fails on any non-loopback connection. `bun run test:sandbox` runs the compiled binary in an empty environment and checks it made no outbound connection.
 
 ## Limits
 

@@ -21,11 +21,11 @@ Nested calls, durable workflows and calls between two applications.
 - `/api/v1/contract` names the application and gives each operation a `schemaDigest`.
 - A destination declared `authenticated` is refused when bound to plain text off loopback. Peer targets, the fleet agent's `fleet` and hub-link's `hub` destinations are declared so.
 - The one-use code and credential helpers move from the device link to `@tortoise/host/enrollment`.
-- A plugin's `authenticate` also receives the request that carried the token.
+- A plugin's `authenticate` also receives the request that sent the token.
 - Inbound sync idempotency keys name the sync operation, so two targets synced by one integration principal no longer collide.
 
 Breaking changes:
 
 - `continueWith` runs the continued command as a nested call. The calling capability must list that command in `invokes`, or `'any'`, and the nesting limits apply.
 - A resource that both an outer and a nested command declare gets one journal entry, with the type and operation of the innermost frame that declared it.
-- The peer port holds an effect when the peer returns `IDEMPOTENCY_CONFLICT`, instead of rejecting it. It reads the external reference from the command's result through its `reference` option.
+- The peer port puts an effect in `held` when the peer returns `IDEMPOTENCY_CONFLICT`, instead of rejecting it. It reads the external reference from the command's result through its `reference` option.

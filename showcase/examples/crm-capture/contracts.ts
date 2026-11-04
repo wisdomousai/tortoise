@@ -25,7 +25,7 @@ export const crmCaptureModule = defineModule({
         id: 'crm-api',
         purpose:
           'Search accounts and contacts live with the caller’s CRM access, keep followed accounts current, forward logged activities and pull followed accounts.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         targets: ['crm'],

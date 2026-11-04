@@ -70,7 +70,7 @@ const module = defineModule({
       {
         id: 'eam-api',
         purpose: 'Test asset register',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         targets: ['eam'],
@@ -111,7 +111,7 @@ function fixture() {
     blobGraceMs: grace,
     newEffectId: () => `effect-${++effects}`,
     eventLog: {
-      mode: { commands: 'required', queries: 'required', egress: 'required' },
+      mode: { commands: 'required', queries: 'required', network: 'required' },
       append: async (records) => {
         audit.push(...records);
         return [];

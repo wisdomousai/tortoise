@@ -216,7 +216,7 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
   });
 
   // Every process above wrote to one chained log. With no site policy the sandbox ran isolated,
-  // and the log proves it: intact chain, isolated network, no egress attempted or denied.
+  // and the log proves it: intact chain, isolated network, no connection attempted or denied.
   const auditLog = join(workspace, 'audit');
   const verified = await run(['audit', 'verify', '--log', auditLog]);
   expect(verified.exitCode).toBe(0);

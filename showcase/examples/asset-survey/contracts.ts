@@ -55,7 +55,7 @@ export const reviewModule = defineModule({
         id: 'model-api',
         purpose:
           'Send capture photos to the extraction model and read back the values it proposes.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         targets: ['assignment-model'],
@@ -100,7 +100,7 @@ export const filingModule = defineModule({
         id: 'eam-api',
         purpose:
           'Search assets in the enterprise asset management system, file surveyed nodes with their attributes and photos, and read back the assets filed.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         targets: ['eam'],

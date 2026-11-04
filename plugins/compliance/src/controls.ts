@@ -56,9 +56,9 @@ export const controls: readonly Control[] = [
   },
   {
     id: 'AN-NET-02',
-    title: 'Deny-by-default egress with origin and address checks',
+    title: 'Deny-by-default outbound connections with origin and address checks',
     implementation:
-      'Outbound requests go through the egress guard: only declared destinations bound by the site policy, only at their bound origin, redirects revalidated per hop, resolved addresses checked against the bound networks, with timeouts and response-size caps.',
+      'Outbound requests go through the network guard: only declared destinations bound by the site policy, only at their bound origin, redirects revalidated per hop, resolved addresses checked against the bound networks, with timeouts and response-size caps.',
     limits:
       'In-process enforcement; a resolver that returns different addresses between check and connect can race the address check. The exported OS rules close that gap.',
     status: 'implemented',
@@ -74,7 +74,7 @@ export const controls: readonly Control[] = [
         'showcase/examples/field-service/test/security.test.ts',
       ],
       artifacts: [],
-      events: ['egress.allowed', 'egress.denied', 'egress.completed'],
+      events: ['network.allowed', 'network.denied', 'network.completed'],
     },
   },
   {
@@ -135,7 +135,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: ['plugins/network/test/guard.test.ts'],
       artifacts: ['data-flows.md'],
-      events: ['egress.allowed', 'egress.denied'],
+      events: ['network.allowed', 'network.denied'],
     },
   },
   {
@@ -160,7 +160,7 @@ export const controls: readonly Control[] = [
     id: 'AN-AUD-01',
     title: 'Audit events for every business action, denial and delivery',
     implementation:
-      'The runtime records accepted, committed, replayed, denied and failed commands, queries, outbox transitions and delivery attempts with actor, channel, correlation and cursor; the egress guard records every connection decision.',
+      'The runtime records accepted, committed, replayed, denied and failed commands, queries, outbox transitions and delivery attempts with actor, channel, correlation and cursor; the network guard records every connection decision.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.15'],
@@ -188,7 +188,7 @@ export const controls: readonly Control[] = [
     id: 'AN-AUD-02',
     title: 'Fail closed when the audit log cannot be written',
     implementation:
-      'In fail-closed mode the accepted event is appended inside the storage transaction after final authorization; if the append fails, the transaction rolls back and the caller receives UNAVAILABLE. Egress with a required log does not connect unlogged.',
+      'In fail-closed mode the accepted event is appended inside the storage transaction after final authorization; if the append fails, the transaction rolls back and the caller receives UNAVAILABLE. A connection with a required network log does not open unlogged.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.15'],
@@ -229,7 +229,7 @@ export const controls: readonly Control[] = [
     id: 'AN-AUD-04',
     title: 'Off-host audit forwarding',
     implementation:
-      'With `audit.forwardTo`, sealed events are forwarded as RFC 5424 syslog with octet-counted framing to a declared, bound collector through the egress guard. The zero-trust profile requires it.',
+      'With `audit.forwardTo`, sealed events are forwarded as RFC 5424 syslog with octet-counted framing to a declared, bound collector through the network guard. The zero-trust profile requires it.',
     limits:
       'Delivery is at-most-once with a bounded queue; drops are counted and reported in posture checks.',
     status: 'implemented',
@@ -289,7 +289,7 @@ export const controls: readonly Control[] = [
     id: 'AN-MON-01',
     title: 'Continuous posture monitoring',
     implementation:
-      'The running instance re-checks policy findings, chain integrity, forwarding health and denied egress on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.',
+      'The running instance re-checks policy findings, chain integrity, forwarding health and denied connections on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.16'],
@@ -461,7 +461,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: ['plugins/network/test/guard.test.ts'],
       artifacts: [],
-      events: ['egress.denied'],
+      events: ['network.denied'],
     },
   },
 ];

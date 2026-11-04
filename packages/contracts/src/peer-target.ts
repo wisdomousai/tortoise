@@ -27,7 +27,7 @@ export interface PeerEffectRequest {
  * Declare another agent-native application as an outbox target, through the peer API it
  * publishes. Besides the target's complete, sync and status operations it gives:
  *
- * - `destination`: an `https`, `authenticated` egress destination that carries the target and
+ * - `destination`: an `https`, `authenticated` outbound destination that carries the target and
  *   its remote reads, and `component`, a host component requiring it, for the manifest's
  *   `components`;
  * - `effect(command, { resource, payload })`: the effect request for one api command, with
@@ -82,7 +82,7 @@ export function definePeerTarget<
   const destination: NetworkDestination = {
     id: declared.id,
     purpose: declared.purpose,
-    direction: 'egress',
+    direction: 'outbound',
     scope: declared.scope ?? 'site',
     protocol: 'https',
     ...(declared.port === undefined ? {} : { port: declared.port }),

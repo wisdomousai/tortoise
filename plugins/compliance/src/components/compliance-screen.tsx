@@ -20,7 +20,7 @@ const time = (at: number | undefined) => (at === undefined ? '—' : new Date(at
 // The audit log has no change feed of its own, so the screen polls: a denial shows up within
 // seconds without a reload. Each read is itself audited.
 const POLL_MS = 5_000;
-const denialKinds = ['egress.denied', 'command.denied', 'query.denied'];
+const denialKinds = ['network.denied', 'command.denied', 'query.denied'];
 
 const statusTone = {
   ok: 'secondary',

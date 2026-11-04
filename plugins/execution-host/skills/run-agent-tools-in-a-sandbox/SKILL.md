@@ -5,7 +5,7 @@ description: Run the tools an agent uses (shell commands, a provider CLI, the ap
 
 # Run agent tools in a sandbox
 
-The execution host runs an agent's tools in a sandbox: a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names. It reaches the host API with a token bound to its run's grant, and the network only through the egress proxy. Before choosing what to mount, read the trust boundary in the [plugin README](../../README.md).
+The execution host runs an agent's tools in a sandbox: a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names. It reaches the host API with a token bound to its run's grant, and the network only through the network proxy. Before choosing what to mount, read the trust boundary in the [plugin README](../../README.md).
 
 ## Before writing
 

@@ -2,7 +2,7 @@
  * The network host plugin. `networkPluginManifest` is browser-safe (`./plugin-manifest`);
  * everything else is server only.
  *
- * - `networkPlugin`: the egress guard, child proxy and mTLS ingress as kernel ports.
+ * - `networkPlugin`: the network guard, child proxy and mTLS ingress as kernel ports.
  * - `networkRules`, `exportRules`: default-deny OS and orchestrator rules from a resolved policy.
  */
 export { networkPlugin } from './plugin';

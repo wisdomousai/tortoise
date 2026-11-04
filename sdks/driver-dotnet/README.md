@@ -11,7 +11,7 @@ app driver contract chamber --out chamber.json
 dotnet run --project src/Tortoise.Driver.Stubgen -- chamber.json --namespace Chamber -o ChamberContract.cs
 ```
 
-The stub holds `ChamberContract.Digest`, `ChamberContract.Document` and a record per action input, action result and event payload, bound to the JSON names with `JsonPropertyName`. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then reference `src/Tortoise.Driver`, register handlers and run:
+The stub contains `ChamberContract.Digest`, `ChamberContract.Document` and a record per action input, action result and event payload, bound to the JSON names with `JsonPropertyName`. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then reference `src/Tortoise.Driver`, register handlers and run:
 
 ```csharp
 using Tortoise.Driver;

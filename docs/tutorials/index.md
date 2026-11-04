@@ -19,7 +19,7 @@ Each tutorial builds one whole application for a transformer plant with Claude C
 
 1. Open Claude Code or Codex at the root of this repository for the first step. From the second step on, open it at the root of the exported application.
 2. Paste the prompt, wait for the report, run the check and commit. One commit per step lets a failed step start over with `git reset --hard HEAD`.
-3. Compare the result with the excerpts on the page. An agent writes each step differently each time, so names, file splits and tests differ in detail from the committed example while the check holds.
+3. Compare the result with the excerpts on the page. An agent writes each step differently each time, so names, file splits and tests differ in detail from the committed example while the check passes.
 
 The export leaves out the other examples, so `bun run check:skills` fails there on links to them. The pages name the checks to run instead.
 

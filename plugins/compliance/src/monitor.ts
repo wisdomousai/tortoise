@@ -8,7 +8,7 @@ import {
 } from '@tortoise/event-log';
 import { auditEvents } from './audit-events';
 import type { AuditEventView, LogVerification, Posture } from './contracts';
-import { accumulateEgress, assessPosture, type EgressUsage } from './posture';
+import { accumulateNetworkUsage, assessPosture, type NetworkUsage } from './posture';
 
 /** What the compliance capabilities read. Implemented by the posture monitor. */
 export interface CompliancePort {
@@ -42,7 +42,7 @@ export interface PostureMonitorOptions {
   readonly now?: () => number;
 }
 
-const egressKinds = ['egress.allowed', 'egress.denied'];
+const networkKinds = ['network.allowed', 'network.denied'];
 
 /** Verify the chain up to the writer's head, which is read first. */
 async function verifyToHead(options: PostureMonitorOptions) {
@@ -52,11 +52,11 @@ async function verifyToHead(options: PostureMonitorOptions) {
 
 /** Usage folded so far and the sequence it covers; each check reads only newer events. */
 interface UsageState {
-  usage: ReadonlyMap<string, EgressUsage>;
+  usage: ReadonlyMap<string, NetworkUsage>;
   scanned: number;
 }
 
-/** One check: verify, fold new egress, assess, then record `posture.checked` (best effort). */
+/** One check: verify, fold new network events, assess, then record `posture.checked` (best effort). */
 async function runCheck(
   options: PostureMonitorOptions,
   state: UsageState,
@@ -64,9 +64,9 @@ async function runCheck(
 ): Promise<Posture> {
   const { head, report } = await verifyToHead(options);
   const fresh = (
-    await readEvents(options.directory, { afterSeq: state.scanned, kinds: egressKinds })
+    await readEvents(options.directory, { afterSeq: state.scanned, kinds: networkKinds })
   ).filter((event) => event.seq <= head.seq);
-  state.usage = accumulateEgress(state.usage, fresh);
+  state.usage = accumulateNetworkUsage(state.usage, fresh);
   state.scanned = head.seq;
   const posture = assessPosture({
     policy: options.policy,
@@ -107,7 +107,7 @@ async function verification(options: PostureMonitorOptions): Promise<LogVerifica
 
 /**
  * Continuous, passive posture monitoring for a running instance. Each check verifies the
- * chain up to the writer's head, folds new egress events into per-destination usage, assesses
+ * chain up to the writer's head, folds new network events into per-destination usage, assesses
  * the posture and records `posture.checked` (best effort: monitoring never blocks the app).
  * Reads scan the log files, which suits the reference scale; a large deployment would index.
  */

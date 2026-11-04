@@ -95,7 +95,7 @@ export function unloadCommands(
         'powershell',
         '-NoProfile',
         '-Command',
-        "Get-NetFirewallRule -Group 'tortoise egress (generated)' -ErrorAction SilentlyContinue | Remove-NetFirewallRule",
+        "Get-NetFirewallRule -Group 'tortoise network (generated)' -ErrorAction SilentlyContinue | Remove-NetFirewallRule",
       ],
     ];
   return [];

@@ -7,7 +7,7 @@ import { readEvents, verifyEventLog } from '@tortoise/event-log';
 import type { ApplicationManifest } from '@tortoise/host/manifest';
 import type { PluginCommand } from '@tortoise/host/plugin';
 import { sitePolicyFor } from '@tortoise/site/policy-file';
-import { accumulateEgress, assessPosture, postureMarkdown } from './posture';
+import { accumulateNetworkUsage, assessPosture, postureMarkdown } from './posture';
 
 export const complianceUsage = (
   program: string,
@@ -46,7 +46,7 @@ async function complianceReport(manifest: ApplicationManifest, args: string[]) {
   const posture = assessPosture({
     policy,
     verification,
-    usage: accumulateEgress(new Map(), events),
+    usage: accumulateNetworkUsage(new Map(), events),
     attestation: attestedDigests(attested),
     // The log attests the best-before date of the build that wrote it.
     ...(typeof attested.bestBefore === 'string' ? { bestBefore: attested.bestBefore } : {}),

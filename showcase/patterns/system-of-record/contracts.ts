@@ -108,7 +108,7 @@ export const publishingModule = defineModule({
         id: LIMS_DESTINATION,
         purpose:
           'Register test requests in the LIMS, ask it about earlier deliveries and read requests registered at other sites.',
-        direction: 'egress',
+        direction: 'outbound',
         // The pattern's LIMS is a fake on this machine; a real one is `site` or `internet` over
         // `https`.
         scope: 'loopback',

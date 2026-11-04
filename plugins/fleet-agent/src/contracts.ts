@@ -172,7 +172,7 @@ export const fleetLinkComponent = defineHostComponent({
         id: 'fleet',
         purpose:
           'Report health, forward audit events, fetch assigned releases and take remote-access requests, outbound only.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         authenticated: true,

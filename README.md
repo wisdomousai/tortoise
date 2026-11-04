@@ -2,7 +2,16 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-Tortoise is for small applications that do a dedicated job at the edge, on the computer or phone where the work is done. A central system holds the official record, and the application delivers its result to that system. People and agents both do the job, and a person accepts what an agent proposes.
+Tortoise is a TypeScript framework for small applications that run at the edge and serve a process change so specialized that no standard application fits it. Building that change into an ERP or another standard application costs as much as custom software, and the result neither matches the new process exactly nor changes again when the process does. Tortoise makes the custom application cheap enough to build: the framework contains everything beyond the process change itself, including the controls IT needs before it allows the application to run, so the code written for one application stays small enough to build quickly and run with little maintenance.
+
+| Principle  | Behavior |
+| ---------- | -------- |
+| Sandboxed  | The application builds to a CLI binary that runs inside any agent sandbox. It serves its commands over MCP in-process and delivers its outbox before the sandbox closes. |
+| Zero trust | Every API call needs a session or device credential, whether a person, a script or an agent sends it. |
+| Headless   | Each process step is one capability, written once in a fixed pattern. All logic for the step is in the capability. Screens, agents and scripts only call it. |
+| Portable   | The same application runs on a desktop, in a browser, on a phone and on a hosted server. |
+| AI native  | Agents run the same commands as people under a grant narrowed from a person's, and a person approves the changes an agent asks for. |
+| Generated  | Skills, the scaffold, the shadcn registries and `bun run check` give Claude Code and Codex what they need to generate an application with little effort. |
 
 ## Quickstart (5 minutes)
 
@@ -61,7 +70,7 @@ id                                    revision  name            site    closed
 ## Checks
 
 ```sh
-bun run check       # format, types, boundaries, skills, generated docs, unit tests, build
+bun run check       # format, types, boundaries, skills, plain words, generated docs, unit tests, build
 bun run test:e2e    # Playwright; run `bunx playwright install chromium` once first
 ```
 

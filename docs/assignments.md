@@ -57,7 +57,7 @@ Sending adds two derived states to the status:
 - `working` — sent with at least one report
 - `reviewed` — done with every report reviewed
 
-An assignee holds at most 100 open assignments.
+An assignee has at most 100 open assignments.
 
 ## Assignee types
 
@@ -83,7 +83,7 @@ Its `creates` field lets the scoped run create report resources.
 
 ### Assignment targets
 
-Sending to a target enqueues an offer effect with the brief. The assignment holds the brief's blobs, so the target's connector reads them through the effect. The target's sync applies each reply to the offer it names while the assignment stays sent: it stores the reports and marks the assignment done. A refused offer stays sent with the target's reason until the planner withdraws it.
+Sending to a target enqueues an offer effect with the brief. The assignment includes the brief's blobs, so the target's connector reads them through the effect. The target's sync applies each reply to the offer it names while the assignment stays sent: it stores the reports and marks the assignment done. A refused offer stays sent with the target's reason until the planner withdraws it.
 
 `assignmentTargetPort` runs a function, such as a model call, once per offer. It keeps each result in memory until the target's sync applies it. If the host stops in between, the offer stays completed without its result, and the planner sends the work again.
 
@@ -91,7 +91,7 @@ Sending to a target enqueues an offer effect with the brief. The assignment hold
 
 The assignee's application keeps a worklist. Inbound sync pulls the issuer's feed, which lists the caller's whole open set with a digest cursor. An assignment the feed no longer lists takes no more reports, so a withdrawal reaches the assignee.
 
-The worklist records a report or a done mark and enqueues its delivery in one transaction, so work waits out a lost connection. The issuer reauthorizes each delivery as the assignee's principal. A refused done mark reopens the assignment in the worklist. A change to one of the assignee operations at the issuer holds deliveries until the two applications agree.
+The worklist records a report or a done mark and enqueues its delivery in one transaction, so work waits out a lost connection. The issuer reauthorizes each delivery as the assignee's principal. A refused done mark reopens the assignment in the worklist. A change to one of the assignee operations at the issuer puts deliveries in `held` until the two applications agree.
 
 The assignee reports from its own copy of the brief, which may be out of date. The feature stores a report on a record the assignment no longer covers without its subject, and a person links it.
 

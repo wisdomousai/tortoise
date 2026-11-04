@@ -1,6 +1,6 @@
 # @tortoise/adapters
 
-Implementations behind the runtime's ports: SQLite and Postgres storage, blobs, workspace leases, and the HTTP, MCP and CLI surfaces. The surfaces hold no business logic, so a new capability appears on all of them at once. Every surface derives identity from the host session, the connection file or the grant file, never from a request body or tool arguments.
+Implementations behind the runtime's ports: SQLite and Postgres storage, blobs, workspace leases, and the HTTP, MCP and CLI surfaces. The surfaces contain no business logic, so a new capability appears on all of them at once. Every surface derives identity from the host session, the connection file or the grant file, never from a request body or tool arguments.
 
 - Primitives: [Surface adapter](../../docs/primitives.md#surface-adapter), [Agent definition](../../docs/primitives.md#agent-definition), [Instance](../../docs/primitives.md#instance), [Execution context](../../docs/primitives.md#execution-context), [Policy](../../docs/primitives.md#policy), [Storage](../../docs/primitives.md#storage), [Workspace lease](../../docs/primitives.md#workspace-lease), [Blob store](../../docs/primitives.md#blob-store), [UI session context](../../docs/primitives.md#ui-session-context), [Shell port](../../docs/primitives.md#shell-port).
 

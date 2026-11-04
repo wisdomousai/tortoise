@@ -4,7 +4,7 @@
   "profile": "sandbox",
   "mode": "connected",
   "policyDigest": "7325a6cdf090f465ed9da125ee7f48109f2012ecf84aede8acf612582de92c20",
-  "defaultEgress": "deny",
+  "defaultNetwork": "deny",
   "ingress": {
     "listen": "loopback"
   },

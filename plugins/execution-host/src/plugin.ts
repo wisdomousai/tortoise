@@ -11,7 +11,7 @@ import { createExecutionHost, type ExecutionHost, type ExecutionHostOptions } fr
  * Trust boundary: the caller of `run` is trusted host code (an agent run, a trigger job), and it
  * decides the task and the context. The sandbox is not trusted: it sees the tools and paths the
  * task names, reaches the host API with a token bound to the run and its grant, and reaches the
- * network only through the egress proxy, for the destinations its declaration lists.
+ * network only through the network proxy, for the destinations its declaration lists.
  */
 export function createExecutionHostPlugin(options: ExecutionHostOptions) {
   return defineHostPlugin({

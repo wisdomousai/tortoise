@@ -278,7 +278,7 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
             {
               id: 'legacy-hmi-api',
               purpose: 'Test system of record',
-              direction: 'egress',
+              direction: 'outbound',
               scope: 'site',
               protocol: 'https',
               targets: ['legacy-hmi'],

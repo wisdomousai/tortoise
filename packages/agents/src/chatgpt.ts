@@ -92,7 +92,7 @@ export class ChatGptAccountConnection {
       options.keyResolver ??
       createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`), {
         timeoutDuration: 5_000,
-        // Key fetches use the injected (egress-guarded) fetch too, not jose's global one.
+        // Key fetches use the injected (network-guarded) fetch too, not jose's global one.
         ...(options.fetch
           ? { [customFetch]: options.fetch as unknown as FetchImplementation }
           : {}),

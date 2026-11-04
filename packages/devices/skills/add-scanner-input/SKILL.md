@@ -15,7 +15,7 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 
 ## Steps
 
-1. Describe the scanner with a scanner profile, `ScannerProfile` in `packages/devices/src/scanner/profile.ts`. It holds the transport, prefix, suffix, terminator, key gap, minimum length, AIM identifiers, GS1 separator substitute and emulated keyboard layout.
+1. Describe the scanner with a scanner profile, `ScannerProfile` in `packages/devices/src/scanner/profile.ts`. It contains the transport, prefix, suffix, terminator, key gap, minimum length, AIM identifiers, GS1 separator substitute and emulated keyboard layout.
 2. To suggest a profile, run calibration (`calibrate`) on a single scan of the calibration barcode.
 3. Map scans to intents with `createScanRouter`. A route matches a GS1 application identifier or a regular expression, optionally limited to symbologies. The first match wins.
 4. List `deviceFeatureManifest` from `@tortoise/devices/contracts` in `defineManifest({ features })`.

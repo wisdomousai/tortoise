@@ -29,7 +29,7 @@ export interface ProviderAccessOptions {
   readonly fetch?: typeof fetch;
   /**
    * Environment for a declared provider child process (`codex-app-server`, `claude-code`),
-   * normally the egress proxy settings. Never carries credentials.
+   * normally the network proxy settings. Never carries credentials.
    */
   readonly childEnvironment?: (processId: string) => Record<string, string>;
   /** Fixture seams do not discover ambient credentials or execute native providers. */

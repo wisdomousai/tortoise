@@ -215,7 +215,7 @@ test('a sandbox is a declared bwrap process with its own destinations', () => {
         {
           id: 'model-api',
           purpose: 'Model calls',
-          direction: 'egress',
+          direction: 'outbound',
           scope: 'internet',
           protocol: 'https',
           dataClasses: ['prompts'],

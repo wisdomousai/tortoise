@@ -6,7 +6,7 @@
  * At exit, any recorded attempt fails the run, even when a test caught the error.
  *
  * Trust boundary: an in-process trap, not an OS sandbox. It catches code paths that bypass the
- * egress guard, but child processes (spawned CLIs, provider SDK processes) are not covered;
+ * network guard, but child processes (spawned CLIs, provider SDK processes) are not covered;
  * the exported OS rules and the sandbox binary run cover them.
  */
 import net from 'node:net';
@@ -30,7 +30,7 @@ function guard(api: string, host: string | undefined, port?: unknown) {
   if (loopbackHost(host)) return;
   const attempt = `${api} ${host}${port === undefined ? '' : `:${String(port)}`}`;
   attempts.push(attempt);
-  throw new Error(`test:isolated blocked non-loopback egress: ${attempt}`);
+  throw new Error(`test:isolated blocked non-loopback connection: ${attempt}`);
 }
 
 const originalFetch = globalThis.fetch;

@@ -66,7 +66,7 @@ export const windingLineModule = defineModule({
         id: 'station-screen',
         purpose:
           'Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         targets: ['legacy-hmi'],
@@ -78,7 +78,7 @@ export const windingLineModule = defineModule({
         id: 'mes-api',
         purpose:
           'Forward stop classifications and count confirmations to the MES and pull orders and reasons.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         targets: ['mes'],

@@ -95,12 +95,12 @@ function checkTransport(
   const zeroTrust = policy.profile === 'zero-trust';
   if (strict && !loopback && plaintextApplication(url))
     report.error(
-      'PLAINTEXT_EGRESS',
+      'PLAINTEXT_OUTBOUND',
       `${policy.profile} forbids unencrypted ${url.protocol.slice(0, -1)} to ${id}`,
       id,
     );
   if (zeroTrust && !loopback && !plaintextApplication(url) && !encrypted(url, binding))
-    report.error('PLAINTEXT_EGRESS', `zero-trust requires TLS to ${id}`, id);
+    report.error('PLAINTEXT_OUTBOUND', `zero-trust requires TLS to ${id}`, id);
   if (zeroTrust && !loopback && !binding.ca && !binding.certificatePins?.length)
     report.error(
       'UNPINNED_TLS',
@@ -112,7 +112,7 @@ function checkTransport(
 }
 
 /**
- * Resolve one enabled binding of a declared egress destination, reporting every problem.
+ * Resolve one enabled binding of a declared outbound destination, reporting every problem.
  * Returns undefined only when the URL itself is unusable.
  */
 export function resolveBinding(

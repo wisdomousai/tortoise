@@ -171,7 +171,7 @@ test('without a network provider every post is refused and recorded once', async
   });
 });
 
-test('under the network plugin an unbound webhook destination is refused by the egress guard', async () => {
+test('under the network plugin an unbound webhook destination is refused by the network guard', async () => {
   await withDirectory(async (directory) => {
     const host = await startHost(notesApplication(guarded), {
       workspacePath: join(directory, 'workspace'),

@@ -126,7 +126,7 @@ test('install places a verified release, renders the unit and firewall rules, an
   expect(unit).toContain(`ExecStart=${join(current, 'files/bin/counter-site')} serve`);
   expect(unit).toContain(`--workspace ${join(app('var/lib/tortoise'), 'workspace')}`);
   expect(unit).toContain('IPAddressDeny=any');
-  expect(await readFile(join(app('etc/tortoise'), 'egress.nft'), 'utf8')).toContain(
+  expect(await readFile(join(app('etc/tortoise'), 'network.nft'), 'utf8')).toContain(
     'table inet counter_site {',
   );
   expect((await lstat(join(app('var/lib/tortoise'), 'workspace'))).mode & 0o777).toBe(0o700);
@@ -141,7 +141,7 @@ test('install places a verified release, renders the unit and firewall rules, an
     const unitPath = join(prefix, 'etc/systemd/system/tortoise-counter-site.service');
     const verify = Bun.spawnSync(['systemd-analyze', 'verify', unitPath], { stderr: 'pipe' });
     if (verify.exitCode !== 0) throw new Error(verify.stderr.toString());
-    const rules = join(app('etc/tortoise'), 'egress.nft');
+    const rules = join(app('etc/tortoise'), 'network.nft');
     // nft resolves the `meta skuid` user name while parsing, so the service account must exist,
     // as install creates it before loading the rules.
     const user = /meta skuid != "([^"]+)"/.exec(await readFile(rules, 'utf8'))![1]!;

@@ -14,7 +14,7 @@ export const telemetryExportComponent = defineHostComponent({
         id: TELEMETRY_DESTINATION,
         purpose:
           'Post OpenTelemetry metrics and traces (OTLP/HTTP JSON) to a collector on this machine, which forwards them on.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'loopback',
         protocol: 'http',
         dataClasses: ['telemetry'],

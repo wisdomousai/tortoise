@@ -18,7 +18,7 @@ The launch seeds three utilities, six transformers, 24 parts and the supervisor 
 
 ## Live run on Gemma 4 E4B
 
-On 3 November 2026 the panel held a five-turn conversation on Gemma 4 E4B-it Q4_0 through llama-server on an Apple M3. The model found the transformer and the bushings and filled the quote builder. It asked which transformer in its text instead of through the question tool, named a quote draft that does not exist, and filed a discount request whose base revisions carry a token of its tool-call format, so a supervisor's approval fails with `FORBIDDEN`. `test/assistant-live.test.ts` holds turns 1 and 4 when `LOCAL_MODEL_GGUF` is set; both failed on this model.
+On 3 November 2026 the panel held a five-turn conversation on Gemma 4 E4B-it Q4_0 through llama-server on an Apple M3. The model found the transformer and the bushings and filled the quote builder. It asked which transformer in its text instead of through the question tool, named a quote draft that does not exist, and filed a discount request whose base revisions contain a token of its tool-call format, so a supervisor's approval fails with `FORBIDDEN`. `test/assistant-live.test.ts` covers turns 1 and 4 when `LOCAL_MODEL_GGUF` is set; both failed on this model.
 
 ## Dictation with a real microphone
 

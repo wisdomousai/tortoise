@@ -94,7 +94,7 @@ The composed, validated description of everything an application can do. See [`p
 
 ### Channel
 
-The surface that carried a request, as recorded in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. See [`packages/contracts`](../packages/contracts/README.md).
+The surface a request came through, as recorded in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. See [`packages/contracts`](../packages/contracts/README.md).
 
 ### Collection
 
@@ -126,7 +126,7 @@ An implementation of the system-of-record port for one target. See [`packages/in
 
 ### Container
 
-A work order, plant, workstation or other unit that people hold roles in. See [`packages/runtime`](../packages/runtime/README.md), [authorization](authorization.md).
+A work order, plant, workstation or other unit that people have roles in. See [`packages/runtime`](../packages/runtime/README.md), [authorization](authorization.md).
 
 ### Continuation
 
@@ -150,7 +150,7 @@ One declaration of a kind of record that lives in a system of record and that ca
 
 ### Decommissioning
 
-Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. See [`plugins/site`](../plugins/site/README.md), [application lifecycle](application-lifecycle.md#decommissioning-procedure).
+Removing an application from a site after its [systems of record](#system-of-record) store every record it captured. See [`plugins/site`](../plugins/site/README.md), [application lifecycle](application-lifecycle.md#decommissioning-procedure).
 
 ### Delivery mode
 
@@ -203,10 +203,6 @@ A durable intent to change another system, committed with the command that cause
 ### Effect completion
 
 Recording a system of record's outcome for one effect, accepted or rejected, through the target's complete command. See [`packages/integration`](../packages/integration/README.md), [systems of record](systems-of-record.md).
-
-### Egress guard
-
-The path from server code and declared child processes to the network. See [`plugins/network`](../plugins/network/README.md).
 
 ### Embedded mode
 
@@ -278,7 +274,7 @@ The server function that implements one capability.
 
 ### Hardening profile
 
-The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. See [security and compliance](security-and-compliance.md#deployment-policy).
+The floor a deployment policy sets for identity, delegated grants, audit and network access: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. See [security and compliance](security-and-compliance.md#deployment-policy).
 
 ### Harness
 
@@ -354,7 +350,7 @@ The browser-safe entrypoint of an application or host plugin: its ID, title, mod
 
 ### Membership
 
-The roles people hold in a container, which the framework keeps and the membership command changes. See [`packages/runtime`](../packages/runtime/README.md).
+The roles people have in a container, which the framework keeps and the membership command changes. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Model entry
 
@@ -367,6 +363,12 @@ The browser-safe unit a domain contributes to the catalog: capabilities, require
 ### Nested call
 
 A command or query that a handler runs with `ctx.invoke` or `ctx.query` inside its own command's transaction, under the same context. See [`packages/runtime`](../packages/runtime/README.md), [capability authoring](capability-authoring.md#nested-calls).
+
+### Network guard
+
+The path from server code and declared child processes to the network. See [`plugins/network`](../plugins/network/README.md).
+
+Do not use: egress guard.
 
 ### Observation
 
@@ -386,7 +388,7 @@ A declared registration with the operating system, such as a link path, file typ
 
 ### Outbox
 
-The part of the workspace that holds effects until the dispatcher delivers them. See [`packages/runtime`](../packages/runtime/README.md).
+The part of the workspace that stores effects until the dispatcher delivers them. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Owner
 
@@ -454,7 +456,7 @@ The tracked state and procedure for effects whose outcome no one can establish a
 
 ### Release
 
-Always qualified: releasing a held effect queues it for another delivery; releasing workspace ownership ends an instance's hold on its workspace.
+Always qualified: releasing a held effect queues it for another delivery; releasing workspace ownership ends an instance's workspace lease.
 
 ### Remote query
 
@@ -602,7 +604,7 @@ The domain-neutral browser shell around one application's screens: session, rout
 
 ### Worker claim
 
-The dispatcher's hold on one effect: a worker name, an expiry and a fencing token. See [`packages/runtime`](../packages/runtime/README.md).
+The dispatcher's claim on one effect: a worker name, an expiry and a fencing token. See [`packages/runtime`](../packages/runtime/README.md).
 
 ### Workflow
 
@@ -626,7 +628,7 @@ The data one instance owns: state, revisions, receipts, journal, outbox, blobs a
 
 ### Workspace lease
 
-One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. See [`packages/adapters`](../packages/adapters/README.md), [hosting](hosting.md).
+One instance's right to write a hosted workspace, kept in the shared database with a fencing token that every commit checks. See [`packages/adapters`](../packages/adapters/README.md), [hosting](hosting.md).
 
 ### Workstation
 

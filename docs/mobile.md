@@ -15,7 +15,7 @@ The Expo project in `apps/mobile` runs one application on Android and iOS. Appli
 
 The mobile host platform runs the same composition and runtime as the desktop host. Secrets go in the Keychain or Keystore, and the app lifecycle takes the place of a host process. No raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
 
-A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot storage adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `tortoise/<name>/blobs` in the document directory. An exclusive transaction on `<name>.lock.sqlite` holds ownership while the instance is open. The platform refuses a second open (`packages/mobile/src/platform.ts`).
+A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot storage adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `tortoise/<name>/blobs` in the document directory. An exclusive transaction on `<name>.lock.sqlite` gives the instance ownership while it is open. The platform refuses a second open (`packages/mobile/src/platform.ts`).
 
 ## Instance lifecycle
 
@@ -50,8 +50,8 @@ Over the LAN, the hub listens with TLS under a hardening profile that allows it 
 
 ## Trust boundary
 
-- **No egress guard.** The plugin providing the network port holds the platform's `fetch` and is the only network path. Hub-link reaches only the paired origin and refuses redirects — weaker than the desktop's egress guard and the site firewall rules.
-- **The owner.** Whoever holds the unlocked device is the owner. The app sandbox is the only isolation between apps.
+- **No network guard.** The plugin providing the network port has the platform's `fetch` and is the only network path. Hub-link reaches only the paired origin and refuses redirects — weaker than the desktop's network guard and the site firewall rules.
+- **The owner.** Whoever has the unlocked device is the owner. The app sandbox is the only isolation between apps.
 - **The device credential** lives in secure storage, readable after first unlock, and never moves to another device through a backup.
 - **The WebView** in attached mode loads only the hub origin and opens no new windows. No script bridge, no file access, cookies in a private store. The device credential never enters it — the WebView gets a one-use launch key and its own session.
 - **Native plugins** are ordinary host plugins with an Expo module. A build missing a composed plugin's module refuses startup. `defineManifest` refuses a plugin on a platform it does not support.

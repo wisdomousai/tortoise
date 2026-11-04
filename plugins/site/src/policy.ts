@@ -153,7 +153,7 @@ function resolveBindings(
       disabled.add(id);
       continue;
     }
-    if (destination.direction !== 'egress') {
+    if (destination.direction !== 'outbound') {
       report.error(
         'INGRESS_BINDING',
         `Destination ${id} is ingress; bind listeners under ingress`,
@@ -315,7 +315,7 @@ export async function loadSitePolicy(
   });
 }
 
-/** The isolated default: loopback only, every egress destination reported as a consequence. */
+/** The isolated default: loopback only, every outbound destination reported as a consequence. */
 export const isolatedPolicy = (
   requirements: CatalogRequirements,
   profile: HardeningProfile = 'desktop-local',

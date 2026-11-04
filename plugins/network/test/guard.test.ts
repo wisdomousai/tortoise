@@ -8,13 +8,13 @@ import {
 } from '@tortoise/contracts';
 import { createMemoryEventLog } from '@tortoise/event-log';
 import { resolveSitePolicy, type SitePolicyInput } from '@tortoise/site/policy';
-import { createEgress, EgressDenied } from '../src/guard';
-import { startEgressProxy } from '../src/proxy';
+import { createNetworkGuard, NetworkDenied } from '../src/guard';
+import { startNetworkProxy } from '../src/proxy';
 
 const site = (id: string, extra: Partial<NetworkDestination> = {}): NetworkDestination => ({
   id,
   purpose: 'test',
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'site',
   protocol: 'https',
   dataClasses: ['record'],
@@ -68,7 +68,7 @@ const server = Bun.serve({
 });
 afterAll(() => server.stop(true));
 const local = (eventLog?: EventLogPort) =>
-  createEgress({
+  createNetworkGuard({
     policy: policy({
       mode: 'isolated',
       destinations: { 'local-model': { url: `http://127.0.0.1:${server.port}` } },
@@ -78,10 +78,10 @@ const local = (eventLog?: EventLogPort) =>
     maxResponseBytes: 1024,
   });
 
-describe('egress guard', () => {
+describe('guard guard', () => {
   test("a binding's timeout replaces the guard's default for that destination only", async () => {
-    const egress = (timeoutMs?: number) =>
-      createEgress({
+    const guard = (timeoutMs?: number) =>
+      createNetworkGuard({
         policy: policy({
           mode: 'isolated',
           destinations: {
@@ -94,8 +94,8 @@ describe('egress guard', () => {
         requirements,
         timeoutMs: 1_000,
       });
-    await expect(egress().client('local-model').fetch('/slow')).rejects.toThrow();
-    const response = await egress(5_000).client('local-model').fetch('/slow');
+    await expect(guard().client('local-model').fetch('/slow')).rejects.toThrow();
+    const response = await guard(5_000).client('local-model').fetch('/slow');
     expect(await response.text()).toBe('late');
     expect(() =>
       policy({ destinations: { 'local-model': { url: 'http://127.0.0.1:1', timeoutMs: 10 } } }),
@@ -107,29 +107,29 @@ describe('egress guard', () => {
     const response = await local(log).client('local-model').fetch('/hop');
     expect(await response.text()).toBe('ok');
     expect(log.events().map((event) => event.kind)).toEqual([
-      'egress.allowed',
-      'egress.completed',
-      'egress.allowed',
-      'egress.completed',
+      'network.allowed',
+      'network.completed',
+      'network.allowed',
+      'network.completed',
     ]);
     expect(JSON.stringify(log.events())).not.toContain('"body"');
   });
 
   test('undeclared, unbound, disabled and off-origin requests are refused and recorded', async () => {
     const log = createMemoryEventLog();
-    const egress = local(log);
+    const guard = local(log);
     const reason = (promise: Promise<unknown>) =>
       promise.then(
         () => 'allowed',
-        (error: unknown) => (error instanceof EgressDenied ? error.reason : String(error)),
+        (error: unknown) => (error instanceof NetworkDenied ? error.reason : String(error)),
       );
-    expect(await reason(egress.client('somewhere').fetch('/'))).toBe('UNDECLARED');
-    expect(await reason(egress.client('mes-api').fetch('/'))).toBe('UNBOUND');
-    expect(await reason(egress.client('local-model').fetch('http://127.0.0.1:1/'))).toBe(
+    expect(await reason(guard.client('somewhere').fetch('/'))).toBe('UNDECLARED');
+    expect(await reason(guard.client('mes-api').fetch('/'))).toBe('UNBOUND');
+    expect(await reason(guard.client('local-model').fetch('http://127.0.0.1:1/'))).toBe(
       'ORIGIN_MISMATCH',
     );
-    expect(await reason(egress.client('local-model').fetch('/away'))).toBe('REDIRECT_NOT_ALLOWED');
-    expect(log.events().filter((event) => event.kind === 'egress.denied')).toHaveLength(4);
+    expect(await reason(guard.client('local-model').fetch('/away'))).toBe('REDIRECT_NOT_ALLOWED');
+    expect(log.events().filter((event) => event.kind === 'network.denied')).toHaveLength(4);
   });
 
   test('a routed fetch picks the bound destination by origin and explains refusals', async () => {
@@ -140,7 +140,7 @@ describe('egress guard', () => {
     );
     expect(await response.text()).toBe('ok');
     expect(log.events()[0]).toMatchObject({
-      kind: 'egress.allowed',
+      kind: 'network.allowed',
       data: { destination: 'local-model', method: 'POST' },
     });
     const refusal = (url: string) =>
@@ -165,7 +165,7 @@ describe('egress guard', () => {
   });
 
   test("a binding's response cap replaces the guard's default for that destination only", async () => {
-    const egress = createEgress({
+    const guard = createNetworkGuard({
       policy: policy({
         mode: 'isolated',
         destinations: {
@@ -175,7 +175,7 @@ describe('egress guard', () => {
       requirements,
       maxResponseBytes: 1024,
     });
-    expect(await (await egress.client('local-model').fetch('/big')).text()).toHaveLength(4096);
+    expect(await (await guard.client('local-model').fetch('/big')).text()).toHaveLength(4096);
     expect(() =>
       policy({
         destinations: { 'local-model': { url: 'http://127.0.0.1:1', maxResponseBytes: 1024 } },
@@ -183,13 +183,13 @@ describe('egress guard', () => {
     ).toThrow('expected number to be >=1048576');
   });
 
-  test('a required egress log that cannot be written keeps the connection closed', async () => {
+  test('a required guard log that cannot be written keeps the connection closed', async () => {
     let fetched = false;
     const broken: EventLogPort = {
-      mode: { commands: 'required', queries: 'required', egress: 'required' },
+      mode: { commands: 'required', queries: 'required', network: 'required' },
       append: () => Promise.reject(new Error('disk full')),
     };
-    const egress = createEgress({
+    const guard = createNetworkGuard({
       policy: policy({
         mode: 'isolated',
         destinations: { 'local-model': { url: `http://127.0.0.1:${server.port}` } },
@@ -201,7 +201,7 @@ describe('egress guard', () => {
         return new Response('');
       }) as unknown as typeof fetch,
     });
-    await expect(egress.client('local-model').fetch('/')).rejects.toMatchObject({
+    await expect(guard.client('local-model').fetch('/')).rejects.toMatchObject({
       reason: 'AUDIT_UNAVAILABLE',
     });
     expect(fetched).toBe(false);
@@ -209,7 +209,7 @@ describe('egress guard', () => {
 
   test('resolved addresses outside the bound networks are refused before connecting', async () => {
     const calls: string[] = [];
-    const egress = createEgress({
+    const guard = createNetworkGuard({
       policy: policy({
         mode: 'connected',
         destinations: {
@@ -224,11 +224,11 @@ describe('egress guard', () => {
         return new Response('');
       }) as unknown as typeof fetch,
     });
-    await expect(egress.client('mes-api').fetch('/orders')).rejects.toMatchObject({
+    await expect(guard.client('mes-api').fetch('/orders')).rejects.toMatchObject({
       reason: 'ADDRESS_NOT_ALLOWED',
     });
     // A loopback destination whose name resolves off-host is refused too.
-    await expect(egress.client('local-model').fetch('/')).rejects.toMatchObject({
+    await expect(guard.client('local-model').fetch('/')).rejects.toMatchObject({
       reason: 'ADDRESS_NOT_ALLOWED',
     });
     expect(calls).toEqual([]);
@@ -241,7 +241,7 @@ describe('child process proxy', () => {
     await new Promise<void>((resolve) => echo.listen(0, '127.0.0.1', resolve));
     const port = (echo.address() as AddressInfo).port;
     const log = createMemoryEventLog();
-    const egress = createEgress({
+    const guard = createNetworkGuard({
       policy: policy({
         mode: 'isolated',
         destinations: { 'loopback-tcp': { url: `tcp://127.0.0.1:${port}` } },
@@ -249,7 +249,7 @@ describe('child process proxy', () => {
       requirements,
       eventLog: log,
     });
-    const proxy = await startEgressProxy(egress);
+    const proxy = await startNetworkProxy(guard);
     const environment = proxy.childEnvironment('agent-cli');
     const credential = new URL(environment.HTTPS_PROXY!);
     const authorization = Buffer.from(
@@ -277,8 +277,8 @@ describe('child process proxy', () => {
       expect(await exchange('127.0.0.1:1', authorization)).toStartWith('HTTP/1.1 403');
       expect(() => proxy.childEnvironment('undeclared')).toThrow('PROCESS_NOT_DECLARED');
       const kinds = log.events().map((event: AuditRecord) => [event.kind, event.reason]);
-      expect(kinds).toContainEqual(['egress.allowed', undefined]);
-      expect(kinds).toContainEqual(['egress.denied', 'PROCESS_NOT_PERMITTED']);
+      expect(kinds).toContainEqual(['network.allowed', undefined]);
+      expect(kinds).toContainEqual(['network.denied', 'PROCESS_NOT_PERMITTED']);
     } finally {
       await proxy.close();
       echo.close();

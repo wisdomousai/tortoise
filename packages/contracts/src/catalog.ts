@@ -139,7 +139,7 @@ function integrationDestinations(
   )
     throw new Error(`Integration requires a command with an outbox target: ${capability.id}`);
   // Every outbox target must use a declared destination, so the data-flow manifest
-  // and the egress guard cover each system of record a command can reach.
+  // and the network guard cover each system of record a command can reach.
   const destinations = capability.integration
     ? destinationsForTarget(requirements, capability.integration.target)
     : [];
@@ -171,7 +171,7 @@ function remoteDestinations(
     !['caller', 'caller-or-service', 'service'].includes(remote.identity)
   )
     throw new Error(`Remote read requires a query with a target and identity: ${capability.id}`);
-  // Like outbox targets: the data-flow manifest and egress guard must cover every remote read.
+  // Like outbox targets: the data-flow manifest and network guard must cover every remote read.
   const destinations = destinationsForRead(requirements, remote.target);
   if (destinations.length === 0)
     throw new Error(

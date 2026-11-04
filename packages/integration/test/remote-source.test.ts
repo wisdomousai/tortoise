@@ -118,7 +118,7 @@ describe('remote source', () => {
               {
                 id: 'crm-api',
                 purpose: 'CRM',
-                direction: 'egress',
+                direction: 'outbound',
                 scope: 'internet',
                 protocol: 'https',
                 reads: ['crm'],

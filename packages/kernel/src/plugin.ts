@@ -122,7 +122,7 @@ export interface PluginOpenContext {
   /**
    * The composed ports, whichever plugin provides them, so plugins use each other's ports
    * without importing each other: an audit forwarder reaches its collector through the network
-   * port, and the egress guard records into the event-log port. Members resolve once every
+   * port, and the network guard records into the event-log port. Members resolve once every
    * plugin has opened; reading one during `open` throws, because the composition is not known
    * yet. Use them from `ready`, `start`, `close` or the calls the plugin serves.
    */

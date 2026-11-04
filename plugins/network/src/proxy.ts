@@ -1,8 +1,8 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { connect, createServer, type Server, type Socket } from 'node:net';
-import { EgressDenied, type Egress } from './guard';
+import { NetworkDenied, type NetworkGuard } from './guard';
 
-export interface EgressProxy {
+export interface NetworkProxy {
   readonly url: URL;
   /**
    * Environment for a declared child process: proxy variables carrying a per-process credential,
@@ -16,7 +16,7 @@ const maxHeaderBytes = 8 * 1024;
 
 /** What the proxy shares across connections: issued credentials and open sockets. */
 interface ProxyState {
-  readonly egress: Egress;
+  readonly guard: NetworkGuard;
   readonly tokens: Map<string, Buffer>;
   readonly sockets: Set<Socket>;
 }
@@ -57,9 +57,9 @@ async function tunnel(state: ProxyState, client: Socket, header: string, rest: B
   const port = Number(target[1]!.slice(separator + 1));
   if (!host || !Number.isInteger(port) || port < 1 || port > 65535) return refuse(client, 403);
   try {
-    await state.egress.authorizeProcessTarget(processId, host, port);
+    await state.guard.authorizeProcessTarget(processId, host, port);
   } catch (error) {
-    return refuse(client, error instanceof EgressDenied ? 403 : 502);
+    return refuse(client, error instanceof NetworkDenied ? 403 : 502);
   }
   const upstream = connect({ host: host.replace(/^\[|\]$/g, ''), port });
   state.sockets.add(upstream);
@@ -99,7 +99,7 @@ function accept(state: ProxyState, client: Socket) {
 
 /** Proxy variables carrying one random credential per process ID, issued on first use. */
 function childEnvironment(state: ProxyState, port: number, processId: string) {
-  state.egress.process(processId);
+  state.guard.process(processId);
   // One random credential per process ID, compared as the text the client sends back.
   let token = state.tokens.get(processId);
   if (!token) {
@@ -121,13 +121,13 @@ function childEnvironment(state: ProxyState, port: number, processId: string) {
 /**
  * Loopback HTTP CONNECT proxy for child processes such as provider CLIs. A child reaches only
  * the bound destinations its process declaration lists; each tunnel is audited through the
- * egress guard. Only CONNECT is supported, so plain-HTTP requests through the proxy are refused.
+ * network guard. Only CONNECT is supported, so plain-HTTP requests through the proxy are refused.
  *
  * A child that ignores proxy variables bypasses this proxy; the exported OS rules are what
  * contain it. Tunnel contents stay end-to-end encrypted and are not inspected.
  */
-export async function startEgressProxy(egress: Egress): Promise<EgressProxy> {
-  const state: ProxyState = { egress, tokens: new Map(), sockets: new Set() };
+export async function startNetworkProxy(guard: NetworkGuard): Promise<NetworkProxy> {
+  const state: ProxyState = { guard, tokens: new Map(), sockets: new Set() };
   const server: Server = createServer((client) => accept(state, client));
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const address = server.address();

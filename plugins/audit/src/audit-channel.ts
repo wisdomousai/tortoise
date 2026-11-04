@@ -12,14 +12,14 @@ import { syslogSink } from './syslog';
 const bestEffortAuditMode: AuditMode = Object.freeze({
   commands: 'best-effort',
   queries: 'best-effort',
-  egress: 'best-effort',
+  network: 'best-effort',
 });
 
 /**
  * The audit log under its writer lock in the policy's audit mode, wrapped in an off-host
  * forwarder when `audit.forwardTo` names a destination. The forwarder reaches its collector
  * through `network`, read on first send: the composed port is known only once every plugin has
- * opened, and the egress guard behind it records into this same log.
+ * opened, and the network guard behind it records into this same log.
  */
 export async function openAuditChannel(
   policy: ResolvedPolicy,

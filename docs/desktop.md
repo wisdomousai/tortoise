@@ -20,7 +20,7 @@ Network requests reach only the local instance. URLs leave only as declared open
 
 ## Instance ownership
 
-The workspace is a canonical path on a local filesystem. A dedicated lock database holds an exclusive OS lock for the host's lifetime, separate from business transactions. A crash releases the lock, and no stale PID or timeout removes a live one. When two windows race to start, the lock decides.
+The workspace is a canonical path on a local filesystem. A dedicated lock database takes an exclusive OS lock for the host's lifetime, separate from business transactions. A crash releases the lock, and no stale PID or timeout removes a live one. When two windows race to start, the lock decides.
 
 The window first tries to attach:
 

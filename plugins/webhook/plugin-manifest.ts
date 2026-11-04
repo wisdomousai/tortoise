@@ -11,7 +11,7 @@ export const webhookDeliveryComponent = defineHostComponent({
       {
         id: 'webhook-target',
         purpose: 'Notify a downstream system that observed resources changed.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'site',
         protocol: 'https',
         dataClasses: ['change-notification'],

@@ -24,7 +24,7 @@ A workstation application that has no API is a system of record the application 
 3. Report what the screen shows through an observer, `createStationObserver`, that submits an ingest command under `station-bridge:<station>`.
 4. Keep each reading's provenance: extractor, model, confidence and frame digest.
 5. Turn an uncertain reading into an attention item for a person. It never becomes a silent value.
-6. Put the site particulars in a versioned station profile, `StationProfile`, as in `showcase/examples/winding-line/station-profile.json`. It holds screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, risk level and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
+6. Put the site particulars in a versioned station profile, `StationProfile`, as in `showcase/examples/winding-line/station-profile.json`. It lists screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, risk level and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
 7. Set the bridge mode to `monitor-only` by default.
 8. Make starting procedures that need a person, reconciling held effects and taking over the screen person-only commands. Deny them to agent runs and grants.
 9. Give the computer-use agent no catalog write tools beyond ingest and complete, under its own integration principal.

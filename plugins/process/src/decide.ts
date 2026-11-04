@@ -40,7 +40,7 @@ export function bindingFor(decision: Decision, processId: string): ResolvedProce
 }
 
 /**
- * The child's whole environment: the inherited basics, the binding's configuration, the egress
+ * The child's whole environment: the inherited basics, the binding's configuration, the network
  * proxy for its declared destinations, then its declared secrets. Later sources win, and the
  * policy cannot set the proxy or secret names (`resolveProcesses` refuses that), so the order
  * only matters for the basics. A missing secret is UNAVAILABLE, naming the secret, not its value.

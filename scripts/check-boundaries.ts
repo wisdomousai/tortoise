@@ -3,8 +3,8 @@ import { resolve, relative } from 'node:path';
 import { build } from 'vite';
 import {
   browserSource,
-  directEgress,
-  egressExemptions,
+  directNetwork,
+  networkExemptions,
   forbiddenBrowserImport,
   hostSourcePath,
   kernelForbiddenImport,
@@ -218,26 +218,26 @@ function portableImport(file: string, dependency: string) {
     (path) => isPortable(path) || browserContent.test(path),
   );
 }
-// Server code connects to other hosts only through the egress guard; see `egressExemptions`.
+// Server code connects to other hosts only through the network guard; see `networkExemptions`.
 const exemptionUsed = new Set<string>();
 for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
   if (!serverSource.test(name) || browserSource.test(name) || pluginBrowserSource.test(name))
     continue;
   const source = withoutComments(await readFile(file, 'utf8'));
-  const found = directEgress.filter((rule) => rule.pattern.test(source)).map((rule) => rule.api);
+  const found = directNetwork.filter((rule) => rule.pattern.test(source)).map((rule) => rule.api);
   if (!found.length) continue;
-  const exemption = Object.keys(egressExemptions).find((prefix) => name.startsWith(prefix));
+  const exemption = Object.keys(networkExemptions).find((prefix) => name.startsWith(prefix));
   if (exemption) exemptionUsed.add(exemption);
-  else errors.push(`${name}: direct ${found.join(', ')} bypasses the egress guard`);
+  else errors.push(`${name}: direct ${found.join(', ')} bypasses the network guard`);
 }
 // An exemption for code this checkout does not contain, such as framework source in an
 // application installed from a registry, is not stale.
 const present = (prefix: string) =>
   all.some((file) => relative(root, file).replaceAll('\\', '/').startsWith(prefix));
-for (const exemption of Object.keys(egressExemptions))
+for (const exemption of Object.keys(networkExemptions))
   if (!exemptionUsed.has(exemption) && present(exemption))
-    errors.push(`scripts/boundary-rules.ts: stale egress exemption ${exemption}`);
+    errors.push(`scripts/boundary-rules.ts: stale network exemption ${exemption}`);
 // Bundling each application with the starter's real config catches transitive host dependencies
 // as well as direct ones: the boundary plugin in apps/web/vite.config.ts fails the graph.
 const applications = [];

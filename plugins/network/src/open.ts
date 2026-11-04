@@ -1,21 +1,21 @@
 import { ApplicationError, type AuditMode, type EventLogPort } from '@tortoise/contracts';
-import { createEgress, type Egress } from './guard';
-import { startEgressProxy, type EgressProxy } from './proxy';
+import { createNetworkGuard, type NetworkGuard } from './guard';
+import { startNetworkProxy, type NetworkProxy } from './proxy';
 import type { HostPorts, PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
 import { siteServiceOf } from '@tortoise/site/open';
 import { policyIngress } from './ingress';
 
 /** What the network plugin exposes to later plugins as `services.network`. */
 export interface NetworkService {
-  readonly egress: Egress;
+  readonly guard: NetworkGuard;
   /** The loopback CONNECT proxy for declared children; serving hosts only. */
-  readonly proxy?: EgressProxy;
+  readonly proxy?: NetworkProxy;
 }
 
 const unrecorded: AuditMode = Object.freeze({
   commands: 'best-effort',
   queries: 'best-effort',
-  egress: 'best-effort',
+  network: 'best-effort',
 });
 
 /**
@@ -33,11 +33,11 @@ function composedEventLog(ports: HostPorts): EventLogPort {
 }
 
 /** Every outbound connection through the guard; children only through the CONNECT proxy. */
-function networkPort(egress: Egress, proxy: EgressProxy | undefined): HostPorts['network'] {
+function networkPort(guard: NetworkGuard, proxy: NetworkProxy | undefined): HostPorts['network'] {
   return {
-    client: (id) => egress.client(id),
-    routedFetch: (ids) => egress.routedFetch(ids),
-    socket: (id, handler) => egress.socket(id, handler),
+    client: (id) => guard.client(id),
+    routedFetch: (ids) => guard.routedFetch(ids),
+    socket: (id, handler) => guard.socket(id, handler),
     childEnvironment(processId) {
       if (!proxy)
         throw new ApplicationError('UNAVAILABLE', 'Child processes run only under a serving host');
@@ -49,8 +49,8 @@ function networkPort(egress: Egress, proxy: EgressProxy | undefined): HostPorts[
 /**
  * Enforce the site policy's bindings:
  *
- * 1. Create the egress guard over the policy the site plugin resolved, recording into the
- *    composed event log in that log's egress mode.
+ * 1. Create the network guard over the policy the site plugin resolved, recording into the
+ *    composed event log in that log's network mode.
  * 2. In a serving host, start the loopback CONNECT proxy that declared child processes (provider
  *    CLIs) must use.
  * 3. Provide the network port, and the ingress port when the policy selects a TLS or mutual TLS listener.
@@ -59,12 +59,16 @@ function networkPort(egress: Egress, proxy: EgressProxy | undefined): HostPorts[
  */
 export async function openNetwork(context: PluginOpenContext): Promise<PluginInstance> {
   const { policy, requirements } = siteServiceOf(context.services);
-  const egress = createEgress({ policy, requirements, eventLog: composedEventLog(context.ports) });
-  const proxy = context.serving ? await startEgressProxy(egress) : undefined;
+  const guard = createNetworkGuard({
+    policy,
+    requirements,
+    eventLog: composedEventLog(context.ports),
+  });
+  const proxy = context.serving ? await startNetworkProxy(guard) : undefined;
   const ingress = policyIngress(policy);
-  const service: NetworkService = { egress, ...(proxy ? { proxy } : {}) };
+  const service: NetworkService = { guard, ...(proxy ? { proxy } : {}) };
   return {
-    ports: { network: networkPort(egress, proxy), ...(ingress ? { ingress } : {}) },
+    ports: { network: networkPort(guard, proxy), ...(ingress ? { ingress } : {}) },
     service,
     describe: () => ({ mode: policy.mode, ingress: policy.policy.ingress.listen }),
     async close() {

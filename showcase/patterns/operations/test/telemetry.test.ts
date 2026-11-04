@@ -99,7 +99,7 @@ test('test request commands reach the collector as counts, and the export is in 
   const events = await readEvents(auditServiceOf(host.services).logDirectory);
   expect(
     events.some(
-      (event) => event.kind === 'egress.completed' && event.data?.destination === 'telemetry',
+      (event) => event.kind === 'network.completed' && event.data?.destination === 'telemetry',
     ),
   ).toBe(true);
 });

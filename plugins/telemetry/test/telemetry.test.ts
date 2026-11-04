@@ -59,7 +59,7 @@ const spansOf = (received: readonly Received[]) =>
     .filter((entry) => entry.path === '/v1/traces')
     .flatMap((entry) => entry.body.resourceSpans[0].scopeSpans[0].spans as Point[]);
 
-test('commands, deliveries, backlog and runs reach the collector through the egress guard, without record contents', async () => {
+test('commands, deliveries, backlog and runs reach the collector through the network guard, without record contents', async () => {
   const collector = startCollector();
   cleanups.push(collector.stop);
   const { host, telemetry, command } = await start(collector.url);
@@ -167,7 +167,7 @@ test('commands, deliveries, backlog and runs reach the collector through the egr
   // Each export was a guarded connection, recorded in the audit log.
   expect(
     events.filter(
-      (event) => event.kind === 'egress.completed' && event.data?.destination === 'telemetry',
+      (event) => event.kind === 'network.completed' && event.data?.destination === 'telemetry',
     ).length,
   ).toBeGreaterThanOrEqual(2);
   expect(events.map((event) => event.kind)).toEqual(
