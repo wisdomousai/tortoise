@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "bun scripts/dev-desktop.ts",
     "dev:web": "bun run build:web && bun apps/service/src/index.ts",
+    "dev:showcase": "bun scripts/dev-showcase.ts",
     "build": "bun run build:web && bun run build:registry && bun run build:registry:operator && bun run build:registry:compliance && bun run build:registry:native && bun run build:registry:driver",
     "build:web": "bun --bun vite build --config apps/web/vite.config.ts --logLevel warn",
     "build:web:examples": "bun scripts/build-web-examples.ts",

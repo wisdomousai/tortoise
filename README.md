@@ -2,18 +2,7 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-A company's business runs in central systems: ERP, MES, quality management. The work behind those records happens somewhere else. A receiver counts pallets at a loading dock; an analyst runs oil tests in a lab.
-
-Between that work and the central system there is a gap, filled by a paper form, a spreadsheet or a small program someone at the site wrote. Changing the central system for one site's step is a project across the whole company, so the site builds its own tool. It runs on the computer at that step, works offline and sits outside IT governance.
-
-Software that fits one step precisely is worth more than what central IT saves by keeping applications few, as long as each one is cheap to build, needs little maintenance and pays for itself in weeks. Tortoise is a TypeScript framework that keeps them cheap. An application's own code is only what its step needs:
-
-- the records of the work
-- the commands that change them
-- the screens people use
-- the formats its central system reads
-
-The framework stores the records in a local SQLite workspace, enforces access, keeps an audit log and controls what the application may reach on the machine. Changes for other systems (an ERP, an MES) go out through an outbox after the local commit. You declare each command and query once; people use it from React screens, and agents and scripts use the same operations over HTTP, MCP and a CLI.
+Tortoise is for small applications that do a dedicated job at the edge, on the computer or phone where the work is done. A central system holds the official record, and the application delivers its result to that system. People and agents both do the job, and a person accepts what an agent proposes.
 
 ## Quickstart (5 minutes)
 

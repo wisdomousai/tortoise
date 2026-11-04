@@ -14,7 +14,7 @@ The scaffold starts an application and its parts. `scaffold new` exports the fra
   - record ownership;
   - the difference between capture and acceptance;
   - the exception path.
-- An application does one task at one site. Keep its code to that task.
+- An application does one dedicated job. Keep its code to that job.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
 - Do not add any of these records:
   - an owner
@@ -24,7 +24,7 @@ The scaffold starts an application and its parts. `scaffold new` exports the fra
 
 ## Steps
 
-1. Pick the closest example from the table below and read it as the pattern.
+1. Pick the closest example from the table below and read it as the pattern. `bun run dev:showcase <name>...` starts the ones to compare side by side, each on its own port.
 2. Export the application with `scaffold new`, or one example with `scaffold --example <name>`, as [the setup reference](references/new-application.md) describes.
 3. To install the framework packages at the checkout's version instead of copying their source, pass `--registry <url>`, or `--published` for npm's registry.
 4. To try a registry install before anything is published, serve the packages on loopback with `bun run release:serve`.

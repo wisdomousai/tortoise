@@ -23,6 +23,7 @@
     "cli",
     "dev",
     "dev:mobile",
+    "dev:showcase",
     "dev:web",
     "docs:build",
     "docs:collect",

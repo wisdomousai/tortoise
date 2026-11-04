@@ -1,6 +1,6 @@
 # Working on this starter
 
-Tortoise is a framework for small applications that each fit one process step at one site. Such an application pays off only while it is simple to build, needs little maintenance and stays limited to its step; the framework handles storage, access policy, delivery to central systems and the hosts. Judge a change by whether it keeps the next application that cheap.
+Tortoise is a framework for small applications that do a dedicated job at the edge, on the computer or phone where the work is done. Such an application pays off only while it is simple to build, needs little maintenance and stays limited to its job; the framework handles storage, access policy, delivery to central systems and the hosts. Judge a change by whether it keeps the next application that cheap.
 
 Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
 
@@ -42,7 +42,7 @@ Advice. Depart from it when the code is better for it, and say why in the commit
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts. Use an outbox effect when another system decides.
-- An application does one task at one site. Keep its code to that task.
+- An application does one dedicated job. Keep its code to that job.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
 - Do not add an owner, a term or a renewal record.
 - Document what a workspace is for, what it trusts and how to test it. Comment the non-obvious: transaction and authorization order, trust boundaries, failure behavior.

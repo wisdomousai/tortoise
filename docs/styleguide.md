@@ -20,18 +20,18 @@ Agents read this file, not personal settings, so every rule that matters is here
 
 ## Examples in a page
 
-- The receiving walk-through, from the operator's count to the ERP's decision, appears in the root README and the overview. Other pages do not retell it. A page uses an example only to show its own mechanism.
-- An example's README says how the application fits its process step, why the site builds its own instead of changing the central system, and what the application adds beyond what the framework supplies.
-- An example's README describes the work in the domain's words first: the job, the documents and the systems the site already has. Framework terms come after, where the README says how the application is built. Policy role names such as editor and viewer are not job titles.
+- The root README says what this repository is for: small applications that do a dedicated job at the edge. A central system holds the official record, and the application delivers its result to that system. Leave each sample application in its own README.
+- On any other page, an example shows that page's mechanism only.
+- An example's README names the job in the domain's words, then what the application adds beyond the framework. Framework terms come after, where the README says how the application is built. Policy role names such as editor and viewer are not job titles.
 
 ## Sentences
 
-- Name the actor and use an active verb: "the ERP writes a response file", never "a response is received". No passive voice. When the actor is unknown, make the thing the subject ("the file arrives in `erp-receipts`") or cut the sentence.
+- Name the actor and use an active verb: "the host writes the record", never "the record is written". When the actor is unknown, make the thing the subject or cut the sentence.
 - Do not write "a coding agent writes…" or make an unnamed agent the actor for the reader's work. Name the tool (Claude Code, Codex) once, then use imperatives: paste, run, check.
 - Do not write a version number for Bun or any other tool. `package.json` and the lockfile hold versions; prose says "Bun".
 - Keep a cause and its effect in one sentence when they belong together. Do not split every fact into its own sentence, and do not join clauses with semicolons.
 - Keep a sentence when the reader would lose a fact, a step, a reason or needed context without it. Cut maxims, pitch, contrast slogans and sentences that repeat another one.
-- Write headings as plain descriptive nouns, such as "Receiving flow", "Running the example" or "Exchange folders". Do not write "From notice to decision", "Try the plant stand-in", a number-led heading or a contrast slogan.
+- Write headings as plain descriptive nouns, such as "Setup", "Failure behavior" or "Running the example". Do not write "From notice to decision", "Try the plant stand-in", a number-led heading or a contrast slogan.
 - Use headings, lists, bold labels and tables when they help a reader find or compare information. Use numbered steps for a sequence, and code blocks with a language tag for commands and examples.
 
 ## Plain words

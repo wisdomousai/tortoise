@@ -1,21 +1,17 @@
 # Overview
 
-An application fits one step of a site's work and runs on the computer or phone at that step. The host is the process that runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
+An application does a dedicated job at the edge, on the computer or phone where the work is done. The host is the process that runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
 
 The instance holds a workspace — by default a SQLite database in a directory. Every change to a record is a command. The host validates input, checks access and commits. No other process writes the workspace while the instance is open.
 
 ## How a change reaches the central system
 
-The `receiving` example does goods receiving against an ERP that exchanges files through shared folders.
-
-1. The ERP writes advance shipping notices into `erp-asn`. The application imports each line.
-2. A receiver counts a line at the dock and enters the count on screen. The screen runs `delivery.receive`.
-3. When the count differs from the notice, the `receiving.discrepancy` agent proposes a reason. The receiver approves or rejects it.
-4. The receiver posts the line (`erp.send`). The host checks access, then commits the change and an outbox entry for the ERP in one transaction.
-5. The dispatcher writes the goods receipt as a file into `erp-goods-receipts`. The ERP answers with a receipt file in `erp-receipts`.
+1. Inbound sync imports what the job needs from the central system, such as orders or master data, as ordinary commands.
+2. A person on a screen, an agent over MCP or the CLI, a scanner or a device runs a command. The host validates the input, checks access to the operation, the record and its fields, and commits.
+3. When an agent runs a command that needs a person, the command waits as an approval request until a person approves or rejects it.
+4. A command whose result belongs in the central system commits its change and an effect in the outbox in one transaction.
+5. After the commit, the dispatcher delivers the effect through the target for that system: an HTTP API, a file in an exchange folder or a peer application. The central system accepts or rejects it, and the target's complete command records that outcome.
 6. Open screens refresh after each commit. The audit log has an entry for each command.
-
-The same pattern applies to an MES, a quality system or any other system of record. Commit locally first, then deliver.
 
 ## Outbox phases
 

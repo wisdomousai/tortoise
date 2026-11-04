@@ -60,6 +60,7 @@ Notes:
 | --- | --- |
 | `bun run dev` / `dev:web` | Open the configured app in the desktop window / a browser. |
 | `cd showcase/examples/<name> && bun run dev:web` | One example on its own port and workspace. |
+| `bun run dev:showcase [<name>...]` | Every example, or the named ones, each on its own port and workspace; prints their launch links. Ctrl-C stops them all. |
 | `bun run --silent cli <noun> <verb>` | The CLI from source. `bun run mcp` runs the MCP server. |
 | `bun run build:cli` / `build:web` / `build:web:examples` | Compile the CLI / build the web frame / build every example into `dist/web/<id>`. |
 | `bun run build:registry[:operator\|compliance\|native\|driver]` | Build a shadcn registry. |
