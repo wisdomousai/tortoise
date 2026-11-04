@@ -9,7 +9,7 @@ Tortoise is a TypeScript framework for small applications that run at the edge a
 | Sandboxed  | The application builds to a CLI binary that runs inside any agent sandbox. It serves its commands over MCP in-process and delivers its outbox before the sandbox closes. |
 | Zero trust | Every API call needs a session or device credential, whether a person, a script or an agent sends it. |
 | Headless   | Each process step is one capability, written once in a fixed pattern. All logic for the step is in the capability. Screens, agents and scripts only call it. |
-| Portable   | The same application runs on a desktop, in a browser, on a phone and on a hosted server. |
+| Portable   | The same application runs on a desktop, in a browser, on a hosted server and, with native screens, on a phone. |
 | AI native  | Agents run the same commands as people under a grant narrowed from a person's, and a person approves the changes an agent asks for. |
 | Generated  | Skills, the scaffold, the shadcn registries and `bun run check` give Claude Code and Codex what they need to generate an application with little effort. |
 
