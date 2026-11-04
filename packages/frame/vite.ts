@@ -6,7 +6,7 @@ import { loadManifest, readStarterConfig, type StarterConfig } from '@tortoise/h
 import type { ApplicationManifest } from '@tortoise/host/manifest';
 import { webManifestOs } from '@tortoise/shell';
 
-const SCREENS = 'virtual:agent-native/screens';
+const SCREENS = 'virtual:tortoise/screens';
 const escapeHtml = (value: string) =>
   value.replace(
     /[&<>"']/g,
@@ -97,7 +97,7 @@ function webManifestPlugin(config: StarterConfig, manifest: ApplicationManifest)
 /**
  * Build-time wiring of the web frame for the starter's configured application:
  *
- * - `virtual:agent-native/screens` resolves to that application's `screens` entrypoint, so the
+ * - `virtual:tortoise/screens` resolves to that application's `screens` entrypoint, so the
  *   starter's source never names content;
  * - `@/` resolves against the starter's own `src` first, then the frame and operator registry
  *   sources. Registry files import `@/components/ui/button` exactly as they will after `shadcn
@@ -123,7 +123,7 @@ export async function frame(options: { appSource: string; configPath: string; ou
     : `${config.application}/screens`;
   const plugins: Plugin[] = [
     {
-      name: 'agent-native-application-screens',
+      name: 'tortoise-application-screens',
       resolveId: (source) => (source === SCREENS ? `\0${SCREENS}` : null),
       load: (id) =>
         id === `\0${SCREENS}` ? `export { default } from ${JSON.stringify(screens)};` : null,
@@ -148,7 +148,7 @@ export async function frame(options: { appSource: string; configPath: string; ou
       // application's screens live outside the starter, so without this their classes (the
       // shell layout among them) are never generated. Added to the stylesheet that imports
       // Tailwind, before the Tailwind plugin reads it.
-      name: 'agent-native-tailwind-sources',
+      name: 'tortoise-tailwind-sources',
       enforce: 'pre',
       async transform(code, id) {
         if (!id.endsWith('.css') || !/@import\s+['"]tailwindcss['"]/.test(code)) return null;

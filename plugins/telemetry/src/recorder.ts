@@ -7,15 +7,15 @@ import type { AuditEvent } from '@tortoise/contracts';
  * a record, an input, a principal or a resource ID can reach an exported attribute.
  */
 export interface Attributes {
-  readonly 'agent_native.operation'?: string;
-  readonly 'agent_native.outcome'?: string;
-  readonly 'agent_native.channel'?: string;
-  readonly 'agent_native.target'?: string;
-  readonly 'agent_native.effect.status'?: string;
-  readonly 'agent_native.attempt.result'?: string;
-  readonly 'agent_native.outbox.state'?: string;
-  readonly 'agent_native.harness'?: string;
-  readonly 'agent_native.run.state'?: string;
+  readonly 'tortoise.operation'?: string;
+  readonly 'tortoise.outcome'?: string;
+  readonly 'tortoise.channel'?: string;
+  readonly 'tortoise.target'?: string;
+  readonly 'tortoise.effect.status'?: string;
+  readonly 'tortoise.attempt.result'?: string;
+  readonly 'tortoise.outbox.state'?: string;
+  readonly 'tortoise.harness'?: string;
+  readonly 'tortoise.run.state'?: string;
   readonly 'error.type'?: string;
 }
 
@@ -169,9 +169,9 @@ export function createRecorder(options: RecorderOptions = {}) {
     const operation = identifier(event.operation);
     const failed = outcome === 'failed' || outcome === 'denied' || outcome === 'aborted';
     const attributes: Attributes = {
-      'agent_native.operation': operation,
-      'agent_native.outcome': outcome,
-      ...(event.actor?.via ? { 'agent_native.channel': identifier(event.actor.via) } : {}),
+      'tortoise.operation': operation,
+      'tortoise.outcome': outcome,
+      ...(event.actor?.via ? { 'tortoise.channel': identifier(event.actor.via) } : {}),
       ...(failed && event.reason ? { 'error.type': code(event.reason) } : {}),
     };
     commands.add(attributes);
@@ -179,7 +179,7 @@ export function createRecorder(options: RecorderOptions = {}) {
     if (event.correlationId) accepted.delete(event.correlationId);
     if (started !== undefined)
       commandDuration.record(
-        { 'agent_native.operation': operation, 'agent_native.outcome': outcome },
+        { 'tortoise.operation': operation, 'tortoise.outcome': outcome },
         Math.max(0, event.at - started),
       );
     span({
@@ -204,8 +204,8 @@ export function createRecorder(options: RecorderOptions = {}) {
     } else if (event.kind === 'effect.completed') {
       const status = effectStates.has(String(data.status)) ? String(data.status) : 'unknown';
       const attributes: Attributes = {
-        'agent_native.target': target,
-        'agent_native.effect.status': status,
+        'tortoise.target': target,
+        'tortoise.effect.status': status,
       };
       deliveries.add(attributes);
       const open = effects.get(id);
@@ -233,7 +233,7 @@ export function createRecorder(options: RecorderOptions = {}) {
             : data.acknowledged === true
               ? 'acknowledged'
               : 'retry';
-      attempts.add({ 'agent_native.target': target, 'agent_native.attempt.result': result });
+      attempts.add({ 'tortoise.target': target, 'tortoise.attempt.result': result });
     }
   }
 
@@ -242,16 +242,16 @@ export function createRecorder(options: RecorderOptions = {}) {
     const data = event.data ?? {};
     const state = runStates.has(String(data.state)) ? String(data.state) : 'unknown';
     const attributes: Attributes = {
-      'agent_native.harness': identifier(data.harness),
-      'agent_native.run.state': state,
+      'tortoise.harness': identifier(data.harness),
+      'tortoise.run.state': state,
       ...(state !== 'succeeded' && event.reason ? { 'error.type': code(event.reason) } : {}),
     };
     runs.add(attributes);
     const duration = typeof data.durationMs === 'number' ? Math.max(0, data.durationMs) : 0;
     runDuration.record(
       {
-        'agent_native.harness': attributes['agent_native.harness'],
-        'agent_native.run.state': state,
+        'tortoise.harness': attributes['tortoise.harness'],
+        'tortoise.run.state': state,
       },
       duration,
     );

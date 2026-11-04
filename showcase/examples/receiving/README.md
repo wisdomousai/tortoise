@@ -26,7 +26,7 @@ Drop a notice and start the app with the policy. The launch prints a `CLI:` line
 ```sh
 printf 'id,purchaseOrder,supplier,sku,description,expected\nASN-1-1,PO-1,Acme,M8,Bolt,10\n' > /tmp/erp/asn/asn-1.csv
 cd showcase/examples/receiving
-AGENT_NATIVE_SITE_POLICY=/tmp/erp/site-policy.json bun run dev:web
+TORTOISE_SITE_POLICY=/tmp/erp/site-policy.json bun run dev:web
 ```
 
 ## What to try

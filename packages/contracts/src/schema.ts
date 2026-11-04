@@ -102,7 +102,7 @@ function standardSchema<Z extends z.ZodType>(
 ): StandardSchemaProps<z.output<Z>> {
   return Object.freeze({
     version: 1 as const,
-    vendor: 'agent-native',
+    vendor: 'tortoise',
     validate(value: unknown) {
       const candidate = withoutUndefined(value);
       // Zod's safe parse supplies field paths; the JSON checks below keep parity with `parse`.

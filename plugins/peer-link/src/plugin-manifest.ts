@@ -15,7 +15,7 @@ export const peerLinkPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'peer-link-agents',
-      env: 'AGENT_NATIVE_PEER_LINK_AGENTS',
+      env: 'TORTOISE_PEER_LINK_AGENTS',
       kind: 'string',
       description:
         'refuse or allow calls on behalf of a person that a delegated run made on the caller; absent: the application default, refuse unless it says otherwise',

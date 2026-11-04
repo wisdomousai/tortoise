@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * The signed subject assertion a call on behalf of a person carries in `Agent-Native-Subject`:
+ * The signed subject assertion a call on behalf of a person carries in `Tortoise-Subject`:
  * `v1.<claims>.<signature>`, where `claims` is base64url JSON and `signature` is the base64url
  * Ed25519 signature, by the calling application's enrolled key, over the ASCII `v1.<claims>`.
  *

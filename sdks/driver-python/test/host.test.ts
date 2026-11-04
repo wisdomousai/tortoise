@@ -36,7 +36,7 @@ beforeAll(async () => {
     python,
     [
       '-m',
-      'agent_native_driver.stubgen',
+      'tortoise_driver.stubgen',
       join(root, 'chamber.json'),
       '-o',
       join(root, 'chamber_contract.py'),
@@ -81,7 +81,7 @@ describe.skipIf(!python)('the Python SDK', () => {
     );
     const generated = spawnSync(
       python!,
-      ['-m', 'agent_native_driver.stubgen', join(root, 'edited.json')],
+      ['-m', 'tortoise_driver.stubgen', join(root, 'edited.json')],
       { env: env(), encoding: 'utf8' },
     );
     expect(generated.status).toBe(1);

@@ -9,7 +9,7 @@ The host runs on a server with its workspace in Postgres, and a site connects to
 ### Run one
 
 1. Create a Postgres database the instance can create tables in.
-2. Put its URL in `AGENT_NATIVE_DATABASE_URL`, from your secret store. The host reads it only from there.
+2. Put its URL in `TORTOISE_DATABASE_URL`, from your secret store. The host reads it only from there.
 3. Start the instance. Every instance of one workspace uses the same `<name>`:
 
    ```sh
@@ -69,15 +69,15 @@ Set up a site:
 1. Add `fleetAgentPluginManifest` to the manifest's plugins and `fleetAgentPlugin` to the application's plugins, after the site, network and audit plugins.
 2. In the deployment policy, bind `destinations.fleet` to the fleet's https origin and `folders['fleet-releases']` to a writable directory.
 3. On the fleet's **Devices** screen, create a `field-sync` enrollment code (the screen calls it a phone).
-4. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. Later starts need no code.
-5. Set `AGENT_NATIVE_FLEET_TRUST` to the publisher's `key.pub.json`. Without it the agent stages nothing.
+4. Start the site once with `--fleet-enrollment-code <code>` or `TORTOISE_FLEET_ENROLLMENT_CODE`. Later starts need no code.
+5. Set `TORTOISE_FLEET_TRUST` to the publisher's `key.pub.json`. Without it the agent stages nothing.
 6. Activate a staged release: `app install <releases folder>/<release id> --trust key.pub.json`.
 
 `createFleetAgentPlugin({ intervalMs, relayMs })` changes the intervals. Test: `bun test plugins/fleet-agent`.
 
 ### Relay
 
-Remote access to a site through the fleet. Off by default; set `AGENT_NATIVE_FLEET_RELAY=on` to enable it.
+Remote access to a site through the fleet. Off by default; set `TORTOISE_FLEET_RELAY=on` to enable it.
 
 - The site polls every 2 s and forwards one request at a time to its own `/api/v1/`, bodies up to 1 MiB, no event streams.
 - Cookies never go in, `set-cookie` never comes out, and the site follows no redirects.

@@ -9,7 +9,7 @@ export const intentScannerPluginManifest = definePluginManifest({
   id: 'intent-scanner',
   title: 'Intent scanner',
   platforms: ['android'],
-  native: { module: 'AgentNativeIntentScanner' },
+  native: { module: 'TortoiseIntentScanner' },
 });
 
 export default intentScannerPluginManifest;

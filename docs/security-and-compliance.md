@@ -63,7 +63,7 @@ Rules (`packages/contracts/src/requirements.ts`):
 
 ## Deployment policy
 
-The policy is one JSON file per site. Pass it with `--site-policy` or `AGENT_NATIVE_SITE_POLICY`. Check it with `app site check --site <file>` (exit 2 on errors).
+The policy is one JSON file per site. Pass it with `--site-policy` or `TORTOISE_SITE_POLICY`. Check it with `app site check --site <file>` (exit 2 on errors).
 
 ```json
 {

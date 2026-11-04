@@ -12,7 +12,7 @@ export const enrollPath = '/api/v1/peer/enroll';
 export const connectPath = '/api/v1/peer/connect';
 
 /** The header that carries a signed subject assertion on a call on behalf of a person. */
-export const subjectHeader = 'Agent-Native-Subject';
+export const subjectHeader = 'Tortoise-Subject';
 
 const id = z.string().regex(/^[a-z0-9-]{1,64}$/);
 const label = z

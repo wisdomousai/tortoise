@@ -9,7 +9,7 @@ import { startService } from '../../../../tests/e2e/service';
 test('UI, external MCP and deterministic agent share live state; drafts retain their base revision', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   let mcp: Client | undefined;
   try {
@@ -24,7 +24,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
         command: 'bun',
         args: ['packages/adapters/src/mcp.ts'],
         cwd: process.cwd(),
-        env: { PATH: process.env.PATH ?? '', AGENT_NATIVE_CONNECTION: host.connectionFile },
+        env: { PATH: process.env.PATH ?? '', TORTOISE_CONNECTION: host.connectionFile },
       }),
     );
     const tools = await mcp.listTools();
@@ -104,7 +104,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
 test('tasks after the first page stay reachable and totals come from authorized counts', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   try {
     host = await startService('@tortoise/field-service', workspace);

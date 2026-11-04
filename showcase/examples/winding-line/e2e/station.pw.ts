@@ -38,7 +38,7 @@ async function wedge(page: Page, text: string) {
 }
 
 async function openKit(page: Page) {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-station-kit-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-station-kit-'));
   const host = await startService('@tortoise/winding-line', workspace);
   await page.goto(host.launchUrl);
   await expect(page.getByRole('link', { name: 'Stations', exact: true })).toBeVisible();
@@ -210,7 +210,7 @@ test.describe('winding line', () => {
   test('a stop observed on the screen is classified, an order is scanned and loaded, and takeover blocks the bridge', async ({
     page,
   }) => {
-    const workspace = await mkdtemp(join(tmpdir(), 'agent-native-winding-line-'));
+    const workspace = await mkdtemp(join(tmpdir(), 'tortoise-winding-line-'));
     const hmi = await startHmi();
     const host = await startService('@tortoise/winding-line', workspace, {
       STATION_HMI_URL: hmi.url,

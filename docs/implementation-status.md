@@ -72,7 +72,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 - **Proven (by hand):** a CLI built on 1 Jan 2026 with a best-before date of 30 Jun 2026 showed the expiry notice, still committed, and `compliance report` marked `best-before` as `warn`.
 - **Not yet:** a Playwright spec for the notice; a best-before date reported to a fleet over a real network.
-- **Limits:** `network export` alone names the application ID as socket owner, while `app install` runs as `agent-native`. Pass `--user` when exporting separately.
+- **Limits:** `network export` alone names the application ID as socket owner, while `app install` runs as `tortoise`. Pass `--user` when exporting separately.
 
 ### Workforce sign-in
 

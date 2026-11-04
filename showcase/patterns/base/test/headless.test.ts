@@ -34,7 +34,7 @@ async function cli(...args: string[]) {
       cwd: root,
       env: {
         PATH: process.env.PATH,
-        AGENT_NATIVE_APPLICATION: '@tortoise/pattern-base',
+        TORTOISE_APPLICATION: '@tortoise/pattern-base',
       },
       stdout: 'pipe',
       stderr: 'pipe',

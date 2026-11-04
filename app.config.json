@@ -1,6 +1,6 @@
 {
   "name": "tortoise-starter",
   "displayName": "Field Service",
-  "appId": "dev.agentnative.workspace",
+  "appId": "dev.tortoise.workspace",
   "application": "@tortoise/field-service"
 }

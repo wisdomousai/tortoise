@@ -43,7 +43,7 @@ test('the config plugin writes intent filters with their declared names and DEFA
   const written = once.manifest.application[0]!.activity[0]!['intent-filter']!;
   expect(written).toHaveLength(3);
   expect(written[1]).toEqual({
-    $: { 'data-agent-native-intent': 'true' },
+    $: { 'data-tortoise-intent': 'true' },
     action: [{ $: { 'android:name': 'dev.example.notes.action.ATTACH' } }],
     category: [
       { $: { 'android:name': 'android.intent.category.DEFAULT' } },

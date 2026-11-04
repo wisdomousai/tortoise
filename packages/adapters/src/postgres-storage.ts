@@ -87,7 +87,7 @@ export class PostgresStorage<State> implements Storage<State> {
     return this.serialize(async () => {
       try {
         const committed = await this.driver.transaction(async (tx) => {
-          await lockKey(tx, `agent-native:workspace:${key}`);
+          await lockKey(tx, `tortoise:workspace:${key}`);
           await this.options.fence?.(tx);
           const { loaded } = await this.current(tx, key);
           const { snapshot } = loaded;

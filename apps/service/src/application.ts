@@ -3,7 +3,7 @@ import { loadApplication, readStarterConfig } from '@tortoise/host/config';
 
 /**
  * The starter's composition point: the one place it learns which content it hosts. The
- * application comes from `app.config.json` (or `AGENT_NATIVE_APPLICATION` for development) and
+ * application comes from `app.config.json` (or `TORTOISE_APPLICATION` for development) and
  * is resolved at runtime, so the starter never imports `showcase/*`. Compiled builds
  * generate a static entry for the same application instead (`scripts/application-entry.ts`).
  */

@@ -4,13 +4,13 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 /**
  * Blobs of one workspace in the app's document directory, in the same layout as the desktop:
- * `agent-native/<workspace>/blobs/sha256/<first two hex>/<rest>`. Each file is written under
+ * `tortoise/<workspace>/blobs/sha256/<first two hex>/<rest>`. Each file is written under
  * `tmp` and moved into place, so a crash never leaves a partial blob under its digest. The file
  * system has no way to touch a file, so storing present bytes again rewrites them, which
  * refreshes `storedAt`.
  */
 export function expoBlobStore(workspace: string): BlobStore {
-  const root = new Directory(Paths.document, 'agent-native', workspace, 'blobs');
+  const root = new Directory(Paths.document, 'tortoise', workspace, 'blobs');
   const staging = new Directory(root, 'tmp');
   const digests = new Directory(root, 'sha256');
   const fileOf = (digest: string) => {

@@ -92,17 +92,17 @@ export function hostedPlatform(options: HostedPlatformOptions): ServingPlatform 
 }
 
 /**
- * The hosted platform for `workspace` in the Postgres database that `AGENT_NATIVE_DATABASE_URL`
+ * The hosted platform for `workspace` in the Postgres database that `TORTOISE_DATABASE_URL`
  * names, as `serve --hosted-workspace` and a development launch start it. The URL is read from the
  * environment, never a flag, so its credentials stay out of the process list. Losing the lease
  * stops the host with exit code 1, for the orchestrator to restart it behind the new holder.
  */
 export function hostedPlatformFromEnvironment(workspace: string, env = process.env) {
-  const url = env.AGENT_NATIVE_DATABASE_URL;
+  const url = env.TORTOISE_DATABASE_URL;
   if (!url)
     throw new ApplicationError(
       'INVALID_INPUT',
-      '--hosted-workspace needs AGENT_NATIVE_DATABASE_URL in the environment',
+      '--hosted-workspace needs TORTOISE_DATABASE_URL in the environment',
     );
   return hostedPlatform({
     database: bunPostgres(url),

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import entry from 'virtual:agent-native/mobile-entry';
+import entry from 'virtual:tortoise/mobile-entry';
 import { NativeFrame } from '@tortoise/frame-native/frame';
 import {
   connectMobileShell,

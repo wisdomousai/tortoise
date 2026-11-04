@@ -6,7 +6,7 @@ import ExpoModulesCore
 /// it by key. Read-only.
 public class ManagedConfigModule: Module {
   public func definition() -> ModuleDefinition {
-    Name("AgentNativeManagedConfig")
+    Name("TortoiseManagedConfig")
 
     Function("read") { () -> [String: String?] in
       let managed =

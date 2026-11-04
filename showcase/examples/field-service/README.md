@@ -10,7 +10,7 @@ bun run dev:web
 ## What to try
 
 - Create a work order and a task (port 4321), then choose **Create tasks from brief**: the offline harness turns each line into a task command without a provider account.
-- With the host running, set `AGENT_NATIVE_CONNECTION` to its connection file and run `bun run job <work-order-id>` from this directory to move up to 100 todo tasks to doing.
+- With the host running, set `TORTOISE_CONNECTION` to its connection file and run `bun run job <work-order-id>` from this directory to move up to 100 todo tasks to doing.
 - `bun run dev` opens the same app in a desktop window.
 
 ## References

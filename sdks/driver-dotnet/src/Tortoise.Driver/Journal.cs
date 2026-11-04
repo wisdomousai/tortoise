@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace AgentNative.Driver;
+namespace Tortoise.Driver;
 
 /// <summary>Where an effect stands. <c>Released</c>: refused before acting, so it may run again.</summary>
 public enum JournalStatus

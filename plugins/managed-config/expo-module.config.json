@@ -4,6 +4,6 @@
     "modules": ["ManagedConfigModule"]
   },
   "android": {
-    "modules": ["dev.agentnative.managedconfig.ManagedConfigModule"]
+    "modules": ["dev.tortoise.managedconfig.ManagedConfigModule"]
   }
 }

@@ -18,7 +18,7 @@ export async function startService(
         cwd,
         env: {
           ...process.env,
-          AGENT_NATIVE_APPLICATION: application,
+          TORTOISE_APPLICATION: application,
           WORKSPACE_PATH: workspace,
           PORT: '0',
           ...env,

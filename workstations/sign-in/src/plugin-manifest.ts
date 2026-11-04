@@ -14,14 +14,14 @@ export const stationSignInPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'station-sign-in-terminals',
-      env: 'AGENT_NATIVE_STATION_SIGN_IN_TERMINALS',
+      env: 'TORTOISE_STATION_SIGN_IN_TERMINALS',
       kind: 'string',
       description:
         'comma-separated principals whose screens are station terminals, besides the local owner; absent: only the local owner',
     },
     {
       key: 'station-sign-in-minutes',
-      env: 'AGENT_NATIVE_STATION_SIGN_IN_MINUTES',
+      env: 'TORTOISE_STATION_SIGN_IN_MINUTES',
       kind: 'string',
       description: 'how long an operator session lasts, in minutes; default 15',
     },

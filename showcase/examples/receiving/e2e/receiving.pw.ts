@@ -36,7 +36,7 @@ test('a short line is counted, classified and posted through the exchange folder
     }),
   );
   const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
-    AGENT_NATIVE_SITE_POLICY: policy,
+    TORTOISE_SITE_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);
@@ -125,7 +125,7 @@ test('a receipt the ERP left unreadable is held, and an editor records that it w
     }),
   );
   const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
-    AGENT_NATIVE_SITE_POLICY: policy,
+    TORTOISE_SITE_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);

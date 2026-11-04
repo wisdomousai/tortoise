@@ -1,4 +1,4 @@
-import screens from 'virtual:agent-native/screens';
+import screens from 'virtual:tortoise/screens';
 import { Frame } from '@/frame';
 
 /**

@@ -80,7 +80,7 @@ interface ServiceOptions {
   runtimeManifest?: string;
   /** Site policy file for the service; absent leaves the service isolated (loopback only). */
   sitePolicy?: string;
-  /** The application's URL scheme, passed to the OS plugin as `AGENT_NATIVE_OS_SCHEME`. */
+  /** The application's URL scheme, passed to the OS plugin as `TORTOISE_OS_SCHEME`. */
   scheme?: string;
   startupTimeoutMs?: number;
   /** Listen port for a service this host starts. Packaged startup leaves this unset (`0`). */
@@ -131,9 +131,9 @@ function serviceEnvironment(options: ServiceOptions, workspace: string): NodeJS.
     WEB_ROOT: options.webRoot,
   });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
-  if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
+  if (options.sitePolicy) env.TORTOISE_SITE_POLICY = options.sitePolicy;
   // The OS plugin handles links in this scheme; an application without it ignores the key.
-  if (options.scheme) env.AGENT_NATIVE_OS_SCHEME = options.scheme;
+  if (options.scheme) env.TORTOISE_OS_SCHEME = options.scheme;
   return env;
 }
 

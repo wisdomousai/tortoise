@@ -19,7 +19,7 @@ async function lot(page: Page, origin: string, id: string) {
 test('keyboard-only capture records, advances, deduplicates and shows SoR outcomes live', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-inspection-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-inspection-'));
   // Another quality-system user holds lot 4000002, so its forwarded results are rejected.
   const host = await startService('@tortoise/quality-inspection', workspace, {
     DEMO_QUALITY_LOCKED_LOTS: '4000002',
@@ -121,7 +121,7 @@ test('keyboard-only capture records, advances, deduplicates and shows SoR outcom
 test('an unfinished draft keeps its sample when another caller records that sample first', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-inspection-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-inspection-'));
   const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);

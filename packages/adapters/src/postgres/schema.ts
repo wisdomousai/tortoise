@@ -41,7 +41,7 @@ const tables = [
  */
 export function openPgSchema(driver: PgDriver): Promise<void> {
   return driver.transaction(async (tx) => {
-    await lockKey(tx, 'agent-native:schema');
+    await lockKey(tx, 'tortoise:schema');
     await tx.query('CREATE TABLE IF NOT EXISTS framework_schema (version INTEGER NOT NULL)');
     const [row] = await tx.query<{ version: number }>('SELECT version FROM framework_schema');
     if (row && Number(row.version) !== PG_SCHEMA_VERSION)

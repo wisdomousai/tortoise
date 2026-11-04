@@ -103,7 +103,7 @@ describe('generated compliance artifacts', () => {
 
   test('the manifest lists every declaration with its owner', () => {
     const manifest = securityManifest({
-      application: 'agent-native',
+      application: 'tortoise',
       catalog,
       components: [plant],
     });
@@ -154,7 +154,7 @@ describe('generated compliance artifacts', () => {
       },
     });
     const manifest = securityManifest({
-      application: 'agent-native',
+      application: 'tortoise',
       catalog: buildCatalog(
         [
           defineModule({
@@ -225,7 +225,7 @@ describe('generated compliance artifacts', () => {
     });
     const withOs = buildCatalog([complianceModule], { components: [plant, opener] });
     const manifest = securityManifest({
-      application: 'agent-native',
+      application: 'tortoise',
       catalog: withOs,
       components: [plant, opener],
     });
@@ -262,14 +262,12 @@ describe('generated compliance artifacts', () => {
 
   test('the SBOM is deterministic CycloneDX 1.6 with runtime scope from the lock', async () => {
     const manifest = securityManifest({
-      application: 'agent-native',
+      application: 'tortoise',
       catalog,
       components: [plant],
     });
-    const bom = cycloneDx({ application: 'agent-native', version: '1.0.0', lock, manifest }) as any;
-    expect(cycloneDx({ application: 'agent-native', version: '1.0.0', lock, manifest })).toEqual(
-      bom,
-    );
+    const bom = cycloneDx({ application: 'tortoise', version: '1.0.0', lock, manifest }) as any;
+    expect(cycloneDx({ application: 'tortoise', version: '1.0.0', lock, manifest })).toEqual(bom);
     expect(bom).toMatchObject({ bomFormat: 'CycloneDX', specVersion: '1.6', version: 1 });
     expect(bom.serialNumber).toMatch(
       /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -294,7 +292,7 @@ describe('generated compliance artifacts', () => {
       dependsOn: ['pkg:npm/c@2.0.0'],
     });
     expect(bom.dependencies).toContainEqual({
-      ref: 'application:agent-native@1.0.0',
+      ref: 'application:tortoise@1.0.0',
       dependsOn: ['pkg:npm/%40scope/b@2.0.0', 'pkg:npm/a@1.0.0', 'pkg:npm/d@3.0.0'],
     });
     expect(bom.services.map((item: any) => item['bom-ref'])).toContain('service:vendor-api');

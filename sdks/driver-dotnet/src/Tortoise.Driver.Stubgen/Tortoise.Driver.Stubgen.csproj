@@ -3,6 +3,6 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../AgentNative.Driver/AgentNative.Driver.csproj" />
+    <ProjectReference Include="../Tortoise.Driver/Tortoise.Driver.csproj" />
   </ItemGroup>
 </Project>

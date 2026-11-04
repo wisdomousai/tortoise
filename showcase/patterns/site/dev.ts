@@ -6,7 +6,7 @@ import { join } from 'node:path';
  * Run by `bun run dev:web` before the launch. It writes a site policy that binds the `fleet`
  * destination to the fleet example on 127.0.0.1:4340 (`LAB_FLEET_URL` to change it) and the
  * `fleet-releases` folder to a new directory. Both go in a temporary directory, because a folder
- * binding is an absolute path. An explicit `AGENT_NATIVE_SITE_POLICY` wins.
+ * binding is an absolute path. An explicit `TORTOISE_SITE_POLICY` wins.
  */
 const directory = mkdtempSync(join(tmpdir(), 'test-requests-site-'));
 const releases = join(directory, 'fleet-releases');
@@ -27,5 +27,5 @@ writeFileSync(
     2,
   ),
 );
-process.env.AGENT_NATIVE_SITE_POLICY ??= policy;
+process.env.TORTOISE_SITE_POLICY ??= policy;
 console.log(`Fleet: ${fleet}; staged releases: ${releases}`);

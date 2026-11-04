@@ -53,8 +53,7 @@ export async function createProviderAccess(options: ProviderAccessOptions) {
   const state: ProviderState = {
     options,
     workspacePath,
-    vault:
-      options.vault ?? new OsCredentialVault(`agent-native.${digest(workspacePath).slice(0, 32)}`),
+    vault: options.vault ?? new OsCredentialVault(`tortoise.${digest(workspacePath).slice(0, 32)}`),
     now: options.now ?? Date.now,
     // The only default network client; every provider request in providers/ goes through it.
     fetcher: options.fetch ?? fetch,

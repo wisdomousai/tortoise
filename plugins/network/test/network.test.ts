@@ -66,13 +66,13 @@ const requirements = collectRequirements([plant]);
 const sandboxPolicy = () =>
   loadSitePolicy(join(fixtures, 'site-policy.sandbox.json'), requirements);
 const exportOptions = {
-  user: 'agent-native',
+  user: 'tortoise',
   uid: 10001,
-  executable: '/opt/agent-native/service',
-  workspace: '/var/lib/agent-native/workspace',
-  auditLog: '/var/lib/agent-native/audit',
-  sitePolicy: '/etc/agent-native/site-policy.json',
-  image: 'registry.plant.local/agent-native:1.0.0',
+  executable: '/opt/tortoise/service',
+  workspace: '/var/lib/tortoise/workspace',
+  auditLog: '/var/lib/tortoise/audit',
+  sitePolicy: '/etc/tortoise/site-policy.json',
+  image: 'registry.plant.local/tortoise:1.0.0',
 };
 const extensions: Record<(typeof exportFormats)[number], string> = {
   json: 'json',
@@ -95,7 +95,7 @@ describe('network rules', () => {
 
   test('only bound, addressable, non-loopback destinations become allow rules', async () => {
     const rules = networkRules(await sandboxPolicy(), {
-      application: 'agent-native',
+      application: 'tortoise',
       resolvers: ['10.20.0.53'],
       processes: requirements.processes,
     });
@@ -116,7 +116,7 @@ describe('network rules', () => {
   });
 
   test('the isolated default exports loopback only', () => {
-    const rules = networkRules(isolatedPolicy(requirements), { application: 'agent-native' });
+    const rules = networkRules(isolatedPolicy(requirements), { application: 'tortoise' });
     expect(rules.allow).toEqual([]);
     expect(rules.unresolved).toEqual([]);
     expect(exportRules(rules, 'systemd', exportOptions)).toContain('IPAddressDeny=any');
@@ -125,7 +125,7 @@ describe('network rules', () => {
   for (const format of exportFormats)
     test(`${format} export matches the golden file`, async () => {
       const rules = networkRules(await sandboxPolicy(), {
-        application: 'agent-native',
+        application: 'tortoise',
         resolvers: ['10.20.0.53'],
         processes: requirements.processes,
       });

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>AgentNative.Driver</RootNamespace>
+    <RootNamespace>Tortoise.Driver</RootNamespace>
     <Description>Write a hardware driver for an agent-native host: JSON-RPC over stdio, gating, the effect journal and contract stubs.</Description>
   </PropertyGroup>
 </Project>

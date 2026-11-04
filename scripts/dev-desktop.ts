@@ -38,7 +38,7 @@ await writeFile(
   resolve(appDir, 'package.json'),
   JSON.stringify(
     {
-      name: 'agent-native-desktop-dev',
+      name: 'tortoise-desktop-dev',
       version: rootPackage.version,
       private: true,
       type: 'module',
@@ -50,24 +50,24 @@ await writeFile(
 );
 
 const sitePolicy =
-  process.env.AGENT_NATIVE_SITE_POLICY === undefined
+  process.env.TORTOISE_SITE_POLICY === undefined
     ? resolve(prepared.root, 'apps/desktop/site-policy.json')
-    : process.env.AGENT_NATIVE_SITE_POLICY.trim();
+    : process.env.TORTOISE_SITE_POLICY.trim();
 const electronBinary = require('electron') as string;
 console.log(`Opening ${prepared.title}…`);
 const child = spawn(electronBinary, [appDir], {
   cwd: prepared.root,
   env: {
     ...process.env,
-    AGENT_NATIVE_DESKTOP_DEV: '1',
-    AGENT_NATIVE_APPLICATION: prepared.packageName,
-    AGENT_NATIVE_WORKSPACE: prepared.workspace,
-    AGENT_NATIVE_WEB_ROOT: resolve(prepared.root, 'dist/web', prepared.applicationId),
-    AGENT_NATIVE_SERVICE_ENTRY: resolve(prepared.root, 'apps/service/src/index.ts'),
-    AGENT_NATIVE_BUN: process.execPath,
-    AGENT_NATIVE_DEV_ROOT: prepared.root,
+    TORTOISE_DESKTOP_DEV: '1',
+    TORTOISE_APPLICATION: prepared.packageName,
+    TORTOISE_WORKSPACE: prepared.workspace,
+    TORTOISE_WEB_ROOT: resolve(prepared.root, 'dist/web', prepared.applicationId),
+    TORTOISE_SERVICE_ENTRY: resolve(prepared.root, 'apps/service/src/index.ts'),
+    TORTOISE_BUN: process.execPath,
+    TORTOISE_DEV_ROOT: prepared.root,
     PORT: prepared.port ?? '4317',
-    ...(sitePolicy ? { AGENT_NATIVE_SITE_POLICY: sitePolicy } : {}),
+    ...(sitePolicy ? { TORTOISE_SITE_POLICY: sitePolicy } : {}),
   },
   stdio: 'inherit',
 });

@@ -57,7 +57,7 @@ test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same 
         Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir),
         'delivery.list',
       ],
-      { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },
+      { env: { PATH: process.env.PATH, TORTOISE_CONNECTION: connection }, stdout: 'pipe' },
     );
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     expect(exitCode).toBe(0);

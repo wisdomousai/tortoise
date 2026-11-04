@@ -20,7 +20,7 @@ An application keeps records its systems of record have not completed only in it
 2. Read the best-before date of an installed release with `app status --trust key.pub.json`.
 3. Decide each held effect on the application's reconciliation screen while the service runs.
 4. Stop the service, then run `app drain` with the service's `--workspace`, `--site-policy` and `--audit-log` until it exits 0.
-5. Copy `var/lib/agent-native/<app>` when a retention rule covers its records or audit log.
+5. Copy `var/lib/tortoise/<app>` when a retention rule covers its records or audit log.
 6. Run `app uninstall --purge --trust key.pub.json --apply`, with the install's `--prefix` for a staged install. The purge runs the release's drain itself and refuses while effects remain.
 7. When the purge is refused, read the per-target counts in the error details. Start the service to deliver or decide them, then repeat from step 3.
 8. Pass `--discard-undelivered` only when the remaining effects may be lost. The result lists what was deleted.

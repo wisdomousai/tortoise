@@ -15,7 +15,7 @@ The Expo project in `apps/mobile` runs one application on Android and iOS. Appli
 
 The mobile host platform runs the same composition and runtime as the desktop host. Secrets go in the Keychain or Keystore, and the app lifecycle takes the place of a host process. No raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
 
-A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot storage adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. An exclusive transaction on `<name>.lock.sqlite` holds ownership while the instance is open. The platform refuses a second open (`packages/mobile/src/platform.ts`).
+A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot storage adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `tortoise/<name>/blobs` in the document directory. An exclusive transaction on `<name>.lock.sqlite` holds ownership while the instance is open. The platform refuses a second open (`packages/mobile/src/platform.ts`).
 
 ## Instance lifecycle
 

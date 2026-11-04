@@ -169,7 +169,7 @@ async function readResource(client: McpClient, uri: string) {
 /** Real MCP protocol server. All tool calls attach to the same HTTP instance as the frontend. */
 export function createMcpServer(client: McpClient) {
   const server = new Server(
-    { name: 'agent-native-application', version: '0.1.0' },
+    { name: 'tortoise-application', version: '0.1.0' },
     { capabilities: { tools: {}, resources: {} } },
   );
   server.setRequestHandler(ListToolsRequestSchema, () => listTools(client));

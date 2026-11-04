@@ -6,15 +6,15 @@ Start the fleet (`bun run dev:web` in `showcase/examples/fleet`), create an enro
 
 ```sh
 cd showcase/patterns/site
-AGENT_NATIVE_FLEET_ENROLLMENT_CODE=<code> AGENT_NATIVE_FLEET_TRUST=<dir>/key.pub.json bun run dev:web
+TORTOISE_FLEET_ENROLLMENT_CODE=<code> TORTOISE_FLEET_TRUST=<dir>/key.pub.json bun run dev:web
 ```
 
 ## What to try
 
 - After the first cycle, the fleet's **Sites** screen lists the lab and **Audit** shows the forwarded events.
-- Build, sign and publish a release from the repository root with `AGENT_NATIVE_APPLICATION=@tortoise/pattern-site`: `bun run build:web`, `bun run bundle create --key <dir>/key.json --out <bundle> --version 1.2.0`, then `AGENT_NATIVE_CONNECTION=showcase/examples/fleet/.workspace/.connection.json bun showcase/patterns/site/publish-release.ts <bundle> --channel lab-stable`. Set the lab's channel to `lab-stable`; within a minute the fleet agent stages the release in the `fleet-releases` directory `dev.ts` printed.
+- Build, sign and publish a release from the repository root with `TORTOISE_APPLICATION=@tortoise/pattern-site`: `bun run build:web`, `bun run bundle create --key <dir>/key.json --out <bundle> --version 1.2.0`, then `TORTOISE_CONNECTION=showcase/examples/fleet/.workspace/.connection.json bun showcase/patterns/site/publish-release.ts <bundle> --channel lab-stable`. Set the lab's channel to `lab-stable`; within a minute the fleet agent stages the release in the `fleet-releases` directory `dev.ts` printed.
 - Admit it with `bun run bundle admit <releases>/1.2.0 --trust <dir>/key.pub.json`. A first install widens every requirement, so admit refuses; write the output's `approval` field to `approval.json` and admit again with `--approval approval.json`.
-- Install under a prefix without loading anything: `<bundle>/files/bin/tortoise-starter install <releases>/1.2.0 --trust <dir>/key.pub.json --site-policy showcase/patterns/site/site-policy.json --approval approval.json --prefix <prefix> --service systemd`. `network export --site showcase/patterns/site/site-policy.json --format nftables --resolver <ip> --user agent-native` renders the firewall rules on their own.
+- Install under a prefix without loading anything: `<bundle>/files/bin/tortoise-starter install <releases>/1.2.0 --trust <dir>/key.pub.json --site-policy showcase/patterns/site/site-policy.json --approval approval.json --prefix <prefix> --service systemd`. `network export --site showcase/patterns/site/site-policy.json --format nftables --resolver <ip> --user tortoise` renders the firewall rules on their own.
 
 ## References
 

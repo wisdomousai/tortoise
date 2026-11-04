@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace AgentNative.Driver;
+namespace Tortoise.Driver;
 
 /// <summary>
 /// The contract file the host writes with <c>app driver contract &lt;id&gt; --out file.json</c>:

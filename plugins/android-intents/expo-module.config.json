@@ -1,6 +1,6 @@
 {
   "platforms": ["android"],
   "android": {
-    "modules": ["dev.agentnative.osintents.OsIntentsModule"]
+    "modules": ["dev.tortoise.osintents.OsIntentsModule"]
   }
 }

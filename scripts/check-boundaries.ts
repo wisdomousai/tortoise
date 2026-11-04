@@ -248,9 +248,9 @@ for (const layer of ['showcase/examples', 'showcase/patterns'])
       (await Bun.file(resolve(root, layer, entry.name, 'screens.tsx')).exists())
     )
       applications.push(resolve(root, layer, entry.name));
-const configured = process.env.AGENT_NATIVE_APPLICATION;
+const configured = process.env.TORTOISE_APPLICATION;
 for (const application of applications) {
-  process.env.AGENT_NATIVE_APPLICATION = application;
+  process.env.TORTOISE_APPLICATION = application;
   try {
     await build({
       configFile: resolve(root, 'apps/web/vite.config.ts'),
@@ -263,8 +263,8 @@ for (const application of applications) {
     );
   }
 }
-if (configured === undefined) delete process.env.AGENT_NATIVE_APPLICATION;
-else process.env.AGENT_NATIVE_APPLICATION = configured;
+if (configured === undefined) delete process.env.TORTOISE_APPLICATION;
+else process.env.TORTOISE_APPLICATION = configured;
 if (errors.length) throw new Error(errors.join('\n'));
 console.log(
   `Checked ${all.length} source files and the browser dependency graph of ${applications.length} applications`,

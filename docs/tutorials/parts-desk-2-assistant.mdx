@@ -87,7 +87,7 @@ it on the agent with model local. Compose the site, network and process plugins 
 application lacks them, then the model server.
 
 Extend dev.ts to write a deployment policy into a temporary directory and set
-AGENT_NATIVE_SITE_POLICY unless it is already set. The policy binds local-inference to
+TORTOISE_SITE_POLICY unless it is already set. The policy binds local-inference to
 http://127.0.0.1:4389 with a timeout of 300 seconds and the llm process to that port. By default
 the process is the llama-server stand-in from @tortoise/model-server/testing with
 showcase/examples/parts-desk/responder.ts as FIXTURE_RESPONDER. With LOCAL_MODEL_GGUF set, it is

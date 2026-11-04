@@ -68,7 +68,7 @@ async function create(args: string[]) {
   const web = join(root, 'dist/web', manifest.id);
   if (!(await Bun.file(join(web, 'index.html')).exists()))
     throw new Error('No web build for this application in dist/web; run `bun run build:web` first');
-  const payload = await mkdtemp(join(tmpdir(), 'agent-native-bundle-'));
+  const payload = await mkdtemp(join(tmpdir(), 'tortoise-bundle-'));
   // One build time for the binary's stamp and the bundle, so both report the same best-before date.
   const createdAt = new Date().toISOString();
   try {

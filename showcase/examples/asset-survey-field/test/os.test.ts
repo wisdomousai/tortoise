@@ -33,7 +33,7 @@ function device(platform: 'android' | 'ios' = 'android') {
   let deliver: ((record: unknown) => void) | undefined;
   const bindings: MobileOsBindings = {
     platform,
-    scheme: 'dev.agentnative.survey',
+    scheme: 'dev.tortoise.survey',
     initialUri: async () => null,
     subscribe: () => () => undefined,
     inspect: async () => undefined,

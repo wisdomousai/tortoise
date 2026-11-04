@@ -41,7 +41,7 @@ function serviceOf(value: string | undefined): ServiceManager {
 }
 /** The service account goes into shell commands and unit files, so only a plain name passes. */
 function userOf(value: string | undefined) {
-  const user = value ?? 'agent-native';
+  const user = value ?? 'tortoise';
   if (!/^[a-z_][a-z0-9_-]{0,31}$/.test(user)) throw invalid('--user must be a plain account name');
   return user;
 }

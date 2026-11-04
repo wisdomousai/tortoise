@@ -22,7 +22,7 @@ test('source export is deterministic, independent and excludes private/runtime a
       JSON.stringify({
         name: 'canonical-starter',
         displayName: 'Reference',
-        appId: 'dev.agentnative.workspace',
+        appId: 'dev.tortoise.workspace',
       }),
     );
     await writeFile(join(source, 'bun.lock'), '{"workspaces":{"":{"name":"canonical-starter"}}}');
@@ -89,7 +89,7 @@ test('source export is deterministic, independent and excludes private/runtime a
     expect(JSON.parse(await readFile(join(directory, 'first/app.config.json'), 'utf8'))).toEqual({
       name: 'new-app',
       displayName: 'New & App',
-      appId: 'dev.agentnative.new-app',
+      appId: 'dev.tortoise.new-app',
     });
     expect(JSON.parse(await readFile(join(directory, 'first/package.json'), 'utf8')).name).toBe(
       'new-app',
@@ -153,7 +153,7 @@ test('an example export keeps only that example and configures it as the hosted 
       JSON.stringify({
         name: 'canonical-starter',
         displayName: 'Reference',
-        appId: 'dev.agentnative.workspace',
+        appId: 'dev.tortoise.workspace',
         application: '@scope/alpha',
       }),
     );
@@ -274,7 +274,7 @@ standalone(
       expect(JSON.parse(await readFile(join(target, 'app.config.json'), 'utf8'))).toEqual({
         name: 'fresh-application',
         displayName: 'Fresh Application',
-        appId: 'dev.agentnative.fresh-application',
+        appId: 'dev.tortoise.fresh-application',
         application: '@tortoise/field-service',
       });
       expect(manifest.files.some((file) => file.path === 'packages/runtime/src/index.ts')).toBe(

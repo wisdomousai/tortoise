@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { startService } from './service';
 
 test('the frame follows the OS color scheme with the dark tokens', async ({ page }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-color-scheme-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-color-scheme-'));
   const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.emulateMedia({ colorScheme: 'dark' });

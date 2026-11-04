@@ -6,7 +6,7 @@ the host does (canonical JSON, SHA-256) and refuses a file whose digest does not
 hand-edited contract never reaches a driver. The generated module holds ``DIGEST``, ``CONTRACT``
 and one ``TypedDict`` per action input, result and event payload.
 
-    python -m agent_native_driver.stubgen contract.json -o chamber_contract.py
+    python -m tortoise_driver.stubgen contract.json -o chamber_contract.py
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ def generate(contract_file: dict) -> str:
     return "\n".join(
         [
             f'"""Generated from the {document["id"]} driver contract {document["version"]}. Do not edit;',
-            'regenerate with agent_native_driver.stubgen."""',
+            'regenerate with tortoise_driver.stubgen."""',
             "",
             "from __future__ import annotations",
             "",

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { jsonSchema, type OsDeclarations } from '@tortoise/contracts';
 
 /** The intent action an RFID reader or the plant's maintenance app sends with a tag it read. */
-export const findTagAction = 'dev.agentnative.survey.action.FIND_TAG';
+export const findTagAction = 'dev.tortoise.survey.action.FIND_TAG';
 
 /**
  * How the OS reaches the field app, and what the app asks of it:

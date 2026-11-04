@@ -1,6 +1,6 @@
 {
   "platforms": ["android"],
   "android": {
-    "modules": ["dev.agentnative.intentscanner.IntentScannerModule"]
+    "modules": ["dev.tortoise.intentscanner.IntentScannerModule"]
   }
 }

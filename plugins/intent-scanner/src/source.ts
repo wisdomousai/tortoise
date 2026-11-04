@@ -2,7 +2,7 @@ import { decodeScan } from '@tortoise/devices/scanner/decode';
 import type { ScannerProfile } from '@tortoise/devices/scanner/profile';
 import { ScannerUnsupported, type ScannerSource } from '@tortoise/devices/scanner/source';
 
-/** The native module's calls, as `AgentNativeIntentScanner` exposes them on Android. */
+/** The native module's calls, as `TortoiseIntentScanner` exposes them on Android. */
 export interface IntentScannerModule {
   listen(action: string, dataExtra: string, senderPermission: string | null): void;
   stop(action: string): void;

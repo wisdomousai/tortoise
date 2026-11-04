@@ -6,7 +6,7 @@
  *   bun scripts/dev-desktop.ts showcase/examples/quality-inspection --port 4322
  *
  * From an example directory (or an example path), that package becomes the starter's
- * application through `AGENT_NATIVE_APPLICATION` for the web build and the service.
+ * application through `TORTOISE_APPLICATION` for the web build and the service.
  * From the repository root, `app.config.json` names the application. The workspace is
  * `<example>/.workspace` or the repository `.workspace` (both ignored by git). Each
  * example's `dev` script passes its own port. An optional `<example>/dev.ts` runs first
@@ -16,7 +16,7 @@
  * `bun run dev` opens the desktop window (`dev-desktop.ts`). This file's main entry
  * serves the browser instead (`bun run dev:web` from an example). There,
  * `--hosted-workspace <name>` keeps the workspace in the Postgres database that
- * `AGENT_NATIVE_DATABASE_URL` names, as `serve --hosted-workspace` does.
+ * `TORTOISE_DATABASE_URL` names, as `serve --hosted-workspace` does.
  */
 import { join, resolve } from 'node:path';
 import { readStarterConfig } from '@tortoise/host/config';
@@ -57,12 +57,12 @@ export async function prepareDevelopment(argv: string[]): Promise<PreparedDevelo
     console.error(`${directory} is not an example: it needs a package.json and an application.ts`);
     process.exit(1);
   }
-  if (example && manifest?.name) process.env.AGENT_NATIVE_APPLICATION = manifest.name;
+  if (example && manifest?.name) process.env.TORTOISE_APPLICATION = manifest.name;
 
   // The web build, the default web root and relative station profiles resolve against the root.
   process.chdir(root);
   // Pass the environment explicitly: Bun.spawnSync does not see the
-  // AGENT_NATIVE_APPLICATION assignment above otherwise, and would build the configured app.
+  // TORTOISE_APPLICATION assignment above otherwise, and would build the configured app.
   const build = Bun.spawnSync(['bun', 'run', 'build:web'], {
     env: { ...process.env },
     stdout: 'inherit',
@@ -77,7 +77,7 @@ export async function prepareDevelopment(argv: string[]): Promise<PreparedDevelo
   if (port) process.env.PORT ??= port;
   const application = await configuredApplication();
   const packageName =
-    process.env.AGENT_NATIVE_APPLICATION ?? readStarterConfig(starterConfigPath).application;
+    process.env.TORTOISE_APPLICATION ?? readStarterConfig(starterConfigPath).application;
   return {
     root,
     packageName,
@@ -105,6 +105,6 @@ if (import.meta.main) {
   );
   if (host.connectionFile)
     console.log(
-      `  CLI: AGENT_NATIVE_APPLICATION=${prepared.packageName} AGENT_NATIVE_CONNECTION=${host.connectionFile} bun run cli list\n`,
+      `  CLI: TORTOISE_APPLICATION=${prepared.packageName} TORTOISE_CONNECTION=${host.connectionFile} bun run cli list\n`,
     );
 }

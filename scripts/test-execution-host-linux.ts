@@ -10,7 +10,7 @@
  * plugin's seccomp filter inside.
  */
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
-const image = process.env.IMAGE ?? 'agent-native-execution-host-test';
+const image = process.env.IMAGE ?? 'tortoise-execution-host-test';
 const paths = process.argv.slice(2);
 
 async function run(command: string[]) {

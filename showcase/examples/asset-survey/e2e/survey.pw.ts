@@ -81,7 +81,7 @@ async function addNode(page: Page, parent: string, designation: string, name: st
 test('prepare, send to a phone, review what the model read and file it into the EAM', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-survey-'));
   const host = await startService('@tortoise/asset-survey', workspace);
   try {
     await page.goto(host.launchUrl);
@@ -147,7 +147,7 @@ test('prepare, send to a phone, review what the model read and file it into the 
 });
 
 test('the review queue is one column of large rows at tablet width', async ({ page }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-survey-'));
   const host = await startService('@tortoise/asset-survey', workspace);
   try {
     await page.setViewportSize({ width: 768, height: 1024 });

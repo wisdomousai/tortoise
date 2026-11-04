@@ -36,7 +36,7 @@ The posture check reports `info` for a build without a date, never `fail`. Comma
 
 An effect in the outbox exists only in the workspace. Once the outbox is empty and a person has decided every held effect, the systems of record hold every record a target receives.
 
-What exists only in the data directory (`var/lib/agent-native/<app>` on a site):
+What exists only in the data directory (`var/lib/tortoise/<app>` on a site):
 
 - Records that no target receives
 - The audit log
@@ -60,16 +60,16 @@ Here `app` stands for the application's CLI and `<app>` for its ID.
 2. Stop the service:
 
    ```sh
-   systemctl stop agent-native-<app>.service
+   systemctl stop tortoise-<app>.service
    ```
 
 3. Deliver what remains, and repeat until `drain` exits 0:
 
    ```sh
-   app drain --workspace /var/lib/agent-native/<app>/workspace --site-policy /etc/agent-native/<app>/site-policy.json --audit-log /var/lib/agent-native/<app>/audit
+   app drain --workspace /var/lib/tortoise/<app>/workspace --site-policy /etc/tortoise/<app>/site-policy.json --audit-log /var/lib/tortoise/<app>/audit
    ```
 
-4. Copy `/var/lib/agent-native/<app>` when a retention rule covers its records or audit log.
+4. Copy `/var/lib/tortoise/<app>` when a retention rule covers its records or audit log.
 5. Remove the service, the releases and the data:
 
    ```sh

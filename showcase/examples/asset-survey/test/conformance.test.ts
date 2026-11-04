@@ -24,7 +24,7 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
       [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
-      { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },
+      { env: { PATH: process.env.PATH, TORTOISE_CONNECTION: connection }, stdout: 'pipe' },
     );
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     return { exitCode, value: JSON.parse(stdout) };

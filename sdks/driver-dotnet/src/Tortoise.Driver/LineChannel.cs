@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 
-namespace AgentNative.Driver;
+namespace Tortoise.Driver;
 
 /// <summary>
 /// Reads newline-delimited messages. A line longer than <see cref="MaxLine"/> is dropped whole

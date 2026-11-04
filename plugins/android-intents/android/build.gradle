@@ -3,7 +3,7 @@ plugins {
   id 'expo-module-gradle-plugin'
 }
 
-group = 'dev.agentnative'
+group = 'dev.tortoise'
 version = '0.1.0'
 
 expoModule {
@@ -11,7 +11,7 @@ expoModule {
 }
 
 android {
-  namespace "dev.agentnative.osintents"
+  namespace "dev.tortoise.osintents"
   defaultConfig {
     versionCode 1
     versionName "0.1.0"

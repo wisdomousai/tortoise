@@ -1,4 +1,4 @@
-package dev.agentnative.managedconfig
+package dev.tortoise.managedconfig
 
 import android.content.Context
 import android.content.RestrictionsManager
@@ -17,7 +17,7 @@ class ManagedConfigModule : Module() {
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
   override fun definition() = ModuleDefinition {
-    Name("AgentNativeManagedConfig")
+    Name("TortoiseManagedConfig")
 
     Function("read") {
       val manager = context.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager

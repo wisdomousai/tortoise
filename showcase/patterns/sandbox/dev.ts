@@ -6,7 +6,7 @@ import { join } from 'node:path';
  * Run by `bun run dev:web` before the launch. On Linux with bubblewrap at `/usr/bin/bwrap`
  * (`BWRAP` to change it), it writes a site policy that binds the analysis sandbox to it. Elsewhere
  * it writes none, and the request screen shows why the sandbox cannot run. An explicit
- * `AGENT_NATIVE_SITE_POLICY` wins.
+ * `TORTOISE_SITE_POLICY` wins.
  */
 const bwrap = process.env.BWRAP ?? '/usr/bin/bwrap';
 if (process.platform === 'linux' && existsSync(bwrap)) {
@@ -23,7 +23,7 @@ if (process.platform === 'linux' && existsSync(bwrap)) {
       2,
     ),
   );
-  process.env.AGENT_NATIVE_SITE_POLICY ??= policy;
+  process.env.TORTOISE_SITE_POLICY ??= policy;
   console.log(`Analysis sandbox: ${bwrap}`);
 } else {
   console.log('Analysis sandbox: unavailable without Linux bubblewrap');

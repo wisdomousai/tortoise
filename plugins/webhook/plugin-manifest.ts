@@ -35,7 +35,7 @@ export const webhookPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'webhook-operations',
-      env: 'AGENT_NATIVE_WEBHOOK_OPERATIONS',
+      env: 'TORTOISE_WEBHOOK_OPERATIONS',
       kind: 'string',
       description: 'comma-separated operations whose changes are posted; absent: inactive',
     },

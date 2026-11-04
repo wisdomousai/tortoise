@@ -20,7 +20,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
   browser,
 }) => {
   test.setTimeout(120_000);
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-worklist-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-worklist-'));
   await mkdir(join(workspace, 'lab'));
   await mkdir(join(workspace, 'crew'));
   const lab = await startService('@tortoise/pattern-assignments', join(workspace, 'lab'));
@@ -43,7 +43,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
       }),
     );
     crew = await startService('@tortoise/pattern-worklist', join(workspace, 'crew'), {
-      AGENT_NATIVE_SITE_POLICY: policy,
+      TORTOISE_SITE_POLICY: policy,
     });
     // Both applications sign in on 127.0.0.1, so each gets its own cookie jar.
     const issuer = await (await browser.newContext()).newPage();

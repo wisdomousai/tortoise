@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "agent-native-driver",
-  "homepage": "https://registry.example.invalid/agent-native/driver",
+  "name": "tortoise-driver",
+  "homepage": "https://registry.example.invalid/tortoise/driver",
   "items": [
     {
       "name": "driver-screen",

@@ -21,7 +21,7 @@ const dotnet = Bun.which('dotnet');
 const project = join(import.meta.dir, '..', 'drivers', 'automation');
 const stubgen = join(
   import.meta.dir,
-  '../../../../sdks/driver-dotnet/src/AgentNative.Driver.Stubgen/AgentNative.Driver.Stubgen.csproj',
+  '../../../../sdks/driver-dotnet/src/Tortoise.Driver.Stubgen/Tortoise.Driver.Stubgen.csproj',
 );
 const env = {
   ...process.env,
@@ -84,7 +84,7 @@ describe.skipIf(!dotnet)('the .NET station automation driver', () => {
     const generated = spawnSync(
       dotnet!,
       [
-        dll('AgentNative.Driver.Stubgen'),
+        dll('Tortoise.Driver.Stubgen'),
         join(root, 'station-automation.json'),
         '--namespace',
         'StationAutomation',

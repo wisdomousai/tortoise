@@ -8,7 +8,7 @@ The commands to change the framework or an application and prove the change work
 bun install --frozen-lockfile
 ```
 
-`postinstall` links the task skills from [AGENTS.md](../AGENTS.md#skills) for Claude Code and Codex; rerun `bun run skills:link` after adding or renaming a skill. The starter hosts the application named in `app.config.json`; set `AGENT_NATIVE_APPLICATION` (package name or path) to override it for one launch.
+`postinstall` links the task skills from [AGENTS.md](../AGENTS.md#skills) for Claude Code and Codex; rerun `bun run skills:link` after adding or renaming a skill. The starter hosts the application named in `app.config.json`; set `TORTOISE_APPLICATION` (package name or path) to override it for one launch.
 
 ## Before you commit
 

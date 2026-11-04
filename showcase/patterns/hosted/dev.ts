@@ -9,11 +9,11 @@ import { labStaff } from './application';
  * https://127.0.0.1:4372 with the certificate and key that `LAB_IDP_CERT` and `LAB_IDP_KEY` name,
  * such as `mkcert 127.0.0.1` issues. It writes a site policy that signs people in through that
  * provider and trusts `LAB_IDP_CA`, the CA that issued the certificate, such as mkcert's
- * `rootCA.pem`. The workspace lives in the Postgres database `AGENT_NATIVE_DATABASE_URL` names.
- * An explicit `AGENT_NATIVE_SITE_POLICY` wins over the written policy.
+ * `rootCA.pem`. The workspace lives in the Postgres database `TORTOISE_DATABASE_URL` names.
+ * An explicit `TORTOISE_SITE_POLICY` wins over the written policy.
  */
-const { AGENT_NATIVE_DATABASE_URL, LAB_IDP_CERT, LAB_IDP_KEY, LAB_IDP_CA } = process.env;
-const missing = Object.entries({ AGENT_NATIVE_DATABASE_URL, LAB_IDP_CERT, LAB_IDP_KEY, LAB_IDP_CA })
+const { TORTOISE_DATABASE_URL, LAB_IDP_CERT, LAB_IDP_KEY, LAB_IDP_CA } = process.env;
+const missing = Object.entries({ TORTOISE_DATABASE_URL, LAB_IDP_CERT, LAB_IDP_KEY, LAB_IDP_CA })
   .filter(([, value]) => !value)
   .map(([name]) => name);
 if (missing.length) {
@@ -49,5 +49,5 @@ writeFileSync(
     2,
   ),
 );
-process.env.AGENT_NATIVE_SITE_POLICY ??= policy;
+process.env.TORTOISE_SITE_POLICY ??= policy;
 console.log(`Identity provider: ${provider.issuer}; policy: ${policy}`);

@@ -12,7 +12,7 @@ import { methodSuggester, METHOD_MODEL } from './contracts';
  * absolute paths. By default the process is the llama-server stand-in with `responder.ts` as the model.
  * With `LOCAL_MODEL_GGUF` set, it is the real llama-server (`LLAMA_SERVER`, or the one on
  * `PATH`) on those weights, measured here into the `lab-methods` entry that `LAB_METHOD_MODEL`
- * names. An explicit `AGENT_NATIVE_SITE_POLICY` wins.
+ * names. An explicit `TORTOISE_SITE_POLICY` wins.
  */
 const directory = mkdtempSync(join(tmpdir(), 'test-requests-local-model-'));
 const port = 4375;
@@ -56,7 +56,7 @@ writeFileSync(
     2,
   ),
 );
-process.env.AGENT_NATIVE_SITE_POLICY ??= policy;
+process.env.TORTOISE_SITE_POLICY ??= policy;
 console.log(
   weights
     ? `Model: llama-server on ${weights}, port ${port}`

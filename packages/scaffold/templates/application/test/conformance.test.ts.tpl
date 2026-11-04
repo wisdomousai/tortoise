@@ -34,7 +34,7 @@ test('the screen, HTTP, the CLI and MCP read the same {{one.words}} list', async
     expect((await owner.query('{{one.kebab}}.list', {})).data).toEqual(direct.data);
     const child = Bun.spawn(
       [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), '{{one.kebab}}.list'],
-      { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },
+      { env: { PATH: process.env.PATH, TORTOISE_CONNECTION: connection }, stdout: 'pipe' },
     );
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     expect(exitCode).toBe(0);

@@ -36,7 +36,7 @@ export const sitePluginManifest = definePluginManifest({
   settings: [
     {
       key: 'site-policy',
-      env: 'AGENT_NATIVE_SITE_POLICY',
+      env: 'TORTOISE_SITE_POLICY',
       kind: 'path',
       description: 'bind declared destinations; absent: isolated',
     },

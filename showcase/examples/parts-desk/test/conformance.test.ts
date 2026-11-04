@@ -47,7 +47,7 @@ test('the screen, HTTP, the CLI and MCP read the same inquiry list', async () =>
         Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir),
         'inquiry.list',
       ],
-      { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },
+      { env: { PATH: process.env.PATH, TORTOISE_CONNECTION: connection }, stdout: 'pipe' },
     );
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     expect(exitCode).toBe(0);

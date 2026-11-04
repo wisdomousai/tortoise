@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { dispatched, open, rita } from './survey';
 
 const worker = resolve(import.meta.dir, '../export/worker.ts');
-const directory = await mkdtemp(join(tmpdir(), 'agent-native-survey-export-'));
+const directory = await mkdtemp(join(tmpdir(), 'tortoise-survey-export-'));
 afterAll(() => rm(directory, { recursive: true, force: true }));
 
 /** A site policy that binds the reference export process to `exportDirectory` under Bun. */

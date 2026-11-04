@@ -29,7 +29,7 @@
     "mobile:prepare": "bun scripts/mobile-entry.ts",
     "mobile:prebuild": "bun run mobile:prepare && cd apps/mobile && expo prebuild --clean --skip-dependency-update expo,react,react-native",
     "dev:mobile": "bun run mobile:prepare && cd apps/mobile && expo start --dev-client",
-    "check:mobile-bundle": "AGENT_NATIVE_MOBILE_APPLICATION=./apps/mobile/fixture bun run mobile:prepare && cd apps/mobile && expo export --platform android --output-dir ../../dist/mobile-bundle-check",
+    "check:mobile-bundle": "TORTOISE_MOBILE_APPLICATION=./apps/mobile/fixture bun run mobile:prepare && cd apps/mobile && expo export --platform android --output-dir ../../dist/mobile-bundle-check",
     "test": "bun test",
     "test:unit": "bun test packages/contracts packages/runtime packages/client packages/react",
     "test:integration": "bun test packages/integration",

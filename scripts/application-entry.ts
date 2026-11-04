@@ -19,7 +19,7 @@ export async function writeApplicationEntry(
 ): Promise<string> {
   const config = readStarterConfig(
     join(root, 'app.config.json'),
-    application ? { AGENT_NATIVE_APPLICATION: application } : process.env,
+    application ? { TORTOISE_APPLICATION: application } : process.env,
   );
   const definition = isAbsolute(config.application)
     ? Bun.resolveSync(join(config.application, 'application'), root)

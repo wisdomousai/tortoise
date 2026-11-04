@@ -6,6 +6,6 @@ import { createIntentSource, type IntentScannerModule } from '../source';
 export function intentSource(profile: ScannerProfile) {
   return createIntentSource(
     profile,
-    requireOptionalNativeModule<IntentScannerModule>('AgentNativeIntentScanner'),
+    requireOptionalNativeModule<IntentScannerModule>('TortoiseIntentScanner'),
   );
 }

@@ -4,8 +4,8 @@ import { readStarterConfig, type StarterConfig } from './config';
 /**
  * The application the mobile app hosts. `targets.mobile.application` in `app.config.json` names
  * it when the phone runs a different application than the desktop (a field application beside the
- * hub); without it the mobile app hosts the starter's `application`. `AGENT_NATIVE_MOBILE_APPLICATION`
- * in `env` overrides both for a developer's own build, as `AGENT_NATIVE_APPLICATION` does for the
+ * hub); without it the mobile app hosts the starter's `application`. `TORTOISE_MOBILE_APPLICATION`
+ * in `env` overrides both for a developer's own build, as `TORTOISE_APPLICATION` does for the
  * desktop. Fails on unknown fields under `targets` or `targets.mobile`, so a typo is not ignored.
  */
 export function readMobileTarget(
@@ -18,8 +18,7 @@ export function readMobileTarget(
   if (application !== undefined && (typeof application !== 'string' || !application.trim()))
     throw new Error(`${path}: targets.mobile.application must name an application`);
   return readStarterConfig(path, {
-    AGENT_NATIVE_APPLICATION:
-      env.AGENT_NATIVE_MOBILE_APPLICATION || (application as string | undefined),
+    TORTOISE_APPLICATION: env.TORTOISE_MOBILE_APPLICATION || (application as string | undefined),
   });
 }
 

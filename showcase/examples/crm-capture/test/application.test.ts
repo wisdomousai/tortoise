@@ -22,7 +22,7 @@ afterEach(async () => {
 });
 
 async function open(crm = new FakeCrm({ logins: { owner: 'ann' } })) {
-  const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-crm-'));
+  const workspacePath = await mkdtemp(join(tmpdir(), 'tortoise-crm-'));
   const instance = await openEmbeddedInstance(
     createCrmCaptureApplication({
       crm,

@@ -8,11 +8,11 @@ import { dirname } from 'node:path';
 
 /** Where the sandbox finds what the host gives it. */
 export const sandboxPaths = {
-  run: '/run/agent-native',
-  launcher: '/run/agent-native/launcher.ts',
-  launch: '/run/agent-native/launch.json',
-  connection: '/run/agent-native/connection.json',
-  sockets: '/run/agent-native/sock',
+  run: '/run/tortoise',
+  launcher: '/run/tortoise/launcher.ts',
+  launch: '/run/tortoise/launch.json',
+  connection: '/run/tortoise/connection.json',
+  sockets: '/run/tortoise/sock',
   work: '/work',
 } as const;
 

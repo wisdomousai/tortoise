@@ -28,7 +28,7 @@ To try the application by hand, run it in one terminal and point the CLI at it f
 
 ```sh
 bun run --cwd showcase/examples/parts-desk dev:web
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/parts-desk/.workspace/.connection.json
+export TORTOISE_CONNECTION=$PWD/showcase/examples/parts-desk/.workspace/.connection.json
 ```
 
 ## Export the app
@@ -121,7 +121,7 @@ The search filters by the transformer's model, the category and the text before 
 
 </FileTree>
 
-**Check:** the standard check. Start the app with `bun run --cwd showcase/examples/parts-desk dev:web`, set `AGENT_NATIVE_CONNECTION` to `showcase/examples/parts-desk/.workspace/.connection.json`, then:
+**Check:** the standard check. Start the app with `bun run --cwd showcase/examples/parts-desk dev:web`, set `TORTOISE_CONNECTION` to `showcase/examples/parts-desk/.workspace/.connection.json`, then:
 
 ```sh
 bun run cli transformer find --serial TR-404 --output text

@@ -10,13 +10,13 @@ import {
 const root = resolve('repo-root');
 const workspace = resolve('work');
 const env: NodeJS.ProcessEnv = {
-  AGENT_NATIVE_DESKTOP_DEV: '1',
-  AGENT_NATIVE_APPLICATION: '@tortoise/field-service',
-  AGENT_NATIVE_BUN: process.execPath,
-  AGENT_NATIVE_SERVICE_ENTRY: resolve('apps/service/src/index.ts'),
-  AGENT_NATIVE_WEB_ROOT: resolve('dist/web/field-service'),
-  AGENT_NATIVE_DEV_ROOT: root,
-  AGENT_NATIVE_SITE_POLICY: resolve('apps/desktop/site-policy.json'),
+  TORTOISE_DESKTOP_DEV: '1',
+  TORTOISE_APPLICATION: '@tortoise/field-service',
+  TORTOISE_BUN: process.execPath,
+  TORTOISE_SERVICE_ENTRY: resolve('apps/service/src/index.ts'),
+  TORTOISE_WEB_ROOT: resolve('dist/web/field-service'),
+  TORTOISE_DEV_ROOT: root,
+  TORTOISE_SITE_POLICY: resolve('apps/desktop/site-policy.json'),
   PORT: '4321',
   STATION_HMI_URL: 'http://127.0.0.1:4610',
   ELECTRON_RUN_AS_NODE: '1',
@@ -27,7 +27,7 @@ const env: NodeJS.ProcessEnv = {
 test('a packaged app ignores the development flag', () => {
   expect(isDevelopmentDesktop(true, env)).toBe(false);
   expect(isDevelopmentDesktop(false, env)).toBe(true);
-  expect(isDevelopmentDesktop(false, { AGENT_NATIVE_DESKTOP_DEV: 'yes' })).toBe(false);
+  expect(isDevelopmentDesktop(false, { TORTOISE_DESKTOP_DEV: 'yes' })).toBe(false);
 });
 
 test('development launches use the source service and keep host-owned paths', () => {
@@ -45,17 +45,17 @@ test('development launches use the source service and keep host-owned paths', ()
   expect(launch.extraEnv.NODE_OPTIONS).toBeUndefined();
   expect(launch.extraEnv.PORT).toBeUndefined();
   expect(launch.extraEnv.WEB_ROOT).toBeUndefined();
-  expect(launch.extraEnv.AGENT_NATIVE_SITE_POLICY).toBeUndefined();
+  expect(launch.extraEnv.TORTOISE_SITE_POLICY).toBeUndefined();
 });
 
 test('development launch refuses relative paths and a missing flag', () => {
   expect(() => developmentServiceLaunch(env, 'relative')).toThrow('absolute');
   expect(() =>
-    developmentServiceLaunch({ ...env, AGENT_NATIVE_WEB_ROOT: 'dist/web' }, workspace),
+    developmentServiceLaunch({ ...env, TORTOISE_WEB_ROOT: 'dist/web' }, workspace),
   ).toThrow('absolute');
   expect(() => developmentServiceLaunch({ ...env, PORT: 'nope' }, workspace)).toThrow('PORT');
   const withoutFlag = { ...env };
-  delete withoutFlag.AGENT_NATIVE_DESKTOP_DEV;
+  delete withoutFlag.TORTOISE_DESKTOP_DEV;
   expect(() => developmentServiceLaunch(withoutFlag, workspace)).toThrow('Not a development');
 });
 

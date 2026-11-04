@@ -104,50 +104,50 @@ export function metricsRequest(
 ) {
   const times = { start: nanos(window.start), now: nanos(window.now) };
   const metrics = [
-    sum('agent_native.commands', '{command}', 'Commands by outcome', recorded.commands, times),
+    sum('tortoise.commands', '{command}', 'Commands by outcome', recorded.commands, times),
     histogram(
-      'agent_native.command.duration',
+      'tortoise.command.duration',
       'From final authorization to the outcome',
       recorded.commandDuration,
       times,
     ),
     sum(
-      'agent_native.deliveries',
+      'tortoise.deliveries',
       '{effect}',
       'Outbox effects completed by the target',
       recorded.deliveries,
       times,
     ),
     histogram(
-      'agent_native.delivery.duration',
+      'tortoise.delivery.duration',
       'From the committing command to completion',
       recorded.deliveryDuration,
       times,
     ),
     sum(
-      'agent_native.delivery.attempts',
+      'tortoise.delivery.attempts',
       '{attempt}',
       'Delivery attempts that did not complete the effect',
       recorded.attempts,
       times,
     ),
     {
-      name: 'agent_native.outbox.backlog',
+      name: 'tortoise.outbox.backlog',
       unit: '{effect}',
       description: 'Effects waiting in the outbox',
       gauge: {
         dataPoints: backlog.map((point) => ({
           attributes: attributes({
-            'agent_native.target': point.target,
-            'agent_native.outbox.state': point.state,
+            'tortoise.target': point.target,
+            'tortoise.outbox.state': point.state,
           }),
           timeUnixNano: times.now,
           asInt: String(point.count),
         })),
       },
     },
-    sum('agent_native.runs', '{run}', 'Agent and job runs by end state', recorded.runs, times),
-    histogram('agent_native.run.duration', 'From queued to ended', recorded.runDuration, times),
+    sum('tortoise.runs', '{run}', 'Agent and job runs by end state', recorded.runs, times),
+    histogram('tortoise.run.duration', 'From queued to ended', recorded.runDuration, times),
   ].filter((metric) => pointsOf(metric).length > 0);
   return {
     resourceMetrics: [{ resource: resourceOf(resource), scopeMetrics: [{ scope, metrics }] }],

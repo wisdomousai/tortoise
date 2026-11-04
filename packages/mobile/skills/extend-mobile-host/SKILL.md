@@ -16,7 +16,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
 ## Steps
 
 1. List `mobile` in the manifest's targets.
-2. Set `targets.mobile.application` in `app.config.json`, or `AGENT_NATIVE_MOBILE_APPLICATION` for one build.
+2. Set `targets.mobile.application` in `app.config.json`, or `TORTOISE_MOBILE_APPLICATION` for one build.
 3. Add a `screens-native` entrypoint with `defineNativeScreens` from `@tortoise/frame-native/screens`. Screens read the session with `useSession()`.
 4. Build native screens from the `tortoise-native` UI registry in `packages/frame-native`, such as `hold-button`, `status-pill` and `list-row`. A phone that takes assignments shows the worklist kit's `<namespace>.assignment.list` with `worklist-list`, and its target status and `<namespace>.report.list` with `worklist-sync`.
 5. Run `bun run build:registry:native` after changing a registry item.

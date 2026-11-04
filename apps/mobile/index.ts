@@ -6,7 +6,7 @@ import { defineBackgroundDelivery } from '@tortoise/mobile/expo';
 import { App, instance } from './src/app';
 
 // Module scope: the OS may start the runtime only to run this task.
-const registerDelivery = defineBackgroundDelivery('agent-native.delivery', instance);
+const registerDelivery = defineBackgroundDelivery('tortoise.delivery', instance);
 void registerDelivery().catch(() => {
   // Background tasks are unavailable in Expo Go and on some devices; delivery stays foreground.
 });

@@ -7,7 +7,7 @@ A driver is a separate process, in any language, that connects your application 
 From the repo root:
 
 ```sh
-AGENT_NATIVE_APPLICATION=@tortoise/winding-line bun run --silent cli driver list
+TORTOISE_APPLICATION=@tortoise/winding-line bun run --silent cli driver list
 ```
 
 You should see:
@@ -34,7 +34,7 @@ The .NET suite skips itself without `dotnet` on `PATH`; the Python suite needs `
 
    ```sh
    app driver contract <id> --out <id>.json
-   python -m agent_native_driver.stubgen <id>.json -o <id>_contract.py
+   python -m tortoise_driver.stubgen <id>.json -o <id>_contract.py
    ```
 
 3. Write the driver with the [Python](../sdks/driver-python/README.md) or [.NET](../sdks/driver-dotnet/README.md) SDK: a handshake handler that opens the equipment, a state reader, and one handler per action.
@@ -47,7 +47,7 @@ The .NET suite skips itself without `dotnet` on `PATH`; the Python suite needs `
 5. Build one self-contained executable (PyInstaller, Nuitka, or a .NET single-file build; `win-x86` for a 32-bit COM server).
 6. Bind its path and hash in the deployment policy ([Process binding](#process-binding)). `app driver list` prints the process ID and digest to bind.
 
-In a checkout, `app driver` is `bun run --silent cli driver` with `AGENT_NATIVE_APPLICATION` set. The [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) skill covers these steps for Claude Code or Codex.
+In a checkout, `app driver` is `bun run --silent cli driver` with `TORTOISE_APPLICATION` set. The [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) skill covers these steps for Claude Code or Codex.
 
 ## Why a separate process
 

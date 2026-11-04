@@ -12,7 +12,7 @@ export const activityPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'activity-modules',
-      env: 'AGENT_NATIVE_ACTIVITY_MODULES',
+      env: 'TORTOISE_ACTIVITY_MODULES',
       kind: 'string',
       description: 'comma-separated modules whose commands are counted; absent: every module',
     },

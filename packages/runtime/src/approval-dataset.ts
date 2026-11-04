@@ -10,7 +10,7 @@ import type { ExecutionContext, Invocation, QueryResult } from './types.js';
  * redaction is applied before the digest, so the digest names exactly what left the host.
  */
 
-export const APPROVAL_DATASET_FORMAT = 'agent-native/approval-dataset@1';
+export const APPROVAL_DATASET_FORMAT = 'tortoise/approval-dataset@1';
 
 export interface DatasetRedaction {
   /** Input fields to blank per requested operation, as dotted paths, e.g. `{ 'lot.note': ['text'] }`. */

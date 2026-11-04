@@ -22,7 +22,7 @@ function offlineClient(definition: AnyApplicationDefinition): CliClient {
   const unavailable = () => {
     throw new ApplicationError(
       'INVALID_INPUT',
-      'No instance: pass --embedded or --connection, or set AGENT_NATIVE_CONNECTION',
+      'No instance: pass --embedded or --connection, or set TORTOISE_CONNECTION',
     );
   };
   return {
@@ -42,7 +42,7 @@ function attachedOperation(
 ) {
   const offline =
     !connection &&
-    !process.env.AGENT_NATIVE_CONNECTION &&
+    !process.env.TORTOISE_CONNECTION &&
     (args.length === 0 || offlineVerbs.has(args[0]!) || args.includes('--help'));
   return runCliMain(
     args,
@@ -98,7 +98,7 @@ export async function operationCommand(
   const embedded = takeFlag(args, 'embedded', false) !== undefined;
   const connection = takeFlag(args, 'connection');
   const explicitGrant = takeFlag(args, 'grant-file');
-  const grantFile = explicitGrant ?? process.env.AGENT_NATIVE_GRANT_FILE;
+  const grantFile = explicitGrant ?? process.env.TORTOISE_GRANT_FILE;
   if (embedded) return embeddedOperation(definition, program, args, grantFile);
   // An attached call's identity is the connection file's session; a grant cannot apply.
   if (explicitGrant)

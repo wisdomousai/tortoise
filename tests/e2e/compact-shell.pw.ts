@@ -10,7 +10,7 @@ test.use({ viewport: { width: 800, height: 1280 }, hasTouch: true });
 test('on a tablet the sidebar becomes a bar and a menu sheet that closes on navigation', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-compact-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-compact-'));
   const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);

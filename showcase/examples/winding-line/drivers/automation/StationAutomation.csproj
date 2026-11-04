@@ -10,6 +10,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../../sdks/driver-dotnet/src/AgentNative.Driver/AgentNative.Driver.csproj" />
+    <ProjectReference Include="../../../../../sdks/driver-dotnet/src/Tortoise.Driver/Tortoise.Driver.csproj" />
   </ItemGroup>
 </Project>

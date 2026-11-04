@@ -9,7 +9,7 @@ const config = getDefaultConfig(__dirname);
 
 // The configured application, written by `bun run mobile:prepare`. The starter imports it by this
 // name so its source never names content, as the web frame does with its screens.
-const ENTRY = 'virtual:agent-native/mobile-entry';
+const ENTRY = 'virtual:tortoise/mobile-entry';
 const entryFile = join(__dirname, 'generated', 'entry.ts');
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === ENTRY) {

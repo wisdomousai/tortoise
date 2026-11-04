@@ -1,5 +1,5 @@
 """Generated from the measuring-instrument driver contract 1.0.0. Do not edit;
-regenerate with agent_native_driver.stubgen."""
+regenerate with tortoise_driver.stubgen."""
 
 from __future__ import annotations
 

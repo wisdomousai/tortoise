@@ -20,7 +20,7 @@ const pluginSettingsUsage = (manifest: ApplicationManifest) => {
 
 const instanceUsage = (program: string, manifest: ApplicationManifest) => `Instance:
   ${program} serve [--workspace dir] [--port n] [--web-root dir] [--grant-file f --grant-connection out]
-      [--hosted-workspace name]   keep the workspace in Postgres (AGENT_NATIVE_DATABASE_URL) under a lease
+      [--hosted-workspace name]   keep the workspace in Postgres (TORTOISE_DATABASE_URL) under a lease
   ${program} mcp [--connection file] | mcp --embedded --grant-file f [--workspace dir]
   ${program} sync [--workspace dir]               pull master data from the system of record once
   ${program} drain [--workspace dir] [--timeout ms]  deliver pending effects; exit ${PENDING_EXIT_CODE} if any remain
@@ -28,7 +28,7 @@ const instanceUsage = (program: string, manifest: ApplicationManifest) => `Insta
   ${program} restore [--workspace dir] --from file  replace the workspace with a verified backup; the host must be stopped
   ${program} migrate [--workspace dir] [--dry-run]  migrate a copy of the workspace state, check it, then switch; the host must be stopped
 ${pluginSettingsUsage(manifest)}
-Operations run against a live instance (--connection or AGENT_NATIVE_CONNECTION), or in-process
+Operations run against a live instance (--connection or TORTOISE_CONNECTION), or in-process
 with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workflows work offline.
 `;
 

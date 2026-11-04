@@ -1,7 +1,7 @@
 import type { Snapshot } from '@tortoise/client';
 
 /** Root of every capability query key, so bindings never touch unrelated application caches. */
-export const CAPABILITY_QUERY_KEY = 'agent-native-capability';
+export const CAPABILITY_QUERY_KEY = 'tortoise-capability';
 
 /** What the change stream reads from a cached capability query. */
 export interface CapabilityQueryMeta extends Record<string, unknown> {

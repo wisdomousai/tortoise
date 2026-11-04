@@ -37,7 +37,7 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     const child = Bun.spawn(
       [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
       {
-        env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: file },
+        env: { PATH: process.env.PATH, TORTOISE_CONNECTION: file },
         stdout: 'pipe',
         stderr: 'pipe',
       },

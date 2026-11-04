@@ -354,7 +354,7 @@ describe('approval dataset', () => {
       ['p1', 'approved', undefined],
       ['p2', 'rejected', 'Lot l1 failed retest'],
     ]);
-    expect(full).toMatchObject({ format: 'agent-native/approval-dataset@1', exportedBy: 'ann' });
+    expect(full).toMatchObject({ format: 'tortoise/approval-dataset@1', exportedBy: 'ann' });
     expect(full.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect((await exportApprovalDataset(app, ann)).digest).toBe(full.digest);
 

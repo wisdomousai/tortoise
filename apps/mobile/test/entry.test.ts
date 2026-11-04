@@ -28,11 +28,11 @@ test('the mobile target names its own application, or falls back to the starter 
   expect(readMobileTarget(config({}), {}).application).toBe('@example/hub');
   const field = config({ targets: { mobile: { application: '@example/field' } } });
   expect(readMobileTarget(field, {}).application).toBe('@example/field');
-  expect(
-    readMobileTarget(field, { AGENT_NATIVE_MOBILE_APPLICATION: '@example/dev' }).application,
-  ).toBe('@example/dev');
+  expect(readMobileTarget(field, { TORTOISE_MOBILE_APPLICATION: '@example/dev' }).application).toBe(
+    '@example/dev',
+  );
   // The desktop override does not change what the phone runs.
-  expect(readMobileTarget(field, { AGENT_NATIVE_APPLICATION: '@example/dev' }).application).toBe(
+  expect(readMobileTarget(field, { TORTOISE_APPLICATION: '@example/dev' }).application).toBe(
     '@example/field',
   );
 });
@@ -56,7 +56,7 @@ test('the entry imports the application and its native screens by relative path'
   const directory = scratch(join(root, 'apps/mobile/generated'));
   const { entry, application } = await writeMobileEntry({
     directory,
-    env: { AGENT_NATIVE_MOBILE_APPLICATION: './apps/mobile/fixture' },
+    env: { TORTOISE_MOBILE_APPLICATION: './apps/mobile/fixture' },
   });
   expect(application).toBe(join(root, 'apps/mobile/fixture'));
   const source = readFileSync(entry, 'utf8');
@@ -92,7 +92,7 @@ test('native.json lists config plugins with the application and every declared s
     ].join('\n'),
   );
   const directory = scratch();
-  await writeMobileEntry({ directory, env: { AGENT_NATIVE_MOBILE_APPLICATION: field } });
+  await writeMobileEntry({ directory, env: { TORTOISE_MOBILE_APPLICATION: field } });
   // Only plugins that name a config plugin are listed; a module alone is autolinked. The
   // application's own config plugins follow with their options.
   expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toMatchObject({
@@ -119,7 +119,7 @@ test('OS handlers become native registrations, and the scheme reaches the OS set
       "import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';",
       "import { defineManifest } from '@tortoise/kernel/manifest';",
       "import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';",
-      "const os = definePluginManifest({ id: 'os', title: 'OS', platforms: ['android', 'ios'], settings: [{ key: 'os-scheme', env: 'AGENT_NATIVE_OS_SCHEME', kind: 'string', description: 'Scheme' }] });",
+      "const os = definePluginManifest({ id: 'os', title: 'OS', platforms: ['android', 'ios'], settings: [{ key: 'os-scheme', env: 'TORTOISE_OS_SCHEME', kind: 'string', description: 'Scheme' }] });",
       "const add = defineCapability({ id: 'note.add', kind: 'command', input: jsonSchema(z.strictObject({ text: z.string() })), output: jsonSchema(z.strictObject({})), permission: { action: 'create', resourceType: 'note' }, ui: { binding: 'note.add' } });",
       "const fromText = { id: 'note.from-text', kind: 'file', description: 'A note from text.', types: [{ extensions: ['txt'], mediaTypes: ['text/plain'], description: 'Text' }], role: 'viewer', payload: 'text', maxBytes: 500, target: { prepare: 'note.add', input: { text: '{file.text}' } } } as const;",
       "const link = { id: 'note.open', kind: 'link', description: 'Open a note.', path: '/notes/:id', params: jsonSchema(z.strictObject({ id: z.string() })), verified: true, target: { screen: '/notes', search: { id: '{id}' } } } as const;",
@@ -132,8 +132,8 @@ test('OS handlers become native registrations, and the scheme reaches the OS set
     configPath: config({}),
     directory,
     env: {
-      AGENT_NATIVE_MOBILE_APPLICATION: notes,
-      AGENT_NATIVE_OS_LINK_HOSTS: 'notes.example.com',
+      TORTOISE_MOBILE_APPLICATION: notes,
+      TORTOISE_OS_LINK_HOSTS: 'notes.example.com',
     },
   });
   expect(readFileSync(entry, 'utf8')).toContain(
@@ -165,6 +165,6 @@ test('an application that does not target mobile is refused', async () => {
       "export default defineManifest({ id: 'desk', title: 'Desk', modules: [] });\n",
   );
   await expect(
-    writeMobileEntry({ directory: scratch(), env: { AGENT_NATIVE_MOBILE_APPLICATION: desktop } }),
+    writeMobileEntry({ directory: scratch(), env: { TORTOISE_MOBILE_APPLICATION: desktop } }),
   ).rejects.toThrow("does not target mobile; add 'mobile' to its manifest's targets");
 });

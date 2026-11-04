@@ -12,7 +12,7 @@ test('a fresh workspace makes the owner supervisor of the default plant', () => 
 });
 
 test('the embedded instance syncs and drains the quality system it declares', async () => {
-  const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-embedded-'));
+  const workspacePath = await mkdtemp(join(tmpdir(), 'tortoise-embedded-'));
   const instance = await openEmbeddedInstance(
     createQualityInspectionApplication({ systemOfRecord: demoSystemOfRecord({}) }),
     { workspacePath },

@@ -1,6 +1,6 @@
 # @tortoise/site
 
-Applies the site's deployment policy. `openSite` checks it against the app's declared requirements and hardening floor, then hands it to the network, audit and compliance plugins. The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input; without a policy the application runs isolated and needs nothing from other plugins. `bun run cli site check --site <file>` checks a policy without starting the app.
+Applies the site's deployment policy. `openSite` checks it against the app's declared requirements and hardening floor, then hands it to the network, audit and compliance plugins. The `site-policy` setting (`--site-policy` or `TORTOISE_SITE_POLICY`) is a trusted launcher input; without a policy the application runs isolated and needs nothing from other plugins. `bun run cli site check --site <file>` checks a policy without starting the app.
 
 Primitives:
 

@@ -9,7 +9,7 @@
     }
   },
   "folders": {
-    "fleet-releases": { "path": "/var/lib/agent-native/test-requests-site/fleet-releases" }
+    "fleet-releases": { "path": "/var/lib/tortoise/test-requests-site/fleet-releases" }
   },
   "audit": { "mode": "fail-closed" },
   "grants": { "maxTtlSeconds": 3600 }

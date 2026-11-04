@@ -24,7 +24,7 @@ export default function buildDocsShots() {
   for (const directory of directories) {
     const build = spawnSync('bun', ['run', 'build:web'], {
       cwd: root,
-      env: { ...process.env, AGENT_NATIVE_APPLICATION: directory },
+      env: { ...process.env, TORTOISE_APPLICATION: directory },
       stdio: 'inherit',
     });
     if (build.status !== 0) throw new Error(`Web build failed for ${directory}`);

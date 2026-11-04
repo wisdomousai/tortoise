@@ -6,7 +6,7 @@
 // `startActivity` reaches the activity. Filters from an earlier prebuild are replaced.
 const { AndroidConfig, withAndroidManifest } = require('expo/config-plugins');
 
-const GENERATED = 'data-agent-native-intent';
+const GENERATED = 'data-tortoise-intent';
 
 /** `manifest` with the main activity's generated intent filters replaced by `filters`. */
 function setIntentFilters(manifest, filters) {

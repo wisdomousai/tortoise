@@ -44,13 +44,13 @@ export const hubLinkPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'hub-url',
-      env: 'AGENT_NATIVE_HUB_URL',
+      env: 'TORTOISE_HUB_URL',
       kind: 'string',
       description: 'origin of the hub to pair with, such as https://hub.site.example:8443',
     },
     {
       key: 'enrollment-code',
-      env: 'AGENT_NATIVE_ENROLLMENT_CODE',
+      env: 'TORTOISE_ENROLLMENT_CODE',
       kind: 'string',
       description: 'one-use enrollment code from the hub; pairs at startup when not yet paired',
     },

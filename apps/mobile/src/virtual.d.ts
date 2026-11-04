@@ -1,7 +1,7 @@
 /// <reference types="uniwind/types" />
 
 /** Written by `bun run mobile:prepare`; Metro maps the name to `generated/entry.ts`. */
-declare module 'virtual:agent-native/mobile-entry' {
+declare module 'virtual:tortoise/mobile-entry' {
   import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
   import type { NativeApplicationScreens } from '@tortoise/frame-native/screens';
 

@@ -6,11 +6,11 @@ export interface ConnectionFile {
 }
 /** Process clients attach to the running instance, never open its data files. */
 export async function readConnection(
-  path = process.env.AGENT_NATIVE_CONNECTION,
+  path = process.env.TORTOISE_CONNECTION,
 ): Promise<ConnectionFile> {
   if (!path)
     throw new Error(
-      'Set AGENT_NATIVE_CONNECTION to the protected connection file printed by the service',
+      'Set TORTOISE_CONNECTION to the protected connection file printed by the service',
     );
   const value: unknown = JSON.parse(await readFile(path, 'utf8'));
   if (

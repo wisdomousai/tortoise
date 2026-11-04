@@ -9,17 +9,17 @@ export type ServiceManager = 'systemd' | 'windows' | 'none';
  * Where one application lives on a site host. Every path is under `prefix` (`/` for a real
  * install), so a staged or test install is the same tree in another directory:
  *
- * - `opt/agent-native/<app>/releases/<version>`: verified bundle payloads, one per version;
- * - `opt/agent-native/<app>/current`: a link to the active release, which the service starts;
- * - `etc/agent-native/<app>`: the site policy and the generated firewall rules;
- * - `var/lib/agent-native/<app>`: the workspace, the audit log and the install record. Data is
+ * - `opt/tortoise/<app>/releases/<version>`: verified bundle payloads, one per version;
+ * - `opt/tortoise/<app>/current`: a link to the active release, which the service starts;
+ * - `etc/tortoise/<app>`: the site policy and the generated firewall rules;
+ * - `var/lib/tortoise/<app>`: the workspace, the audit log and the install record. Data is
  *   never inside a release, so switching releases never moves it.
  */
 export function installLayout(prefix: string, application: string) {
-  const home = join(prefix, 'opt/agent-native', application);
-  const config = join(prefix, 'etc/agent-native', application);
-  const data = join(prefix, 'var/lib/agent-native', application);
-  const service = `agent-native-${application}`;
+  const home = join(prefix, 'opt/tortoise', application);
+  const config = join(prefix, 'etc/tortoise', application);
+  const data = join(prefix, 'var/lib/tortoise', application);
+  const service = `tortoise-${application}`;
   return {
     service,
     releases: join(home, 'releases'),

@@ -31,7 +31,7 @@ To try the application by hand, run it in one terminal and point the CLI at it f
 
 ```sh
 bun run --cwd showcase/examples/tool-store dev:web
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
+export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
 ```
 
 ## Repair orders
@@ -215,7 +215,7 @@ The workflow text names operation IDs only; each surface shows them under its ow
 
 ```sh
 bun run --cwd showcase/examples/tool-store dev:web
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
+export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
 bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --calibration-due 2026-10-31 --key create-wrench
 bun run cli tool create --asset-tag TC-00602 --description "Insulation tester 5 kV" --category insulation-tester --bin B-01 --calibration-due 2026-11-05 --key create-tester
 bun run cli tool create --asset-tag TC-00603 --description "Crimper 6-50 mm2" --category crimper --bin C-02 --calibration-due 2026-11-09 --key create-crimper
@@ -225,7 +225,7 @@ bun run cli tool check-out --tool-id <crimper id> --borrower E104233 --work-orde
 Give Claude Code the app's MCP tools only, and the task:
 
 ```sh
-claude mcp add --scope project tool-store -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
+claude mcp add --scope project tool-store -e TORTOISE_CONNECTION=$TORTOISE_CONNECTION -- bun run mcp
 claude -p "Pull the tools due for calibration in the tool-store application. Read the calibration-pull workflow resource first and follow it." \
   --allowedTools mcp__tool-store ListMcpResourcesTool ReadMcpResourceTool \
   --disallowedTools Bash Edit Write

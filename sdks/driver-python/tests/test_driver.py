@@ -8,8 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from agent_native_driver import ActionResult, Device, Driver, Refusal, contract_digest
-from agent_native_driver.stubgen import generate
+from tortoise_driver import ActionResult, Device, Driver, Refusal, contract_digest
+from tortoise_driver.stubgen import generate
 
 CONTRACT = {
     "protocol": "1",
@@ -196,7 +196,7 @@ class LineReaderTest(unittest.TestCase):
         import os
         import threading
 
-        from agent_native_driver.rpc import MAX_LINE, LineReader
+        from tortoise_driver.rpc import MAX_LINE, LineReader
 
         read, write = os.pipe()
 

@@ -41,7 +41,7 @@ beforeAll(async () => {
     dotnet,
     [
       'build',
-      join(sdk, 'AgentNative.Driver.slnx'),
+      join(sdk, 'Tortoise.Driver.slnx'),
       '--artifacts-path',
       join(root, 'artifacts'),
       '-v',
@@ -73,7 +73,7 @@ function simulation(): ChamberSimulation {
 
 describe.skipIf(!dotnet)('the .NET SDK', () => {
   test('the committed chamber stub is what the generator writes from the host contract', async () => {
-    const generated = run('AgentNative.Driver.Stubgen', [
+    const generated = run('Tortoise.Driver.Stubgen', [
       join(root, 'chamber.json'),
       '--namespace',
       'ChamberSim',
@@ -93,7 +93,7 @@ describe.skipIf(!dotnet)('the .NET SDK', () => {
       join(root, 'edited.json'),
       JSON.stringify({ ...file, document: { ...file.document, version: '9' } }),
     );
-    const generated = run('AgentNative.Driver.Stubgen', [
+    const generated = run('Tortoise.Driver.Stubgen', [
       join(root, 'edited.json'),
       '--namespace',
       'Edited',
@@ -103,7 +103,7 @@ describe.skipIf(!dotnet)('the .NET SDK', () => {
   });
 
   test('the SDK unit tests pass', () => {
-    const tests = run('AgentNative.Driver.Tests', []);
+    const tests = run('Tortoise.Driver.Tests', []);
     expect(tests.stdout).toContain('0 failed');
     expect(tests.status).toBe(0);
   });

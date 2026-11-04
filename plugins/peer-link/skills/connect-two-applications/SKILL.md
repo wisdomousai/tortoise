@@ -25,7 +25,7 @@ The called application publishes a peer API and serves it with `@tortoise/peer-l
 7. Connect: on the called application's peers screen, create an enrollment code; on the caller's peers screen, enter it for the target. Map the caller's people on the called side.
 8. To hand work to another application and take its reports back, put `assignments.assignees.peer` in the issuing application's peer API, as `showcase/patterns/assignments/contracts.ts` does. The taking application declares a worklist with `defineWorklist` and delivers through `connectWorklist`, as `showcase/patterns/worklist/application.ts` does. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers both sides.
 
-Never take the subject from command input: it comes only from `effect.principalId` or the caller's context. Never send the peer credential or an assertion through anything but the link's clients; they strip caller-set `Authorization`, `Cookie` and `Agent-Native-Subject` headers and refuse redirects.
+Never take the subject from command input: it comes only from `effect.principalId` or the caller's context. Never send the peer credential or an assertion through anything but the link's clients; they strip caller-set `Authorization`, `Cookie` and `Tortoise-Subject` headers and refuse redirects.
 
 ## Checks
 

@@ -23,7 +23,7 @@ async function attachedMcp(args: string[]) {
 async function embeddedMcp(definition: AnyApplicationDefinition, args: string[]) {
   const workspacePath = workspaceOf(args);
   const settings = settingsOf(definition.manifest, args);
-  const grantFile = takeFlag(args, 'grant-file') ?? process.env.AGENT_NATIVE_GRANT_FILE;
+  const grantFile = takeFlag(args, 'grant-file') ?? process.env.TORTOISE_GRANT_FILE;
   rejectRemaining(args);
   // MCP is the agent surface, so an embedded server always runs under an explicit delegation.
   if (!grantFile)

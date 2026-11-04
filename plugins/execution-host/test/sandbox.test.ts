@@ -130,7 +130,7 @@ describe.skipIf(!supported)('bubblewrap sandbox', () => {
     expect(seen.processes).toBeLessThanOrEqual(4);
     // Bubblewrap sets PWD for --chdir; nothing else from the host.
     expect(seen.env).toEqual([
-      'AGENT_NATIVE_CONNECTION',
+      'TORTOISE_CONNECTION',
       'HOME',
       'LANG',
       'PATH',

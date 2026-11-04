@@ -27,7 +27,7 @@ test('the demo reaches a station through its automation driver only when asked',
 });
 
 test('the embedded instance syncs the MES and reports station targets it cannot deliver', async () => {
-  const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-embedded-'));
+  const workspacePath = await mkdtemp(join(tmpdir(), 'tortoise-embedded-'));
   const instance = await openEmbeddedInstance(createWindingLineApplication({ stations: [] }), {
     workspacePath,
   });

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Tortoise.Driver/Tortoise.Driver.csproj" />
+  <Project Path="src/Tortoise.Driver.Stubgen/Tortoise.Driver.Stubgen.csproj" />
+  <Project Path="tests/Tortoise.Driver.Tests/Tortoise.Driver.Tests.csproj" />
+  <Project Path="examples/ChamberSim/ChamberSim.csproj" />
+</Solution>

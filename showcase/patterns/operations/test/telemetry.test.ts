@@ -68,7 +68,7 @@ test('test request commands reach the collector as counts, and the export is in 
 
   const metrics = collector.received.filter((entry) => entry.path === '/v1/metrics').at(-1)!;
   const commands = metrics.body.resourceMetrics[0].scopeMetrics[0].metrics.find(
-    (metric: { name: string }) => metric.name === 'agent_native.commands',
+    (metric: { name: string }) => metric.name === 'tortoise.commands',
   );
   const points = commands.sum.dataPoints.map(
     (point: { attributes: { key: string; value: { stringValue: string } }[]; asInt: string }) => ({
@@ -78,15 +78,15 @@ test('test request commands reach the collector as counts, and the export is in 
   );
   expect(points).toContainEqual(
     expect.objectContaining({
-      'agent_native.operation': 'test-request.submit',
-      'agent_native.outcome': 'committed',
+      'tortoise.operation': 'test-request.submit',
+      'tortoise.outcome': 'committed',
       count: '1',
     }),
   );
   expect(points).toContainEqual(
     expect.objectContaining({
-      'agent_native.operation': 'test-request.submit',
-      'agent_native.outcome': 'denied',
+      'tortoise.operation': 'test-request.submit',
+      'tortoise.outcome': 'denied',
     }),
   );
 

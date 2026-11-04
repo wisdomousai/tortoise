@@ -6,20 +6,20 @@ const scanner = definePluginManifest({
   id: 'scanner',
   title: 'Scanner',
   platforms: ['android'],
-  native: { module: 'AgentNativeScanner' },
+  native: { module: 'TortoiseScanner' },
 });
 
 test('a plugin finds its native module by the name its manifest gives', () => {
   const module = { listen() {} };
   const lookup = ((name: string) =>
-    name === 'AgentNativeScanner' ? module : null) as NativeModuleLookup;
+    name === 'TortoiseScanner' ? module : null) as NativeModuleLookup;
   expect(requirePluginNativeModule<typeof module>(scanner, lookup)).toBe(module);
 });
 
 test('a build without the module, or a manifest without one, refuses with the reason', () => {
   const missing = (() => null) as NativeModuleLookup;
   expect(() => requirePluginNativeModule(scanner, missing)).toThrow(
-    'Plugin "scanner" needs the native module "AgentNativeScanner", which this build does not include; run bun run mobile:prebuild and rebuild',
+    'Plugin "scanner" needs the native module "TortoiseScanner", which this build does not include; run bun run mobile:prebuild and rebuild',
   );
   const plain = definePluginManifest({ id: 'plain', title: 'Plain', platforms: ['android'] });
   expect(() => requirePluginNativeModule(plain, missing)).toThrow(

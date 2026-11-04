@@ -3,14 +3,14 @@
 // ChamberContract.cs is generated from it:
 //
 //   app driver contract chamber --out chamber.json
-//   dotnet run --project src/AgentNative.Driver.Stubgen -- chamber.json --namespace ChamberSim -o examples/ChamberSim/ChamberContract.cs
+//   dotnet run --project src/Tortoise.Driver.Stubgen -- chamber.json --namespace ChamberSim -o examples/ChamberSim/ChamberContract.cs
 //
 // CHAMBER_SIM_DIR holds what a real chamber would keep across a driver restart (its setpoint and
 // door), the driver's journal, and test controls: an empty `fail-next` file makes the next action
 // fail before it acts, and `crash-next` makes it act and then exit before responding. Applied
 // actions are counted in applied.json.
 using System.Text.Json;
-using AgentNative.Driver;
+using Tortoise.Driver;
 using ChamberSim;
 
 var home = Environment.GetEnvironmentVariable("CHAMBER_SIM_DIR")

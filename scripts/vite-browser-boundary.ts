@@ -30,7 +30,7 @@ export function browserBoundary(root = process.cwd()): Plugin {
     return source ? `${source}/${rest}` : id;
   };
   return {
-    name: 'agent-native-browser-boundary',
+    name: 'tortoise-browser-boundary',
     enforce: 'pre',
     resolveId(source, importer) {
       if (importer && forbiddenBrowserImport.test(source))

@@ -10,7 +10,7 @@ export const managedConfigPluginManifest = definePluginManifest({
   title: 'Managed configuration',
   platforms: ['android', 'ios'],
   native: {
-    module: 'AgentNativeManagedConfig',
+    module: 'TortoiseManagedConfig',
     expoPlugin: '@tortoise/managed-config/app.plugin',
   },
 });

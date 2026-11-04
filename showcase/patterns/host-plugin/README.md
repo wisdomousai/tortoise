@@ -10,7 +10,7 @@ bun run dev:web
 ## What to try
 
 - Submit and update a request (port 4353), then open **Activity**.
-- Set `AGENT_NATIVE_ACTIVITY_MODULES` to narrow the counted modules; startup refuses a module the application does not compose.
+- Set `TORTOISE_ACTIVITY_MODULES` to narrow the counted modules; startup refuses a module the application does not compose.
 - Read the summary as a viewer: only the owner may, and the counts hold operation names, never sample descriptions or principals.
 
 ## References

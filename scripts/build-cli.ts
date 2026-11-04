@@ -20,7 +20,7 @@ export async function compileCli(
   application?: string,
   builtAt?: string,
 ): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), 'agent-native-cli-entry-'));
+  const directory = await mkdtemp(join(tmpdir(), 'tortoise-cli-entry-'));
   try {
     return await compile(
       await writeApplicationEntry('cli', directory, application, builtAt),

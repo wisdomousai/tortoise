@@ -1,9 +1,9 @@
 // Generate a C# file from a driver contract file written by `app driver contract <id> --out file.json`:
 //
-//   dotnet run --project src/AgentNative.Driver.Stubgen -- chamber.json --namespace Chamber -o ChamberContract.cs
+//   dotnet run --project src/Tortoise.Driver.Stubgen -- chamber.json --namespace Chamber -o ChamberContract.cs
 //
 // Refuses a file whose digest does not match its document.
-using AgentNative.Driver;
+using Tortoise.Driver;
 
 string? input = null, output = null, space = null, name = null;
 for (var index = 0; index < args.Length; index++)

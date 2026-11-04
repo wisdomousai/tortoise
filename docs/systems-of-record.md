@@ -72,7 +72,7 @@ To see it, start the example and ask for the target's status:
 ```sh
 bun run --cwd showcase/examples/quality-inspection dev:web
 # second terminal, from the repo root:
-export AGENT_NATIVE_CONNECTION=$PWD/showcase/examples/quality-inspection/.workspace/.connection.json
+export TORTOISE_CONNECTION=$PWD/showcase/examples/quality-inspection/.workspace/.connection.json
 bun run cli inspection sync status --output text
 ```
 

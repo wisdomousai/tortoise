@@ -10,7 +10,7 @@
  * workspace `<directory>/workspace` with the trial records, mara as a supervisor and the draft
  * quote Q-00001 for TR-40417, through the commands as the owner. The model server writes the
  * stand-in weights itself (`model.ts`). The last line it prints is the service's environment as
- * JSON: `WORKSPACE_PATH` and `AGENT_NATIVE_SITE_POLICY`.
+ * JSON: `WORKSPACE_PATH` and `TORTOISE_SITE_POLICY`.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -80,4 +80,4 @@ try {
 } finally {
   await instance.close();
 }
-console.log(JSON.stringify({ WORKSPACE_PATH: workspacePath, AGENT_NATIVE_SITE_POLICY: policy }));
+console.log(JSON.stringify({ WORKSPACE_PATH: workspacePath, TORTOISE_SITE_POLICY: policy }));

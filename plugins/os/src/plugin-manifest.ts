@@ -12,19 +12,19 @@ export const osPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'os-scheme',
-      env: 'AGENT_NATIVE_OS_SCHEME',
+      env: 'TORTOISE_OS_SCHEME',
       kind: 'string',
       description: 'URL scheme the application handles, from its identity; absent: no scheme links',
     },
     {
       key: 'os-link-hosts',
-      env: 'AGENT_NATIVE_OS_LINK_HOSTS',
+      env: 'TORTOISE_OS_LINK_HOSTS',
       kind: 'string',
       description: 'comma-separated hosts whose https links verified link handlers accept',
     },
     {
       key: 'os-disabled',
-      env: 'AGENT_NATIVE_OS_DISABLED',
+      env: 'TORTOISE_OS_DISABLED',
       kind: 'string',
       description: 'comma-separated OS handler and action ids the site turns off',
     },

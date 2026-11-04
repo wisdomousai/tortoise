@@ -66,7 +66,7 @@ export function readApplicationIdentity(path: string): ApplicationIdentity {
 }
 
 /**
- * Read the starter configuration. `AGENT_NATIVE_APPLICATION` in `env` overrides the configured
+ * Read the starter configuration. `TORTOISE_APPLICATION` in `env` overrides the configured
  * application, so one starter checkout can run any example during development; it comes from
  * the developer's own launch, never from callers. Fails when either is missing or malformed.
  */
@@ -77,7 +77,7 @@ export function readStarterConfig(
   const identity = readApplicationIdentity(path);
   const configured = (JSON.parse(readFileSync(path, 'utf8')) as { application?: unknown })
     .application;
-  const application = env.AGENT_NATIVE_APPLICATION || configured;
+  const application = env.TORTOISE_APPLICATION || configured;
   if (typeof application !== 'string' || !application.trim())
     throw new Error(`${path} must name the application the starter hosts`);
   return { ...identity, application: resolveSpecifier(application, dirname(path)) };

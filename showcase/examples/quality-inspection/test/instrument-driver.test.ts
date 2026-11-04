@@ -80,13 +80,7 @@ describe.skipIf(!python3)('the instrument driver stub', () => {
     );
     const generated = spawnSync(
       python3!,
-      [
-        '-m',
-        'agent_native_driver.stubgen',
-        join(root, 'contract.json'),
-        '-o',
-        join(root, 'stub.py'),
-      ],
+      ['-m', 'tortoise_driver.stubgen', join(root, 'contract.json'), '-o', join(root, 'stub.py')],
       { env: environment(), encoding: 'utf8' },
     );
     expect(generated.stderr).toBe('');

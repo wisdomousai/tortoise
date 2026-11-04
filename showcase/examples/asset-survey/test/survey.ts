@@ -40,7 +40,7 @@ afterEach(async () => {
  * the workflows plugin's clock.
  */
 export async function open(settings?: PluginSettings, options: { now?: () => number } = {}) {
-  const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
+  const workspacePath = await mkdtemp(join(tmpdir(), 'tortoise-survey-'));
   let eam!: FakeEam;
   const instance = await openEmbeddedInstance(
     createAssetSurveyApplication({

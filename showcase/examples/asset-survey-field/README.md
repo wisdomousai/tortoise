@@ -3,7 +3,7 @@
 The field application receives assignments from the [asset survey hub](../asset-survey/README.md) into a local worklist. A worker opens the assigned site structure, photographs equipment and saves captures offline; on reconnection the device sends reports and photos to the hub, which makes its own acceptance decision. The phone has its own workspace and shares only the hub's browser-safe survey contracts.
 
 ```sh
-export AGENT_NATIVE_MOBILE_APPLICATION=@tortoise/asset-survey-field
+export TORTOISE_MOBILE_APPLICATION=@tortoise/asset-survey-field
 bun run mobile:prepare
 bun run mobile:prebuild
 bun run dev:mobile

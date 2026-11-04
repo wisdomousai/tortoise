@@ -8,7 +8,7 @@ import { isAbsolute } from 'node:path';
  * or starts one; Bun runs `apps/service` from source.
  *
  * Trust boundary: this path exists only when Electron reports the app is unpackaged
- * and the launcher set `AGENT_NATIVE_DESKTOP_DEV=1`. A packaged process ignores the
+ * and the launcher set `TORTOISE_DESKTOP_DEV=1`. A packaged process ignores the
  * flag and keeps digest checks. The service child receives the developer environment
  * already present on that launch (the same process environment as the browser `dev`
  * command). It cannot override the workspace, port, web root, runtime manifest or
@@ -24,12 +24,12 @@ const reservedServiceKeys = new Set([
   'WORKSPACE_PATH',
   'WEB_ROOT',
   'AGENT_RUNTIME_MANIFEST',
-  'AGENT_NATIVE_SITE_POLICY',
+  'TORTOISE_SITE_POLICY',
 ]);
 
 /** Packaged Electron never takes this path, even if the development flag is set. */
 export function isDevelopmentDesktop(packaged: boolean, env: NodeJS.ProcessEnv): boolean {
-  return !packaged && env.AGENT_NATIVE_DESKTOP_DEV === '1';
+  return !packaged && env.TORTOISE_DESKTOP_DEV === '1';
 }
 
 /** Per-application lock name so two examples can be open together. */
@@ -78,20 +78,20 @@ export function developmentServiceLaunch(
   env: NodeJS.ProcessEnv,
   workspace: string,
 ): DevelopmentServiceLaunch {
-  if (env.AGENT_NATIVE_DESKTOP_DEV !== '1') throw new Error('Not a development desktop launch');
+  if (env.TORTOISE_DESKTOP_DEV !== '1') throw new Error('Not a development desktop launch');
   if (!workspace || !isAbsolute(workspace)) throw new Error('Workspace must be an absolute path');
   const port = env.PORT ?? '4317';
   if (!/^\d+$/.test(port)) throw new Error('PORT must be a numeric port');
-  const sitePolicy = env.AGENT_NATIVE_SITE_POLICY;
+  const sitePolicy = env.TORTOISE_SITE_POLICY;
   if (sitePolicy && !isAbsolute(sitePolicy))
-    throw new Error('AGENT_NATIVE_SITE_POLICY must be an absolute path');
+    throw new Error('TORTOISE_SITE_POLICY must be an absolute path');
   return {
     workspace,
-    executable: absolute(env, 'AGENT_NATIVE_BUN'),
-    args: [absolute(env, 'AGENT_NATIVE_SERVICE_ENTRY')],
-    webRoot: absolute(env, 'AGENT_NATIVE_WEB_ROOT'),
+    executable: absolute(env, 'TORTOISE_BUN'),
+    args: [absolute(env, 'TORTOISE_SERVICE_ENTRY')],
+    webRoot: absolute(env, 'TORTOISE_WEB_ROOT'),
     port,
-    cwd: absolute(env, 'AGENT_NATIVE_DEV_ROOT'),
+    cwd: absolute(env, 'TORTOISE_DEV_ROOT'),
     extraEnv: developmentServiceEnvironment(env),
     ...(sitePolicy ? { sitePolicy } : {}),
     mirror: true,

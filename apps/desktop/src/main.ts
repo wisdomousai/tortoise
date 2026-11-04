@@ -28,7 +28,7 @@ const developmentDesktop = isDevelopmentDesktop(app.isPackaged, process.env);
 // Each development application gets its own lock so two examples can run together.
 app.setName(
   developmentDesktop
-    ? developmentAppName(identity.name, process.env.AGENT_NATIVE_APPLICATION)
+    ? developmentAppName(identity.name, process.env.TORTOISE_APPLICATION)
     : identity.name,
 );
 // Links and files the OS opens the application with; macOS sends them before `ready`.
@@ -38,8 +38,8 @@ const osShell = createOsShell(identity.scheme);
  * input cannot choose arbitrary filesystem paths.
  */
 const workspacePath = () =>
-  process.env.AGENT_NATIVE_WORKSPACE
-    ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
+  process.env.TORTOISE_WORKSPACE
+    ? resolve(process.env.TORTOISE_WORKSPACE)
     : resolve(app.getPath('userData'), 'workspace');
 
 /** Attach to or start the instance: from this checkout in development, else the verified runtime. */
@@ -58,8 +58,8 @@ async function startService(workspace: string): Promise<ServiceHandle> {
   // The packaged policy (digest-verified above) binds only the provider endpoints. An
   // operator can substitute a site policy through the trusted host environment, as with
   // the workspace; without either the service runs isolated.
-  const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
-    ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
+  const sitePolicy = process.env.TORTOISE_SITE_POLICY
+    ? resolve(process.env.TORTOISE_SITE_POLICY)
     : manifest.sitePolicy
       ? resourcePath(resources, manifest.sitePolicy.path)
       : undefined;
@@ -74,11 +74,11 @@ async function startService(workspace: string): Promise<ServiceHandle> {
 }
 
 function printDevelopmentLaunch(workspace: string, launchUrl: string) {
-  const application = process.env.AGENT_NATIVE_APPLICATION ?? identity.name;
+  const application = process.env.TORTOISE_APPLICATION ?? identity.name;
   console.log(
     `\n${identity.displayName}: open ${launchUrl}\n` +
       `  The desktop window is this app. The link signs a browser in once and expires after one minute.\n` +
-      `  CLI: AGENT_NATIVE_APPLICATION=${application} AGENT_NATIVE_CONNECTION=${resolve(workspace, '.connection.json')} bun run cli list\n`,
+      `  CLI: TORTOISE_APPLICATION=${application} TORTOISE_CONNECTION=${resolve(workspace, '.connection.json')} bun run cli list\n`,
   );
 }
 

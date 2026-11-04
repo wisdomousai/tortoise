@@ -170,7 +170,7 @@ describe('client', () => {
     const forged = {
       'Content-Type': 'application/json',
       Authorization: 'Bearer forged',
-      'Agent-Native-Subject': 'v1.forged.forged',
+      'Tortoise-Subject': 'v1.forged.forged',
       Cookie: 'agent_session=forged',
     };
     const ask = async (client: ReturnType<PeerLink['client']>) =>

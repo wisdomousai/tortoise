@@ -29,7 +29,7 @@ const gas = 'IEC 60567 dissolved gas analysis';
 test('send a sampling round to yourself, report a sample per transformer, link and accept them into test requests and close it', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-rounds-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-rounds-'));
   const host = await startService('@tortoise/pattern-assignments', workspace);
   try {
     await submitRequest(host, {

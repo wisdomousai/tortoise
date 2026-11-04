@@ -16,7 +16,7 @@ export const deviceLinkPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'device-link-sync-operations',
-      env: 'AGENT_NATIVE_DEVICE_LINK_SYNC_OPERATIONS',
+      env: 'TORTOISE_DEVICE_LINK_SYNC_OPERATIONS',
       kind: 'string',
       description:
         'comma-separated operations a field device may call, such as its ingest command and feed query; absent: none',

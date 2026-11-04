@@ -19,7 +19,7 @@ The host prints a one-use launch link. `bun run dev` opens a desktop window inst
 While the host runs, the CLI and the MCP server call the same instance through its connection file, which holds a local credential that only the owner can read. From the project root:
 
 ```sh
-export AGENT_NATIVE_CONNECTION=$PWD/.workspace/.connection.json
+export TORTOISE_CONNECTION=$PWD/.workspace/.connection.json
 bun run cli help
 ```
 

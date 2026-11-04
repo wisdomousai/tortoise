@@ -15,7 +15,7 @@ export async function smokeStage(stage: string) {
   const resources = resolve(stage, 'resources');
   const manifest = await loadRuntimeManifest(resources);
   await verifyRuntimeFiles(resources, manifest, true);
-  const workspace = await mkdtemp(resolve(tmpdir(), 'agent-native-package-smoke-'));
+  const workspace = await mkdtemp(resolve(tmpdir(), 'tortoise-package-smoke-'));
   const versions: Record<string, string> = {};
   try {
     for (const name of ['codex', 'claude'] as const) {

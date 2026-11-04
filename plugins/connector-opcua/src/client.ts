@@ -226,12 +226,12 @@ export class OpcUaClient {
     const body = new Writer();
     writeRequestHeader(body, this.header());
     writeApplicationDescription(body, {
-      uri: 'urn:agent-native:opcua-observer',
-      name: 'agent-native OPC UA observer',
+      uri: 'urn:tortoise:opcua-observer',
+      name: 'tortoise OPC UA observer',
       type: 1,
     });
     body.string(undefined).string(this.options.endpointUrl);
-    body.string(this.options.sessionName ?? 'agent-native observer');
+    body.string(this.options.sessionName ?? 'tortoise observer');
     body.byteString(randomBytes(32)).byteString(undefined);
     body.double(this.options.sessionTimeoutMs ?? 60_000).uint32(0);
     const reader = await this.call(

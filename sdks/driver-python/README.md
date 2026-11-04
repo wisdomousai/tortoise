@@ -1,6 +1,6 @@
 # @tortoise/driver-sdk-python
 
-`agent-native-driver`: write a hardware driver in Python. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action, and the SDK does not repeat that check.
+`tortoise-driver`: write a hardware driver in Python. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action, and the SDK does not repeat that check.
 
 ## Writing a driver
 
@@ -8,13 +8,13 @@ Write the contract file from the host application and generate the stub from it:
 
 ```sh
 app driver contract chamber --out chamber.json
-python -m agent_native_driver.stubgen chamber.json -o chamber_contract.py
+python -m tortoise_driver.stubgen chamber.json -o chamber_contract.py
 ```
 
 The stub holds `DIGEST`, `CONTRACT` and a `TypedDict` per action input, result and event payload. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then register handlers and run:
 
 ```python
-from agent_native_driver import ActionResult, Device, Driver, Refusal
+from tortoise_driver import ActionResult, Device, Driver, Refusal
 from chamber_contract import CONTRACT, DIGEST, SetpointSetInput
 
 driver = Driver(CONTRACT, DIGEST, driver_id="chamber", version="1.0.0", journal="/var/lib/chamber/journal.jsonl")

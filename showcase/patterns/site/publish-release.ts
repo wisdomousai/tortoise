@@ -48,7 +48,7 @@ export async function publishRelease(
 }
 
 /**
- * `bun publish-release.ts <bundle dir> [--channel <id>]`, with `AGENT_NATIVE_CONNECTION` naming
+ * `bun publish-release.ts <bundle dir> [--channel <id>]`, with `TORTOISE_CONNECTION` naming
  * the fleet's connection file, which holds the fleet owner's token on this machine.
  */
 if (import.meta.main) {

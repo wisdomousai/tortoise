@@ -424,7 +424,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
   );
   const first = await install([join(v1.out, 'files/bin/plant')], v1.out, ['--approval', approval]);
   expect(first).toMatchObject({ code: 0, result: { version: '1.0.0' } });
-  const workspace = join(prefix, 'var/lib/agent-native/plant/workspace');
+  const workspace = join(prefix, 'var/lib/tortoise/plant/workspace');
 
   // Version 1 runs and queues two effects for an ERP it cannot reach; the fleet assigns 2.0.0.
   const { fleet, command, code } = await startFleet();
@@ -439,7 +439,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
   await running.site.close();
 
   // The installed release installs the staged one: the new binary migrates, then current switches.
-  const current = join(prefix, 'opt/agent-native/plant/current/files/bin/plant');
+  const current = join(prefix, 'opt/tortoise/plant/current/files/bin/plant');
   const upgrade = await install([current], join(running.releases, 'plant-2.0.0'));
   expect(upgrade).toMatchObject({ code: 0, result: { version: '2.0.0', previous: '1.0.0' } });
 

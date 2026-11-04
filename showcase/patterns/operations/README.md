@@ -10,7 +10,7 @@ bun run dev:web
 ## What to try
 
 - The development policy sends telemetry to `127.0.0.1:4318`; when nothing listens there, the launch starts a stand-in collector.
-- Set `AGENT_NATIVE_APPLICATION=@tortoise/pattern-operations` and pass `--workspace showcase/patterns/operations/.workspace` to the workspace commands: `bun run cli backup --out test-requests.sqlite` while the host runs; with the host stopped, `bun run cli migrate --dry-run`, then `migrate` (the old database stays as `workspace.sqlite.before-migrate`) and `restore --from test-requests.sqlite`.
+- Set `TORTOISE_APPLICATION=@tortoise/pattern-operations` and pass `--workspace showcase/patterns/operations/.workspace` to the workspace commands: `bun run cli backup --out test-requests.sqlite` while the host runs; with the host stopped, `bun run cli migrate --dry-run`, then `migrate` (the old database stays as `workspace.sqlite.before-migrate`) and `restore --from test-requests.sqlite`.
 - `bun run cli audit verify --log showcase/patterns/operations/.workspace/audit` exits 10 on a damaged or empty chain.
 
 ## References

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { startService } from '../../../../tests/e2e/service';
 
 test('the compliance screen shows posture and a new denial without a reload', async ({ page }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-compliance-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-compliance-'));
   const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);

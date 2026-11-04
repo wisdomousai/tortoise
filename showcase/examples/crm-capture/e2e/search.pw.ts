@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { startService } from '../../../../tests/e2e/service';
 
 test('search as you type, follow, and log an activity that reaches the CRM', async ({ page }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-crm-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-crm-'));
   // A slow CRM makes the in-between state observable: the previous result stays on screen.
   const host = await startService('@tortoise/crm-capture', workspace, {
     DEMO_CRM_LATENCY_MS: '400',
@@ -64,7 +64,7 @@ test('search as you type, follow, and log an activity that reaches the CRM', asy
 });
 
 test('an unreachable CRM shows a status and keeps local work usable', async ({ page }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-crm-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-crm-'));
   const host = await startService('@tortoise/crm-capture', workspace, {
     DEMO_CRM_UNAVAILABLE: '1',
   });

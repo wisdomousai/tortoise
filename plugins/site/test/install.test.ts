@@ -117,20 +117,20 @@ test('install places a verified release, renders the unit and firewall rules, an
     firewallTable: 'counter_site',
   });
 
-  const current = join(app('opt/agent-native'), 'current');
-  expect(await readlink(current)).toBe(join(app('opt/agent-native'), 'releases', '1.0.0'));
+  const current = join(app('opt/tortoise'), 'current');
+  expect(await readlink(current)).toBe(join(app('opt/tortoise'), 'releases', '1.0.0'));
   const unit = await readFile(
-    join(prefix, 'etc/systemd/system/agent-native-counter-site.service'),
+    join(prefix, 'etc/systemd/system/tortoise-counter-site.service'),
     'utf8',
   );
   expect(unit).toContain(`ExecStart=${join(current, 'files/bin/counter-site')} serve`);
-  expect(unit).toContain(`--workspace ${join(app('var/lib/agent-native'), 'workspace')}`);
+  expect(unit).toContain(`--workspace ${join(app('var/lib/tortoise'), 'workspace')}`);
   expect(unit).toContain('IPAddressDeny=any');
-  expect(await readFile(join(app('etc/agent-native'), 'egress.nft'), 'utf8')).toContain(
+  expect(await readFile(join(app('etc/tortoise'), 'egress.nft'), 'utf8')).toContain(
     'table inet counter_site {',
   );
-  expect((await lstat(join(app('var/lib/agent-native'), 'workspace'))).mode & 0o777).toBe(0o700);
-  expect((await lstat(join(app('etc/agent-native'), 'site-policy.json'))).mode & 0o777).toBe(0o640);
+  expect((await lstat(join(app('var/lib/tortoise'), 'workspace'))).mode & 0o777).toBe(0o700);
+  expect((await lstat(join(app('etc/tortoise'), 'site-policy.json'))).mode & 0o777).toBe(0o640);
   expect((await site(['status', '--trust', trust])).result).toMatchObject({
     installed: true,
     version: '1.0.0',
@@ -138,10 +138,10 @@ test('install places a verified release, renders the unit and firewall rules, an
   });
   // Native smoke on a Linux runner (CI sets it): systemd and the kernel parse what was written.
   if (process.env.SITE_INSTALL_NATIVE === '1') {
-    const unitPath = join(prefix, 'etc/systemd/system/agent-native-counter-site.service');
+    const unitPath = join(prefix, 'etc/systemd/system/tortoise-counter-site.service');
     const verify = Bun.spawnSync(['systemd-analyze', 'verify', unitPath], { stderr: 'pipe' });
     if (verify.exitCode !== 0) throw new Error(verify.stderr.toString());
-    const rules = join(app('etc/agent-native'), 'egress.nft');
+    const rules = join(app('etc/tortoise'), 'egress.nft');
     // nft resolves the `meta skuid` user name while parsing, so the service account must exist,
     // as install creates it before loading the rules.
     const user = /meta skuid != "([^"]+)"/.exec(await readFile(rules, 'utf8'))![1]!;
@@ -158,8 +158,8 @@ test('install places a verified release, renders the unit and firewall rules, an
 
 test('an upgrade migrates the workspace with the new release before switching, and keeps data', async () => {
   // Version 1 commits state, as the service would.
-  const workspace = join(app('var/lib/agent-native'), 'workspace');
-  const binary = join(app('opt/agent-native'), 'current', 'files/bin/counter-site');
+  const workspace = join(app('var/lib/tortoise'), 'workspace');
+  const binary = join(app('opt/tortoise'), 'current', 'files/bin/counter-site');
   const bumped = Bun.spawnSync([binary, 'counter.bump', '--embedded', '--workspace', workspace]);
   expect(bumped.exitCode).toBe(0);
 
@@ -180,11 +180,11 @@ test('an upgrade migrates the workspace with the new release before switching, a
     await storage.close();
   }
   // Both releases stay on disk; current names the new one.
-  expect(await readlink(join(app('opt/agent-native'), 'current'))).toEndWith('releases/2.0.0');
+  expect(await readlink(join(app('opt/tortoise'), 'current'))).toEndWith('releases/2.0.0');
 }, 30_000);
 
 test('a tampered release or bundle is refused, and uninstall keeps data unless purged', async () => {
-  const release = join(app('opt/agent-native'), 'releases', '2.0.0');
+  const release = join(app('opt/tortoise'), 'releases', '2.0.0');
   await writeFile(join(release, 'files', 'web.html'), '<html>changed</html>');
   const status = await site(['status', '--trust', trust]);
   expect(status.code).toBe(1);
@@ -193,22 +193,22 @@ test('a tampered release or bundle is refused, and uninstall keeps data unless p
   const v3 = await bundle('3.0.0', 2);
   await writeFile(join(v3, 'files', 'web.html'), 'tampered');
   expect((await install(v3)).code).not.toBe(0);
-  expect(await readlink(join(app('opt/agent-native'), 'current'))).toEndWith('releases/2.0.0');
+  expect(await readlink(join(app('opt/tortoise'), 'current'))).toEndWith('releases/2.0.0');
 
   expect((await site(['uninstall'])).result).toMatchObject({ removed: true, purged: false });
   expect((await site(['status', '--trust', trust])).result).toMatchObject({ installed: false });
   expect(
-    await Bun.file(join(prefix, 'etc/systemd/system/agent-native-counter-site.service')).exists(),
+    await Bun.file(join(prefix, 'etc/systemd/system/tortoise-counter-site.service')).exists(),
   ).toBe(false);
   expect(
-    await Bun.file(join(app('var/lib/agent-native'), 'workspace', 'workspace.sqlite')).exists(),
+    await Bun.file(join(app('var/lib/tortoise'), 'workspace', 'workspace.sqlite')).exists(),
   ).toBe(true);
 }, 30_000);
 
 /** Run the installed release's binary in-process against the installed workspace. */
 function operate(args: string[]) {
-  const binary = join(app('opt/agent-native'), 'current', 'files/bin/counter-site');
-  const workspace = join(app('var/lib/agent-native'), 'workspace');
+  const binary = join(app('opt/tortoise'), 'current', 'files/bin/counter-site');
+  const workspace = join(app('var/lib/tortoise'), 'workspace');
   const run = Bun.spawnSync([binary, ...args, '--embedded', '--workspace', workspace]);
   expect(run.exitCode).toBe(0);
   return JSON.parse(run.stdout.toString().trim().split('\n').at(-1)!);
@@ -248,9 +248,9 @@ test('status shows the signed best-before date, and a purge refuses while the ou
     application: 'counter-site',
     purged: true,
   });
-  expect(await Bun.file(join(app('var/lib/agent-native'), 'install.json')).exists()).toBe(false);
+  expect(await Bun.file(join(app('var/lib/tortoise'), 'install.json')).exists()).toBe(false);
   expect(
-    await Bun.file(join(app('var/lib/agent-native'), 'workspace', 'workspace.sqlite')).exists(),
+    await Bun.file(join(app('var/lib/tortoise'), 'workspace', 'workspace.sqlite')).exists(),
   ).toBe(false);
 }, 30_000);
 
@@ -268,6 +268,6 @@ test('--discard-undelivered purges anyway and lists what it deleted', async () =
     purged: true,
     discarded: [{ target: 'ledger', pending: 2, held: 0, acknowledged: 0 }],
   });
-  for (const left of ['opt/agent-native', 'etc/agent-native', 'var/lib/agent-native'])
+  for (const left of ['opt/tortoise', 'etc/tortoise', 'var/lib/tortoise'])
     await expect(lstat(app(left))).rejects.toThrow();
 }, 30_000);

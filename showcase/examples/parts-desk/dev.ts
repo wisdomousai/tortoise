@@ -4,7 +4,7 @@
  * build and before the host starts.
  *
  * First it chooses the model server. It writes a deployment policy into a temporary directory,
- * because the policy names absolute paths, and sets `AGENT_NATIVE_SITE_POLICY` to it unless that
+ * because the policy names absolute paths, and sets `TORTOISE_SITE_POLICY` to it unless that
  * is already set. The policy binds `local-inference` to http://127.0.0.1:4389 with a timeout of
  * 300 seconds, since a model that reasons before it responds outlasts the egress guard's default
  * of 30 seconds, and binds the `llm` process, pinned by its digest, to listen on that port. By
@@ -57,9 +57,9 @@ if (weights) {
   process.env.PARTS_DESK_MODEL ??= model;
 }
 
-if (process.env.AGENT_NATIVE_SITE_POLICY) {
+if (process.env.TORTOISE_SITE_POLICY) {
   console.log(
-    `Model server: the llm process that ${process.env.AGENT_NATIVE_SITE_POLICY} binds, on ${weights ?? 'the stand-in weights'}`,
+    `Model server: the llm process that ${process.env.TORTOISE_SITE_POLICY} binds, on ${weights ?? 'the stand-in weights'}`,
   );
 } else {
   let llm: Record<string, unknown>;
@@ -99,7 +99,7 @@ if (process.env.AGENT_NATIVE_SITE_POLICY) {
       2,
     ),
   );
-  process.env.AGENT_NATIVE_SITE_POLICY = policy;
+  process.env.TORTOISE_SITE_POLICY = policy;
 }
 
 // The application reads PARTS_DESK_MODEL when it is defined, so it is imported only now.

@@ -5,7 +5,7 @@ It implements the reference chamber contract, ``chamber`` in
 stub on ``PYTHONPATH``:
 
     app driver contract chamber --out chamber.json
-    python -m agent_native_driver.stubgen chamber.json -o chamber_contract.py
+    python -m tortoise_driver.stubgen chamber.json -o chamber_contract.py
     CHAMBER_SIM_DIR=/tmp/chamber python chamber_sim.py
 
 ``CHAMBER_SIM_DIR`` holds what a real chamber would keep across a driver restart (its setpoint and
@@ -21,7 +21,7 @@ import os
 import sys
 from pathlib import Path
 
-from agent_native_driver import ActionResult, Device, Driver, Refusal
+from tortoise_driver import ActionResult, Device, Driver, Refusal
 
 from chamber_contract import CONTRACT, DIGEST, CycleStartInput, LabelPrintInput, SetpointSetInput
 

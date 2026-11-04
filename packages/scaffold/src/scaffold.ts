@@ -142,7 +142,7 @@ async function applicationOf(options: ScaffoldOptions, sourceRoot: string, displ
   const application: ScaffoldManifest['application'] = {
     name: options.name,
     displayName,
-    appId: `dev.agentnative.${options.name}`,
+    appId: `dev.tortoise.${options.name}`,
     ...(hosted ? { application: hosted } : {}),
   };
   const dropped = excluded.length ? await emptiedLayers(sourceRoot, excluded) : [];

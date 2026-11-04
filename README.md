@@ -36,7 +36,7 @@ Open the `launchUrl` in a browser. The link signs you in once and expires after 
 In a second terminal, use the CLI on the same data:
 
 ```sh
-export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
+export TORTOISE_CONNECTION="$(pwd)/.workspace/.connection.json"
 bun run cli work-order create --name "Pump 4 service" --site "Hall B" --key wo-1
 bun run cli work-order list --output text
 ```

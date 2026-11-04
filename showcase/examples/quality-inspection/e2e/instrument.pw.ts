@@ -25,14 +25,14 @@ function driverPython(directory: string): string | undefined {
   const site = spawnSync(python, ['-c', 'import site; print(site.getsitepackages()[0])'], {
     encoding: 'utf8',
   }).stdout.trim();
-  spawnSync('sh', ['-c', `printf '%s\\n' "$1" > "$2"`, 'sh', sdk, join(site, 'agent_native.pth')]);
+  spawnSync('sh', ['-c', `printf '%s\\n' "$1" > "$2"`, 'sh', sdk, join(site, 'tortoise.pth')]);
   return python;
 }
 
 test('an instrument reading is offered on the capture station and recorded with one action', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-instrument-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-instrument-'));
   const python = driverPython(workspace);
   test.skip(!python, 'needs uv with pyserial in its cache, on macOS or Linux');
   // The instrument: a pty pair whose device side the driver opens as its serial port.
@@ -55,7 +55,7 @@ test('an instrument reading is offered on the capture station and recorded with 
     }),
   );
   const host = await startService('@tortoise/quality-inspection', join(workspace, 'data'), {
-    AGENT_NATIVE_SITE_POLICY: policy,
+    TORTOISE_SITE_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);

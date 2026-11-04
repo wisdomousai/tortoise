@@ -534,7 +534,7 @@ The port for the instance's transactional state. See [`packages/runtime`](../pac
 
 ### Subject assertion
 
-The signed `Agent-Native-Subject` header with which a peer names the person a request is for. See [`plugins/peer-link`](../plugins/peer-link/README.md).
+The signed `Tortoise-Subject` header with which a peer names the person a request is for. See [`plugins/peer-link`](../plugins/peer-link/README.md).
 
 ### Subject mapping
 

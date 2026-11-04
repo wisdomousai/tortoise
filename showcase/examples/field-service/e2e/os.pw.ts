@@ -21,7 +21,7 @@ const api = (page: Page, path: string, body: unknown) =>
 test('a protocol-handler launch opens the task; files and shares prefill tasks the person adds; a reminder waits; a shortcut starts a task', async ({
   page,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-os-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   try {
     host = await startService('@tortoise/field-service', workspace);
@@ -155,7 +155,7 @@ test('Open map opens the site search without an opener, and Send summary shares 
   page,
   context,
 }) => {
-  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'tortoise-os-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   // The map stays offline, and the Web Share API is recorded instead of opening a sheet.
   await context.route('https://www.openstreetmap.org/**', (route) =>

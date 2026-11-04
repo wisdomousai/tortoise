@@ -121,8 +121,8 @@ test('a call on behalf of a person opens no launch session or event stream', asy
     sessions: new Sessions(),
     origin: () => origin,
     authenticateToken: async (token, via, request) => {
-      requests.push(request?.headers.get('agent-native-subject') ?? '');
-      const subject = request?.headers.get('agent-native-subject');
+      requests.push(request?.headers.get('tortoise-subject') ?? '');
+      const subject = request?.headers.get('tortoise-subject');
       const context = {
         workspaceId: 'w',
         principalId: subject ? 'ann' : 'peer:receiving',
@@ -138,7 +138,7 @@ test('a call on behalf of a person opens no launch session or event stream', asy
         headers: {
           host: '127.0.0.1:4100',
           authorization: 'Bearer peer',
-          ...(subject ? { 'agent-native-subject': subject } : {}),
+          ...(subject ? { 'tortoise-subject': subject } : {}),
         },
       }),
     );

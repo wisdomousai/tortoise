@@ -50,7 +50,7 @@ export async function openThread(
 ): Promise<string> {
   await rpc.request('initialize', {
     clientInfo: options.clientInfo ?? {
-      name: 'agent-native-starter',
+      name: 'tortoise-starter',
       title: 'Application workspace',
       version: '0.1.0',
     },

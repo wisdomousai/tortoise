@@ -35,7 +35,7 @@ from dataclasses import dataclass
 
 import serial
 
-from agent_native_driver import Device, Driver, Reading, Refusal
+from tortoise_driver import Device, Driver, Reading, Refusal
 from instrument_contract import CONTRACT, DIGEST
 
 try:

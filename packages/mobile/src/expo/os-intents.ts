@@ -8,7 +8,7 @@ import type { MobileOsBindings } from '../os';
  * and its calls; a plugin that serves intent handlers and actions brings the Android code under
  * this name, so a build without that plugin has no module and its bindings stay absent.
  */
-export const osIntentsModuleName = 'AgentNativeOsIntents';
+export const osIntentsModuleName = 'TortoiseOsIntents';
 
 /** What the native module provides on Android. */
 export interface OsIntentsNativeModule {

@@ -82,7 +82,7 @@ async function syscalls() {
 }
 
 async function api(path: string, body: unknown) {
-  const connection = JSON.parse(readFileSync(process.env.AGENT_NATIVE_CONNECTION!, 'utf8'));
+  const connection = JSON.parse(readFileSync(process.env.TORTOISE_CONNECTION!, 'utf8'));
   const response = await fetch(new URL(path, connection.endpoint), {
     method: 'POST',
     headers: { authorization: `Bearer ${connection.token}`, 'content-type': 'application/json' },
@@ -116,7 +116,7 @@ if (mode === 'escape') {
         .once('error', (error: NodeJS.ErrnoException) => resolve(error.code))
         .once('spawn', () => resolve('STARTED')),
     ),
-    sockets: readdirSync('/run/agent-native/sock').sort(),
+    sockets: readdirSync('/run/tortoise/sock').sort(),
     interfaces: Object.keys(networkInterfaces()),
     external: await tcp('1.1.1.1', 80),
     hostLoopback: await tcp('127.0.0.1', Number(hostPort)),

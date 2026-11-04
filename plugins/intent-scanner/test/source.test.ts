@@ -34,7 +34,7 @@ const profile: ScannerProfile = scannerProfileSchema.parse({
   transport: 'intent',
   aimIds: true,
   intent: {
-    action: 'dev.agentnative.SCAN',
+    action: 'dev.tortoise.SCAN',
     dataExtra: 'com.symbol.datawedge.data_string',
     senderPermission: 'com.symbol.datawedge.permission.SEND',
   },
@@ -46,8 +46,8 @@ test('broadcasts for the profile action decode like any other source', async () 
   const stop = await createIntentSource(profile, device.module).start({
     onScan: (scan) => scans.push(scan),
   });
-  expect(device.listening.get('dev.agentnative.SCAN')).toBe('com.symbol.datawedge.permission.SEND');
-  device.broadcast('dev.agentnative.SCAN', ']C1(01)09506000134352(10)LOT7');
+  expect(device.listening.get('dev.tortoise.SCAN')).toBe('com.symbol.datawedge.permission.SEND');
+  device.broadcast('dev.tortoise.SCAN', ']C1(01)09506000134352(10)LOT7');
   device.broadcast('other.app.SCAN', 'ignored');
   expect(scans).toHaveLength(1);
   expect(scans[0]).toMatchObject({
@@ -58,7 +58,7 @@ test('broadcasts for the profile action decode like any other source', async () 
   expect(scans[0]!.gs1?.valid).toBe(true);
   stop();
   expect(device.listening.size).toBe(0);
-  device.broadcast('dev.agentnative.SCAN', 'after stop');
+  device.broadcast('dev.tortoise.SCAN', 'after stop');
   expect(scans).toHaveLength(1);
 });
 
@@ -82,5 +82,5 @@ test('profiles refuse actions and extras that are not Android names', () => {
 
 test('the plugin runs on Android only and names its native module', () => {
   expect(intentScannerPluginManifest.platforms).toEqual(['android']);
-  expect(intentScannerPluginManifest.native).toEqual({ module: 'AgentNativeIntentScanner' });
+  expect(intentScannerPluginManifest.native).toEqual({ module: 'TortoiseIntentScanner' });
 });

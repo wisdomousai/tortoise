@@ -1,4 +1,4 @@
-package dev.agentnative.intentscanner
+package dev.tortoise.intentscanner
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -23,7 +23,7 @@ class IntentScannerModule : Module() {
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
   override fun definition() = ModuleDefinition {
-    Name("AgentNativeIntentScanner")
+    Name("TortoiseIntentScanner")
 
     Events("onScan")
 

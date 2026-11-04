@@ -28,7 +28,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
     const child = Bun.spawn(
       [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
       {
-        env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: file },
+        env: { PATH: process.env.PATH, TORTOISE_CONNECTION: file },
         stdout: 'pipe',
         stderr: 'pipe',
       },

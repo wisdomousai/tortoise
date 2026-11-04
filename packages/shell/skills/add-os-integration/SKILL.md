@@ -39,7 +39,7 @@ An application declares what the OS may send it and what it may ask of the OS as
    - `desktopOsConfig` runs in `bun run package:stage` for the electron-builder scheme and file associations;
    - `webManifestOs` runs in the frame's Vite plugin (`packages/frame/vite.ts`) for the web manifest's protocol handlers, share target and shortcuts.
 8. Rerun `bun run mobile:prebuild` and rebuild the mobile application after adding or removing a handler kind that brings a config plugin.
-9. For verified links, write `apple-app-site-association` and `assetlinks.json` with `associationFiles` from `@tortoise/shell/associations`. Verified links register only for hosts the deployment configures in `os-link-hosts` or `AGENT_NATIVE_OS_LINK_HOSTS`.
+9. For verified links, write `apple-app-site-association` and `assetlinks.json` with `associationFiles` from `@tortoise/shell/associations`. Verified links register only for hosts the deployment configures in `os-link-hosts` or `TORTOISE_OS_LINK_HOSTS`.
 
    ```sh
    bun scripts/os-associations.ts --team-id <id> --sha256-cert <fingerprint>

@@ -98,7 +98,7 @@ export interface HostSide {
 }
 
 const reserved =
-  /^(?:PATH|HOME|TMPDIR|LANG|AGENT_NATIVE_.*|(?:HTTPS?|ALL|NO)_PROXY|(?:https?|all|no)_proxy)$/;
+  /^(?:PATH|HOME|TMPDIR|LANG|TORTOISE_.*|(?:HTTPS?|ALL|NO)_PROXY|(?:https?|all|no)_proxy)$/;
 const variable = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const no = (reason: string) => ({ available: false, reason }) as const;
 
@@ -208,7 +208,7 @@ export function createExecutionHost(
       workspaceId: issued.context.workspaceId,
       runId,
     };
-    const directory = await mkdtemp(join(tmpdir(), 'agent-native-sandbox-'));
+    const directory = await mkdtemp(join(tmpdir(), 'tortoise-sandbox-'));
     const relays: Relay[] = [];
     const cleanup = async () => {
       host.broker.revoke(issued.token);
@@ -232,7 +232,7 @@ export function createExecutionHost(
         HOME: '/tmp',
         TMPDIR: '/tmp',
         LANG: 'C.UTF-8',
-        AGENT_NATIVE_CONNECTION: sandboxPaths.connection,
+        TORTOISE_CONNECTION: sandboxPaths.connection,
         ...egress?.env,
       };
       const args = bwrapArguments({

@@ -12,20 +12,20 @@ export const fleetAgentPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'fleet-enrollment-code',
-      env: 'AGENT_NATIVE_FLEET_ENROLLMENT_CODE',
+      env: 'TORTOISE_FLEET_ENROLLMENT_CODE',
       kind: 'string',
       description: 'one-use code from the fleet; exchanged for the site credential on first start',
     },
     {
       key: 'fleet-trust',
-      env: 'AGENT_NATIVE_FLEET_TRUST',
+      env: 'TORTOISE_FLEET_TRUST',
       kind: 'path',
       description:
         'path of the release signing keys (bundle key.pub.json, or an array of them); absent: releases are not staged',
     },
     {
       key: 'fleet-relay',
-      env: 'AGENT_NATIVE_FLEET_RELAY',
+      env: 'TORTOISE_FLEET_RELAY',
       kind: 'string',
       description: '`on`: forward remote-access requests from the fleet to this host’s own API',
     },

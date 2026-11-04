@@ -3,13 +3,13 @@ require 'json'
 package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
 
 Pod::Spec.new do |s|
-  s.name           = 'AgentNativeManagedConfig'
+  s.name           = 'TortoiseManagedConfig'
   s.version        = package['version']
   s.summary        = package['description']
   s.description    = package['description']
   s.license        = 'UNLICENSED'
-  s.author         = 'agent-native'
-  s.homepage       = 'https://example.invalid/agent-native'
+  s.author         = 'tortoise'
+  s.homepage       = 'https://example.invalid/tortoise'
   s.platforms      = { :ios => '16.4' }
   s.swift_version  = '5.9'
   s.source         = { git: '' }

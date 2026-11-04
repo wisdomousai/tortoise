@@ -19,13 +19,13 @@ const required = (name: string) => {
   return value;
 };
 const provider = process.argv[2];
-const directory = await mkdtemp(resolve(tmpdir(), 'agent-native-live-'));
+const directory = await mkdtemp(resolve(tmpdir(), 'tortoise-live-'));
 await mkdir(resolve(directory, 'home'));
 try {
   let harness: Harness;
   if (provider === 'codex')
     harness = new CodexHarness({
-      executable: required('AGENT_NATIVE_EXECUTABLE'),
+      executable: required('TORTOISE_EXECUTABLE'),
       cwd: directory,
       home: resolve(directory, 'home'),
       model: required('AGENT_MODEL'),
@@ -33,7 +33,7 @@ try {
     });
   else if (provider === 'claude')
     harness = new ClaudeHarness({
-      executable: required('AGENT_NATIVE_EXECUTABLE'),
+      executable: required('TORTOISE_EXECUTABLE'),
       cwd: directory,
       home: resolve(directory, 'home'),
       apiKey: required('AGENT_API_KEY'),

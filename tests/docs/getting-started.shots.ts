@@ -49,7 +49,7 @@ test('getting started: the exported inspection desk', async ({ page }) => {
       root,
     );
     run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts'], target);
-    run(['bun', 'run', 'build:web'], target, { AGENT_NATIVE_APPLICATION: app });
+    run(['bun', 'run', 'build:web'], target, { TORTOISE_APPLICATION: app });
     const host = await startService(
       '@inspection-desk/application',
       join(directory, 'workspace'),

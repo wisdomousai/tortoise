@@ -33,7 +33,7 @@ export const auditPluginManifest = definePluginManifest({
   settings: [
     {
       key: 'audit-log',
-      env: 'AGENT_NATIVE_AUDIT_LOG',
+      env: 'TORTOISE_AUDIT_LOG',
       kind: 'path',
       description: 'audit event log directory; default <workspace>/audit',
     },

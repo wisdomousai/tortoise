@@ -54,7 +54,7 @@ export const scannerProfile: ScannerProfile = {
   minLength: 1,
   aimIds: false,
   scannerLayout: 'us',
-  intent: { action: 'dev.agentnative.SCAN', dataExtra: 'com.symbol.datawedge.data_string' },
+  intent: { action: 'dev.tortoise.SCAN', dataExtra: 'com.symbol.datawedge.data_string' },
 };
 
 /**

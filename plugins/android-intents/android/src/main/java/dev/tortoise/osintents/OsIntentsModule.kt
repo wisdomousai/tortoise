@@ -1,4 +1,4 @@
-package dev.agentnative.osintents
+package dev.tortoise.osintents
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -11,7 +11,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 /**
  * Carries activity intents between the OS and the mobile shell under the name the framework
- * gives this module, `AgentNativeOsIntents`.
+ * gives this module, `TortoiseOsIntents`.
  *
  * In: `listen` names the declared intent actions and, per action, the extras its handler
  * declares with their types. An intent with one of those actions, the launching one once and
@@ -29,7 +29,7 @@ class OsIntentsModule : Module() {
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
   override fun definition() = ModuleDefinition {
-    Name("AgentNativeOsIntents")
+    Name("TortoiseOsIntents")
 
     Events("onIntent")
 

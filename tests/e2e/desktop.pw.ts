@@ -15,7 +15,7 @@ function nativeEnvironment(workspace: string): Record<string, string> {
   const env: Record<string, string> = {
     PATH:
       process.platform === 'win32' ? (process.env.SystemRoot ?? 'C:\\Windows') : '/usr/bin:/bin',
-    AGENT_NATIVE_WORKSPACE: workspace,
+    TORTOISE_WORKSPACE: workspace,
   };
   for (const key of [
     'HOME',

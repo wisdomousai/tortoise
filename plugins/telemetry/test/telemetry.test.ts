@@ -95,43 +95,44 @@ test('commands, deliveries, backlog and runs reach the collector through the egr
   expect(telemetry.status().lastError).toBeUndefined();
   expect(telemetry.status().exports).toBe(1);
 
-  const commands = metric(collector.received, 'agent_native.commands').map((point) => ({
+  const commands = metric(collector.received, 'tortoise.commands').map((point) => ({
     ...attributes(point),
     value: point.asInt,
   }));
   expect(commands).toContainEqual(
     expect.objectContaining({
-      'agent_native.operation': 'note.add',
-      'agent_native.outcome': 'committed',
+      'tortoise.operation': 'note.add',
+      'tortoise.outcome': 'committed',
       value: '2',
     }),
   );
   expect(commands).toContainEqual(
     expect.objectContaining({
-      'agent_native.operation': 'note.add',
-      'agent_native.outcome': 'denied',
+      'tortoise.operation': 'note.add',
+      'tortoise.outcome': 'denied',
       'error.type': 'FORBIDDEN',
     }),
   );
   expect(commands).toContainEqual(
-    expect.objectContaining({ 'agent_native.channel': 'harness', value: '1' }),
+    expect.objectContaining({ 'tortoise.channel': 'harness', value: '1' }),
   );
-  const [delivery] = metric(collector.received, 'agent_native.delivery.duration');
+  const [delivery] = metric(collector.received, 'tortoise.delivery.duration');
   expect(attributes(delivery!)).toEqual({
-    'agent_native.target': 'erp',
-    'agent_native.effect.status': 'accepted',
+    'tortoise.target': 'erp',
+    'tortoise.effect.status': 'accepted',
   });
   expect(delivery!.count).toBe('1');
-  expect(metric(collector.received, 'agent_native.delivery.attempts').map(attributes)).toEqual([
-    { 'agent_native.target': 'erp', 'agent_native.attempt.result': 'retry' },
+  expect(metric(collector.received, 'tortoise.delivery.attempts').map(attributes)).toEqual([
+    { 'tortoise.target': 'erp', 'tortoise.attempt.result': 'retry' },
   ]);
   expect(
-    metric(collector.received, 'agent_native.outbox.backlog').map(
-      (point): Record<string, string> => ({ ...attributes(point), count: point.asInt }),
-    ),
-  ).toEqual([{ 'agent_native.target': 'erp', 'agent_native.outbox.state': 'pending', count: '2' }]);
-  expect(metric(collector.received, 'agent_native.runs').map(attributes)).toEqual([
-    { 'agent_native.harness': 'deterministic', 'agent_native.run.state': 'succeeded' },
+    metric(collector.received, 'tortoise.outbox.backlog').map((point): Record<string, string> => ({
+      ...attributes(point),
+      count: point.asInt,
+    })),
+  ).toEqual([{ 'tortoise.target': 'erp', 'tortoise.outbox.state': 'pending', count: '2' }]);
+  expect(metric(collector.received, 'tortoise.runs').map(attributes)).toEqual([
+    { 'tortoise.harness': 'deterministic', 'tortoise.run.state': 'succeeded' },
   ]);
 
   // The delivery span hangs under the command that enqueued it; the run's command under the run.
@@ -143,7 +144,7 @@ test('commands, deliveries, backlog and runs reach the collector through the egr
   expect(
     spans.find(
       (span) =>
-        span.parentSpanId === run.spanId && attributes(span)['agent_native.channel'] === 'harness',
+        span.parentSpanId === run.spanId && attributes(span)['tortoise.channel'] === 'harness',
     ),
   ).toMatchObject({ traceId: run.traceId, name: 'note.add' });
   // Five commands (one denied), one delivery and one run.
@@ -190,7 +191,7 @@ test('a collector that is down loses no counts, and spans wait in a bounded buff
   collector.control.down = false;
   await telemetry.flush();
   expect(telemetry.status()).toMatchObject({ exports: 1, lastError: undefined });
-  expect(metric(collector.received, 'agent_native.commands').map((point) => point.asInt)).toEqual([
+  expect(metric(collector.received, 'tortoise.commands').map((point) => point.asInt)).toEqual([
     '10',
   ]);
   expect(spansOf(collector.received)).toHaveLength(8);

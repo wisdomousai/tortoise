@@ -63,7 +63,7 @@ Create one inspection. The row appears in the table without a reload, and openin
 **6. Use the CLI.** In a second terminal, from `/tmp/inspection-desk`:
 
 ```sh
-export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
+export TORTOISE_CONNECTION="$(pwd)/.workspace/.connection.json"
 bun run cli help
 bun run cli inspection list --output text
 ```
@@ -248,7 +248,7 @@ The command has no button yet; `ui: { exception: ... }` says so. To add one, see
 
 ## Connect an agent over MCP
 
-**16. List the tools.** With the app running and `AGENT_NATIVE_CONNECTION` set:
+**16. List the tools.** With the app running and `TORTOISE_CONNECTION` set:
 
 ```sh
 printf '%s\n' \
@@ -257,10 +257,10 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | bun run --silent mcp
 ```
 
-You should see tools named `inspection_list`, `inspection_create`, `inspection_close` and so on. To give Claude Code or Codex these tools, register `bun run mcp` as an MCP server with `AGENT_NATIVE_CONNECTION` in its environment. For Claude Code:
+You should see tools named `inspection_list`, `inspection_create`, `inspection_close` and so on. To give Claude Code or Codex these tools, register `bun run mcp` as an MCP server with `TORTOISE_CONNECTION` in its environment. For Claude Code:
 
 ```sh
-claude mcp add --scope project inspection-desk -e AGENT_NATIVE_CONNECTION=$AGENT_NATIVE_CONNECTION -- bun run mcp
+claude mcp add --scope project inspection-desk -e TORTOISE_CONNECTION=$TORTOISE_CONNECTION -- bun run mcp
 ```
 
 ## Run the browser test

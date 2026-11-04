@@ -66,11 +66,9 @@ const sbomServices = (manifest: SecurityManifest | undefined) =>
       classification,
     })),
     properties: [
-      { name: 'agent-native:owner', value: destination.owner },
-      { name: 'agent-native:availability', value: destination.availability },
-      ...(destination.offline
-        ? [{ name: 'agent-native:offline', value: destination.offline }]
-        : []),
+      { name: 'tortoise:owner', value: destination.owner },
+      { name: 'tortoise:availability', value: destination.availability },
+      ...(destination.offline ? [{ name: 'tortoise:offline', value: destination.offline }] : []),
     ],
   }));
 

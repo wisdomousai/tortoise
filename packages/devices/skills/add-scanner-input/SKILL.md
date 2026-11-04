@@ -43,7 +43,7 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 2. Without hardware, let an Android emulator or device stand in for the scanner app:
 
    ```sh
-   adb shell am broadcast -a dev.agentnative.SCAN --es com.symbol.datawedge.data_string 4006381333931
+   adb shell am broadcast -a dev.tortoise.SCAN --es com.symbol.datawedge.data_string 4006381333931
    ```
 
 3. Report deterministic, browser and device evidence separately.
