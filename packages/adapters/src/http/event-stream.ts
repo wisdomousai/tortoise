@@ -1,4 +1,4 @@
-import type { EventBatch, ExecutionContext } from '@agent-native/runtime';
+import type { EventBatch, ExecutionContext } from '@tortoise/runtime';
 import type { ApplicationPort } from '../http';
 import type { Cursors } from './cursors';
 import { secureHeaders } from './response';

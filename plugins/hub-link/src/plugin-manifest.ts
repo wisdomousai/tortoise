@@ -1,5 +1,5 @@
-import { defineHostComponent } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { defineHostComponent } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
 import { hubLinkModule } from './contracts';
 
 /**

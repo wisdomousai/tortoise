@@ -1,10 +1,10 @@
-import type { AnyCapability, JsonValue, RemoteReadDeclaration } from '@agent-native/contracts';
+import type { AnyCapability, JsonValue, RemoteReadDeclaration } from '@tortoise/contracts';
 import {
   createRemoteQueryFactory,
   type HandlerContext,
   type RemoteHandler,
   type RemoteItemOf,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 
 type RemoteQuery = AnyCapability & {
   readonly kind: 'query';

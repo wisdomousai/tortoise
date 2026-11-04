@@ -5,8 +5,8 @@ import {
   type JsonValue,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import { records, type HandlerContext, type HandlerContribution } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { records, type HandlerContext, type HandlerContribution } from '@tortoise/runtime';
 import { schemes } from '../contracts/schemes';
 import type { SurveyNode, SurveyState } from '../domain';
 

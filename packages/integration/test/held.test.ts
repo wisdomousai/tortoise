@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 import {
   createApplication,
   createHandlerFactory,
   createMemoryStorage,
   type Effect,
   type EffectOutcome,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   DeliveryUncertain,
   createEffectDispatcher,

@@ -1,13 +1,9 @@
 import { expect, test } from 'bun:test';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { createApplicationRuntime, defineApplication } from '@agent-native/kernel/application';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { createMemoryStorage } from '@agent-native/runtime';
-import {
-  directDriver,
-  runScenarios,
-  type BehavioralScenario,
-} from '@agent-native/testing/scenarios';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { createApplicationRuntime, defineApplication } from '@tortoise/kernel/application';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { createMemoryStorage } from '@tortoise/runtime';
+import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
 import { hubLinkOperations as ops } from '../src/contracts';
 import { hubLinkPlugin } from '../src/plugin';
 import { hubLinkPluginManifest } from '../src/plugin-manifest';

@@ -1,12 +1,12 @@
-import { targetAllowlist, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@tortoise/integration';
 import {
   definePolicy,
   membershipRule,
   type ApprovalAccess,
   type ExecutionContext,
   type OperationRule,
-} from '@agent-native/runtime';
-import type { DeviceAccess } from '@agent-native/devices/server';
+} from '@tortoise/runtime';
+import type { DeviceAccess } from '@tortoise/devices/server';
 import { mesTarget, operations } from './contracts';
 import { stationMembership } from './contracts/membership';
 import { bridgeStation, own, stationRole, type LineState, type StationRole } from './domain';

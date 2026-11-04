@@ -5,7 +5,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
-import { createPlaywrightTransport, type FieldValue } from '@agent-native/screen-bridge';
+import { createPlaywrightTransport, type FieldValue } from '@tortoise/screen-bridge';
 import { startFakeHmi } from './server';
 import { HEIGHT, WIDTH } from './simulator';
 

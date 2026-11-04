@@ -3,7 +3,7 @@
  * extension points in `<workspace>/skills/<name>/`, so a skill moves with the code it describes and
  * ships in that package; an application may add its own in `skills/<name>/`. In an application that
  * installs the framework from a registry, the framework's skills come from
- * `node_modules/@agent-native/<package>/skills/`. `check-skills` validates the skills in the checkout and
+ * `node_modules/@tortoise/<package>/skills/`. `check-skills` validates the skills in the checkout and
  * `skills-link` exposes all of them to Claude Code and Codex. Reads files only.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -95,11 +95,11 @@ export function surfaceWorkspaces(): string[] {
 
 /**
  * Skills of framework packages installed from a registry rather than present as workspaces, as
- * `node_modules/@agent-native/<package>/skills/<name>`. They were checked where they were authored.
+ * `node_modules/@tortoise/<package>/skills/<name>`. They were checked where they were authored.
  */
 export function installedSkills(): Skill[] {
   const local = new Set(skills().map((skill) => skill.name));
-  const scope = 'node_modules/@agent-native';
+  const scope = 'node_modules/@tortoise';
   return subdirectories(join(root, scope))
     .flatMap((name) => skillsIn(`${scope}/${name}/skills`, `${scope}/${name}`))
     .filter((skill) => !local.has(skill.name));

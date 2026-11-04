@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf, type OutputOf } from '@agent-native/contracts';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf, type OutputOf } from '@tortoise/contracts';
+import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { FIELDS, hmiTarget, own, put, stationRole, type LineState, type Reading } from '../domain';
 import { stationOfResource } from '../policy';

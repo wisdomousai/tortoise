@@ -1,4 +1,4 @@
-import type { WorkspaceSnapshot } from '@agent-native/runtime';
+import type { WorkspaceSnapshot } from '@tortoise/runtime';
 import { rowChanges, rowsOf, type Rows } from './rows';
 import type { SqlRowsDriver } from './schema';
 

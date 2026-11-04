@@ -2,18 +2,18 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import type { OsDelivery } from '@agent-native/contracts';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { bunSqlDriver } from '@tortoise/adapters/sqlite';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
+import type { OsDelivery } from '@tortoise/contracts';
 import {
   connectMobileShell,
   createMobilePlatform,
   openMobileInstance,
   type MobileInstance,
   type MobileOsBindings,
-} from '@agent-native/mobile';
-import type { AndroidIntent, IntentListening } from '@agent-native/shell/intents';
+} from '@tortoise/mobile';
+import type { AndroidIntent, IntentListening } from '@tortoise/shell/intents';
 import { createAction, notesApplication, scheme } from './fixture';
 
 const sandboxes: string[] = [];

@@ -8,12 +8,12 @@ import {
   from,
   jsonSchema,
   step,
-} from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
-import { defaultPorts } from '@agent-native/host';
-import { createApplicationRuntime, defineApplication } from '@agent-native/host/application';
-import { defineManifest } from '@agent-native/host/manifest';
-import type { PluginStartContext } from '@agent-native/host/plugin';
+} from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
+import { defaultPorts } from '@tortoise/host';
+import { createApplicationRuntime, defineApplication } from '@tortoise/host/application';
+import { defineManifest } from '@tortoise/host/manifest';
+import type { PluginStartContext } from '@tortoise/host/plugin';
 import {
   createMemoryStorage,
   own,
@@ -21,7 +21,7 @@ import {
   type AuthorizationPort,
   type ExecutionContext,
   type HandlerContext,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { workflowOperations } from '../contracts';
 import { resolveWorkflows, type Definition } from '../definitions';
 import { createWorkflowsPlugin } from '../plugin';

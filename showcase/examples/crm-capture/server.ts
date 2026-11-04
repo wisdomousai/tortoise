@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { CrmState } from './domain';
 import { accountHandlers } from './handlers/accounts';
 import { captureHandlers } from './handlers/capture';

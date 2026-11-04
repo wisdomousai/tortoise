@@ -1,6 +1,6 @@
-import type { PeerApi, PeerTarget } from '@agent-native/contracts';
-import { createAttemptLimit } from '@agent-native/host/enrollment';
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import type { PeerApi, PeerTarget } from '@tortoise/contracts';
+import { createAttemptLimit } from '@tortoise/host/enrollment';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { connectPath, enrollPath, peerLinkOperations as ops } from './contracts';
 import { authenticatePeer, createReplayCache } from './inbound/credentials';
 import { peerLinkHandlers, peerLinkPolicy } from './inbound/handlers';

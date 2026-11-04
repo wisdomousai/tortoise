@@ -1,8 +1,8 @@
-import { ApplicationError, type AuditMode, type EventLogPort } from '@agent-native/contracts';
+import { ApplicationError, type AuditMode, type EventLogPort } from '@tortoise/contracts';
 import { createEgress, type Egress } from './guard';
 import { startEgressProxy, type EgressProxy } from './proxy';
-import type { HostPorts, PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
-import { siteServiceOf } from '@agent-native/site/open';
+import type { HostPorts, PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
+import { siteServiceOf } from '@tortoise/site/open';
 import { policyIngress } from './ingress';
 
 /** What the network plugin exposes to later plugins as `services.network`. */

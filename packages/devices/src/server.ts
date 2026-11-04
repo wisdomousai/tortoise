@@ -3,14 +3,14 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type {
   ExecutionContext,
   FeaturePolicy,
   FeatureServer,
   HandlerContext,
   HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { deviceConfigModule, deviceFeatureManifest, deviceOperations } from './contracts';
 import type { ScannerProfile } from './scanner/profile';
 import { createScanRouter, type ScanRoute } from './scanner/router';

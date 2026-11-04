@@ -1,7 +1,7 @@
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { deviceLinkModule, deviceLinkOperations as ops } from '../contracts';
 import type { LinkCaller } from './routes';
-import { credentialDigest, credentialPattern } from '@agent-native/host/enrollment';
+import { credentialDigest, credentialPattern } from '@tortoise/host/enrollment';
 import type { DeviceKind } from './state';
 const linkOperations = new Set<string>(deviceLinkModule.capabilities.map((c) => c.id));
 

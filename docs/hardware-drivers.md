@@ -7,7 +7,7 @@ A driver is a separate process, in any language, that connects your application 
 From the repo root:
 
 ```sh
-AGENT_NATIVE_APPLICATION=@agent-native/winding-line bun run --silent cli driver list
+AGENT_NATIVE_APPLICATION=@tortoise/winding-line bun run --silent cli driver list
 ```
 
 You should see:

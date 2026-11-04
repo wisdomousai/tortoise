@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /** The callee route a peer posts its enrollment code to; it returns the peer credential once. */
 export const enrollPath = '/api/v1/peer/enroll';

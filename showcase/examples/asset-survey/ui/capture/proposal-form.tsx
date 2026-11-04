@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
-import { useCommand } from '@agent-native/react';
+import { useCommand } from '@tortoise/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { transport } from '@/lib/session';

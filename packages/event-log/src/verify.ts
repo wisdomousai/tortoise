@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { AUDIT_GENESIS, type AuditEvent } from '@agent-native/contracts';
+import { AUDIT_GENESIS, type AuditEvent } from '@tortoise/contracts';
 import { hashEvent } from './chain';
 import { listSegments } from './jsonl';
 

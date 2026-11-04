@@ -3,8 +3,8 @@ import {
   DeliveryFailure,
   type DeliveryResult,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { Effect } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { Effect } from '@tortoise/runtime';
 import { conformanceEffect, connectorConformance, type ConnectorHarness } from '../src/connectors';
 
 interface Flaws {

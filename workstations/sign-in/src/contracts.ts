@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /**
  * The plugin's authenticated routes. They take the badge and PIN so that neither ever becomes a

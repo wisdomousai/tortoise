@@ -158,7 +158,7 @@ You should see `Wrote 6 files in showcase/examples/inspection-desk`. It created 
 
 ```ts
 import { z } from 'zod';
-import { defineCapability, jsonSchema, recordKeySchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, recordKeySchema } from '@tortoise/contracts';
 import { inspectionSchema } from './inspection';
 
 export const inspectionClose = defineCapability({
@@ -175,8 +175,8 @@ export const inspectionClose = defineCapability({
 **13. Write the handler.** Replace `handlers/inspection-close.ts`:
 
 ```ts
-import { ApplicationError } from '@agent-native/contracts';
-import { own, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { own, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { AppState } from '../domain';
 import { handler, type Services } from './context';

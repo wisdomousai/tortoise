@@ -1,4 +1,4 @@
-import { defaultWedgeProfile, type ScanRoute } from '@agent-native/devices';
+import { defaultWedgeProfile, type ScanRoute } from '@tortoise/devices';
 import { borrowerPattern } from './contracts/loan';
 import { assetTagPattern } from './contracts/tool';
 

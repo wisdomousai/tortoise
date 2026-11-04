@@ -1,4 +1,4 @@
-import { defineFeature } from '@agent-native/host/feature';
+import { defineFeature } from '@tortoise/host/feature';
 import {
   isDelegated,
   own,
@@ -6,7 +6,7 @@ import {
   type ExecutionContext,
   type FeatureHandler,
   type FeaturePolicy,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { handoverFeatureManifest, handoverOperations, type HandoverEntry } from './contracts';
 
 /** What a caller does in the handover feature. */

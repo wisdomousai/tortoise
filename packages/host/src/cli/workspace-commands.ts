@@ -1,9 +1,9 @@
 import { realpath } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
-import { restoreBackup, verifyBackup } from '@agent-native/adapters/workspace-backup';
-import { ApplicationError } from '@agent-native/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
+import { restoreBackup, verifyBackup } from '@tortoise/adapters/workspace-backup';
+import { ApplicationError } from '@tortoise/contracts';
 import type { AnyApplicationDefinition } from '../application';
 import { workspaceStorage } from '../platform/bun';
 import { rejectRemaining, report, workspaceOf } from './args';

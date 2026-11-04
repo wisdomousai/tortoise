@@ -6,7 +6,7 @@ import {
   collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** What a caller sees of one customer: a utility that runs the plant's transformers. */
 export const customerSchema = z.strictObject({

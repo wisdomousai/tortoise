@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import type { ExecutionContext, Invocation, QueryResult } from '@agent-native/runtime';
-import { createEffectDispatcher, type DispatcherApplication } from '@agent-native/integration';
+import type { ExecutionContext, Invocation, QueryResult } from '@tortoise/runtime';
+import { createEffectDispatcher, type DispatcherApplication } from '@tortoise/integration';
 import {
   createScriptedDriver,
   createStationConnector,
@@ -11,7 +11,7 @@ import {
   type Extractor,
   type ScreenTransport,
   type StationProfile,
-} from '@agent-native/screen-bridge';
+} from '@tortoise/screen-bridge';
 import { operations } from './contracts';
 import { bridgePrincipal, hmiTarget } from './domain';
 // Imported, not read from disk: compiled binaries embed JSON imports but contain no source files.

@@ -1,4 +1,4 @@
-# @agent-native/shell
+# @tortoise/shell
 
 OS handlers (links, shares and shortcuts coming in) and OS actions (opening things going out), with platform registrations generated from the same declarations. A raw request comes from an unauthenticated sender on the device, so `matchOsRequest` accepts only this application's scheme, its `web+` form, and `https` links on a configured verified host for a handler that declares `verified`.
 

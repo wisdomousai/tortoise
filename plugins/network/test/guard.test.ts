@@ -5,9 +5,9 @@ import {
   type AuditRecord,
   type EventLogPort,
   type NetworkDestination,
-} from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
-import { resolveSitePolicy, type SitePolicyInput } from '@agent-native/site/policy';
+} from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
+import { resolveSitePolicy, type SitePolicyInput } from '@tortoise/site/policy';
 import { createEgress, EgressDenied } from '../src/guard';
 import { startEgressProxy } from '../src/proxy';
 

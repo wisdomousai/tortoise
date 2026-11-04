@@ -1,14 +1,14 @@
 import { join } from 'node:path';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
-import { bunPostgres } from '@agent-native/adapters/postgres-bun';
-import { acquireWorkspaceLease, type WorkspaceLease } from '@agent-native/adapters/postgres-lease';
-import { PostgresStorage, type PgDriver } from '@agent-native/adapters/postgres-storage';
-import { ApplicationError } from '@agent-native/contracts';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
-import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
+import { bunPostgres } from '@tortoise/adapters/postgres-bun';
+import { acquireWorkspaceLease, type WorkspaceLease } from '@tortoise/adapters/postgres-lease';
+import { PostgresStorage, type PgDriver } from '@tortoise/adapters/postgres-storage';
+import { ApplicationError } from '@tortoise/contracts';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import type { HostPlatform, PlatformOwnership } from '@tortoise/kernel/platform';
+import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
 import { JOURNAL_RETENTION, bunPlatform, type ServingPlatform } from './bun';
 
 export interface HostedPlatformOptions {

@@ -10,7 +10,7 @@ import {
   Search,
   SquarePen,
 } from 'lucide-react';
-import type { CatalogOperation } from '@agent-native/contracts';
+import type { CatalogOperation } from '@tortoise/contracts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { live, transport } from '@/lib/session';

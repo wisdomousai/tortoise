@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { resolve } from 'node:path';
-import { deploymentComponents } from '@agent-native/kernel/components';
-import { unboundOperations } from '@agent-native/testing/ui-bindings';
+import { deploymentComponents } from '@tortoise/kernel/components';
+import { unboundOperations } from '@tortoise/testing/ui-bindings';
 import manifest from '../manifest';
 
 test('every operation that claims a UI binding is referenced by a native screen', async () => {

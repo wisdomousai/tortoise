@@ -1,5 +1,5 @@
-import type { Effect } from '@agent-native/runtime';
-import { lookupConvergent, type LookupResult } from '@agent-native/integration';
+import type { Effect } from '@tortoise/runtime';
+import { lookupConvergent, type LookupResult } from '@tortoise/integration';
 import { accepted, confirm, observe, type ControllerKernel } from './kernel';
 
 /**

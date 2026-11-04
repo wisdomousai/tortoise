@@ -3,16 +3,16 @@ import {
   type OsActionOutcome,
   type OsActionRequest,
   type OsDelivery,
-} from '@agent-native/contracts';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
+} from '@tortoise/contracts';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
 import {
   createMobileShell,
   type MobileFileInfo,
   type MobileShare,
   type MobileShell,
-} from '@agent-native/shell/mobile';
-import type { AndroidIntent, IntentListening } from '@agent-native/shell/intents';
-import type { ShellNotification } from '@agent-native/shell/notifications';
+} from '@tortoise/shell/mobile';
+import type { AndroidIntent, IntentListening } from '@tortoise/shell/intents';
+import type { ShellNotification } from '@tortoise/shell/notifications';
 import type { MobileInstance } from './instance';
 
 /** The device's link and file calls; the Expo bindings are `expoOsBindings`. */

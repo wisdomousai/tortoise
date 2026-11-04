@@ -5,18 +5,18 @@ import {
   sliceHandlers,
   type ApprovalAccess,
   type ApprovalHooks,
-} from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { notificationsPlugin } from '@agent-native/notifications/plugin';
-import { osPlugin } from '@agent-native/os/plugin';
-import { osShortcutsPlugin } from '@agent-native/os-shortcuts/plugin';
-import { shareTargetPlugin } from '@agent-native/share-target/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { webhookPlugin } from '@agent-native/webhook/plugin';
+} from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { notificationsPlugin } from '@tortoise/notifications/plugin';
+import { osPlugin } from '@tortoise/os/plugin';
+import { osShortcutsPlugin } from '@tortoise/os-shortcuts/plugin';
+import { shareTargetPlugin } from '@tortoise/share-target/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { webhookPlugin } from '@tortoise/webhook/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import { migrations, storedSlice, type ServiceState } from './domain';

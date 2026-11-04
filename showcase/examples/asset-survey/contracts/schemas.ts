@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { blobRefSchema, deliveryShape } from '@agent-native/contracts';
+import { blobRefSchema, deliveryShape } from '@tortoise/contracts';
 import { schemeIds } from './schemes';
 
 export const recordId = z

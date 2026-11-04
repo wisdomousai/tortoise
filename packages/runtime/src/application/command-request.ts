@@ -1,4 +1,4 @@
-import { ApplicationError, canonicalJson, type AnyCapability } from '@agent-native/contracts';
+import { ApplicationError, canonicalJson, type AnyCapability } from '@tortoise/contracts';
 import type { ExecutionContext, HandlerContribution, Invocation } from '../types.js';
 import { actorOf, receiptScope } from './audit.js';
 import { resolveOperation, type Kernel } from './kernel.js';

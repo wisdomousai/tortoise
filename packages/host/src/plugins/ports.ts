@@ -1,12 +1,12 @@
-import type { IngressPort } from '@agent-native/kernel/plugin';
-import { defaultPorts as kernelDefaults } from '@agent-native/kernel/plugins/ports';
+import type { IngressPort } from '@tortoise/kernel/plugin';
+import { defaultPorts as kernelDefaults } from '@tortoise/kernel/plugins/ports';
 
 export {
   isolatedNetwork,
   latePorts,
   noIngress,
   resolvePorts,
-} from '@agent-native/kernel/plugins/ports';
+} from '@tortoise/kernel/plugins/ports';
 
 /** Loopback only, on the requested port or an ephemeral one. The Bun platform's listener. */
 export const loopbackIngress: IngressPort = Object.freeze({

@@ -3,8 +3,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import type { HandlerContribution, HandlerContext } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { HandlerContribution, HandlerContext } from '@tortoise/runtime';
 import type { WorkOrder, ServiceState, Task } from '../domain';
 
 /** Injected services; tests pass a deterministic `newId` and clock. */

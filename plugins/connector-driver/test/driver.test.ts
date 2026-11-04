@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { jsonSchema } from '@agent-native/contracts';
-import { DeliveryFailure, DeliveryUncertain } from '@agent-native/integration';
-import { conformanceEffect } from '@agent-native/testing/connectors';
+import { jsonSchema } from '@tortoise/contracts';
+import { DeliveryFailure, DeliveryUncertain } from '@tortoise/integration';
+import { conformanceEffect } from '@tortoise/testing/connectors';
 import { z } from 'zod';
 import { defineDriverContract, driverComponent, driverContractDocument } from '../src/contracts';
 import { createDriverSupervisor, driverContractDigest } from '../src/supervisor';

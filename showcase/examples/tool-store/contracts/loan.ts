@@ -5,7 +5,7 @@ import {
   defineCollection,
   deliveryShape,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 export const loanConditions = ['ok', 'damaged'] as const;
 

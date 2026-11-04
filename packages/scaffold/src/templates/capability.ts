@@ -17,7 +17,7 @@ const contract = (
   slug: Names,
   resourceType: string,
 ) => `import { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema } from '@tortoise/contracts';
 
 /** ${spec.description} */
 export const ${slug.camel} = defineCapability({
@@ -34,7 +34,7 @@ export const ${slug.camel} = defineCapability({
 const handler = (
   spec: CapabilitySpec,
   slug: Names,
-) => `import type { HandlerContribution } from '@agent-native/runtime';
+) => `import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { AppState } from '../domain';
 import { handler, type Services } from './context';
@@ -59,7 +59,7 @@ function behavioralTest(app: AppNames, spec: CapabilitySpec, slug: Names) {
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };

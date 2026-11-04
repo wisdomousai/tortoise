@@ -1,4 +1,4 @@
-import { defineModule } from '@agent-native/contracts';
+import { defineModule } from '@tortoise/contracts';
 import { operations } from './contracts/operations';
 import { crmAccounts, crmContacts } from './contracts/providers';
 

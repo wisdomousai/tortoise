@@ -10,9 +10,9 @@
       "description": "One authenticated transport, typed client, TanStack Query client and live invalidation bindings for the local instance.",
       "dependencies": [
         "@tanstack/react-query",
-        "@agent-native/react",
-        "@agent-native/client",
-        "@agent-native/contracts"
+        "@tortoise/react",
+        "@tortoise/client",
+        "@tortoise/contracts"
       ],
       "files": [
         {
@@ -40,9 +40,9 @@
       "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors. A prefill from an OS request fills the fields and shows its provenance; the person still submits.",
       "dependencies": [
         "@tanstack/react-form",
-        "@agent-native/react",
-        "@agent-native/client",
-        "@agent-native/contracts"
+        "@tortoise/react",
+        "@tortoise/client",
+        "@tortoise/contracts"
       ],
       "registryDependencies": [
         "button",
@@ -50,8 +50,8 @@
         "label",
         "native-select",
         "textarea",
-        "@agent-native/session",
-        "@agent-native/os-provenance"
+        "@tortoise/session",
+        "@tortoise/os-provenance"
       ],
       "files": [
         {
@@ -79,18 +79,14 @@
       "type": "registry:component",
       "title": "Collection screens",
       "description": "Default list and record screens for a collection's generated get and list queries and its create, update, move and retire commands, with a delivery-status column; replace them one route at a time.",
-      "dependencies": [
-        "@tanstack/react-query",
-        "@tanstack/react-router",
-        "@agent-native/contracts"
-      ],
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "@tortoise/contracts"],
       "registryDependencies": [
         "badge",
         "button",
         "input",
-        "@agent-native/capability-form",
-        "@agent-native/live-data-table",
-        "@agent-native/session"
+        "@tortoise/capability-form",
+        "@tortoise/live-data-table",
+        "@tortoise/session"
       ],
       "files": [
         {
@@ -104,17 +100,8 @@
       "type": "registry:component",
       "title": "Collection tree",
       "description": "A tree collection depth first from its generated tree query, indented by depth, with a slot for per-record badges and actions, a search box over its list, and a form for its create command.",
-      "dependencies": [
-        "@tanstack/react-query",
-        "@tanstack/react-router",
-        "@agent-native/contracts"
-      ],
-      "registryDependencies": [
-        "button",
-        "input",
-        "@agent-native/capability-form",
-        "@agent-native/session"
-      ],
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "@tortoise/contracts"],
+      "registryDependencies": ["button", "input", "@tortoise/capability-form", "@tortoise/session"],
       "files": [
         {
           "path": "src/components/collection-tree.tsx",
@@ -140,8 +127,8 @@
       "type": "registry:component",
       "title": "ApprovalRequest review",
       "description": "Pending approvals, live, with what each would run and why; Approve runs the command as the signed-in person and Reject closes it.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
-      "registryDependencies": ["badge", "button", "@agent-native/session"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
+      "registryDependencies": ["badge", "button", "@tortoise/session"],
       "files": [
         {
           "path": "src/components/approval-review.tsx",
@@ -154,8 +141,8 @@
       "type": "registry:component",
       "title": "Reconciliation review",
       "description": "Held deliveries, live, with what was sent and why it is held; the person says whether the target applied it, which completes it, sends it again or completes it as refused.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
-      "registryDependencies": ["badge", "button", "input", "@agent-native/session"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
+      "registryDependencies": ["badge", "button", "input", "@tortoise/session"],
       "files": [
         {
           "path": "src/components/reconciliation-review.tsx",
@@ -168,7 +155,7 @@
       "type": "registry:component",
       "title": "Assignment board",
       "description": "Assignments, live, with stage, assignee and report counts; a form per kind that creates a draft or sends at once; and Send, Withdraw and Close where the stage allows them. Slots per kind: the scope editor and a summary of what an assignment covers.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "badge",
         "button",
@@ -176,7 +163,7 @@
         "label",
         "native-select",
         "textarea",
-        "@agent-native/session"
+        "@tortoise/session"
       ],
       "files": [
         {
@@ -190,13 +177,13 @@
       "type": "registry:component",
       "title": "Assignment reports",
       "description": "Reports, live, with body, reporter and review state; link a report to a subject, discard it, or accept it with the reviewer's input. Slots per kind: the body view, the subject's name, the linking input and the accept form.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "badge",
         "button",
         "input",
-        "@agent-native/capability-form",
-        "@agent-native/session"
+        "@tortoise/capability-form",
+        "@tortoise/session"
       ],
       "files": [
         {
@@ -210,15 +197,15 @@
       "type": "registry:component",
       "title": "My assignments",
       "description": "The assignments sent to the signed-in person, live, each with its brief, a report form and Done. Slots per kind: the brief view and the report form, generated from the kind's report when omitted.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "button",
         "input",
         "label",
         "native-select",
         "textarea",
-        "@agent-native/capability-form",
-        "@agent-native/session"
+        "@tortoise/capability-form",
+        "@tortoise/session"
       ],
       "files": [
         {
@@ -232,13 +219,13 @@
       "type": "registry:component",
       "title": "Worklist",
       "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last feed from the worklist target's status. Slots per kind: the brief view, the report form, the body view and the subject's name.",
-      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "badge",
         "button",
-        "@agent-native/assignment-reports",
-        "@agent-native/my-assignments",
-        "@agent-native/session"
+        "@tortoise/assignment-reports",
+        "@tortoise/my-assignments",
+        "@tortoise/session"
       ],
       "files": [
         {
@@ -273,9 +260,9 @@
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
       "registryDependencies": [
         "command",
-        "@agent-native/native-dialog",
-        "@agent-native/session",
-        "@agent-native/screens"
+        "@tortoise/native-dialog",
+        "@tortoise/session",
+        "@tortoise/screens"
       ],
       "files": [
         {
@@ -301,7 +288,7 @@
       "type": "registry:lib",
       "title": "UI session",
       "description": "Registers the screen's selection with the instance so an agent run captures what the person sees, and applies the intents the run sends back: open a resource's screen, select it on the current screen, or show a review.",
-      "dependencies": ["@tanstack/react-router", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-router", "@tortoise/contracts"],
       "files": [
         {
           "path": "src/lib/ui-session.ts",
@@ -320,15 +307,15 @@
           "type": "registry:lib"
         }
       ],
-      "registryDependencies": ["@agent-native/screens"]
+      "registryDependencies": ["@tortoise/screens"]
     },
     {
       "name": "os-deliveries",
       "type": "registry:lib",
       "title": "OS deliveries",
       "description": "Takes what OS requests from this session asked the frame to open, navigate to or prefill, acknowledges each, and holds prefills for capability forms.",
-      "dependencies": ["@tanstack/react-router", "@agent-native/contracts", "@agent-native/shell"],
-      "registryDependencies": ["@agent-native/screens", "@agent-native/ui-session"],
+      "dependencies": ["@tanstack/react-router", "@tortoise/contracts", "@tortoise/shell"],
+      "registryDependencies": ["@tortoise/screens", "@tortoise/ui-session"],
       "files": [
         {
           "path": "src/lib/os-deliveries.ts",
@@ -341,8 +328,8 @@
       "type": "registry:lib",
       "title": "Browser OS input",
       "description": "Submits the link or shortcut a launch URL carries and the files an installed web app was launched with, and runs declared OS actions a page may perform itself.",
-      "dependencies": ["@agent-native/contracts", "@agent-native/shell"],
-      "registryDependencies": ["@agent-native/ui-session"],
+      "dependencies": ["@tortoise/contracts", "@tortoise/shell"],
+      "registryDependencies": ["@tortoise/ui-session"],
       "files": [
         {
           "path": "src/lib/os-browser.ts",
@@ -355,8 +342,8 @@
       "type": "registry:component",
       "title": "OS provenance notice",
       "description": "Shows where a screen or a prefilled form the OS handed the application came from, with a dismiss or discard action.",
-      "dependencies": ["@agent-native/contracts"],
-      "registryDependencies": ["alert", "button", "@agent-native/os-deliveries"],
+      "dependencies": ["@tortoise/contracts"],
+      "registryDependencies": ["alert", "button", "@tortoise/os-deliveries"],
       "files": [
         {
           "path": "src/components/os-provenance.tsx",
@@ -369,13 +356,7 @@
       "type": "registry:component",
       "title": "Provider accounts",
       "description": "Connects agent provider accounts through the instance; the browser only ever sees safe metadata.",
-      "registryDependencies": [
-        "badge",
-        "button",
-        "input",
-        "native-select",
-        "@agent-native/ui-session"
-      ],
+      "registryDependencies": ["badge", "button", "input", "native-select", "@tortoise/ui-session"],
       "files": [
         {
           "path": "src/components/accounts.tsx",
@@ -392,11 +373,11 @@
       "registryDependencies": [
         "alert",
         "kbd",
-        "@agent-native/command-palette",
-        "@agent-native/native-dialog",
-        "@agent-native/frame",
-        "@agent-native/os-provenance",
-        "@agent-native/os-deliveries"
+        "@tortoise/command-palette",
+        "@tortoise/native-dialog",
+        "@tortoise/frame",
+        "@tortoise/os-provenance",
+        "@tortoise/os-deliveries"
       ],
       "files": [
         {
@@ -421,17 +402,17 @@
       "dependencies": [
         "@tanstack/react-query",
         "@tanstack/react-router",
-        "@agent-native/react",
-        "@agent-native/client",
-        "@agent-native/contracts"
+        "@tortoise/react",
+        "@tortoise/client",
+        "@tortoise/contracts"
       ],
       "registryDependencies": [
         "tooltip",
-        "@agent-native/session",
-        "@agent-native/screens",
-        "@agent-native/app-shell",
-        "@agent-native/os-deliveries",
-        "@agent-native/os-browser"
+        "@tortoise/session",
+        "@tortoise/screens",
+        "@tortoise/app-shell",
+        "@tortoise/os-deliveries",
+        "@tortoise/os-browser"
       ],
       "files": [
         {

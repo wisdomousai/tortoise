@@ -1,6 +1,6 @@
-import { auditServiceOf } from '@agent-native/audit/open';
-import { defineHostPlugin } from '@agent-native/host/plugin';
-import { siteServiceOf } from '@agent-native/site/open';
+import { auditServiceOf } from '@tortoise/audit/open';
+import { defineHostPlugin } from '@tortoise/host/plugin';
+import { siteServiceOf } from '@tortoise/site/open';
 import { complianceCliCommand } from './cli';
 import { createPostureMonitor } from './monitor';
 import { compliancePluginManifest } from './plugin-manifest';

@@ -1,4 +1,4 @@
-import type { RemoteSourceStatus } from '@agent-native/contracts';
+import type { RemoteSourceStatus } from '@tortoise/contracts';
 import { CloudOff } from 'lucide-react';
 
 const time = (at: number) =>

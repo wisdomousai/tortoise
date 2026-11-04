@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { dirname, resolve } from 'node:path';
-import { unboundOperations } from '@agent-native/testing/ui-bindings';
+import { unboundOperations } from '@tortoise/testing/ui-bindings';
 import manifest from '../manifest';
 
 test('every operation that claims a UI binding is referenced by a screen', async () => {
@@ -9,10 +9,10 @@ test('every operation that claims a UI binding is referenced by a screen', async
   // station sign-in plugin binds the plugin's operations, which the manifest composes. Plugins are
   // resolved as packages, so they are found as workspaces or as installed versions alike.
   const compliance = dirname(
-    Bun.resolveSync('@agent-native/compliance/plugin-screens', import.meta.dir),
+    Bun.resolveSync('@tortoise/compliance/plugin-screens', import.meta.dir),
   );
   const signIn = dirname(
-    Bun.resolveSync('@agent-native/workstation-sign-in/plugin-screens', import.meta.dir),
+    Bun.resolveSync('@tortoise/workstation-sign-in/plugin-screens', import.meta.dir),
   );
   expect(
     await unboundOperations(manifest.modules, [

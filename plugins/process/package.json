@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/process",
+  "name": "@tortoise/process",
   "version": "0.1.0",
   "type": "module",
   "description": "Process host plugin: starts declared child processes from the site policy's executable bindings, with a built environment, pin checks, audit records and process-tree shutdown.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/process"
   },
   "files": [
@@ -21,8 +21,8 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/site": "workspace:*"
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/site": "workspace:*"
   }
 }

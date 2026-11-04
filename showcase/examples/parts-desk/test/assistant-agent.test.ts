@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { agentInstructions } from '@agent-native/contracts';
-import { agentGrant } from '@agent-native/runtime';
+import { agentInstructions } from '@tortoise/contracts';
+import { agentGrant } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { owner, testWorkspaces } from './support';
 

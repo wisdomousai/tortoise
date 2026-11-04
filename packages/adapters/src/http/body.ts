@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** A request body of at most `limit` bytes; a larger one is cancelled and refused. */
 export async function readBytes(request: Request, limit: number): Promise<Uint8Array> {

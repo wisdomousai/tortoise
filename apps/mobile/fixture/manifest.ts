@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import { defineManifest } from '@agent-native/kernel/manifest';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { defineManifest } from '@tortoise/kernel/manifest';
 
 /** A minimal mobile application for the starter's own checks: notes added and listed. */
 export const noteAdd = defineCapability({

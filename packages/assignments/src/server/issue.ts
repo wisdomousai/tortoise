@@ -1,5 +1,5 @@
-import { ApplicationError, type AnyCapability } from '@agent-native/contracts';
-import { own, put, type FeatureHandler, type FeatureHandlerContext } from '@agent-native/runtime';
+import { ApplicationError, type AnyCapability } from '@tortoise/contracts';
+import { own, put, type FeatureHandler, type FeatureHandlerContext } from '@tortoise/runtime';
 import type { AnyAssignmentKind } from '../kind';
 import { offerEventType, type Assignments } from '../manifest';
 import { camel, targetOf } from '../operations';

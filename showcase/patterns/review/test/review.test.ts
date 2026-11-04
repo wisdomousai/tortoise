@@ -2,10 +2,10 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { errorEnvelope } from '@agent-native/contracts';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { directDriver, runScenarios, type BehavioralScenario } from '@agent-native/testing';
-import { featureConformance } from '@agent-native/testing/features';
+import { errorEnvelope } from '@tortoise/contracts';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing';
+import { featureConformance } from '@tortoise/testing/features';
 import { createTestRequestsReviewApplication } from '../application';
 import { reviewFeature, type ReviewAccess } from '../features/review/feature';
 

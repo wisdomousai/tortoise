@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, jsonSchema, recordKeySchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, recordKeySchema } from '@tortoise/contracts';
 import { toolSchema } from './tool';
 
 const display = (label: string) => ({

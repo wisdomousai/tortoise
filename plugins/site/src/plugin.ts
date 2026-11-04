@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { siteCliCommand } from './cli';
 import { openSite } from './open';
 import { sitePluginManifest } from './plugin-manifest';

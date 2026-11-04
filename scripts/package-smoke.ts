@@ -6,9 +6,9 @@ import {
   loadRuntimeManifest,
   resourcePath,
   verifyRuntimeFiles,
-} from '@agent-native/host/runtime-manifest';
+} from '@tortoise/host/runtime-manifest';
 import { ensureService } from '../apps/desktop/src/service-lifecycle';
-import { nativeEnvironment } from '@agent-native/agents/process';
+import { nativeEnvironment } from '@tortoise/agents/process';
 /** Offline platform acceptance: real shipped native versions and compiled service.
  * Never invokes provider inference or the OS credential store. Run on each target. */
 export async function smokeStage(stage: string) {

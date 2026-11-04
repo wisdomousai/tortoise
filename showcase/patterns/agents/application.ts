@@ -1,5 +1,5 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -8,8 +8,8 @@ import {
   requestOperations,
   type TestRequestsServices,
   type Role,
-} from '@agent-native/pattern-base/server';
-import { approvalOperations } from '@agent-native/contracts';
+} from '@tortoise/pattern-base/server';
+import { approvalOperations } from '@tortoise/contracts';
 import manifest from './manifest';
 import { createMethodAutomation } from './automation';
 import type { TestRequestsAgentsRoot } from './domain';

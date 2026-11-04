@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /**
  * The driver plugin's one query: what each declared driver is, whether it runs, which units it

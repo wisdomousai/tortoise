@@ -1,17 +1,13 @@
 import { resolve } from 'node:path';
-import { takeFlag } from '@agent-native/adapters/cli';
-import type { ApplicationManifest } from '@agent-native/kernel/manifest';
-import type { PluginSetting } from '@agent-native/kernel/plugin-manifest';
+import { takeFlag } from '@tortoise/adapters/cli';
+import type { ApplicationManifest } from '@tortoise/kernel/manifest';
+import type { PluginSetting } from '@tortoise/kernel/plugin-manifest';
 import {
   declaredSettings as declared,
   type PluginSettings,
-} from '@agent-native/kernel/plugins/settings';
+} from '@tortoise/kernel/plugins/settings';
 
-export {
-  assertClaimed,
-  settingsFor,
-  type PluginSettings,
-} from '@agent-native/kernel/plugins/settings';
+export { assertClaimed, settingsFor, type PluginSettings } from '@tortoise/kernel/plugins/settings';
 
 const valueOf = (setting: PluginSetting, raw: string) =>
   setting.kind === 'path' ? resolve(raw) : raw;

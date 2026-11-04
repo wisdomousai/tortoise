@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf } from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf } from '@tortoise/contracts';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { stationSignInModule, stationSignInOperations as ops } from './contracts';
 import { newId, type BadgeRecord, type SessionRecord, type StationSignInState } from './state';
 

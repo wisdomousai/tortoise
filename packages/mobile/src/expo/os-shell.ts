@@ -2,8 +2,8 @@ import { File } from 'expo-file-system';
 import * as Notifications from 'expo-notifications';
 import { clearSharedPayloads, getSharedPayloads } from 'expo-sharing';
 import { Linking, Platform, Share } from 'react-native';
-import type { MobileShare } from '@agent-native/shell/mobile';
-import type { ShellNotification } from '@agent-native/shell/notifications';
+import type { MobileShare } from '@tortoise/shell/mobile';
+import type { ShellNotification } from '@tortoise/shell/notifications';
 import type { MobileOsBindings } from '../os';
 import { expoIntentBindings } from './os-intents';
 

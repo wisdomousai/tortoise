@@ -8,7 +8,7 @@ import {
   defineModule,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** Summary statistics of one result's readings, as the result analyst's tool computes them. */
 export const analysisSchema = z.strictObject({

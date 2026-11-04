@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { createQualityInspectionApplication, demoSystemOfRecord } from '../application';
 
 test('a fresh workspace makes the owner supervisor of the default plant', () => {

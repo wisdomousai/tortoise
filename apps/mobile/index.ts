@@ -1,8 +1,8 @@
 // First: installs the Web globals Hermes lacks before any kernel or runtime module runs.
-import '@agent-native/mobile/expo';
+import '@tortoise/mobile/expo';
 import './global.css';
 import { registerRootComponent } from 'expo';
-import { defineBackgroundDelivery } from '@agent-native/mobile/expo';
+import { defineBackgroundDelivery } from '@tortoise/mobile/expo';
 import { App, instance } from './src/app';
 
 // Module scope: the OS may start the runtime only to run this task.

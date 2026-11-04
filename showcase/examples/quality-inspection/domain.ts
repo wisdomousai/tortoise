@@ -1,4 +1,4 @@
-import { own, put } from '@agent-native/runtime';
+import { own, put } from '@tortoise/runtime';
 import type { InspectionRequest } from './contracts/inspection-requests';
 
 /**

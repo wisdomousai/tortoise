@@ -1,5 +1,5 @@
-import { ApplicationError, mediaTypePattern } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError, mediaTypePattern } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { ApplicationPort } from '../application-port';
 import { readBytes } from './body';
 import { jsonResponse, secureHeaders } from './response';

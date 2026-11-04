@@ -1,7 +1,7 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { testRequestsModule } from '@agent-native/pattern-base/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 
 /**
  * The test requests module with the plugins a hosted instance needs for workforce sign-in: the

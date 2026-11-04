@@ -5,7 +5,7 @@ import {
   type AnyCapability,
   type BuildCatalogOptions,
   type CapabilityModule,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 async function files(dir: string): Promise<string[]> {
   // A single screen file, such as a shared frame screen the application routes.

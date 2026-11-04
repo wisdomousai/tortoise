@@ -1,4 +1,4 @@
-# @agent-native/react
+# @tortoise/react
 
 React bindings: `useCapabilityForm` turns one intent into exactly one command, and `useLiveQuery` keeps committed data live on screen. Forms validate with the capability's own schema. Nothing here is a security boundary; the bindings protect correctness on the client.
 

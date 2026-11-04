@@ -1,4 +1,4 @@
-import { approvalOperations, defineAgent, defineModule } from '@agent-native/contracts';
+import { approvalOperations, defineAgent, defineModule } from '@tortoise/contracts';
 
 /**
  * Suggests a test method for a request that has none. It may read test requests and ask for

@@ -1,5 +1,5 @@
-import type { StateMigrations } from '@agent-native/runtime';
-import { createWorklistSlice, type WorklistSlice } from '@agent-native/assignments/server';
+import type { StateMigrations } from '@tortoise/runtime';
+import { createWorklistSlice, type WorklistSlice } from '@tortoise/assignments/server';
 
 /**
  * The field device's workspace: its one person, the principal that talks to the hub, and the

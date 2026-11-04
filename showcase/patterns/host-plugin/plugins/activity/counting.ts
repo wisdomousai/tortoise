@@ -1,5 +1,5 @@
-import type { PluginStartContext } from '@agent-native/host/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { PluginStartContext } from '@tortoise/host/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { activityOperations } from './contracts';
 
 const summaryOperation = activityOperations.summaryGet.id;

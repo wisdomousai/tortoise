@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { constants } from 'node:fs';
 import { access, mkdir, readFile, realpath, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
-import { ApplicationError, canonicalJson } from '@agent-native/contracts';
-import type { HarnessTurn } from '@agent-native/agents/types';
+import { ApplicationError, canonicalJson } from '@tortoise/contracts';
+import type { HarnessTurn } from '@tortoise/agents/types';
 import { loadRuntimeManifest, resourcePath } from '../runtime-manifest';
 import { digest } from './state';
 

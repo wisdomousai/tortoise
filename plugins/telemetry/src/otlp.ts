@@ -26,7 +26,7 @@ export interface BacklogPoint {
 }
 
 const CUMULATIVE = 2;
-const scope = { name: '@agent-native/telemetry', version: '0.1.0' };
+const scope = { name: '@tortoise/telemetry', version: '0.1.0' };
 const nanos = (ms: number) => (BigInt(Math.round(ms)) * 1_000_000n).toString();
 const attributes = (values: Attributes | Resource) =>
   Object.entries(values)

@@ -9,7 +9,7 @@ test('the tool screens add, filter and search tools, and the terminal edits, len
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-screens-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     await page.goto(host.launchUrl);
     await enroll(page, 'mia@plant', 'E100001', '2468');
@@ -110,7 +110,7 @@ test('a tool checked out past its due time is on the Overdue tab until it is ret
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-overdue-'));
   // The demo EAM does not know this tool, so its repair order is refused.
-  const host = await startService('@agent-native/tool-store', workspace, {
+  const host = await startService('@tortoise/tool-store', workspace, {
     DEMO_EAM_UNKNOWN_TAGS: 'TC-00701',
   });
   try {
@@ -206,7 +206,7 @@ test('the counter scanner opens a tool at the terminal and fills the borrower wi
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-scanner-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     await page.goto(host.launchUrl);
     await enroll(page, 'mia@plant', 'E100001', '2468');
@@ -288,7 +288,7 @@ test('the terminal refuses what is not a badge and a wrong PIN, refuses a viewer
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-sign-in-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     // The page's clock runs on its own time from here, so the idle timeout can be skipped.
     await page.clock.install();
@@ -344,7 +344,7 @@ test('an attendant approves one request to retire a tool and rejects another on 
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-approvals-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     // The owner's connection token sets up two tools in repair over HTTP and requests their
     // retirement as the repair triage agent would; the launch link signs the browser in as the

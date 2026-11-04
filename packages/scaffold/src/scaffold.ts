@@ -12,7 +12,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { canonicalJson } from '@agent-native/contracts';
+import { canonicalJson } from '@tortoise/contracts';
 import { addDependency, addWorkspace, type GeneratedContent } from './content';
 import { emptiedLayers, excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
 import { binaryFile, collect } from './file-rules';
@@ -43,7 +43,7 @@ export interface ScaffoldOptions {
   readonly content?: GeneratedContent;
   /**
    * Install the framework from a registry at the checkout's framework version instead of
-   * copying `packages/*` and `plugins/*`; `registry` serves the `@agent-native` scope. Only for
+   * copying `packages/*` and `plugins/*`; `registry` serves the `@tortoise` scope. Only for
    * generated content: the examples' own tests read plugin and SDK source by path.
    */
   readonly published?: { readonly registry?: string };

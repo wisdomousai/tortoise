@@ -1,6 +1,6 @@
-import type { JsonValue } from '@agent-native/contracts';
-import type { DeviceIdentity } from '@agent-native/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
+import type { JsonValue } from '@tortoise/contracts';
+import type { DeviceIdentity } from '@tortoise/observation';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
 import type { DriverContract } from '../contracts/define';
 import type { DriverService } from '../open';
 import type { EventNotification, InitializeResult } from '../protocol';

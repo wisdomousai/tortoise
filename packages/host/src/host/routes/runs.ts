@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { agentInstructions, ApplicationError } from '@agent-native/contracts';
-import { agentGrant } from '@agent-native/runtime';
-import { jsonResponse, readJsonBody, type HostSession } from '@agent-native/adapters/http';
-import { chooseHarness } from '@agent-native/agents/placement';
+import { agentInstructions, ApplicationError } from '@tortoise/contracts';
+import { agentGrant } from '@tortoise/runtime';
+import { jsonResponse, readJsonBody, type HostSession } from '@tortoise/adapters/http';
+import { chooseHarness } from '@tortoise/agents/placement';
 import { ownsRun, visibleRun } from '../run-access';
 import type { HostRoute, HostRouteContext } from './types';
 

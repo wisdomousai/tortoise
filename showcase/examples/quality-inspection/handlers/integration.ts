@@ -1,6 +1,6 @@
 import type { z } from 'zod';
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { codeGroupSchema, lotSnapshotSchema } from '../contracts/schemas';
 import { qualityTarget } from '../contracts/target';
 import { own, put, type QualityState, type Synchronized } from '../domain';

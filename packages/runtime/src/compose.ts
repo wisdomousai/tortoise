@@ -1,4 +1,4 @@
-import type { CapabilityModule } from '@agent-native/contracts';
+import type { CapabilityModule } from '@tortoise/contracts';
 import type {
   FeatureComposition,
   FeatureHandler,

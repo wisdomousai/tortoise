@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
-import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
-import { ApplicationError, recordKeySchema, type Catalog } from '@agent-native/contracts';
-import type { ExecutionHost } from '@agent-native/execution-host/run';
-import { defineHostPlugin } from '@agent-native/host/plugin';
-import { agentGrant, type ExecutionContext } from '@agent-native/runtime';
+import { jsonResponse, readJsonBody } from '@tortoise/adapters/http';
+import { ApplicationError, recordKeySchema, type Catalog } from '@tortoise/contracts';
+import type { ExecutionHost } from '@tortoise/execution-host/run';
+import { defineHostPlugin } from '@tortoise/host/plugin';
+import { agentGrant, type ExecutionContext } from '@tortoise/runtime';
 import { resultAnalyst } from '../../contracts';
 import {
   ANALYSIS_SANDBOX,

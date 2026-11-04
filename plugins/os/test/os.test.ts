@@ -10,13 +10,13 @@ import {
   type AuditRecord,
   type EventLogPort,
   type OsHandler,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/host/application';
-import { startHost } from '@agent-native/host/host';
-import { defineManifest } from '@agent-native/host/manifest';
-import { defineHostPlugin } from '@agent-native/host/plugin';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
-import type { AuthorizationPort } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/host/application';
+import { startHost } from '@tortoise/host/host';
+import { defineManifest } from '@tortoise/host/manifest';
+import { defineHostPlugin } from '@tortoise/host/plugin';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
+import type { AuthorizationPort } from '@tortoise/runtime';
 import { createOsPlugin } from '../src/plugin';
 import { osPluginManifest } from '../src/plugin-manifest';
 

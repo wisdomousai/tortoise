@@ -1,5 +1,5 @@
-import type { ExecutionContext } from '@agent-native/runtime';
-import type { Harness } from '@agent-native/agents/types';
+import type { ExecutionContext } from '@tortoise/runtime';
+import type { Harness } from '@tortoise/agents/types';
 import type { ServingOwnership, ServingPlatform } from '../platform/bun';
 import type { PluginSettings } from '../plugins/settings';
 

@@ -7,7 +7,7 @@ import {
   createMemoryStorage,
   type ExecutionContext,
   type Storage,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { SQLiteStorage } from '../../../packages/adapters/src/sqlite';
 import {
   createServiceHandlers,

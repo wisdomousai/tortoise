@@ -1,11 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import {
-  defineCapability,
-  defineMembership,
-  defineModule,
-  jsonSchema,
-} from '@agent-native/contracts';
+import { defineCapability, defineMembership, defineModule, jsonSchema } from '@tortoise/contracts';
 import {
   createApplication,
   createMemoryStorage,

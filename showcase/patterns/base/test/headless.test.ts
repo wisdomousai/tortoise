@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createDirectTransport } from '@agent-native/adapters/direct';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { createDirectTransport } from '@tortoise/adapters/direct';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { createTestRequestsApplication } from '../application';
 
 // The same capabilities without any screen: the starter's CLI runs the pattern in-process, and
@@ -34,7 +34,7 @@ async function cli(...args: string[]) {
       cwd: root,
       env: {
         PATH: process.env.PATH,
-        AGENT_NATIVE_APPLICATION: '@agent-native/pattern-base',
+        AGENT_NATIVE_APPLICATION: '@tortoise/pattern-base',
       },
       stdout: 'pipe',
       stderr: 'pipe',

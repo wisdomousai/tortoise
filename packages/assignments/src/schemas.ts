@@ -5,7 +5,7 @@ import {
   recordKeySchema,
   rejectionSchema,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { assigneeTypes, type AnyAssignmentKind } from './kind';
 
 /** What the requester decided: still a draft, sent, done by the assignee, withdrawn or closed. */

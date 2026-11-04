@@ -7,7 +7,7 @@ import {
   type CapabilityModule,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { createBlobs } from './application/blobs.js';
 import { createCommands } from './application/commands.js';
 import { grantPermits } from './application/delegation.js';

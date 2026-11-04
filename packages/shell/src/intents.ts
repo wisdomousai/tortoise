@@ -1,4 +1,4 @@
-import type { CatalogOs, OsInstruction, RawOsRequest } from '@agent-native/contracts';
+import type { CatalogOs, OsInstruction, RawOsRequest } from '@tortoise/contracts';
 import { parseRawOsRequest } from './parse';
 
 /** An extra as it crosses to and from the platform: Android bundles carry flat values here. */

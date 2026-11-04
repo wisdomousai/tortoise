@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { appendFile, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { AuditEvent } from '@agent-native/contracts';
+import type { AuditEvent } from '@tortoise/contracts';
 import {
   createMemoryEventLog,
   EventLogLockedError,

@@ -9,11 +9,11 @@ import { prettierJson } from './json';
  * framework files point into `node_modules`.
  */
 export interface PublishedFramework {
-  /** The framework version every `@agent-native` package is installed at. */
+  /** The framework version every `@tortoise` package is installed at. */
   readonly version: string;
-  /** Workspace directory to package name, for example `packages/frame` to `@agent-native/frame`. */
+  /** Workspace directory to package name, for example `packages/frame` to `@tortoise/frame`. */
   readonly packages: ReadonlyMap<string, string>;
-  /** Registry for the `@agent-native` scope, written to `bunfig.toml`; npm's default otherwise. */
+  /** Registry for the `@tortoise` scope, written to `bunfig.toml`; npm's default otherwise. */
   readonly registry?: string;
 }
 
@@ -205,7 +205,7 @@ export function publishedContent(
 export function publishedFiles(framework: PublishedFramework): Record<string, string> {
   return framework.registry
     ? {
-        'bunfig.toml': `# Framework packages install from this registry; everything else from npm.\n[install.scopes]\n"@agent-native" = ${JSON.stringify(framework.registry)}\n`,
+        'bunfig.toml': `# Framework packages install from this registry; everything else from npm.\n[install.scopes]\n"@tortoise" = ${JSON.stringify(framework.registry)}\n`,
       }
     : {};
 }

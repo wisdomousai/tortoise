@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { canonicalJson } from '@agent-native/contracts';
-import type { Harness, HarnessEvent, HarnessTurn } from '@agent-native/agents/types';
+import { canonicalJson } from '@tortoise/contracts';
+import type { Harness, HarnessEvent, HarnessTurn } from '@tortoise/agents/types';
 
 /** A committed change, as the journal reports it. */
 export interface TriggerEvent {

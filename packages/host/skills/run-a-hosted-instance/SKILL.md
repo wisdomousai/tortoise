@@ -29,7 +29,7 @@ A hosted instance is the same host on another host platform. `hostedPlatform` ke
 ### Storage adapter
 
 1. Implement `Storage<State>` with `transact` and `read`. A Postgres-compatible database can reuse `PostgresStorage` with its own `PgDriver`.
-2. Prove it with `storageConformance(harness)` from `@agent-native/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres.
+2. Prove it with `storageConformance(harness)` from `@tortoise/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres.
 
 ## Checks
 

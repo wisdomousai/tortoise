@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { auditCliCommand } from './cli';
 import { openAudit } from './open';
 import { auditPluginManifest } from './plugin-manifest';

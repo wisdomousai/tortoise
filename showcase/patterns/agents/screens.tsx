@@ -1,11 +1,11 @@
 import { ListChecks } from 'lucide-react';
-import { automationScreens } from '@agent-native/automation/plugin-screens';
-import { defineScreens } from '@agent-native/frame/screens';
+import { automationScreens } from '@tortoise/automation/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
 import {
   requestCapabilityScreens,
   requestNavigation,
   requestRoutes,
-} from '@agent-native/pattern-base/ui/requests';
+} from '@tortoise/pattern-base/ui/requests';
 import manifest from './manifest';
 import { Approvals, MethodSuggestions } from './ui/methods';
 

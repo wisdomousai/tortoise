@@ -2,16 +2,16 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { bunSqlDriver } from '@tortoise/adapters/sqlite';
 import {
   connectMobileShell,
   createMobilePlatform,
   openMobileInstance,
   type MobileInstance,
   type MobileOsBindings,
-} from '@agent-native/mobile';
-import type { ShellNotification } from '@agent-native/shell/notifications';
+} from '@tortoise/mobile';
+import type { ShellNotification } from '@tortoise/shell/notifications';
 import { notifyAction, remindersApplication } from './fixture';
 
 const sandboxes: string[] = [];

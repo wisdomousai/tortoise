@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { SurveyState } from './domain';
 import type { SurveyServices } from './handlers/context';
 import { filingHandlers } from './handlers/filing';

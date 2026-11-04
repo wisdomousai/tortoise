@@ -1,6 +1,6 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { SearchPage } from '@agent-native/integration';
-import type { SourceRequest } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { SearchPage } from '@tortoise/integration';
+import type { SourceRequest } from '@tortoise/runtime';
 
 /** Records per page when the caller does not ask for a limit; small so the demo pages. */
 export const PAGE_SIZE = 5;

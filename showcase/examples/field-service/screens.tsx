@@ -1,7 +1,7 @@
 import { Inbox } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
-import { webhookScreens } from '@agent-native/webhook/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
+import { webhookScreens } from '@tortoise/webhook/plugin-screens';
 import manifest from './manifest';
 import { WorkOrderList, WorkOrderScreen, WorkOrdersScreen } from './ui/work-orders';
 import { PendingApprovalCount, ApprovalsScreen } from './ui/approvals';

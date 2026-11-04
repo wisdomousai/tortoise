@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { resolveWorkflows } from './definitions';
 import { workflowsPluginManifest } from './plugin-manifest';
 import { startRunner } from './runner';

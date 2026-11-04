@@ -5,7 +5,7 @@ import type {
   InputOf,
   JsonValue,
   OutputOf,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type {
   AuthorizationRequest,
   ChangeEvent,

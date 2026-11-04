@@ -1,8 +1,8 @@
 ---
-'@agent-native/contracts': minor
-'@agent-native/runtime': minor
-'@agent-native/frame': minor
-'@agent-native/scaffold': minor
+'@tortoise/contracts': minor
+'@tortoise/runtime': minor
+'@tortoise/frame': minor
+'@tortoise/scaffold': minor
 ---
 
 Collection commands and trees: `collectionCreate`, `collectionUpdate`, `collectionMove`, `collectionRetire` and `collectionTree` generate a collection's commands and tree read, and `collectionCommandHandlers` and `collectionTreeHandler` serve them with `defaults`, `normalize` and `validate` hooks. `defineCollection` takes an optional `parent` and `retiredField`. The runtime exports the tree helpers `subtree` and `ancestors`.

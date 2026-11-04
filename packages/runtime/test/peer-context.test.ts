@@ -6,8 +6,8 @@ import {
   jsonSchema,
   operationSchemaDigest,
   type AuditRecord,
-} from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
+} from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
 import {
   createApplication,
   createHandlerFactory,

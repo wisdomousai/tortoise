@@ -1,4 +1,4 @@
-import type { ModelEntry } from '@agent-native/agents/models';
+import type { ModelEntry } from '@tortoise/agents/models';
 import type { ModelRuntime } from './contracts';
 
 /** The weights on this host: the base, and the adapter or merged fine-tune its entry names. */

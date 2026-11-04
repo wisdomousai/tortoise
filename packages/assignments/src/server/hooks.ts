@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyAssignmentKind } from '../kind';
 import type { Assignee, StoredBody } from '../schemas';
 import type { StoredAssignment, StoredReport } from './slice';

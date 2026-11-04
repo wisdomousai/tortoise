@@ -1,12 +1,12 @@
-import { approvalFeatureManifest } from '@agent-native/contracts';
-import { defineManifest } from '@agent-native/host/manifest';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
-import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { processPluginManifest } from '@agent-native/process/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { workflowsPluginManifest } from '@agent-native/workflows/plugin-manifest';
+import { approvalFeatureManifest } from '@tortoise/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
+import { deviceLinkPluginManifest } from '@tortoise/device-link/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { processPluginManifest } from '@tortoise/process/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { workflowsPluginManifest } from '@tortoise/workflows/plugin-manifest';
 import { assignments, surveyModules } from './contracts';
 
 /** Browser-safe identity of the asset survey hub. */

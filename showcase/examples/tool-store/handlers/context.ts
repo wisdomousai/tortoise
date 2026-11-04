@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import type { AnyCapability, InputOf, OutputOf } from '@agent-native/contracts';
-import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import type { AnyCapability, InputOf, OutputOf } from '@tortoise/contracts';
+import type { HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import type { AppState } from '../domain';
 
 export interface Services {

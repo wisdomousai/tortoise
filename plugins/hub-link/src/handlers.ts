@@ -1,4 +1,4 @@
-import type { AuthorizationPort, HandlerContribution } from '@agent-native/runtime';
+import type { AuthorizationPort, HandlerContribution } from '@tortoise/runtime';
 import { hubLinkModule, hubLinkOperations as ops } from './contracts';
 
 export interface Pairing {

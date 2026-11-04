@@ -10,15 +10,15 @@ import {
   failClosedAuditMode,
   type AuditRecord,
   type ProcessRequirement,
-} from '@agent-native/contracts';
-import { resolveSitePolicy } from '@agent-native/site/policy';
-import { defineApplication } from '@agent-native/host/application';
-import { defineManifest } from '@agent-native/host/manifest';
-import { bunProcesses, defineHostPlugin } from '@agent-native/host/plugin';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
-import { openPlugins } from '@agent-native/host/plugins/lifecycle';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { resolveSitePolicy } from '@tortoise/site/policy';
+import { defineApplication } from '@tortoise/host/application';
+import { defineManifest } from '@tortoise/host/manifest';
+import { bunProcesses, defineHostPlugin } from '@tortoise/host/plugin';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
+import { openPlugins } from '@tortoise/host/plugins/lifecycle';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { processPlugin } from '../src/plugin';
 import { processPluginManifest } from '../src/plugin-manifest';
 

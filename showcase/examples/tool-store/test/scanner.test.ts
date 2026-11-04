@@ -9,8 +9,8 @@ import {
   type RoutedScan,
   type ScanEvent,
   type ScannerProfile,
-} from '@agent-native/devices';
-import { openEmbeddedInstance } from '@agent-native/host';
+} from '@tortoise/devices';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 import { counterProfile, counterRoutes, counterStation } from '../scanner';
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { deviceOperations } from '@agent-native/devices/contracts';
+import { deviceOperations } from '@tortoise/devices/contracts';
 import { OperatorPanel, OperatorStation } from '@/components/operator-station';
 import { client, live } from '@/lib/session';
 import { operations } from '../../contracts';

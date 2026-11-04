@@ -4,9 +4,9 @@ import {
   createMemoryStorage,
   type CommandReceipt,
   type ExecutionContext,
-} from '@agent-native/runtime';
-import { createEffectDispatcher, createInboundSync } from '@agent-native/integration';
-import { createAccessibilityExtractor } from '@agent-native/screen-bridge';
+} from '@tortoise/runtime';
+import { createEffectDispatcher, createInboundSync } from '@tortoise/integration';
+import { createAccessibilityExtractor } from '@tortoise/screen-bridge';
 import { createWindingLineBridge } from './bridge';
 import { FakeMes, toSyncInput } from './fake-mes';
 import { createSimulatorOcr, createSimulatorTransport } from './fake-hmi/memory';

@@ -2,7 +2,7 @@ import {
   collectionGetHandler,
   collectionListHandler,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { loans, type Loan } from '../contracts/loan';
 import type { AppState } from '../domain';

@@ -1,11 +1,11 @@
-import type { ModelDemand } from '@agent-native/agents/placement';
+import type { ModelDemand } from '@tortoise/agents/placement';
 import {
   invokesClosure,
   type AgentBudgets,
   type Catalog,
   type ModelRequirement,
-} from '@agent-native/contracts';
-import { agentGrant } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { agentGrant } from '@tortoise/runtime';
 import type { TriggerDefinition } from './contracts';
 import type { Job } from './jobs';
 

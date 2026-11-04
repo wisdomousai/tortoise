@@ -12,17 +12,17 @@ import {
   defineModule,
   jsonSchema,
   type NetworkDestination,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { z } from 'zod';
-import { loadSitePolicy } from '@agent-native/site/policy';
-import { openJsonlEventLog, verifyEventLog } from '@agent-native/event-log';
-import { createApplication, createMemoryStorage } from '@agent-native/runtime';
+import { loadSitePolicy } from '@tortoise/site/policy';
+import { openJsonlEventLog, verifyEventLog } from '@tortoise/event-log';
+import { createApplication, createMemoryStorage } from '@tortoise/runtime';
 import {
   directDriver,
   runScenarios,
   type BehavioralScenario,
   type ScenarioDriver,
-} from '@agent-native/testing';
+} from '@tortoise/testing';
 import {
   accumulateEgress,
   assessPosture,

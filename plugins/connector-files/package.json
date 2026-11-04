@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/connector-files",
+  "name": "@tortoise/connector-files",
   "version": "0.1.0",
   "type": "module",
   "description": "File exchange connector: a system of record reached through shared folders, with file-drop delivery, receipt or archive lookup and inbound sync from result exports.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/connector-files"
   },
   "files": [
@@ -21,9 +21,9 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*"
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

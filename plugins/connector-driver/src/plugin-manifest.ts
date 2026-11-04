@@ -1,5 +1,5 @@
-import { defineModule } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defineModule } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import type { DriverAction, DriverContract } from './contracts/define';
 import { driverComponent } from './contracts/document';
 import { driverModule, driverOperations } from './contracts/status';

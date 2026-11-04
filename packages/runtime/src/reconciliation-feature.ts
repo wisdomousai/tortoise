@@ -2,7 +2,7 @@ import {
   reconciliationFeatureManifest,
   reconciliationOperations,
   type ReconciliationDecision,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { FeatureHandlerContext, FeatureServer } from './feature.js';
 import { isDelegated } from './policy.js';
 import { reconciliationHandlers } from './reconciliation.js';

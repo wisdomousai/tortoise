@@ -1,4 +1,4 @@
-import { defineHostPlugin, type PluginOpenContext } from '@agent-native/host/plugin';
+import { defineHostPlugin, type PluginOpenContext } from '@tortoise/host/plugin';
 import { createBroker } from './broker';
 import { executionHostPluginManifest } from './plugin-manifest';
 import { createExecutionHost, type ExecutionHost, type ExecutionHostOptions } from './run';

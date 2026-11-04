@@ -1,12 +1,8 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import {
-  createApplication,
-  createHandlerFactory,
-  createMemoryStorage,
-} from '@agent-native/runtime';
-import { createDirectTransport } from '@agent-native/adapters/direct';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { createApplication, createHandlerFactory, createMemoryStorage } from '@tortoise/runtime';
+import { createDirectTransport } from '@tortoise/adapters/direct';
 import {
   createServiceHandlers,
   createServiceState,

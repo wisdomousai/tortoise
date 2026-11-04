@@ -1,10 +1,10 @@
-import { approvalFeatureManifest, reconciliationFeatureManifest } from '@agent-native/contracts';
-import { defineManifest } from '@agent-native/host/manifest';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { peerLinkPluginManifest } from '@agent-native/peer-link/plugin-manifest';
+import { approvalFeatureManifest, reconciliationFeatureManifest } from '@tortoise/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { peerLinkPluginManifest } from '@tortoise/peer-link/plugin-manifest';
 import { receivingModule } from './contracts';
 import { erpExchange } from './contracts/erp-target';
 import { qualityPeer } from './contracts/quality-peer';

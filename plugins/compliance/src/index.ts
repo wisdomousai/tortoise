@@ -1,6 +1,6 @@
 /**
  * Compliance evidence for a composed deployment. Server-only (reads files, hashes, parses the
- * lockfile); the capability module alone is browser-safe at `@agent-native/compliance/contracts`.
+ * lockfile); the capability module alone is browser-safe at `@tortoise/compliance/contracts`.
  *
  * - `securityManifest`, `dataFlowsMarkdown`: what the deployment may touch, from declarations.
  * - `controls`, `controlsMarkdown`: control catalog mapped to ISO 27001, NIST 800-53/CSF and

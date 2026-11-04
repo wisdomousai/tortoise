@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 import { defineTrigger } from '../contracts';
 import { resolveTriggers } from '../triggers';
-import type { Harness, HarnessTurn } from '@agent-native/agents/types';
+import type { Harness, HarnessTurn } from '@tortoise/agents/types';
 import { checkOnReceive, defaultJobs, inProcess, person } from './fixture';
 
 const ann = person('ann');

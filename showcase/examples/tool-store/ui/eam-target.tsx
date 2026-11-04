@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { reconciliationOperations } from '@agent-native/contracts';
+import { reconciliationOperations } from '@tortoise/contracts';
 import { ReconciliationReview, type HeldEffect } from '@/components/reconciliation-review';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';

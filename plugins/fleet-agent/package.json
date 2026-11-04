@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/fleet-agent",
+  "name": "@tortoise/fleet-agent",
   "version": "0.1.0",
   "type": "module",
   "description": "The site side of a fleet: outbound health reports, audit forwarding, verified release staging and an optional remote-access relay that grants no access.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/fleet-agent"
   },
   "files": [
@@ -21,18 +21,18 @@
     "./*": "./src/*.ts"
   },
   "devDependencies": {
-    "@agent-native/audit": "workspace:*",
-    "@agent-native/device-link": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@agent-native/site": "workspace:*"
+    "@tortoise/audit": "workspace:*",
+    "@tortoise/device-link": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
+    "@tortoise/site": "workspace:*"
   },
   "dependencies": {
-    "@agent-native/bundle": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/event-log": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
+    "@tortoise/bundle": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/event-log": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
     "zod": "4.6.5"
   }
 }

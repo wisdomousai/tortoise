@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /**
  * The browser-safe part of the network plugin. It declares nothing of its own: it binds what the

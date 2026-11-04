@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { sessionCookieName } from '@agent-native/adapters/http';
+import { sessionCookieName } from '@tortoise/adapters/http';
 import { createIdentityProvider } from '../src/testing';
 import { createWorkforceSignIn } from '../src/workforce/sign-in';
 

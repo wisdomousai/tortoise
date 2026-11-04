@@ -6,8 +6,8 @@ import {
   defineCollection,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
-import { relayResponseSchema, relayRequestSchema } from '@agent-native/fleet-agent/contracts';
+} from '@tortoise/contracts';
+import { relayResponseSchema, relayRequestSchema } from '@tortoise/fleet-agent/contracts';
 
 /**
  * A remote-access request to one site's API and, once the site responded, its response. The

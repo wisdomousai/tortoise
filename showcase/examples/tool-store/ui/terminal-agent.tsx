@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useOperatorSession } from '@agent-native/workstation-sign-in/plugin-screens';
+import { useOperatorSession } from '@tortoise/workstation-sign-in/plugin-screens';
 import { Accounts, type AgentSelection } from '@/components/accounts';
 import { RunPanel, useRuns, type Run } from '@/components/run-panel';
 import { Badge } from '@/components/ui/badge';

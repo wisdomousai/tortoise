@@ -1,9 +1,5 @@
-import type { StateMigrations } from '@agent-native/runtime';
-import type {
-  AssignmentSlice,
-  StoredAssignment,
-  StoredReport,
-} from '@agent-native/assignments/server';
+import type { StateMigrations } from '@tortoise/runtime';
+import type { AssignmentSlice, StoredAssignment, StoredReport } from '@tortoise/assignments/server';
 import { surveyBrief, type CaptureKind, type ProposedField, type SurveyNode } from './domain';
 
 /**

@@ -39,7 +39,7 @@ async function wedge(page: Page, text: string) {
 
 async function openKit(page: Page) {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-station-kit-'));
-  const host = await startService('@agent-native/winding-line', workspace);
+  const host = await startService('@tortoise/winding-line', workspace);
   await page.goto(host.launchUrl);
   await expect(page.getByRole('link', { name: 'Stations', exact: true })).toBeVisible();
   await page.goto(`${host.origin}/#/station/kit`);
@@ -212,7 +212,7 @@ test.describe('winding line', () => {
   }) => {
     const workspace = await mkdtemp(join(tmpdir(), 'agent-native-winding-line-'));
     const hmi = await startHmi();
-    const host = await startService('@agent-native/winding-line', workspace, {
+    const host = await startService('@tortoise/winding-line', workspace, {
       STATION_HMI_URL: hmi.url,
       STATION_SIMULATOR: '1',
       STATION_OBSERVE_MS: '250',

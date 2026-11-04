@@ -1,6 +1,6 @@
 import type { z } from 'zod';
-import { targetHandlers } from '@agent-native/integration';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { targetHandlers } from '@tortoise/integration';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { orderSnapshotSchema, reasonSchema } from '../contracts/schemas';
 import { mesTarget } from '../contracts/target';
 import { MES, bridgeStation, hmiTarget, own, put, type LineState } from '../domain';

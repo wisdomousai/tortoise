@@ -2,9 +2,9 @@
 // through the application CLI, run in this process with the connection file the sandbox
 // provides. That file holds the run's token, so every call acts as the person who started the
 // run, narrowed to the analyst's grant. It prints one JSON line: the analysis, or the step that failed.
-import { readConnection, runCli } from '@agent-native/adapters/cli';
-import { createHttpTransport } from '@agent-native/client';
-import { errorEnvelope } from '@agent-native/contracts';
+import { readConnection, runCli } from '@tortoise/adapters/cli';
+import { createHttpTransport } from '@tortoise/client';
+import { errorEnvelope } from '@tortoise/contracts';
 import { summarize } from './statistics';
 
 const [id] = process.argv.slice(2);

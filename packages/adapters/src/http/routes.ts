@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { ExecutionContext, Invocation } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ExecutionContext, Invocation } from '@tortoise/runtime';
 import type { ApplicationPort } from '../http';
 import { downloadBlob, uploadBlob } from './blobs';
 import { parseRevisions, readJsonBody } from './body';

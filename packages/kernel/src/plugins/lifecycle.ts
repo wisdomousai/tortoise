@@ -1,5 +1,5 @@
-import type { JsonValue } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { JsonValue } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyApplicationDefinition, HostedApplication, Observer } from '../application';
 import { buildFacts } from '../build';
 import { deploymentCatalog } from '../components';

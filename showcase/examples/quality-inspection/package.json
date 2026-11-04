@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/quality-inspection",
+  "name": "@tortoise/quality-inspection",
   "version": "0.1.0",
   "private": true,
   "type": "module",

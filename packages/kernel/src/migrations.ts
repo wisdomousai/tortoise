@@ -1,4 +1,4 @@
-import type { MigrationStep, SliceVersion, StateMigrations } from '@agent-native/runtime';
+import type { MigrationStep, SliceVersion, StateMigrations } from '@tortoise/runtime';
 
 export type { MigrationStep, StateMigrations };
 

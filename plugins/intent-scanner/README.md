@@ -1,4 +1,4 @@
-# @agent-native/intent-scanner
+# @tortoise/intent-scanner
 
 Reads scans from rugged Android devices (Zebra, Honeywell, Datalogic) that broadcast each scan as an intent. Configure the intent in the vendor's scanner software and open the source with `createIntentSource`. The manifest exports the receiver because the scanner software runs in another process, so any other software on the device can send the action unless the profile sets `senderPermission`.
 

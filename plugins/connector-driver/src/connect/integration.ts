@@ -1,10 +1,10 @@
-import type { Target } from '@agent-native/contracts';
+import type { Target } from '@tortoise/contracts';
 import {
   createEffectDispatcher,
   targetContext,
   type DispatcherApplication,
-} from '@agent-native/integration';
-import type { ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { DriverContract } from '../contracts/define';
 import type { DriverSupervisor } from '../supervisor';
 import { createDriverConnector, type DriverConnectorOptions } from './connector';

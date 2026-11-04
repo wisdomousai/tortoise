@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/react-router';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { operations } from '../../contracts';
 import { client } from '@/lib/session';
 

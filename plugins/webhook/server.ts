@@ -1,5 +1,5 @@
-import type { InputOf, OutputOf } from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContribution } from '@agent-native/runtime';
+import type { InputOf, OutputOf } from '@tortoise/contracts';
+import type { AuthorizationPort, HandlerContribution } from '@tortoise/runtime';
 import { webhookModule, webhookOperations } from './contracts';
 
 /** Delivery progress and who may read and record it, under `state.webhook`. */

@@ -1,13 +1,13 @@
 ---
-'@agent-native/assignments': minor
-'@agent-native/contracts': minor
-'@agent-native/runtime': minor
-'@agent-native/frame': minor
-'@agent-native/frame-native': minor
-'@agent-native/scaffold': minor
+'@tortoise/assignments': minor
+'@tortoise/contracts': minor
+'@tortoise/runtime': minor
+'@tortoise/frame': minor
+'@tortoise/frame-native': minor
+'@tortoise/scaffold': minor
 ---
 
-Assignments: work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the reports the assignee sends back for a person to accept or discard. The new `@agent-native/assignments` package declares kinds with `defineAssignmentKind` and `defineAssignments`, and its `./server` entrypoint mounts them as the `assignment` feature with `assignmentFeature`, an `AssignmentAccess` view and hooks per kind from `byKind`. `assignmentTargetPort` runs a function, such as a model call, as a target. The worklist kit (`defineWorklist`, `worklistHandlers`, `worklistRules`, `connectWorklist`) keeps the assignee's side in another instance, over hub-link or peer-link. `worklistHandlers` takes an `onReceived` hook, called in the feed's transaction for each assignment received for the first time.
+Assignments: work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the reports the assignee sends back for a person to accept or discard. The new `@tortoise/assignments` package declares kinds with `defineAssignmentKind` and `defineAssignments`, and its `./server` entrypoint mounts them as the `assignment` feature with `assignmentFeature`, an `AssignmentAccess` view and hooks per kind from `byKind`. `assignmentTargetPort` runs a function, such as a model call, as a target. The worklist kit (`defineWorklist`, `worklistHandlers`, `worklistRules`, `connectWorklist`) keeps the assignee's side in another instance, over hub-link or peer-link. `worklistHandlers` takes an `onReceived` hook, called in the feed's transaction for each assignment received for the first time.
 
 `AgentDefinition` takes an optional `creates`, the resource types a resource-scoped run may create. `agentGrant` records the definition on `DelegationGrant.agent`; grant files refuse the field.
 

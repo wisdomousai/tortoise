@@ -4,10 +4,10 @@ import type {
   OsActionOutcome,
   OsNotificationButton,
   OsNotifyAction,
-} from '@agent-native/contracts';
-import { DeliveryFailure, type SystemOfRecordPort } from '@agent-native/integration';
-import type { OsService } from '@agent-native/os';
-import type { Effect, EffectOutcome, ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { DeliveryFailure, type SystemOfRecordPort } from '@tortoise/integration';
+import type { OsService } from '@tortoise/os';
+import type { Effect, EffectOutcome, ExecutionContext } from '@tortoise/runtime';
 import { notificationOperations as ops } from './contracts';
 import { digestOf, newNonce } from './state';
 

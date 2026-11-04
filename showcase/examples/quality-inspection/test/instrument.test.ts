@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { createEffectDispatcher } from '@agent-native/integration';
-import { createFakeDriver } from '@agent-native/connector-driver/testing';
+import { createEffectDispatcher } from '@tortoise/integration';
+import { createFakeDriver } from '@tortoise/connector-driver/testing';
 import { createQualityInspectionApplication } from '../application';
 import { instrumentContract } from '../contracts/instrument';
 import { INSTRUMENT_READING_LIMIT } from '../domain';

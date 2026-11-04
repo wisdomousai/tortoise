@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { ApplicationError } from '@agent-native/contracts';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { ServiceState, WorkOrder } from '../domain';
 import { workOrderRole } from '../policy';

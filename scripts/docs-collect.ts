@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const content = join(root, 'docs/site/src/content/docs');
-const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
+const repository = 'https://github.com/wisdomousai/tortoise';
 
 const layers = [
   'packages',

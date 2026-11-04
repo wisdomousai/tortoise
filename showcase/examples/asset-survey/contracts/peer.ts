@@ -1,4 +1,4 @@
-import { definePeerApi } from '@agent-native/contracts';
+import { definePeerApi } from '@tortoise/contracts';
 import { assignments } from './kinds';
 
 /**

@@ -1,12 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { ApplicationError } from '@agent-native/contracts';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { AUDIT_INVALID_EXIT_CODE } from '@agent-native/audit/cli';
-import { readEvents, verifyEventLog } from '@agent-native/event-log';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
-import type { PluginCommand } from '@agent-native/host/plugin';
-import { sitePolicyFor } from '@agent-native/site/policy-file';
+import { ApplicationError } from '@tortoise/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { AUDIT_INVALID_EXIT_CODE } from '@tortoise/audit/cli';
+import { readEvents, verifyEventLog } from '@tortoise/event-log';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
+import type { PluginCommand } from '@tortoise/host/plugin';
+import { sitePolicyFor } from '@tortoise/site/policy-file';
 import { accumulateEgress, assessPosture, postureMarkdown } from './posture';
 
 export const complianceUsage = (

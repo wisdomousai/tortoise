@@ -5,7 +5,7 @@ import {
   collectionTreeHandler,
   own,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { designationProblem, normalizeDesignation } from '../contracts/schemes';
 import { documents, nodes, structureOperations as ops } from '../contracts/structure';
 import {

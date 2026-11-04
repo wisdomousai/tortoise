@@ -1,6 +1,6 @@
-import { ApplicationError, canonicalJson } from '@agent-native/contracts';
-import type { HostSession } from '@agent-native/adapters/http';
-import type { ChatGptProfile } from '@agent-native/agents/chatgpt';
+import { ApplicationError, canonicalJson } from '@tortoise/contracts';
+import type { HostSession } from '@tortoise/adapters/http';
+import type { ChatGptProfile } from '@tortoise/agents/chatgpt';
 import type { ProviderSelection } from '../providers';
 import { connectionOf, liveScope, type ProviderState, type SessionSelection } from './state';
 import { safeProfile, validModel, validProfileId } from './validation';

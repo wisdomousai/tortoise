@@ -8,7 +8,7 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { createMcpServer } from './mcp';
 
 const catalog = buildCatalog([

@@ -89,7 +89,7 @@ application lacks them, then the model server.
 Extend dev.ts to write a deployment policy into a temporary directory and set
 AGENT_NATIVE_SITE_POLICY unless it is already set. The policy binds local-inference to
 http://127.0.0.1:4389 with a timeout of 300 seconds and the llm process to that port. By default
-the process is the llama-server stand-in from @agent-native/model-server/testing with
+the process is the llama-server stand-in from @tortoise/model-server/testing with
 showcase/examples/parts-desk/responder.ts as FIXTURE_RESPONDER. With LOCAL_MODEL_GGUF set, it is
 llama-server (LLAMA_SERVER, or the one on PATH) on those weights, measured into the entry at
 launch. Print which one runs.

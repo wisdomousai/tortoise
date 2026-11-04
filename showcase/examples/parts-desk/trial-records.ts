@@ -1,4 +1,4 @@
-import { LOCAL_OWNER, LOCAL_WORKSPACE, type EmbeddedInstance } from '@agent-native/host';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, type EmbeddedInstance } from '@tortoise/host';
 import type { Part } from './contracts/part';
 
 /**

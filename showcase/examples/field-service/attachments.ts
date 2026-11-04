@@ -1,4 +1,4 @@
-import type { BlobLimits } from '@agent-native/contracts';
+import type { BlobLimits } from '@tortoise/contracts';
 
 /** Files a task may carry: PNG and JPEG images and PDFs of at most 10 MiB. */
 export const attachmentLimits: BlobLimits = {

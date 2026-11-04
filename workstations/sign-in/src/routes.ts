@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { jsonResponse, readJsonBody } from '@tortoise/adapters/http';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { stationPaths, stationSignInOperations as ops } from './contracts';
 import { digestOf, newOperatorToken, pinMatches, pinVerifier } from './state';
 

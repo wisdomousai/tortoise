@@ -1,6 +1,6 @@
-import { ApplicationError, type SyncBatch } from '@agent-native/contracts';
-import { targetHandlers, type TargetCursor } from '@agent-native/integration';
-import { own, put } from '@agent-native/runtime';
+import { ApplicationError, type SyncBatch } from '@tortoise/contracts';
+import { targetHandlers, type TargetCursor } from '@tortoise/integration';
+import { own, put } from '@tortoise/runtime';
 import type { AnyAssignmentKind } from '../kind';
 import type { AssignmentTarget } from '../manifest';
 import type { StoredBody } from '../schemas';

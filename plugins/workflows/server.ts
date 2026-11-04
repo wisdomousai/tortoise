@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf, type JsonValue } from '@agent-native/contracts';
-import { own, put, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf, type JsonValue } from '@tortoise/contracts';
+import { own, put, type HandlerContribution } from '@tortoise/runtime';
 import { workflowOperations as ops } from './contracts';
 import {
   expired,

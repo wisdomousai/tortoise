@@ -4,21 +4,17 @@ import {
   sessionCookieName,
   Sessions,
   type ApplicationPort,
-} from '@agent-native/adapters/http';
-import {
-  createApplication,
-  createMemoryStorage,
-  type ExecutionContext,
-} from '@agent-native/runtime';
+} from '@tortoise/adapters/http';
+import { createApplication, createMemoryStorage, type ExecutionContext } from '@tortoise/runtime';
 import {
   createServiceHandlers,
   createServiceState,
   servicePolicy,
   fieldServiceModule,
 } from '../server';
-import { startHost } from '@agent-native/host/host';
+import { startHost } from '@tortoise/host/host';
 import fieldService from '../application';
-import type { Harness } from '@agent-native/agents/types';
+import type { Harness } from '@tortoise/agents/types';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

@@ -113,7 +113,7 @@ export const MAX_PAGE = 100;
 /**
  * Generate `<id>.get`: one record by key, or `NOT_FOUND` when it is absent or the caller may not
  * see it. Requires `read` on the collection's resource type. The server pairs it with
- * `collectionGetHandler` from `@agent-native/runtime`, which supplies the visibility rule.
+ * `collectionGetHandler` from `@tortoise/runtime`, which supplies the visibility rule.
  */
 export function collectionGet<
   const Id extends string,
@@ -137,7 +137,7 @@ export function collectionGet<
  * Generate `<id>.list`: the records the caller may see, filtered by equality on `filters`, then
  * counted and paged by `offset` and `limit`. Scoping always comes first, so `total` counts visible
  * rows only. Requires `read` on the collection's resource type. The server pairs it with
- * `collectionListHandler` from `@agent-native/runtime`.
+ * `collectionListHandler` from `@tortoise/runtime`.
  */
 export function collectionList<
   const Id extends string,

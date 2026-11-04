@@ -1,6 +1,6 @@
 import { List } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
 import manifest from './manifest';
 // scaffold:imports
 

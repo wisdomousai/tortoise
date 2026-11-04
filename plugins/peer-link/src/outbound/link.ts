@@ -1,6 +1,6 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { PeerCallError, type PeerClient, type PeerLink } from '@agent-native/integration';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
+import { ApplicationError } from '@tortoise/contracts';
+import { PeerCallError, type PeerClient, type PeerLink } from '@tortoise/integration';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
 import { assertionLifetime, bodyDigest, requestLine, signSubjectAssertion } from '../assertion';
 import { peerLinkOperations as ops, subjectHeader } from '../contracts';
 import type { PeerCaller } from '../inbound/routes';

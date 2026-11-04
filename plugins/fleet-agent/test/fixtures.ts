@@ -8,19 +8,19 @@ import {
   jsonSchema,
   jsonValueSchema,
   type BlobRef,
-} from '@agent-native/contracts';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
-import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manifest';
-import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import type { HostPlugin } from '@agent-native/kernel/plugin';
-import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
-import { createHandlerFactory } from '@agent-native/runtime';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { createDeviceLinkPlugin } from '@tortoise/device-link/plugin';
+import { deviceLinkPluginManifest } from '@tortoise/device-link/plugin-manifest';
+import { defineApplication } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import type { HostPlugin } from '@tortoise/kernel/plugin';
+import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
+import { createHandlerFactory } from '@tortoise/runtime';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import {
   fleetSiteModule,
   fleetSiteOperations,

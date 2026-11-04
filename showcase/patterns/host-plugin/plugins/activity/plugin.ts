@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { activityModule } from './contracts';
 import { startCounting } from './counting';
 import { activityPluginManifest } from './plugin-manifest';

@@ -19,7 +19,7 @@
  * `AGENT_NATIVE_DATABASE_URL` names, as `serve --hosted-workspace` does.
  */
 import { join, resolve } from 'node:path';
-import { readStarterConfig } from '@agent-native/host/config';
+import { readStarterConfig } from '@tortoise/host/config';
 import {
   configuredApplication,
   starterConfig,

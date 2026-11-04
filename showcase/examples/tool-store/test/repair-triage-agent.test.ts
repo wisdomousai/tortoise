@@ -2,13 +2,13 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { deterministicHarness } from '@tortoise/agents';
+import { openEmbeddedInstance } from '@tortoise/host';
 import {
   runAgentScenario,
   runAgentScenarios,
   type AgentScenario,
-} from '@agent-native/testing/agent-scenarios';
+} from '@tortoise/testing/agent-scenarios';
 import { createToolStoreApplication } from '../application';
 
 // The repair triage agent judged by what it commits and what it requests approval for. The

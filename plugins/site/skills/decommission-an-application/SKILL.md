@@ -43,6 +43,6 @@ An application keeps records its systems of record have not completed only in it
 ## References
 
 - [Application lifecycle](../../../../docs/application-lifecycle.md)
-- [`@agent-native/site`](../../README.md)
+- [`@tortoise/site`](../../README.md)
 - [deploy-to-site](../deploy-to-site/SKILL.md)
 - [connect-a-site-to-a-fleet](../../../fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)

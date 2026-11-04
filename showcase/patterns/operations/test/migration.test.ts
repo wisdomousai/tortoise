@@ -2,10 +2,10 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@agent-native/host';
-import { createCli } from '@agent-native/host/cli';
-import { createTestRequestsApplication } from '@agent-native/pattern-base/application';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import { createCli } from '@tortoise/host/cli';
+import { createTestRequestsApplication } from '@tortoise/pattern-base/application';
 import { createTestRequestsOperationsApplication } from '../application';
 import fixture from './fixtures/workspace-v1.json';
 

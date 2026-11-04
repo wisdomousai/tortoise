@@ -1,5 +1,5 @@
-import type { BlobRef } from '@agent-native/contracts';
-import { assignmentTargetPort } from '@agent-native/assignments/server';
+import type { BlobRef } from '@tortoise/contracts';
+import { assignmentTargetPort } from '@tortoise/assignments/server';
 import type { extraction } from '../contracts/kinds';
 import type { ProposedField } from '../domain';
 import { nameplateText } from './nameplate-photo';

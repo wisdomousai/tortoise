@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /** The routes the request screen calls. Both act as the signed-in caller. */
 export const resultAnalysisPaths = {

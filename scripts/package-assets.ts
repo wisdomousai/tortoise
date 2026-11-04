@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import { mkdir, readdir, readFile, writeFile, chmod } from 'node:fs/promises';
 import { dirname, join, posix, resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
-import { desktopTargets, type DesktopTarget } from '@agent-native/host/runtime-manifest';
+import { desktopTargets, type DesktopTarget } from '@tortoise/host/runtime-manifest';
 
 export const runtimeVersions = { codex: '0.160.1', claude: '0.3.292', keyring: '2.1.0' } as const;
 export function targetPackages(target: DesktopTarget) {

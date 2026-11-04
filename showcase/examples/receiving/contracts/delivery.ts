@@ -7,7 +7,7 @@ import {
   deliveryShape,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** Why a counted quantity differs from the advance shipping notice. */
 export const reasonSchema = z.enum(['short', 'over', 'damaged', 'wrong-item']);

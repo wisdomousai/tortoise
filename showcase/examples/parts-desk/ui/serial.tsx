@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
 

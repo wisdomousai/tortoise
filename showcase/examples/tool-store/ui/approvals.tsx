@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { approvalOperations } from '@agent-native/contracts';
+import { approvalOperations } from '@tortoise/contracts';
 import { ApprovalReview } from '@/components/approval-review';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';

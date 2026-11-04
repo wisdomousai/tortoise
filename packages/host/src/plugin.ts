@@ -1,8 +1,8 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { NetworkPort, ProcessPort, ProcessSpawnOptions } from '@agent-native/kernel/plugin';
+import { ApplicationError } from '@tortoise/contracts';
+import type { NetworkPort, ProcessPort, ProcessSpawnOptions } from '@tortoise/kernel/plugin';
 
 /** Moved to the portable kernel; this subpath keeps existing imports working. */
-export * from '@agent-native/kernel/plugin';
+export * from '@tortoise/kernel/plugin';
 
 /**
  * The network port with Bun's socket types, as the network plugin provides it on Bun. Callers on

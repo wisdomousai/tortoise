@@ -1,4 +1,4 @@
-# @agent-native/agents
+# @tortoise/agents
 
 Runs agents as ordinary callers. A harness (Codex, Claude, AI SDK, local, deterministic) gets the application's capabilities as tools under the starting person's narrowed grant. Tool implementations take identity and grant from the run, never from model arguments.
 

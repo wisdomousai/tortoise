@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { FakeFileConsumer } from '@agent-native/connector-files/testing';
+import { FakeFileConsumer } from '@tortoise/connector-files/testing';
 import { startService } from '../../../../tests/e2e/service';
 
 test('a short line is counted, classified and posted through the exchange folders', async ({
@@ -35,7 +35,7 @@ test('a short line is counted, classified and posted through the exchange folder
       },
     }),
   );
-  const host = await startService('@agent-native/receiving', join(directory, 'workspace'), {
+  const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
     AGENT_NATIVE_SITE_POLICY: policy,
   });
   try {
@@ -124,7 +124,7 @@ test('a receipt the ERP left unreadable is held, and an editor records that it w
       },
     }),
   );
-  const host = await startService('@agent-native/receiving', join(directory, 'workspace'), {
+  const host = await startService('@tortoise/receiving', join(directory, 'workspace'), {
     AGENT_NATIVE_SITE_POLICY: policy,
   });
   try {

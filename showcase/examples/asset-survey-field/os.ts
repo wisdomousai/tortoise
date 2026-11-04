@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { jsonSchema, type OsDeclarations } from '@agent-native/contracts';
+import { jsonSchema, type OsDeclarations } from '@tortoise/contracts';
 
 /** The intent action an RFID reader or the plant's maintenance app sends with a tag it read. */
 export const findTagAction = 'dev.agentnative.survey.action.FIND_TAG';

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { ApplicationScreens } from '@agent-native/frame/screens';
+import type { ApplicationScreens } from '@tortoise/frame/screens';
 
 const ScreensContext = createContext<ApplicationScreens | undefined>(undefined);
 

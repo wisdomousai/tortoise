@@ -1,5 +1,5 @@
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { createHubLinkState, hubLinkHandlers, hubLinkPolicy, type HubLinkState } from './handlers';
 import { hubNetworkPort } from './network';
 import { createPairing, type HubLinkService } from './pairing';

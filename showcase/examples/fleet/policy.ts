@@ -1,5 +1,5 @@
-import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
-import { fleetSiteOperationIds } from '@agent-native/fleet-agent/contracts';
+import { definePolicy, own, type OperationRule } from '@tortoise/runtime';
+import { fleetSiteOperationIds } from '@tortoise/fleet-agent/contracts';
 import { operations } from './contracts';
 import { desiredRelease, siteIdOf, type AppState, type Role } from './domain';
 

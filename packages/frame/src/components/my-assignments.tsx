@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { AnyCapability, JsonObject } from '@agent-native/contracts';
+import type { AnyCapability, JsonObject } from '@tortoise/contracts';
 import { fieldsOf } from '@/components/capability-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

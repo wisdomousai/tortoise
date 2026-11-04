@@ -10,7 +10,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { Transport } from '@agent-native/client';
+import type { Transport } from '@tortoise/client';
 import { OsActionsProvider, type PerformOsAction } from './os-actions';
 import { OsDeliveries, type OsDeliverySource } from './os-deliveries';
 import { ShownProvenance } from './os-provenance';

@@ -13,17 +13,17 @@ A model entry names the weights by digest. At each start, the model server plugi
 - Ollama is not managed. Run it outside the host as an unverified `localModel`.
 - Decide which agents may use the model. A fine-tune made for one task lists those agents in the entry's `agents`. Each such agent lists the entry in its definition's `models`, with `model: 'local'`.
 - `showcase/patterns/local-model` runs an agent from a trigger on a served entry, exports a dataset from its decided approval requests and gates a fine-tune on it.
-- Compute the digests the entry names with `measure(path)` from `@agent-native/model-server/measure`, or with `sha256sum` for a single file.
+- Compute the digests the entry names with `measure(path)` from `@tortoise/model-server/measure`, or with `sha256sum` for a single file.
 
 ## Steps
 
-1. Define the entry with `defineModelEntry` from `@agent-native/agents/models`. It takes:
+1. Define the entry with `defineModelEntry` from `@tortoise/agents/models`. It takes:
    - `id`, which is also the name the server lists;
    - `base: { name, digest }`;
    - an optional `adapter: { kind: 'lora' | 'merged', digest, dataset }`;
    - `license`, `contextTokens` and `agents`.
 2. Name the entry on the agent with `models: ['<entry id>']` in `defineAgent`, so the agent never runs on another model.
-3. Declare `modelServer({ id, runtime })` from `@agent-native/model-server/contracts` in the manifest's `components`.
+3. Declare `modelServer({ id, runtime })` from `@tortoise/model-server/contracts` in the manifest's `components`.
 4. Add `modelServerPluginManifest` to the manifest, after the site, network and process manifests.
 5. Call `createModelServer({ process, runtime, entry, files, activation })`. Add its `plugin` to `plugins`.
 6. Give its `harness` to the automation plugin's `agentHarnesses` for trigger runs. The plugin also offers it to the host's run route, so a run a person starts with an `agentId` and no `harnessId` runs on it when the agent's model requirement admits it.
@@ -31,17 +31,17 @@ A model entry names the weights by digest. At each start, the model server plugi
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it responds outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.
-11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The approval dataset holds only decided approval requests the caller may see.
+11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@tortoise/runtime`. The approval dataset holds only decided approval requests the caller may see.
 12. Redact free-text fields that can include personal data, and the rationale and rejection reason, as the deployment requires.
 13. Put the dataset's `digest` into the adapter's `dataset`. Training happens outside the host with the deployment's own tooling.
 14. Before the model serves, start the server with `evaluation: true`.
-15. Run `gateModel({ entry, candidate: models.evaluationHarness, baseline, scenarios, application })` from `@agent-native/testing/activation` with the agents' scenarios. The `add-capability` skill covers writing them.
+15. Run `gateModel({ entry, candidate: models.evaluationHarness, baseline, scenarios, application })` from `@tortoise/testing/activation` with the agents' scenarios. The `add-capability` skill covers writing them.
 16. Keep the returned activation with the deployment's configuration.
 17. Pass it as `activation` for the real start. A failing gate or a changed file refuses the start.
 
 ## Checks
 
-In tests and development launches, bind the process to Bun with `llamaServerStandIn` from `@agent-native/model-server/testing` as its first argument. It takes llama-server's flags. `FIXTURE_RESPONDER` names a module whose default `StandInResponder` scripts the model's replies.
+In tests and development launches, bind the process to Bun with `llamaServerStandIn` from `@tortoise/model-server/testing` as its first argument. It takes llama-server's flags. `FIXTURE_RESPONDER` names a module whose default `StandInResponder` scripts the model's replies.
 
 1. Run the tests:
 
@@ -58,5 +58,5 @@ In tests and development launches, bind the process to Bun with `llamaServerStan
 ## References
 
 - [Agents](../../../../docs/agents.md#local-models)
-- [`@agent-native/model-server`](../../README.md)
+- [`@tortoise/model-server`](../../README.md)
 - [Local model pattern](../../../../showcase/patterns/local-model/README.md)

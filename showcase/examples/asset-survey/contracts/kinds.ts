@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { blobRefSchema } from '@agent-native/contracts';
-import { defineAssignmentKind, defineAssignments } from '@agent-native/assignments';
+import { blobRefSchema } from '@tortoise/contracts';
+import { defineAssignmentKind, defineAssignments } from '@tortoise/assignments';
 import {
   captureKind,
   captureSchema,

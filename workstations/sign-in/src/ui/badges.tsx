@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { stationPaths, stationSignInOperations as ops } from '../contracts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';

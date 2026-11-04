@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, definePeerApi, jsonSchema } from '@agent-native/contracts';
-import { defineAssignmentKind, defineAssignments } from '@agent-native/assignments';
-import { requestOperations, testRequestSchema } from '@agent-native/pattern-base/contracts';
+import { defineCapability, defineModule, definePeerApi, jsonSchema } from '@tortoise/contracts';
+import { defineAssignmentKind, defineAssignments } from '@tortoise/assignments';
+import { requestOperations, testRequestSchema } from '@tortoise/pattern-base/contracts';
 
 /**
  * A sampling round: a field technician goes to a substation, draws an oil sample from each

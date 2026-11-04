@@ -4,8 +4,8 @@ import {
   type ApprovalAccess,
   type OperationRule,
   type ReconciliationAccess,
-} from '@agent-native/runtime';
-import { targetAllowlist, targetRules } from '@agent-native/integration';
+} from '@tortoise/runtime';
+import { targetAllowlist, targetRules } from '@tortoise/integration';
 import { operations } from './contracts';
 import { erpTarget } from './contracts/erp-target';
 import { qualityPeer } from './contracts/quality-peer';

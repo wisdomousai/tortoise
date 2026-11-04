@@ -2,7 +2,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { readMobileTarget } from '@agent-native/host/mobile-target';
+import { readMobileTarget } from '@tortoise/host/mobile-target';
 import { writeMobileEntry } from '../../../scripts/mobile-entry';
 
 const root = resolve(import.meta.dir, '../../..');
@@ -82,8 +82,8 @@ test('native.json lists config plugins with the application and every declared s
   writeFileSync(
     join(field, 'manifest.ts'),
     [
-      "import { defineManifest } from '@agent-native/kernel/manifest';",
-      "import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';",
+      "import { defineManifest } from '@tortoise/kernel/manifest';",
+      "import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';",
       "const mdm = definePluginManifest({ id: 'mdm', title: 'MDM', platforms: ['android', 'ios'], native: { module: 'Mdm', expoPlugin: '@example/mdm/app.plugin' } });",
       "const scan = definePluginManifest({ id: 'scan', title: 'Scan', platforms: ['android'], native: { module: 'Scan' } });",
       "const link = definePluginManifest({ id: 'link', title: 'Link', platforms: ['android', 'ios'], settings: [{ key: 'hub-url', env: 'HUB_URL', kind: 'string', description: 'Hub origin' }] });",
@@ -116,9 +116,9 @@ test('OS handlers become native registrations, and the scheme reaches the OS set
     join(notes, 'manifest.ts'),
     [
       "import { z } from 'zod';",
-      "import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';",
-      "import { defineManifest } from '@agent-native/kernel/manifest';",
-      "import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';",
+      "import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';",
+      "import { defineManifest } from '@tortoise/kernel/manifest';",
+      "import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';",
       "const os = definePluginManifest({ id: 'os', title: 'OS', platforms: ['android', 'ios'], settings: [{ key: 'os-scheme', env: 'AGENT_NATIVE_OS_SCHEME', kind: 'string', description: 'Scheme' }] });",
       "const add = defineCapability({ id: 'note.add', kind: 'command', input: jsonSchema(z.strictObject({ text: z.string() })), output: jsonSchema(z.strictObject({})), permission: { action: 'create', resourceType: 'note' }, ui: { binding: 'note.add' } });",
       "const fromText = { id: 'note.from-text', kind: 'file', description: 'A note from text.', types: [{ extensions: ['txt'], mediaTypes: ['text/plain'], description: 'Text' }], role: 'viewer', payload: 'text', maxBytes: 500, target: { prepare: 'note.add', input: { text: '{file.text}' } } } as const;",
@@ -161,7 +161,7 @@ test('an application that does not target mobile is refused', async () => {
   const desktop = scratch(join(root, 'apps/mobile/generated'));
   writeFileSync(
     join(desktop, 'manifest.ts'),
-    "import { defineManifest } from '@agent-native/kernel/manifest';\n" +
+    "import { defineManifest } from '@tortoise/kernel/manifest';\n" +
       "export default defineManifest({ id: 'desk', title: 'Desk', modules: [] });\n",
   );
   await expect(

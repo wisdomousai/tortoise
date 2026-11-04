@@ -1,5 +1,5 @@
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
-import { pluginNativeModule } from '@agent-native/mobile/expo';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
+import { pluginNativeModule } from '@tortoise/mobile/expo';
 import { intentScannerPluginManifest } from '../plugin-manifest';
 
 /**

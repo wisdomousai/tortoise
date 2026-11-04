@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ShieldCheck } from 'lucide-react';
-import { approvalOperations, type ApprovalRequest } from '@agent-native/contracts';
+import { approvalOperations, type ApprovalRequest } from '@tortoise/contracts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { live } from '@/lib/session';

@@ -4,7 +4,7 @@
  * frame into readings, and a `ComputerUseDriver` may help find targets. None of them write
  * application state; observations and outcomes return through catalog commands.
  */
-import type { Extractor as ObservationExtractor } from '@agent-native/observation';
+import type { Extractor as ObservationExtractor } from '@tortoise/observation';
 
 /** Screen rectangle in transport pixels (CSS pixels for browser transports). */
 export interface Region {
@@ -62,7 +62,7 @@ export interface ScreenTransport {
   localInputSince?(since: number, signal: AbortSignal): Promise<boolean>;
 }
 
-export type { FieldValue, ModelIdentity, RawReading } from '@agent-native/observation';
+export type { FieldValue, ModelIdentity, RawReading } from '@tortoise/observation';
 
 export interface ExtractionField {
   readonly id: string;

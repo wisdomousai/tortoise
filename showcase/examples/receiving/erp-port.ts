@@ -1,6 +1,6 @@
-import { fileTargetPort } from '@agent-native/connector-files';
-import type { SystemOfRecordPort } from '@agent-native/integration';
-import type { FolderPort } from '@agent-native/kernel/plugin';
+import { fileTargetPort } from '@tortoise/connector-files';
+import type { SystemOfRecordPort } from '@tortoise/integration';
+import type { FolderPort } from '@tortoise/kernel/plugin';
 import { asnLineSchema, erpFolders, type AsnLine } from './contracts/erp-target';
 import { goodsReceipt } from './handlers/erp-target';
 

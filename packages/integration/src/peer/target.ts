@@ -1,5 +1,5 @@
-import type { BlobRef, PeerTarget } from '@agent-native/contracts';
-import type { Effect } from '@agent-native/runtime';
+import type { BlobRef, PeerTarget } from '@tortoise/contracts';
+import type { Effect } from '@tortoise/runtime';
 import { createPeerPort } from '../peer-port.js';
 import { connectTarget, type TargetIntegration, type TargetIntegrationOptions } from '../target.js';
 import type { PeerDrift } from './drift.js';

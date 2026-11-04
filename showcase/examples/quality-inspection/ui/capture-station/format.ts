@@ -1,4 +1,4 @@
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import type { operations } from '../../contracts';
 
 export type LotDetail = OutputOf<typeof operations.lotGet>;

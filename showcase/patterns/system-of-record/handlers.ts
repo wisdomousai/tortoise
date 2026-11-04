@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
+import { ApplicationError } from '@tortoise/contracts';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
 import {
   collectionGetHandler,
   collectionListHandler,
@@ -11,11 +11,8 @@ import {
   type EffectOutcome,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
-import {
-  testRequestCollection,
-  type TestRequestsServices,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { testRequestCollection, type TestRequestsServices } from '@tortoise/pattern-base/server';
 import {
   limsTarget,
   publications,

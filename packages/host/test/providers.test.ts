@@ -3,11 +3,11 @@ import { createHash } from 'node:crypto';
 import { chmod, mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { Sessions } from '@agent-native/adapters/http';
-import { MemoryCredentialVault } from '@agent-native/agents/credentials';
-import type { ChatGptProfile } from '@agent-native/agents/chatgpt';
-import type { Harness, HarnessTurn } from '@agent-native/agents/types';
-import type { CodexOptions } from '@agent-native/agents/codex';
+import { Sessions } from '@tortoise/adapters/http';
+import { MemoryCredentialVault } from '@tortoise/agents/credentials';
+import type { ChatGptProfile } from '@tortoise/agents/chatgpt';
+import type { Harness, HarnessTurn } from '@tortoise/agents/types';
+import type { CodexOptions } from '@tortoise/agents/codex';
 import { createProviderAccess } from '../src/providers';
 
 const origin = 'http://127.0.0.1:41000';

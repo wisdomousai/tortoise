@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { useCaptureLoop, useScannerInput } from '@agent-native/react/capture';
-import { useCapabilityForm } from '@agent-native/react/form';
+import { useCaptureLoop, useScannerInput } from '@tortoise/react/capture';
+import { useCapabilityForm } from '@tortoise/react/form';
 import { operations } from '../../contracts';
 import { client, transport } from '@/lib/session';
 import type { CodeGroups, InstrumentReading, LotDetail, RecordedResult, Target } from './format';

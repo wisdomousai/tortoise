@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import type { BundleManifest } from '@agent-native/bundle';
-import { ApplicationError } from '@agent-native/contracts';
+import type { BundleManifest } from '@tortoise/bundle';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** How the installed service is started: a systemd unit, a Windows service wrapper, or neither. */
 export type ServiceManager = 'systemd' | 'windows' | 'none';

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canonicalJson } from '@agent-native/contracts';
+import { canonicalJson } from '@tortoise/contracts';
 import type { BundleManifest, BundleRequirements } from './manifest';
 
 /** One way a candidate reaches or runs more than the installed bundle. */

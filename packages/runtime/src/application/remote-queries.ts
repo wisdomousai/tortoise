@@ -4,7 +4,7 @@ import {
   type JsonValue,
   type RemoteReadDeclaration,
   type RemoteSourceStatus,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type {
   ExecutionContext,
   HandlerContribution,

@@ -1,4 +1,4 @@
-import { defineHostComponent, type Availability } from '@agent-native/contracts';
+import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /** The folders one file exchange uses; each is a folder ID the site policy binds. */
 export interface FileExchangeFolders {

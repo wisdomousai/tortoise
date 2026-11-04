@@ -5,7 +5,7 @@ import {
   type CapabilityModule,
   type EventLogPort,
   type HostComponent,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type {
   AuthorizationPort,
   BlobStore,

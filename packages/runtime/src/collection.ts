@@ -6,7 +6,7 @@ import {
   type Collection,
   type CollectionPage,
   type OutputOf,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { byCodePoint, defineOwn } from './application/records.js';
 import type { HandlerContext, HandlerContribution, RemoteItemOf } from './types.js';
 

@@ -2,10 +2,10 @@ import { describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { bunPostgres } from '@agent-native/adapters/postgres-bun';
-import { PostgresStorage } from '@agent-native/adapters/postgres-storage';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { createMemoryStorage } from '@agent-native/runtime';
+import { bunPostgres } from '@tortoise/adapters/postgres-bun';
+import { PostgresStorage } from '@tortoise/adapters/postgres-storage';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { createMemoryStorage } from '@tortoise/runtime';
 import { pgliteDriver } from '../src/postgres';
 import { storageConformance, type ConformanceState, type StorageHarness } from '../src/storage';
 

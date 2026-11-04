@@ -1,4 +1,4 @@
-import type { CatalogOs } from '@agent-native/contracts';
+import type { CatalogOs } from '@tortoise/contracts';
 import { of, shareAccepts } from './declared';
 import { launcherShortcuts } from './shortcuts';
 
@@ -13,7 +13,7 @@ function intentFiltersPlugin(os: CatalogOs | undefined): ExpoPlugin | undefined 
   const intents = of(os, 'intent');
   if (!intents.length) return undefined;
   return [
-    '@agent-native/mobile/intent-filters',
+    '@tortoise/mobile/intent-filters',
     {
       filters: intents.map((intent) => ({
         action: intent.action,
@@ -76,7 +76,7 @@ function notificationsPlugin(os: CatalogOs | undefined): ExpoPlugin | undefined 
  */
 function shortcutsPlugin(os: CatalogOs | undefined, scheme: string): ExpoPlugin | undefined {
   const shortcuts = launcherShortcuts(os, scheme);
-  return shortcuts.length ? ['@agent-native/mobile/shortcuts', { shortcuts }] : undefined;
+  return shortcuts.length ? ['@tortoise/mobile/shortcuts', { shortcuts }] : undefined;
 }
 
 /**

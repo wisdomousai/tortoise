@@ -1,4 +1,4 @@
-import { pluginNativeModule } from '@agent-native/mobile/expo';
+import { pluginNativeModule } from '@tortoise/mobile/expo';
 import { createManagedConfigPlugin, type ManagedValues } from '../managed-config';
 import { managedConfigPluginManifest } from '../plugin-manifest';
 

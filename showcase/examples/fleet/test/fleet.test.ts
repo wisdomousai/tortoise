@@ -2,9 +2,9 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createBundle, generateSigningKey } from '@agent-native/bundle';
-import type { BlobRef } from '@agent-native/contracts';
-import { startHost } from '@agent-native/host/host';
+import { createBundle, generateSigningKey } from '@tortoise/bundle';
+import type { BlobRef } from '@tortoise/contracts';
+import { startHost } from '@tortoise/host/host';
 import { createFleetApplication } from '../application';
 import { owner, startPlant } from './site';
 

@@ -145,7 +145,7 @@ function syncCapability<
  *   stored watermark conflicts, so a stale or replayed range cannot apply old data.
  * - status: the stored watermark and last sync time, plus the application's own counts.
  *
- * The server pairs it with `targetHandlers` and `connectTarget` from `@agent-native/integration`.
+ * The server pairs it with `targetHandlers` and `connectTarget` from `@tortoise/integration`.
  * Browser-safe.
  */
 export function defineTarget<

@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createHttpTransport } from '@agent-native/client';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { startHost } from '@agent-native/host/host';
+import { createHttpTransport } from '@tortoise/client';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { startHost } from '@tortoise/host/host';
 import { createToolStoreApplication } from '../application';
 
 const NOW = Date.parse('2026-11-05T12:00:00Z');

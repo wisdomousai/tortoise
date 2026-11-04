@@ -1,25 +1,21 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { createHttpHandler } from '@agent-native/adapters/http';
-import { Sessions } from '@agent-native/adapters/http/sessions';
+import { createHttpHandler } from '@tortoise/adapters/http';
+import { Sessions } from '@tortoise/adapters/http/sessions';
 import {
   ApplicationError,
   defineCapability,
   defineModule,
   jsonSchema,
   type ErrorEnvelope,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createPeerPort,
   DeliveryFailure,
   DeliveryUncertain,
   type PeerClient,
-} from '@agent-native/integration';
-import {
-  createApplication,
-  createHandlerFactory,
-  createMemoryStorage,
-} from '@agent-native/runtime';
+} from '@tortoise/integration';
+import { createApplication, createHandlerFactory, createMemoryStorage } from '@tortoise/runtime';
 import { conformanceEffect, connectorConformance, type ConnectorHarness } from '../src/connectors';
 
 const receive = defineCapability({

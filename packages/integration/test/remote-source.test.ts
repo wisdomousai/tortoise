@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineDataProvider, defineModule } from '@agent-native/contracts';
-import { createApplication, createMemoryStorage, type SourceCall } from '@agent-native/runtime';
+import { defineDataProvider, defineModule } from '@tortoise/contracts';
+import { createApplication, createMemoryStorage, type SourceCall } from '@tortoise/runtime';
 import {
   createRemoteSource,
   DeliveryFailure,

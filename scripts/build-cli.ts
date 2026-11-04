@@ -1,8 +1,8 @@
 import { chmod, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { readApplicationIdentity } from '@agent-native/host/config';
-import { optionalHostPackages } from '@agent-native/host/optional-packages';
+import { readApplicationIdentity } from '@tortoise/host/config';
+import { optionalHostPackages } from '@tortoise/host/optional-packages';
 import { writeApplicationEntry } from './application-entry';
 
 const root = resolve(import.meta.dir, '..');

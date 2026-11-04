@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/android-intents",
+  "name": "@tortoise/android-intents",
   "version": "0.1.0",
   "type": "module",
   "description": "Android intents host plugin: serves intent handlers and intent actions for the OS plugin, with the native module that receives activity intents and starts explicit ones.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/android-intents"
   },
   "files": [
@@ -21,7 +21,7 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/os": "workspace:*"
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/os": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
-import type { TargetCursor } from '@agent-native/integration';
-import type { TestRequestsState } from '@agent-native/pattern-base/server';
+import type { TargetCursor } from '@tortoise/integration';
+import type { TestRequestsState } from '@tortoise/pattern-base/server';
 import type { Publication } from './contracts';
 
 /** The integration principal of the LIMS; it holds no lab role. */

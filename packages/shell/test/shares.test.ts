@@ -7,7 +7,7 @@ import {
   defineModule,
   jsonSchema,
   type OsHandler,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createMobileShell,
   launchRequest,

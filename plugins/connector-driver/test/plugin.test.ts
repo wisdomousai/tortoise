@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
-import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import type { HostPorts } from '@agent-native/host/plugin';
+import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import type { HostPorts } from '@tortoise/host/plugin';
 import { z } from 'zod';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { createDriverObserver } from '../src/connect';
 import { defineDriverContract, driverOperations } from '../src/contracts';
 import { driverServiceOf, openDrivers } from '../src/open';

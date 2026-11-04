@@ -1,4 +1,4 @@
-import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
+import { definePolicy, own, type OperationRule } from '@tortoise/runtime';
 import { requestOperations } from './contracts';
 import type { TestRequestsState, Role } from './domain';
 

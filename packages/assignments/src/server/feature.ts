@@ -1,5 +1,5 @@
-import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
-import { defineFeature, type ConnectContext, type Feature } from '@agent-native/kernel';
+import { connectTarget, type SystemOfRecordPort } from '@tortoise/integration';
+import { defineFeature, type ConnectContext, type Feature } from '@tortoise/kernel';
 import type { AnyAssignmentKind } from '../kind';
 import type { Assignments } from '../manifest';
 import { kindsById, type AssignmentAccess, type AssignmentHooks } from './hooks';

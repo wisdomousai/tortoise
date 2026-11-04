@@ -1,8 +1,8 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+import { defineManifest } from '@tortoise/host/manifest';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { crmCaptureModule } from './contracts';
 
 /** Browser-safe identity of the CRM capture application. */

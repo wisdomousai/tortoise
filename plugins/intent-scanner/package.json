@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/intent-scanner",
+  "name": "@tortoise/intent-scanner",
   "version": "0.1.0",
   "type": "module",
   "description": "Intent scanner host plugin: barcode scans that a rugged Android device's scanner app broadcasts as intents, through a native receiver.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/intent-scanner"
   },
   "files": [
@@ -24,10 +24,10 @@
     "./plugin-screens-native": "./src/expo/screens.tsx"
   },
   "dependencies": {
-    "@agent-native/devices": "workspace:*",
-    "@agent-native/frame-native": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/mobile": "workspace:*",
+    "@tortoise/devices": "workspace:*",
+    "@tortoise/frame-native": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/mobile": "workspace:*",
     "lucide-react-native": "1.59.0"
   },
   "peerDependencies": {

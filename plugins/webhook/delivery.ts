@@ -1,6 +1,6 @@
-import { errorEnvelope } from '@agent-native/contracts';
-import type { PluginStartContext } from '@agent-native/host/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { errorEnvelope } from '@tortoise/contracts';
+import type { PluginStartContext } from '@tortoise/host/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { webhookOperations } from './contracts';
 
 const statusOperation = webhookOperations.statusGet.id;

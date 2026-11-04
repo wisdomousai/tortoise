@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/notifications",
+  "name": "@tortoise/notifications",
   "version": "0.1.0",
   "type": "module",
   "description": "Notifications host plugin: delivers outbox effects as local notifications through the OS plugin and runs the continuation a reply's single-use nonce stands for.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/notifications"
   },
   "files": [
@@ -21,12 +21,12 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/os": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@noble/hashes": "2.4.0",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/os": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "zod": "4.6.5"
   }
 }

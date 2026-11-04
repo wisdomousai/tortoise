@@ -8,7 +8,7 @@ import {
   jsonSchema,
   approvalOperations,
   type BlobLimits,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 export { approvalOperations };
 import { attachmentLimits } from './attachments';

@@ -1,4 +1,4 @@
-# @agent-native/bundle
+# @tortoise/bundle
 
 Creates and verifies the site bundle: one signed, versioned artifact per application and platform. Nothing from a bundle runs before `verifyBundle` passes, and the signature must come from a key the site lists.
 

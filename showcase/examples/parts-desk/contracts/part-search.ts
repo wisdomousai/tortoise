@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, jsonSchema, MAX_PAGE } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, MAX_PAGE } from '@tortoise/contracts';
 import { partCategories, partSchema } from './part';
 
 /** Search parts by transformer, category and text. Members. */

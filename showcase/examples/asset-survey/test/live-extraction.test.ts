@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import type { NetworkPort } from '@agent-native/host/plugin';
+import type { NetworkPort } from '@tortoise/host/plugin';
 import type { Photo } from '../connectors/extractor';
 import { modelExtractorFromEnv } from '../connectors/model-extractor';
 import { plateTruth, samplePhoto, samplePlates } from '../fixtures/nameplates';

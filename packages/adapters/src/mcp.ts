@@ -6,7 +6,7 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { createHttpTransport, type Transport } from '@agent-native/client';
+import { createHttpTransport, type Transport } from '@tortoise/client';
 import {
   agentInstructions,
   errorEnvelope,
@@ -16,7 +16,7 @@ import {
   type Catalog,
   type CatalogAgent,
   type CatalogOperation,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { readConnection } from './cli';
 
 /** Command transport metadata is outside the domain input, so models cannot forge trusted context. */

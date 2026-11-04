@@ -33,13 +33,13 @@ An application declares what the OS may send it and what it may ask of the OS as
    - a `<target>.effect.complete` command per target. It calls `ctx.completeEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
 5. Declare the data classes an action includes. Notification text leaves the instance for the lock screen.
-6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@agent-native/frame-native/os-actions` on a device.
-7. Write no platform registration by hand. The generators in `@agent-native/shell/registrations` turn the same declarations into platform files:
+6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@tortoise/frame-native/os-actions` on a device.
+7. Write no platform registration by hand. The generators in `@tortoise/shell/registrations` turn the same declarations into platform files:
    - `nativeOsConfig` runs in `bun run mobile:prepare` (`scripts/mobile-entry.ts`) and adds the Expo config plugins for shares, notifications, intent filters and shortcuts;
    - `desktopOsConfig` runs in `bun run package:stage` for the electron-builder scheme and file associations;
    - `webManifestOs` runs in the frame's Vite plugin (`packages/frame/vite.ts`) for the web manifest's protocol handlers, share target and shortcuts.
 8. Rerun `bun run mobile:prebuild` and rebuild the mobile application after adding or removing a handler kind that brings a config plugin.
-9. For verified links, write `apple-app-site-association` and `assetlinks.json` with `associationFiles` from `@agent-native/shell/associations`. Verified links register only for hosts the deployment configures in `os-link-hosts` or `AGENT_NATIVE_OS_LINK_HOSTS`.
+9. For verified links, write `apple-app-site-association` and `assetlinks.json` with `associationFiles` from `@tortoise/shell/associations`. Verified links register only for hosts the deployment configures in `os-link-hosts` or `AGENT_NATIVE_OS_LINK_HOSTS`.
 
    ```sh
    bun scripts/os-associations.ts --team-id <id> --sha256-cert <fingerprint>

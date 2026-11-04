@@ -1,7 +1,7 @@
-import { createHttpTransport } from '@agent-native/client';
-import { readConnection } from '@agent-native/adapters/cli';
+import { createHttpTransport } from '@tortoise/client';
+import { readConnection } from '@tortoise/adapters/cli';
 import { operations } from './contracts';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 
 // Start-of-shift job: a scheduler runs it as an ordinary caller to start a work order's tasks.
 // Stable revision-bound keys let a retried invocation repeat safely after a lost response. It

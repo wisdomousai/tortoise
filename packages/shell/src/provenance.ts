@@ -1,4 +1,4 @@
-import type { OsProvenance } from '@agent-native/contracts';
+import type { OsProvenance } from '@tortoise/contracts';
 
 /**
  * Where an OS request came from, as a person reads it: "Opened from a file: notes.txt". The web

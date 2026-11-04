@@ -4,7 +4,7 @@ import {
   getItemAsync,
   setItemAsync,
 } from 'expo-secure-store';
-import type { SecretStore } from '@agent-native/kernel/platform';
+import type { SecretStore } from '@tortoise/kernel/platform';
 
 /**
  * The device's keystore (Android) or keychain (iOS) through `expo-secure-store`. Items are

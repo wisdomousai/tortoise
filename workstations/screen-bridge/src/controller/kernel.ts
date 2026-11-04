@@ -1,11 +1,11 @@
-import type { EffectOutcome } from '@agent-native/runtime';
+import type { EffectOutcome } from '@tortoise/runtime';
 import {
   abortableSleep,
   AttemptMemory,
   confirm as confirmReads,
   waitFor as waitForReads,
   type ReadClock,
-} from '@agent-native/integration';
+} from '@tortoise/integration';
 import type { StationConnectorOptions } from '../controller';
 import { createRecognizer, evaluate, type Recognizer, type View } from '../recognize';
 import type { Condition, Procedure } from '../profile';
@@ -31,7 +31,7 @@ export function createControllerKernel(options: StationConnectorOptions): Contro
   };
 }
 
-export { rejected } from '@agent-native/integration';
+export { rejected } from '@tortoise/integration';
 
 export const accepted = (view: View): EffectOutcome => ({
   status: 'accepted',

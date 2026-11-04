@@ -1,8 +1,8 @@
 import { createInterface } from 'node:readline';
-import type { BlobRef } from '@agent-native/contracts';
-import type { SpawnedProcess } from '@agent-native/host/plugin';
-import { DeliveryFailure, type SystemOfRecordPort } from '@agent-native/integration';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import type { BlobRef } from '@tortoise/contracts';
+import type { SpawnedProcess } from '@tortoise/host/plugin';
+import { DeliveryFailure, type SystemOfRecordPort } from '@tortoise/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import type { EvidenceReader } from '../connectors/fake-eam';
 import { exportResultSchema, type ExportRequest } from './protocol';
 

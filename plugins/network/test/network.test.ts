@@ -9,15 +9,15 @@ import {
   failClosedAuditMode,
   type AuditRecord,
   type NetworkDestination,
-} from '@agent-native/contracts';
-import { isolatedPolicy, loadSitePolicy } from '@agent-native/site/policy';
-import { defineApplication } from '@agent-native/host/application';
-import { defineManifest } from '@agent-native/host/manifest';
-import { defineHostPlugin } from '@agent-native/host/plugin';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
-import { openPlugins } from '@agent-native/host/plugins/lifecycle';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { isolatedPolicy, loadSitePolicy } from '@tortoise/site/policy';
+import { defineApplication } from '@tortoise/host/application';
+import { defineManifest } from '@tortoise/host/manifest';
+import { defineHostPlugin } from '@tortoise/host/plugin';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
+import { openPlugins } from '@tortoise/host/plugins/lifecycle';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { exportFormats, exportRules, networkRules } from '../src/index';
 import { networkPlugin } from '../src/plugin';
 import { networkPluginManifest } from '../src/plugin-manifest';

@@ -1,5 +1,5 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import { DeliveryFailure, interruption } from '@agent-native/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
+import { DeliveryFailure, interruption } from '@tortoise/integration';
 import { evaluate, type View } from '../recognize';
 import type { Frame, ScreenAction } from '../ports';
 import { center, resolveBinding, type Procedure, type ProcedureStep } from '../profile';

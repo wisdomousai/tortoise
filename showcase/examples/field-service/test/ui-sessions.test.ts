@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
-import { ApplicationError } from '@agent-native/contracts';
-import { createApplication, createMemoryStorage } from '@agent-native/runtime';
-import { Sessions } from '@agent-native/adapters/http';
-import { UiSessionStore } from '@agent-native/adapters/ui-sessions';
+import { ApplicationError } from '@tortoise/contracts';
+import { createApplication, createMemoryStorage } from '@tortoise/runtime';
+import { Sessions } from '@tortoise/adapters/http';
+import { UiSessionStore } from '@tortoise/adapters/ui-sessions';
 import {
   createServiceHandlers,
   createServiceState,

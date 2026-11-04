@@ -1,4 +1,4 @@
-import type { ConditionCheck } from '@agent-native/integration';
+import type { ConditionCheck } from '@tortoise/integration';
 import type { DriverCondition, DriverContract, DriverStateField } from '../contracts';
 import type { StateResult } from '../protocol';
 

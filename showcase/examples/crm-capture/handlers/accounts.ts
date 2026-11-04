@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { collectionListHandler, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { collectionListHandler, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { accounts } from '../contracts/collections';
 import { coversRegion, visibleAccount, type CrmState, type LocalAccount } from '../domain';

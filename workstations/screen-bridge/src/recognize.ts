@@ -1,4 +1,4 @@
-import { clampConfidence, type FieldValue, type Reading } from '@agent-native/observation';
+import { clampConfidence, type FieldValue, type Reading } from '@tortoise/observation';
 import type { Extractor, ExtractionField, Frame } from './ports';
 import {
   findNode,
@@ -8,7 +8,7 @@ import {
   resolveBinding,
 } from './profile';
 
-export type { Reading } from '@agent-native/observation';
+export type { Reading } from '@tortoise/observation';
 export interface View {
   readonly frame: Frame;
   /** Identified screen, or undefined when no screen of the profile matches (popup, vendor dialog). */
@@ -134,4 +134,4 @@ export function evaluate(
   return { met: unmet.length === 0 && unknown.length === 0, unmet, unknown };
 }
 
-export { Debouncer } from '@agent-native/observation';
+export { Debouncer } from '@tortoise/observation';

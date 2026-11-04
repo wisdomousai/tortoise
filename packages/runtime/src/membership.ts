@@ -1,4 +1,4 @@
-import { ApplicationError, type Membership, type SetMemberInput } from '@agent-native/contracts';
+import { ApplicationError, type Membership, type SetMemberInput } from '@tortoise/contracts';
 import { own, put } from './collection.js';
 import type { OperationRule } from './policy.js';
 import type { HandlerContribution } from './types.js';

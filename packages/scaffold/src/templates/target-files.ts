@@ -52,7 +52,7 @@ export const targetTest = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 import { Fake${t.pascal} } from '../${t.kebab}-port';
 

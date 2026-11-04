@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import entry from 'virtual:agent-native/mobile-entry';
-import { NativeFrame } from '@agent-native/frame-native/frame';
+import { NativeFrame } from '@tortoise/frame-native/frame';
 import {
   connectMobileShell,
   openMobileInstance,
   type MobileInstance,
   type MobileOsConnection,
-} from '@agent-native/mobile';
-import { expoOsBindings, expoPlatform, followAppState } from '@agent-native/mobile/expo';
+} from '@tortoise/mobile';
+import { expoOsBindings, expoPlatform, followAppState } from '@tortoise/mobile/expo';
 
 let opening: Promise<MobileInstance> | undefined;
 

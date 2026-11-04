@@ -1,5 +1,5 @@
 import type { ResolvedPolicy } from './policy';
-import type { HostPorts } from '@agent-native/host/plugin';
+import type { HostPorts } from '@tortoise/host/plugin';
 
 /**
  * The ports a supplied policy depends on other plugins to provide. A policy file that binds

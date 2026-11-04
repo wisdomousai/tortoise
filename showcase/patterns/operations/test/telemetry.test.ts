@@ -2,12 +2,12 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { auditServiceOf } from '@agent-native/audit';
-import { readEvents } from '@agent-native/event-log';
-import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/host';
-import type { TelemetryService } from '@agent-native/telemetry/plugin';
-import { startCollector } from '@agent-native/telemetry/testing';
+import { auditServiceOf } from '@tortoise/audit';
+import { readEvents } from '@tortoise/event-log';
+import { startHost } from '@tortoise/host/host';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/host';
+import type { TelemetryService } from '@tortoise/telemetry/plugin';
+import { startCollector } from '@tortoise/telemetry/testing';
 import { createTestRequestsOperationsApplication } from '../application';
 
 const cleanup: (() => Promise<unknown> | unknown)[] = [];

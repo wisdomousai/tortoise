@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import type { AnyCapability, InputOf, OutputOf } from '@agent-native/contracts';
-import { useCapabilityForm } from '@agent-native/react/form';
+import type { AnyCapability, InputOf, OutputOf } from '@tortoise/contracts';
+import { useCapabilityForm } from '@tortoise/react/form';
 import { transport } from '@/lib/session';
 
 /**

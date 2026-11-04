@@ -1,8 +1,8 @@
-import type { Sessions } from '@agent-native/adapters/http';
-import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
-import { DeterministicHarness } from '@agent-native/agents/deterministic';
-import type { Harness } from '@agent-native/agents/types';
-import { createRunSupervisor, runAuditRecord } from '@agent-native/agents/supervisor';
+import type { Sessions } from '@tortoise/adapters/http';
+import type { UiSessionStore } from '@tortoise/adapters/ui-sessions';
+import { DeterministicHarness } from '@tortoise/agents/deterministic';
+import type { Harness } from '@tortoise/agents/types';
+import { createRunSupervisor, runAuditRecord } from '@tortoise/agents/supervisor';
 import { childEnvironment } from '../plugin';
 import { createProviderAccess } from '../providers';
 import { createAgentTools } from './agent-tools';

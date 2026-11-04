@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  defineCapability,
-  defineModule,
-  jsonSchema,
-  jsonValueSchema,
-} from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema, jsonValueSchema } from '@tortoise/contracts';
 
 const id = z.string().min(1).max(256);
 const time = z.number().int();

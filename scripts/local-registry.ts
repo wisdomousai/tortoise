@@ -2,7 +2,7 @@
  * A read-only npm registry on loopback that serves packed framework tarballs, so an application
  * can be installed from versions instead of workspace links before anything is published. It
  * serves package documents and tarball downloads for the packages in `directory` and 404 for
- * everything else; a `bunfig.toml` scope sends only `@agent-native/*` here. Holds no credentials
+ * everything else; a `bunfig.toml` scope sends only `@tortoise/*` here. Holds no credentials
  * and accepts no uploads.
  */
 import { createHash } from 'node:crypto';

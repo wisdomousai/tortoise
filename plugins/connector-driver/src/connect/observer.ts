@@ -8,7 +8,7 @@ import {
   type ObservationBase,
   type ObserverOptions,
   type Reading,
-} from '@agent-native/observation';
+} from '@tortoise/observation';
 import { stateValueFits, type DriverContract } from '../contracts/define';
 import type { DriverSupervisor } from '../supervisor';
 

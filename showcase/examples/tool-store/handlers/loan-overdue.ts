@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, own, type HandlerContribution } from '@agent-native/runtime';
+import { DEFAULT_PAGE, own, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { OverdueLoan } from '../contracts/loan-overdue';
 import type { AppState } from '../domain';

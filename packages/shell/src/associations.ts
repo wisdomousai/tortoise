@@ -1,4 +1,4 @@
-import { linkPathSegments, type CatalogOs } from '@agent-native/contracts';
+import { linkPathSegments, type CatalogOs } from '@tortoise/contracts';
 
 /** What the stores know the app by: the Apple team and the Android signing certificates. */
 export interface AssociationIdentity {

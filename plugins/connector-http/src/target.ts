@@ -4,9 +4,9 @@ import {
   type LookupResult,
   type PullBatch,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
-import type { Effect } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
+import type { Effect } from '@tortoise/runtime';
 import { readPointer } from './pointer';
 
 /**

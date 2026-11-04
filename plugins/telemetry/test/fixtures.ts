@@ -4,17 +4,17 @@ import {
   defineHostComponent,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { createHandlerFactory, type EffectOutcome } from '@agent-native/runtime';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { defineApplication } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { createHandlerFactory, type EffectOutcome } from '@tortoise/runtime';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { createTelemetryPlugin } from '../src/plugin';
 import { telemetryPluginManifest } from '../src/plugin-manifest';
 

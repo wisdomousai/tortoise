@@ -2,8 +2,8 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startHost } from '@agent-native/host/host';
-import { unboundOperations } from '@agent-native/testing/ui-bindings';
+import { startHost } from '@tortoise/host/host';
+import { unboundOperations } from '@tortoise/testing/ui-bindings';
 import { automationModule } from '../contracts';
 import { checkOnReceive, lotsApplication, person } from './fixture';
 

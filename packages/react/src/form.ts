@@ -6,8 +6,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import type { Receipt, Transport } from '@agent-native/client';
+} from '@tortoise/contracts';
+import type { Receipt, Transport } from '@tortoise/client';
 
 const newKey = () => crypto.randomUUID();
 

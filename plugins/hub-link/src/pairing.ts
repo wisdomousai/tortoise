@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { SecretStore } from '@agent-native/kernel/platform';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { SecretStore } from '@tortoise/kernel/platform';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { requestLaunch, type HubLaunch } from './attached';
 import { enrollPath, hubLinkOperations as ops } from './contracts';
 import type { Pairing } from './handlers';

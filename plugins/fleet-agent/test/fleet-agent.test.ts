@@ -2,17 +2,17 @@ import { afterEach, expect, test } from 'bun:test';
 import { chmod, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import {
   createBundle,
   generateSigningKey,
   requirementsDigest,
   type BundleManifest,
   type SigningKey,
-} from '@agent-native/bundle';
-import type { BlobRef } from '@agent-native/contracts';
-import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
+} from '@tortoise/bundle';
+import type { BlobRef } from '@tortoise/contracts';
+import { startHost } from '@tortoise/host/host';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import type { FleetRelease, RelayResponse, SiteReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
 import { fleetNetworkFixture } from '../src/testing';

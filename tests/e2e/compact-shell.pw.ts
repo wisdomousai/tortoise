@@ -11,7 +11,7 @@ test('on a tablet the sidebar becomes a bar and a menu sheet that closes on navi
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-compact-'));
-  const host = await startService('@agent-native/quality-inspection', workspace);
+  const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);
     const sections = page.getByRole('navigation', { name: 'Sections' });

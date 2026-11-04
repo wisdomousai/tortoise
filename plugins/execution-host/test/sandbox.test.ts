@@ -6,8 +6,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer, type Server } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { startHost } from '@agent-native/host/host';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { startHost } from '@tortoise/host/host';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { ExecutionHost, SandboxTask } from '../src/run';
 import { notesApplication, person } from './fixture';
 

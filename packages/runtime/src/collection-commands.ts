@@ -8,7 +8,7 @@ import {
   type CollectionTreeInput,
   type CollectionTreePage,
   type OutputOf,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { byCodePoint } from './application/records.js';
 import { own, records, type CollectionReadOptions } from './collection.js';
 import type { HandlerContext, HandlerContribution } from './types.js';

@@ -184,7 +184,7 @@ export const items: readonly ManifestItem[] = [
     title: 'useScanner',
     description:
       'Keyboard-wedge, serial, HID POS and camera scanning with profile decoding and deterministic scan routes.',
-    dependencies: ['@agent-native/devices'],
+    dependencies: ['@tortoise/devices'],
     files: ['src/hooks/use-scanner.ts'],
   },
   {
@@ -294,7 +294,7 @@ export const items: readonly ManifestItem[] = [
     title: 'Scanner setup',
     description:
       'Calibrate any scanner by scanning one printed code, edit its profile, test scans with GS1 and route decoding, then save.',
-    dependencies: ['@agent-native/devices', 'bwip-js', 'lucide-react'],
+    dependencies: ['@tortoise/devices', 'bwip-js', 'lucide-react'],
     registryDependencies: [
       'button',
       'card',

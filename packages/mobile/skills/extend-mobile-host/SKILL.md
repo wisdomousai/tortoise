@@ -17,7 +17,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
 
 1. List `mobile` in the manifest's targets.
 2. Set `targets.mobile.application` in `app.config.json`, or `AGENT_NATIVE_MOBILE_APPLICATION` for one build.
-3. Add a `screens-native` entrypoint with `defineNativeScreens` from `@agent-native/frame-native/screens`. Screens read the session with `useSession()`.
+3. Add a `screens-native` entrypoint with `defineNativeScreens` from `@tortoise/frame-native/screens`. Screens read the session with `useSession()`.
 4. Build native screens from the `agent-native-native` UI registry in `packages/frame-native`, such as `hold-button`, `status-pill` and `list-row`. A phone that takes assignments shows the worklist kit's `<namespace>.assignment.list` with `worklist-list`, and its target status and `<namespace>.report.list` with `worklist-sync`.
 5. Run `bun run build:registry:native` after changing a registry item.
 6. Contribute a plugin's native screens with `definePluginNativeScreens` and a feature's with `defineFeatureNativeScreens`. Pass the application's `manifest` to `defineNativeScreens`, which checks unit screens against it.
@@ -31,7 +31,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
 9. Compose `plugins/device-link` on the hub. Set `device-link-sync-operations`, or pass `syncOperations` to `createDeviceLinkPlugin`.
 10. Compose `plugins/hub-link` on the device. The device names its outbox target `hub` and reaches it through `createPeerPort` in `packages/integration`. The hub's feed comes back through inbound sync.
 11. Compose `plugins/managed-config` so that MDM values such as `hub-url` and `enrollment-code` become settings. A managed device then pairs on first start.
-12. Declare links, shares, intents, shortcuts and notifications in the application's OS declarations. The `add-os-integration` skill (`packages/shell/skills/add-os-integration/SKILL.md`) has the steps. A native screen asks for a declared action with `useOsAction` from `@agent-native/frame-native/os-actions`.
+12. Declare links, shares, intents, shortcuts and notifications in the application's OS declarations. The `add-os-integration` skill (`packages/shell/skills/add-os-integration/SKILL.md`) has the steps. A native screen asks for a declared action with `useOsAction` from `@tortoise/frame-native/os-actions`.
 13. Build with the commands below.
 
     ```sh

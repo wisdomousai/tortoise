@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** Whether a declared process can start in this deployment, and why not. */
 export type ProcessAvailability =

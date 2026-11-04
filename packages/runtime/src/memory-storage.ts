@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { Storage, WorkspaceSnapshot } from './types.js';
 
 /** An empty workspace around an isolated copy of the initial feature state. */

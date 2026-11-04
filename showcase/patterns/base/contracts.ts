@@ -7,7 +7,7 @@ import {
   defineModule,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /**
  * One test request: an oil sample drawn from an installed power transformer, what the requester

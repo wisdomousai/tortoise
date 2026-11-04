@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { readGrantFile } from '@agent-native/adapters/direct';
-import { WorkspaceOwnedError } from '@agent-native/adapters/exclusive-lock';
-import { ApplicationError } from '@agent-native/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { readGrantFile } from '@tortoise/adapters/direct';
+import { WorkspaceOwnedError } from '@tortoise/adapters/exclusive-lock';
+import { ApplicationError } from '@tortoise/contracts';
 import type { AnyApplicationDefinition } from '../application';
 import { LOCAL_WORKSPACE } from '../embedded';
 import { finite, rejectRemaining, settingsOf, workspaceOf } from './args';

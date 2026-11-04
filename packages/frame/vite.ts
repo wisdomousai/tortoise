@@ -1,10 +1,10 @@
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
-import { deploymentCatalog } from '@agent-native/host/components';
-import { loadManifest, readStarterConfig, type StarterConfig } from '@agent-native/host/config';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
-import { webManifestOs } from '@agent-native/shell';
+import { deploymentCatalog } from '@tortoise/host/components';
+import { loadManifest, readStarterConfig, type StarterConfig } from '@tortoise/host/config';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
+import { webManifestOs } from '@tortoise/shell';
 
 const SCREENS = 'virtual:agent-native/screens';
 const escapeHtml = (value: string) =>
@@ -116,7 +116,7 @@ export async function frame(options: { appSource: string; configPath: string; ou
   const roots = [
     options.appSource,
     join(import.meta.dirname, 'src'),
-    join(dirname(require.resolve('@agent-native/operator-ui/package.json')), 'src'),
+    join(dirname(require.resolve('@tortoise/operator-ui/package.json')), 'src'),
   ];
   const screens = isAbsolute(config.application)
     ? join(config.application, 'screens')

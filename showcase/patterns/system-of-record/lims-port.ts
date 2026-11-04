@@ -1,5 +1,5 @@
-import { httpTargetPort } from '@agent-native/connector-http';
-import type { NetworkPort } from '@agent-native/host/plugin';
+import { httpTargetPort } from '@tortoise/connector-http';
+import type { NetworkPort } from '@tortoise/host/plugin';
 import { LIMS_DESTINATION, limsTarget, type RegisteredRequest } from './contracts';
 
 /**

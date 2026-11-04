@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/driver-sdk-python",
+  "name": "@tortoise/driver-sdk-python",
   "version": "0.1.0",
   "private": true,
   "type": "module",

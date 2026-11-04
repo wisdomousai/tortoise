@@ -2,9 +2,9 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { LOCAL_WORKSPACE, openEmbeddedInstance } from '@agent-native/host';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { createAssetSurveyApplication } from '../application';
 import { nameplatePhoto } from '../connectors/nameplate-photo';
 

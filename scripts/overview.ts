@@ -8,10 +8,10 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { ApplicationManifest } from '@agent-native/host';
-import { defaultPorts } from '@agent-native/kernel';
-import { deploymentCatalog, deploymentComponents } from '@agent-native/host/components';
-import { securityManifest } from '@agent-native/compliance';
+import type { ApplicationManifest } from '@tortoise/host';
+import { defaultPorts } from '@tortoise/kernel';
+import { deploymentCatalog, deploymentComponents } from '@tortoise/host/components';
+import { securityManifest } from '@tortoise/compliance';
 import * as curated from './overview-curated';
 import { importedPackages, workspaces, type Workspace } from './workspace-manifests';
 

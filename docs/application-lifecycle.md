@@ -102,6 +102,6 @@ A hosted instance delivers while it serves, and its fleet report counts what rem
 - [Desktop](desktop.md)
 - [Mobile](mobile.md)
 - [Implementation status](implementation-status.md#application-lifecycle)
-- [`@agent-native/site`](../plugins/site/README.md)
+- [`@tortoise/site`](../plugins/site/README.md)
 - [decommission-an-application](../plugins/site/skills/decommission-an-application/SKILL.md)
 - [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md)

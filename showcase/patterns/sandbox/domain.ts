@@ -1,4 +1,4 @@
-import type { TestRequestsState } from '@agent-native/pattern-base/server';
+import type { TestRequestsState } from '@tortoise/pattern-base/server';
 import type { TestResult } from './contracts';
 
 /** The test results slice, next to the base pattern's `testRequests` slice. */

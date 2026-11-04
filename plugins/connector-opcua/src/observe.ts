@@ -5,8 +5,8 @@ import {
   debounceReadings,
   type ObservationBase,
   type Reading,
-} from '@agent-native/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
+} from '@tortoise/observation';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { OpcUaClient, type OpcUaClientOptions } from './client';
 import { isBad, isUncertain, parseNodeId, type NodeId, type Scalar } from './types';
 

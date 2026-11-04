@@ -3,10 +3,10 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { startPeerPair, type PeerPair } from '@agent-native/peer-link/testing';
-import { createQualityInspectionApplication } from '@agent-native/quality-inspection/application';
-import { FakeQualitySystem } from '@agent-native/quality-inspection/fake-sor';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { startPeerPair, type PeerPair } from '@tortoise/peer-link/testing';
+import { createQualityInspectionApplication } from '@tortoise/quality-inspection/application';
+import { FakeQualitySystem } from '@tortoise/quality-inspection/fake-sor';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 

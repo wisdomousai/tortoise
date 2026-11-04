@@ -1,5 +1,5 @@
-import type { InputOf, OutputOf } from '@agent-native/contracts';
-import type { HandlerContribution, Effect } from '@agent-native/runtime';
+import type { InputOf, OutputOf } from '@tortoise/contracts';
+import type { HandlerContribution, Effect } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { MES, hmiTarget, openStop, own, type LineState } from '../domain';
 import { stationOfResource } from '../policy';

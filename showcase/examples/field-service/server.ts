@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { ServiceState } from './domain';
 import { workOrderHandlers } from './handlers/work-orders';
 import { taskHandlers } from './handlers/tasks';

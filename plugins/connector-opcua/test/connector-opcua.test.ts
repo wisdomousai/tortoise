@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
-import type { ExecutionContext, Invocation } from '@agent-native/runtime';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
+import type { ExecutionContext, Invocation } from '@tortoise/runtime';
 import { OpcUaClient, createOpcUaObserver, formatNodeId, parseNodeId } from '../src';
 import { Reader, Writer } from '../src/binary';
 import { readVariant, writeNodeId, readNodeId } from '../src/types';

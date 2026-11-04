@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
 
 /**
  * The managed configuration plugin: settings a fleet administrator pushes through device
@@ -11,7 +11,7 @@ export const managedConfigPluginManifest = definePluginManifest({
   platforms: ['android', 'ios'],
   native: {
     module: 'AgentNativeManagedConfig',
-    expoPlugin: '@agent-native/managed-config/app.plugin',
+    expoPlugin: '@tortoise/managed-config/app.plugin',
   },
 });
 

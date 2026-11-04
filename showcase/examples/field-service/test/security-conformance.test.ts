@@ -3,15 +3,15 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 import {
   createApplication,
   createMemoryStorage,
   createHandlerFactory,
   type AuthorizationPort,
   type ExecutionContext,
-} from '@agent-native/runtime';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+} from '@tortoise/runtime';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import {
   createServiceHandlers,
   createServiceState,

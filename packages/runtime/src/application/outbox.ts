@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { Effect, ExecutionContext } from '../types.js';
 import { actorOf } from './audit.js';
 import { claimEffect } from './effect-claims.js';

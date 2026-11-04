@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
-import { frame } from '@agent-native/frame/vite';
+import { frame } from '@tortoise/frame/vite';
 import { browserBoundary } from '../../scripts/vite-browser-boundary.ts';
 
 const repository = resolve(import.meta.dirname, '../..');

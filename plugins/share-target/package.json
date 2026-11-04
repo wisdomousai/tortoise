@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/share-target",
+  "name": "@tortoise/share-target",
   "version": "0.1.0",
   "type": "module",
   "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the launch page session claims them.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/share-target"
   },
   "files": [
@@ -21,10 +21,10 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/os": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@agent-native/shell": "workspace:*"
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/os": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
+    "@tortoise/shell": "workspace:*"
   }
 }

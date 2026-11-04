@@ -67,5 +67,5 @@ Report deterministic, browser, device and live-model evidence separately in [imp
 
 - [`showcase/examples/winding-line`](../../../../showcase/examples/winding-line/README.md)
 - [Operator workstations](../../../../docs/operator-workstations.md)
-- [`@agent-native/screen-bridge`](../../README.md)
+- [`@tortoise/screen-bridge`](../../README.md)
 - [Operator workstations](../../../../docs/operator-workstations.md#automation-route)

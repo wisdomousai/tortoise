@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/peer-link",
+  "name": "@tortoise/peer-link",
   "version": "0.1.0",
   "type": "module",
   "description": "Peer link host plugin: two agent-native applications enroll with each other and call each other's peer API as a service principal or on behalf of a mapped person.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/peer-link"
   },
   "files": [
@@ -25,14 +25,14 @@
     "./testing": "./src/testing.ts"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

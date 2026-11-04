@@ -1,4 +1,4 @@
-import { workflowMarkdown, type CatalogWorkflow } from '@agent-native/contracts';
+import { workflowMarkdown, type CatalogWorkflow } from '@tortoise/contracts';
 import { CliText } from './types';
 
 /** Render a value for humans. Snapshot and receipt envelopes show their payload. */

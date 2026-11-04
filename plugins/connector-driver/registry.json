@@ -10,10 +10,10 @@
       "description": "Read-only hardware driver status: process state, reported units, and each action's delivery mode and risk level, from driver.status.get. Polls; each read is itself audited.",
       "dependencies": [
         "@tanstack/react-query",
-        "@agent-native/connector-driver",
-        "@agent-native/contracts"
+        "@tortoise/connector-driver",
+        "@tortoise/contracts"
       ],
-      "registryDependencies": ["badge", "card", "table", "@agent-native/session"],
+      "registryDependencies": ["badge", "card", "table", "@tortoise/session"],
       "files": [
         {
           "path": "src/components/driver-screen.tsx",

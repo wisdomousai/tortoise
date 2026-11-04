@@ -1,12 +1,12 @@
-import { defineManifest } from '@agent-native/kernel/manifest';
-import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
-import { androidIntentsPluginManifest } from '@agent-native/android-intents/plugin-manifest';
-import { hubLinkPluginManifest } from '@agent-native/hub-link/plugin-manifest';
-import { intentScannerPluginManifest } from '@agent-native/intent-scanner/plugin-manifest';
-import { managedConfigPluginManifest } from '@agent-native/managed-config/plugin-manifest';
-import { notificationsPluginManifest } from '@agent-native/notifications/plugin-manifest';
-import { osPluginManifest } from '@agent-native/os/plugin-manifest';
-import { shareTargetPluginManifest } from '@agent-native/share-target/plugin-manifest';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
+import { androidIntentsPluginManifest } from '@tortoise/android-intents/plugin-manifest';
+import { hubLinkPluginManifest } from '@tortoise/hub-link/plugin-manifest';
+import { intentScannerPluginManifest } from '@tortoise/intent-scanner/plugin-manifest';
+import { managedConfigPluginManifest } from '@tortoise/managed-config/plugin-manifest';
+import { notificationsPluginManifest } from '@tortoise/notifications/plugin-manifest';
+import { osPluginManifest } from '@tortoise/os/plugin-manifest';
+import { shareTargetPluginManifest } from '@tortoise/share-target/plugin-manifest';
 import { fieldModule } from './contracts';
 
 /**

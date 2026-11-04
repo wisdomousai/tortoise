@@ -1,11 +1,11 @@
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
-import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
+import type { HostPlatform, PlatformOwnership } from '@tortoise/kernel/platform';
 import { hostComponents } from '../components';
 import { loopbackIngress } from '../plugins/ports';
 

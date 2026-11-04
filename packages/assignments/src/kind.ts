@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { assertBlobLimits, unitIdPattern, type BlobLimits } from '@agent-native/contracts';
+import { assertBlobLimits, unitIdPattern, type BlobLimits } from '@tortoise/contracts';
 
 /** Who may take an assignment, and how it reaches them. */
 export const assigneeTypes = ['person', 'agent', 'device', 'peer', 'target'] as const;

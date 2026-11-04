@@ -54,7 +54,7 @@ test('an instrument reading is offered on the capture station and recorded with 
       },
     }),
   );
-  const host = await startService('@agent-native/quality-inspection', join(workspace, 'data'), {
+  const host = await startService('@tortoise/quality-inspection', join(workspace, 'data'), {
     AGENT_NATIVE_SITE_POLICY: policy,
   });
   try {

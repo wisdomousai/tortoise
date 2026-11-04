@@ -1,4 +1,4 @@
-import type { Snapshot } from '@agent-native/client';
+import type { Snapshot } from '@tortoise/client';
 
 /** Root of every capability query key, so bindings never touch unrelated application caches. */
 export const CAPABILITY_QUERY_KEY = 'agent-native-capability';

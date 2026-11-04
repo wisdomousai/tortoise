@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { createFixture, outsider, planner, worker } from './application';
 
 type Fixture = ReturnType<typeof createFixture>;

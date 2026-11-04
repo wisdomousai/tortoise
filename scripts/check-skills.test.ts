@@ -82,7 +82,7 @@ test('a changed public surface names its reviewers', () => {
 
 test('coverage can name a skill from an installed framework package', () => {
   const directory = fixture();
-  const installed = join(directory, 'node_modules/@agent-native/shared/skills/external-skill');
+  const installed = join(directory, 'node_modules/@tortoise/shared/skills/external-skill');
   mkdirSync(installed, { recursive: true });
   writeFileSync(
     join(installed, 'SKILL.md'),

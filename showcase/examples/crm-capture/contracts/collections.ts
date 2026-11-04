@@ -1,4 +1,4 @@
-import { defineCollection } from '@agent-native/contracts';
+import { defineCollection } from '@tortoise/contracts';
 import { accountSchema, activitySchema } from './schemas';
 
 /** Accounts this workspace follows, keyed by CRM ID, as callers see them. */

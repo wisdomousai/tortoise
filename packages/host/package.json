@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/host",
+  "name": "@tortoise/host",
   "version": "0.1.0",
   "type": "module",
   "description": "Generic local instance: hosts one application definition over HTTP, MCP and CLI.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/host"
   },
   "files": [
@@ -21,17 +21,17 @@
     "./*": "./src/*.ts"
   },
   "devDependencies": {
-    "@agent-native/testing": "workspace:*"
+    "@tortoise/testing": "workspace:*"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/agents": "workspace:*",
-    "@agent-native/client": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/react": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@ai-sdk/openai": "4.0.86",
-    "@modelcontextprotocol/sdk": "1.32.1"
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/agents": "workspace:*",
+    "@tortoise/client": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/react": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

@@ -5,9 +5,9 @@ import {
   type ApprovalAccess,
   type ExecutionContext,
   type OperationRule,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import type { ServiceState, Role, Task } from './domain';
-import { createScopedAbility, matchesScope } from '@agent-native/adapters/casl';
+import { createScopedAbility, matchesScope } from '@tortoise/adapters/casl';
 import { operations } from './contracts';
 
 export function workOrderRole(

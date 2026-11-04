@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdir, readFile, utimes, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import { connectorConformance, conformanceEffect } from '@agent-native/testing/connectors';
+import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { connectorConformance, conformanceEffect } from '@tortoise/testing/connectors';
 import { z } from 'zod';
 import {
   fileDropPort,

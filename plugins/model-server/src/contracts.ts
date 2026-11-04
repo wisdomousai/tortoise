@@ -1,4 +1,4 @@
-import { defineHostComponent, type Availability } from '@agent-native/contracts';
+import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /** The servers this plugin can start, each an OpenAI-compatible HTTP server. */
 export type ModelRuntime = 'llama-server' | 'vllm';

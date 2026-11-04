@@ -1,8 +1,4 @@
-import {
-  buildCatalog,
-  type CatalogRequirements,
-  type HostComponent,
-} from '@agent-native/contracts';
+import { buildCatalog, type CatalogRequirements, type HostComponent } from '@tortoise/contracts';
 import type { ApplicationManifest } from './manifest';
 
 /**

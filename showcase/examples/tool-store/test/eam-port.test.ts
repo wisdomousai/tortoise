@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { conformanceEffect, connectorConformance } from '@agent-native/testing/connectors';
+import { conformanceEffect, connectorConformance } from '@tortoise/testing/connectors';
 import { repairOrderEffect, type RepairOrderPayload } from '../contracts/eam-target';
 import { FakeEam, tagList } from '../eam-port';
 

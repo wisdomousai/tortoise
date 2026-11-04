@@ -1,8 +1,8 @@
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import manifest from './manifest';
 import { createState, upgradeState, type AppState, type Role } from './domain';
 import { appPolicy, createHandlers, type Services } from './server';

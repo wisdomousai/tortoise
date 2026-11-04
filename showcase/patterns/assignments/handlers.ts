@@ -1,11 +1,11 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import {
   createHandlerFactory,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
-import { byKind } from '@agent-native/assignments/server';
-import { requestOperations, type TestRequestsServices } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { byKind } from '@tortoise/assignments/server';
+import { requestOperations, type TestRequestsServices } from '@tortoise/pattern-base/server';
 import { samplingOperations } from './contracts';
 import type { TestRequestsAssignmentsRoot } from './domain';
 

@@ -1,5 +1,5 @@
-import { ApplicationError, type JsonValue } from '@agent-native/contracts';
-import type { HandlerContext } from '@agent-native/runtime';
+import { ApplicationError, type JsonValue } from '@tortoise/contracts';
+import type { HandlerContext } from '@tortoise/runtime';
 import { finished, type InstanceView, type WorkflowStatus, type stalledReasons } from './contracts';
 import type { Definition } from './definitions';
 

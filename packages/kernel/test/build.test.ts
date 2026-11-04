@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { defineModule } from '@agent-native/contracts';
+import { defineModule } from '@tortoise/contracts';
 import { defineApplication } from '../src/application';
 import {
   bestBeforeDate,

@@ -6,7 +6,7 @@ import {
   defineModule,
   jsonSchema,
   type ApprovalRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   approvalFeature,
   isDelegated,
@@ -14,7 +14,7 @@ import {
   type FeatureHandler,
   type FeaturePolicy,
   type FeatureServer,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { featureConformance } from '../src/features';
 
 const fixture = { ui: { exception: 'test fixture' } } as const;

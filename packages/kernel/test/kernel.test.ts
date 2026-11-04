@@ -7,8 +7,8 @@ import {
   defineModule,
   jsonSchema,
   type Requirements,
-} from '@agent-native/contracts';
-import type { AuthorizationPort } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { AuthorizationPort } from '@tortoise/runtime';
 import { defineApplication } from '../src/application';
 import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '../src/instance';
 import { defineManifest } from '../src/manifest';
@@ -432,8 +432,8 @@ test('application targets must be known and every plugin must run on each', () =
     definePluginManifest({ id: 'p', title: 'P', platforms: ['android'], native: value });
   expect(() => native({ expoPlugin: '../../escape' })).toThrow('invalid Expo config plugin');
   expect(() => native({ module: 'not a name' })).toThrow('invalid native module name');
-  expect(native({ expoPlugin: '@agent-native/p/app.plugin', module: 'Scanner' }).native).toEqual({
-    expoPlugin: '@agent-native/p/app.plugin',
+  expect(native({ expoPlugin: '@tortoise/p/app.plugin', module: 'Scanner' }).native).toEqual({
+    expoPlugin: '@tortoise/p/app.plugin',
     module: 'Scanner',
   });
 });

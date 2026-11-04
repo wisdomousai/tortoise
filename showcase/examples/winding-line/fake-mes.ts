@@ -1,9 +1,5 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import {
-  DeliveryFailure,
-  type PullBatch,
-  type SystemOfRecordPort,
-} from '@agent-native/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
+import { DeliveryFailure, type PullBatch, type SystemOfRecordPort } from '@tortoise/integration';
 import type { Order, Reason } from './domain';
 
 export type MesOrder = Omit<Order, 'status'> & { closed: boolean };

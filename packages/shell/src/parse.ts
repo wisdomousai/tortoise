@@ -3,7 +3,7 @@ import {
   mediaTypePattern,
   type JsonObject,
   type RawOsRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** Why a raw request was refused before matching. */
 export class OsRequestError extends Error {

@@ -2,10 +2,10 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { RunSnapshot, RunState } from '@agent-native/agents/types';
-import type { ApprovalRequest } from '@agent-native/contracts';
-import { startHost } from '@agent-native/host/host';
-import { llamaServerStandIn } from '@agent-native/model-server/testing';
+import type { RunSnapshot, RunState } from '@tortoise/agents/types';
+import type { ApprovalRequest } from '@tortoise/contracts';
+import { startHost } from '@tortoise/host/host';
+import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { composePartsDesk } from '../application';
 import {
   ASSISTANT_MODEL,

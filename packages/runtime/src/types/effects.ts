@@ -1,4 +1,4 @@
-import type { JsonValue } from '@agent-native/contracts';
+import type { JsonValue } from '@tortoise/contracts';
 
 /**
  * A post-commit request to an external system of record. It is committed atomically with the

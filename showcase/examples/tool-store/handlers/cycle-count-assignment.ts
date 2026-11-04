@@ -1,7 +1,7 @@
 import type { z } from 'zod';
-import { ApplicationError } from '@agent-native/contracts';
-import { own } from '@agent-native/runtime';
-import type { StoredAssignment, StoredReport } from '@agent-native/assignments/server';
+import { ApplicationError } from '@tortoise/contracts';
+import { own } from '@tortoise/runtime';
+import type { StoredAssignment, StoredReport } from '@tortoise/assignments/server';
 import { operations } from '../contracts';
 import { cycleCount, maxCountedTools } from '../contracts/cycle-count-assignment';
 import type { AppState } from '../domain';

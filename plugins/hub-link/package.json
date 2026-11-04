@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/hub-link",
+  "name": "@tortoise/hub-link",
   "version": "0.1.0",
   "type": "module",
   "description": "Hub link host plugin: pairs a field device with an agent-native hub and gives the device a network port to it that carries the device credential.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/hub-link"
   },
   "files": [
@@ -25,11 +25,11 @@
     "./plugin-screens-native": "./src/expo/screens.tsx"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame-native": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame-native": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "lucide-react-native": "1.59.0",
     "zod": "4.6.5"
   },

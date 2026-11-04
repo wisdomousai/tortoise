@@ -9,7 +9,7 @@ import {
   jsonSchema,
   approvalOperations,
   type ApprovalRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createApplication,
   createMemoryStorage,

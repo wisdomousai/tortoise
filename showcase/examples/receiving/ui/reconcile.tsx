@@ -1,5 +1,5 @@
 import { ReconciliationReview } from '@/components/reconciliation-review';
-import { reconciliationOperations } from '@agent-native/contracts';
+import { reconciliationOperations } from '@tortoise/contracts';
 
 /** Goods receipts whose outcome the ERP did not make clear, for an editor to check and decide. */
 export function ReconcileScreen() {

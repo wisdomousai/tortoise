@@ -1,12 +1,8 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  defineModelEntry,
-  type ModelActivation,
-  type ModelEntry,
-} from '@agent-native/agents/models';
-import type { ModelFiles } from '@agent-native/model-server/arguments';
+import { defineModelEntry, type ModelActivation, type ModelEntry } from '@tortoise/agents/models';
+import type { ModelFiles } from '@tortoise/model-server/arguments';
 import { ASSISTANT_MODEL, assistantAgent } from './contracts/assistant-agent';
 
 /** The context window of the entry, which a launch also gives llama-server as `--ctx-size`. */

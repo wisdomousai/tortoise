@@ -1,21 +1,21 @@
-import { localHarness } from '@agent-native/agents/local';
+import { localHarness } from '@tortoise/agents/local';
 import {
   activates,
   defineModelEntry,
   entryIdentity,
   type ModelActivation,
   type ModelEntry,
-} from '@agent-native/agents/models';
-import { LOCAL_INFERENCE_DESTINATION } from '@agent-native/agents/requirements';
-import type { Harness, ModelIdentity } from '@agent-native/agents/types';
-import type { AuditRecord } from '@agent-native/contracts';
+} from '@tortoise/agents/models';
+import { LOCAL_INFERENCE_DESTINATION } from '@tortoise/agents/requirements';
+import type { Harness, ModelIdentity } from '@tortoise/agents/types';
+import type { AuditRecord } from '@tortoise/contracts';
 import {
   bunProcesses,
   defineHostPlugin,
   type HostPorts,
   type PluginOpenContext,
   type SpawnedProcess,
-} from '@agent-native/host/plugin';
+} from '@tortoise/host/plugin';
 import { serverArguments, type ModelFiles } from './arguments';
 import type { ModelRuntime } from './contracts';
 import { measure } from './measure';
@@ -29,7 +29,7 @@ export interface ModelServerOptions {
   /** Absolute paths of the weights on this host, hashed before every start. */
   readonly files: ModelFiles;
   /**
-   * The gate's result for this entry (`gateModel` in `@agent-native/testing`). A fine-tune
+   * The gate's result for this entry (`gateModel` in `@tortoise/testing`). A fine-tune
    * never serves without a passing one for its exact digests; a base model needs one only with
    * `requireActivation`.
    */

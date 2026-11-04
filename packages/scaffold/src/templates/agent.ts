@@ -7,7 +7,7 @@ const contract = (
   agent: Names,
   one: Names,
   many: Names,
-) => `import { defineAgent } from '@agent-native/contracts';
+) => `import { defineAgent } from '@tortoise/contracts';
 
 /**
  * The ${agent.words} agent: it reads ${many.words} and requests approval for ${one.kebab}.update for a person to
@@ -25,7 +25,7 @@ export const ${agent.camel}Agent = defineAgent({
 });
 `;
 
-const screen = `import { approvalOperations } from '@agent-native/contracts';
+const screen = `import { approvalOperations } from '@tortoise/contracts';
 import { ApprovalReview } from '@/components/approval-review';
 
 /** Pending approval requests from every agent, each with Approve and Reject. */
@@ -53,9 +53,9 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+import { deterministicHarness } from '@tortoise/agents';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { create${app.app.pascal}Application } from '../application';
 
 // The ${agent.words} agent judged by what it commits and what it requests approval for. The deterministic harness
@@ -223,17 +223,17 @@ export function agent(app: AppNames, name: Names, one: Names, first: boolean): G
         agents: [`${name.camel}Agent,`],
       },
       'manifest.ts': {
-        imports: [`import { approvalFeatureManifest } from '@agent-native/contracts';`],
+        imports: [`import { approvalFeatureManifest } from '@tortoise/contracts';`],
         features: ['approvalFeatureManifest,'],
       },
       'policy.ts': {
-        imports: [`import type { ApprovalAccess } from '@agent-native/runtime';`],
+        imports: [`import type { ApprovalAccess } from '@tortoise/runtime';`],
         access,
       },
       'application.ts': {
         imports: [
-          `import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@agent-native/runtime';`,
-          `import { mountFeature } from '@agent-native/host/feature';`,
+          `import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@tortoise/runtime';`,
+          `import { mountFeature } from '@tortoise/host/feature';`,
           `import { newId, now } from './handlers/context';`,
           `import { approvalAccess } from './policy';`,
         ],

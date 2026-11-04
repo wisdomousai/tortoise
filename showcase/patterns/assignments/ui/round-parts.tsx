@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCommand } from '@agent-native/react';
-import { requestOperations } from '@agent-native/pattern-base/contracts';
+import { useCommand } from '@tortoise/react';
+import { requestOperations } from '@tortoise/pattern-base/contracts';
 import type { AssignmentReport, LinkReport } from '@/components/assignment-reports';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

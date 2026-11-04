@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'bun:test';
-import { approvalOperations, type ApprovalRequest } from '@agent-native/contracts';
-import { requestOperations } from '@agent-native/pattern-base/contracts';
+import { approvalOperations, type ApprovalRequest } from '@tortoise/contracts';
+import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { owner, refused, startTestRequestsAgents, until, viewer } from './fixtures';
 
 let close: (() => Promise<void>) | undefined;

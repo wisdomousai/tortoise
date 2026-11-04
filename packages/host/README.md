@@ -1,4 +1,4 @@
-# @agent-native/host
+# @tortoise/host
 
 The Bun host: the process that opens one application's instance. It owns workspace storage, launch and sessions, HTTP and SSE, embedded MCP, the CLI, agent runs and background delivery. It trusts the application definition, whose policy, handlers and connections run with the host's privileges, and trusts no caller.
 

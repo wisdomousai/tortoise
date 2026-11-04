@@ -1,4 +1,4 @@
-import { ApplicationError, type ModelRequirement } from '@agent-native/contracts';
+import { ApplicationError, type ModelRequirement } from '@tortoise/contracts';
 import type { Harness } from './types';
 
 /** What an agent asks of the model beyond its requirement: named entries, and who it is. */

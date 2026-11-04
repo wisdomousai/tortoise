@@ -2,8 +2,8 @@ import { afterAll, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startHost } from '@agent-native/host/host';
-import { stationPaths } from '@agent-native/workstation-sign-in/contracts';
+import { startHost } from '@tortoise/host/host';
+import { stationPaths } from '@tortoise/workstation-sign-in/contracts';
 import { createTestRequestsSignInApplication } from '../application';
 
 /**

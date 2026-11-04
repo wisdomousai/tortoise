@@ -9,7 +9,7 @@ test('an attendant ticks a tool, a demo run opens it at the counter with a revie
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-agent-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     await page.goto(host.launchUrl);
     await enroll(page, 'mia@plant', 'E100001', '2468');

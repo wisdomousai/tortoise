@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { DelegationGrant, ExecutionContext } from '../types.js';
 
 /** A grant without resource scope covers every resource. */

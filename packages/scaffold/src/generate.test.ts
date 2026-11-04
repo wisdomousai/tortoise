@@ -46,7 +46,7 @@ test('new writes one generated application and copies no example', async () => {
   expect(lock).not.toContain('showcase/patterns/base');
   const root = JSON.parse(await read(join(target, 'package.json')));
   expect(root.workspaces).not.toContain('showcase/patterns/*');
-  expect(root.dependencies).not.toHaveProperty('@agent-native/pattern-base');
+  expect(root.dependencies).not.toHaveProperty('@tortoise/pattern-base');
   for (const path of ['manifest.ts', 'policy.ts', 'contracts/note.ts', 'ui/note.tsx'])
     expect(await read(join(app, path))).not.toContain('{{');
   expect(await read(join(app, 'manifest.ts'))).toContain('title: "Field notes"');
@@ -98,11 +98,11 @@ test('a published-framework export depends on framework versions instead of copy
   const root = JSON.parse(await read(join(target, 'package.json')));
   expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*', 'docs/site']);
   expect(root.dependencies).toMatchObject({
-    '@agent-native/kernel': version,
-    '@agent-native/site': version,
+    '@tortoise/kernel': version,
+    '@tortoise/site': version,
     '@field-notes/application': 'workspace:*',
   });
-  expect(root.scripts.scaffold).toBe('bun node_modules/@agent-native/scaffold/src/cli.ts');
+  expect(root.scripts.scaffold).toBe('bun node_modules/@tortoise/scaffold/src/cli.ts');
   expect(root.scripts['test:portable']).toBeUndefined();
   expect(root.scripts.build).toBe('bun run build:web');
   expect(root.scripts.check).toContain('bun run check:framework');
@@ -111,14 +111,12 @@ test('a published-framework export depends on framework versions instead of copy
   expect(root.scripts['skills:stamp']).toBe('bun scripts/skills-stamp.ts');
   const tsconfig = JSON.parse(await read(join(target, 'tsconfig.json')));
   expect(tsconfig.include).not.toContain('packages');
-  expect(tsconfig.compilerOptions.paths['@/*']).toContain(
-    './node_modules/@agent-native/frame/src/*',
-  );
+  expect(tsconfig.compilerOptions.paths['@/*']).toContain('./node_modules/@tortoise/frame/src/*');
   expect(await read(join(target, 'apps/web/src/styles.css'))).toContain(
-    "@import '../../../node_modules/@agent-native/operator-ui/src/styles/operator.css';",
+    "@import '../../../node_modules/@tortoise/operator-ui/src/styles/operator.css';",
   );
   expect(await read(join(target, 'bunfig.toml'))).toContain(
-    '"@agent-native" = "http://127.0.0.1:4873/"',
+    '"@tortoise" = "http://127.0.0.1:4873/"',
   );
 });
 
@@ -370,7 +368,7 @@ acceptance(
       await run(['bun', 'run', 'skills:link']);
       expect(
         await realpath(join(target, '.claude/skills/build-screens')).then((path) =>
-          path.endsWith('node_modules/@agent-native/frame/skills/build-screens'),
+          path.endsWith('node_modules/@tortoise/frame/skills/build-screens'),
         ),
       ).toBe(true);
       await run(['bun', 'run', 'scaffold', 'add', 'target', 'ledger', '--collection', 'note']);

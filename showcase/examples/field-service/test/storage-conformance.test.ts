@@ -2,9 +2,9 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createApplication, createMemoryStorage, type Storage } from '@agent-native/runtime';
-import { errorEnvelope } from '@agent-native/contracts';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+import { createApplication, createMemoryStorage, type Storage } from '@tortoise/runtime';
+import { errorEnvelope } from '@tortoise/contracts';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import {
   createServiceHandlers,
   createServiceState,
@@ -12,7 +12,7 @@ import {
   fieldServiceModule,
 } from '../server';
 import type { ServiceState } from '../domain';
-import { assertEquivalent, directDriver, type ScenarioDriver } from '@agent-native/testing';
+import { assertEquivalent, directDriver, type ScenarioDriver } from '@tortoise/testing';
 
 async function scenario(driver: ScenarioDriver) {
   const owner = { workspaceId: 'conformance', principalId: 'owner' };

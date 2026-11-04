@@ -1,4 +1,4 @@
-import { membershipHandler, type HandlerContribution } from '@agent-native/runtime';
+import { membershipHandler, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { stationMembership } from '../contracts/membership';
 import { bridgeStation, own, type LineState } from '../domain';

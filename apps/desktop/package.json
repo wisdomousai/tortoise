@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/desktop",
+  "name": "@tortoise/desktop",
   "version": "0.1.0",
   "private": true,
   "type": "module"

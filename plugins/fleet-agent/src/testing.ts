@@ -1,6 +1,6 @@
-import { defaultPorts } from '@agent-native/kernel';
-import { defineHostPlugin, type NetworkPort } from '@agent-native/kernel/plugin';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defaultPorts } from '@tortoise/kernel';
+import { defineHostPlugin, type NetworkPort } from '@tortoise/kernel/plugin';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /**
  * For tests of a site or a fleet: a plugin whose network port reaches the `fleet` destination

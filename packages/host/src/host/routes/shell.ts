@@ -3,9 +3,9 @@ import {
   type OsActionRequest,
   type OsPlatform,
   type RawOsRequest,
-} from '@agent-native/contracts';
-import { jsonResponse, type HostSession } from '@agent-native/adapters/http';
-import { readBytes } from '@agent-native/adapters/http/body';
+} from '@tortoise/contracts';
+import { jsonResponse, type HostSession } from '@tortoise/adapters/http';
+import { readBytes } from '@tortoise/adapters/http/body';
 import type { HostRoute, HostRouteContext } from './types';
 
 /** A text payload may be 1 MiB; JSON escaping can triple it. */

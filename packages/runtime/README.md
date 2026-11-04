@@ -1,4 +1,4 @@
-# @agent-native/runtime
+# @tortoise/runtime
 
 The instance: one transactional runtime per workspace. A command commits state, receipt, journal entries and outbox effects in one transaction, or nothing at all. The host supplies the `ExecutionContext`; capability input cannot set or widen it, and no surface constructs it from tool arguments.
 

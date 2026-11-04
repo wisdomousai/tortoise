@@ -1,6 +1,6 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
-import type { AndroidExtra, AndroidIntent, IntentListening } from '@agent-native/shell/intents';
+import type { AndroidExtra, AndroidIntent, IntentListening } from '@tortoise/shell/intents';
 import type { MobileOsBindings } from '../os';
 
 /**

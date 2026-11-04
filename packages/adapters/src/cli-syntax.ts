@@ -1,4 +1,4 @@
-import type { CatalogOperation, JsonObject } from '@agent-native/contracts';
+import type { CatalogOperation, JsonObject } from '@tortoise/contracts';
 
 /**
  * Pure command-line syntax derived from the catalog. It performs no IO, so documentation

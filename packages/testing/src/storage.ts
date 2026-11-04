@@ -1,4 +1,4 @@
-import type { Storage, StoredReceipt } from '@agent-native/runtime';
+import type { Storage, StoredReceipt } from '@tortoise/runtime';
 import type { ConformanceCase } from './connectors';
 
 /** The state every storage case works on. */

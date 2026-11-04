@@ -1,10 +1,10 @@
-import type { Catalog, EventLogPort, JsonValue } from '@agent-native/contracts';
+import type { Catalog, EventLogPort, JsonValue } from '@tortoise/contracts';
 import type {
   AuthorizationPort,
   DelegationGrant,
   ExecutionContext,
   HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import type { HostedApplication, Observer } from './application';
 import type { BuildFacts } from './build';
 import { checkFeature, type Feature } from './feature';
@@ -198,7 +198,7 @@ export interface PluginInstance {
    */
   route?(request: Request, context: ExecutionContext): Promise<Response | undefined>;
   /**
-   * Serving host only: agent harnesses (`Harness` from `@agent-native/agents/types`) the host's
+   * Serving host only: agent harnesses (`Harness` from `@tortoise/agents/types`) the host's
    * run route may use, such as a model server's. The kernel only passes them on; the host checks
    * their shape and offers them as the harnesses it picks for an agent run.
    */

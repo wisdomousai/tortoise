@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { ApplicationError, canonicalJson } from '@agent-native/contracts';
-import type { HostSession } from '@agent-native/adapters/http';
-import { ChatGptAccountConnection, type ChatGptProfile } from '@agent-native/agents/chatgpt';
-import type { CredentialVault } from '@agent-native/agents/credentials';
+import { ApplicationError, canonicalJson } from '@tortoise/contracts';
+import type { HostSession } from '@tortoise/adapters/http';
+import { ChatGptAccountConnection, type ChatGptProfile } from '@tortoise/agents/chatgpt';
+import type { CredentialVault } from '@tortoise/agents/credentials';
 import type { Connection, ProviderAccessOptions } from '../providers';
 
 export interface SessionSelection {

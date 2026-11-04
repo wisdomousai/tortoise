@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useSearch } from '@tanstack/react-router';
-import { MAX_PAGE } from '@agent-native/contracts';
+import { MAX_PAGE } from '@tortoise/contracts';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

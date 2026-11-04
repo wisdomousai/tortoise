@@ -1,4 +1,4 @@
-import { defineManifest } from '@agent-native/host/manifest';
+import { defineManifest } from '@tortoise/host/manifest';
 import { testRequestsModule } from './contracts';
 
 /** Browser-safe identity of the base pattern. It composes no plugins. */

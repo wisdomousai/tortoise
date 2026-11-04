@@ -3,7 +3,7 @@ import {
   collectionGetHandler,
   collectionListHandler,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { parts, type Part } from '../contracts/part';
 import type { AppState } from '../domain';

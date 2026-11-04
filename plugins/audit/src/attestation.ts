@@ -1,6 +1,6 @@
-import type { AuditRecord } from '@agent-native/contracts';
-import type { BuildFacts } from '@agent-native/kernel/build';
-import type { ResolvedPolicy } from '@agent-native/site/policy';
+import type { AuditRecord } from '@tortoise/contracts';
+import type { BuildFacts } from '@tortoise/kernel/build';
+import type { ResolvedPolicy } from '@tortoise/site/policy';
 
 /**
  * What is running: `config.loaded` carries the executable, catalog and policy digests so an

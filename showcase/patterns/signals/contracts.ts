@@ -1,12 +1,7 @@
 import { z } from 'zod';
-import {
-  defineCapability,
-  defineModule,
-  jsonSchema,
-  recordKeySchema,
-} from '@agent-native/contracts';
-import { mqttBroker } from '@agent-native/connector-mqtt/contracts';
-import { opcUaServer } from '@agent-native/connector-opcua/contracts';
+import { defineCapability, defineModule, jsonSchema, recordKeySchema } from '@tortoise/contracts';
+import { mqttBroker } from '@tortoise/connector-mqtt/contracts';
+import { opcUaServer } from '@tortoise/connector-opcua/contracts';
 
 /** The OPC UA server of the chamber controllers; the site policy binds its address. */
 export const CHAMBER_GATEWAY = 'chamber-gateway';

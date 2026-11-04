@@ -6,7 +6,7 @@ import {
   collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 export const toolCategories = [
   'torque-tool',

@@ -1,12 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { ApplicationError } from '@agent-native/contracts';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { deploymentRequirements } from '@agent-native/host/components';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
-import type { PluginCommand } from '@agent-native/host/plugin';
-import { POLICY_REJECTED_EXIT_CODE } from '@agent-native/site/cli';
-import { policyErrors, sitePolicyFor } from '@agent-native/site/policy-file';
+import { ApplicationError } from '@tortoise/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { deploymentRequirements } from '@tortoise/host/components';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
+import type { PluginCommand } from '@tortoise/host/plugin';
+import { POLICY_REJECTED_EXIT_CODE } from '@tortoise/site/cli';
+import { policyErrors, sitePolicyFor } from '@tortoise/site/policy-file';
 import { exportFormats, exportRules, type ExportFormat } from './exporters';
 import { networkRules } from './rules';
 

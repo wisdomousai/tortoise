@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { EventBatch, ExecutionContext, WorkspaceSnapshot } from '../types.js';
 import { grantPermits } from './delegation.js';
 import type { Kernel } from './kernel.js';

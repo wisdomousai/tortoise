@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
 import { Inbox, Route } from 'lucide-react';
-import { peerLinkOperations } from '@agent-native/peer-link/contracts';
+import { peerLinkOperations } from '@tortoise/peer-link/contracts';
 import { AssignmentBoard, type AssigneeOption } from '@/components/assignment-board';
 import { AssignmentReports, type ReportsKind } from '@/components/assignment-reports';
 import { MyAssignments } from '@/components/my-assignments';

@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { openEmbeddedInstance } from '@tortoise/host';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { createCrmCaptureApplication } from '../application';
 import { FakeCrm } from '../fake-crm';
 

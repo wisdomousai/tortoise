@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { notificationsHandlers, notificationsPolicy, type NotificationsServices } from './handlers';
 import { openNotifications, type NotificationsOptions } from './open';
 import { notificationsPluginManifest } from './plugin-manifest';

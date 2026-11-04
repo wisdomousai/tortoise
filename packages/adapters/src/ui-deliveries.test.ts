@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ApplicationError, type OsDelivery } from '@agent-native/contracts';
+import { ApplicationError, type OsDelivery } from '@tortoise/contracts';
 import { UiDeliveryStore } from './ui-deliveries';
 
 const session = (token: string, principalId = 'owner') => ({

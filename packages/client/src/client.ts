@@ -1,4 +1,4 @@
-import type { AnyCapability, InputOf, OutputOf } from '@agent-native/contracts';
+import type { AnyCapability, InputOf, OutputOf } from '@tortoise/contracts';
 import type { CommandOptions, Transport } from './types.js';
 
 /** Typed capability bindings preserve the input/output types declared by an independently authored module. */

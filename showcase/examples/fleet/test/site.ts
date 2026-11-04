@@ -7,20 +7,20 @@ import {
   defineHostComponent,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { createFleetAgentPlugin, type FleetAgentService } from '@agent-native/fleet-agent/plugin';
-import { fleetAgentPluginManifest } from '@agent-native/fleet-agent/plugin-manifest';
-import { fleetNetworkFixture } from '@agent-native/fleet-agent/testing';
-import { defineApplication } from '@agent-native/host/application';
-import { startHost } from '@agent-native/host/host';
-import { defineManifest } from '@agent-native/host/manifest';
-import { stampBuild } from '@agent-native/kernel/build';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { createHandlerFactory } from '@agent-native/runtime';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { createFleetAgentPlugin, type FleetAgentService } from '@tortoise/fleet-agent/plugin';
+import { fleetAgentPluginManifest } from '@tortoise/fleet-agent/plugin-manifest';
+import { fleetNetworkFixture } from '@tortoise/fleet-agent/testing';
+import { defineApplication } from '@tortoise/host/application';
+import { startHost } from '@tortoise/host/host';
+import { defineManifest } from '@tortoise/host/manifest';
+import { stampBuild } from '@tortoise/kernel/build';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { createHandlerFactory } from '@tortoise/runtime';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 
 /** A plant's instance: notes that queue an effect for an ERP nothing here delivers to. */
 const noteAdd = defineCapability({

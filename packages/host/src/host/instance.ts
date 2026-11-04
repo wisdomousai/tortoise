@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import type { AnyApplicationDefinition, Observer } from '@agent-native/kernel/application';
-import { openInstance as openOnPlatform } from '@agent-native/kernel/instance';
+import type { AnyApplicationDefinition, Observer } from '@tortoise/kernel/application';
+import { openInstance as openOnPlatform } from '@tortoise/kernel/instance';
 import { bunPlatform } from '../platform/bun';
 import type { CleanupStack, StartHostOptions, WorkspaceOwnership } from './options';
 import { SQLiteRunStore } from './run-store';

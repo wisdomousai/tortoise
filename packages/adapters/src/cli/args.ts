@@ -3,7 +3,7 @@ import {
   type Catalog,
   type CatalogOperation,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { commandWords, fieldSpecs, type FieldSpec } from '../cli-syntax';
 import type { CliOptions } from './types';
 

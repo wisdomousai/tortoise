@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ApplicationError, type ModelRequirement } from '@agent-native/contracts';
+import { ApplicationError, type ModelRequirement } from '@tortoise/contracts';
 import { satisfiesModel, type ModelDemand } from '../placement';
 import type { Harness, RunBudget, RunSnapshot } from '../types';
 import { terminalStates } from '../types';

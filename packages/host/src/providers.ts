@@ -1,13 +1,10 @@
 import { realpath } from 'node:fs/promises';
-import type { HostSession } from '@agent-native/adapters/http';
-import type {
-  ChatGptAccountConnection,
-  ChatGptConnectionOptions,
-} from '@agent-native/agents/chatgpt';
-import { OsCredentialVault, type CredentialVault } from '@agent-native/agents/credentials';
-import type { CodexOptions } from '@agent-native/agents/codex';
-import type { ClaudeHarness } from '@agent-native/agents/claude';
-import type { Harness } from '@agent-native/agents/types';
+import type { HostSession } from '@tortoise/adapters/http';
+import type { ChatGptAccountConnection, ChatGptConnectionOptions } from '@tortoise/agents/chatgpt';
+import { OsCredentialVault, type CredentialVault } from '@tortoise/agents/credentials';
+import type { CodexOptions } from '@tortoise/agents/codex';
+import type { ClaudeHarness } from '@tortoise/agents/claude';
+import type { Harness } from '@tortoise/agents/types';
 import { chatGptCallback } from './providers/callback';
 import { createProviderHarnesses } from './providers/harnesses';
 import { resolveSelection } from './providers/profiles';
@@ -61,7 +58,7 @@ export async function createProviderAccess(options: ProviderAccessOptions) {
     now: options.now ?? Date.now,
     // The only default network client; every provider request in providers/ goes through it.
     fetcher: options.fetch ?? fetch,
-    appName: options.appName ?? 'agent-native-desktop-starter',
+    appName: options.appName ?? 'tortoise-starter',
     connections: new Map(),
     profiles: new Map(),
     models: new Map(),

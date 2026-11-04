@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /**
  * Browser-safe capability module through which authorized auditors read the running posture and

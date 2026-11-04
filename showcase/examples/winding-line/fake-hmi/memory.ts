@@ -1,10 +1,5 @@
 import { createHash } from 'node:crypto';
-import type {
-  AccessibilityNode,
-  Extractor,
-  Frame,
-  ScreenTransport,
-} from '@agent-native/screen-bridge';
+import type { AccessibilityNode, Extractor, Frame, ScreenTransport } from '@tortoise/screen-bridge';
 import { HEIGHT, LAYOUT, WIDTH, type HmiSimulator } from './simulator';
 
 /**

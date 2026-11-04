@@ -1,4 +1,4 @@
-import { ApplicationError, type BlobRef } from '@agent-native/contracts';
+import { ApplicationError, type BlobRef } from '@tortoise/contracts';
 import type { BlobRecord, ExecutionContext, WorkspaceSnapshot } from '../types.js';
 import { grantCoversResource } from './delegation.js';
 import type { Kernel } from './kernel.js';

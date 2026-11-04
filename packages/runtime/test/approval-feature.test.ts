@@ -6,7 +6,7 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   approvalFeature,
   createApplication,

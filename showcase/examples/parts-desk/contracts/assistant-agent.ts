@@ -1,5 +1,5 @@
-import { defineAgent } from '@agent-native/contracts';
-import { modelServer } from '@agent-native/model-server/contracts';
+import { defineAgent } from '@tortoise/contracts';
+import { modelServer } from '@tortoise/model-server/contracts';
 import { DESK_DISCOUNT_LIMIT } from './quote';
 
 /** The model entry the assistant runs on. The deployment chooses its weights (`model.ts`). */

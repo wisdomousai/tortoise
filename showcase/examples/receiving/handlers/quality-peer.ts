@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { implementDataProvider, completeDelivery, targetHandlers } from '@agent-native/integration';
-import { own, records, type HandlerContribution } from '@agent-native/runtime';
+import { implementDataProvider, completeDelivery, targetHandlers } from '@tortoise/integration';
+import { own, records, type HandlerContribution } from '@tortoise/runtime';
 import {
   inspectionRequestOperations,
   type ClosedInspectionRequest,
-} from '@agent-native/quality-inspection/contracts/peer';
+} from '@tortoise/quality-inspection/contracts/peer';
 import { deliveries, type Delivery } from '../contracts/delivery';
 import { qualityLots, qualityPeer } from '../contracts/quality-peer';
 import type { AppState } from '../domain';

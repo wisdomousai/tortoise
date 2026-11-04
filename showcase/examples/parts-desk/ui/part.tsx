@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Plus, X } from 'lucide-react';
-import { MAX_PAGE } from '@agent-native/contracts';
+import { MAX_PAGE } from '@tortoise/contracts';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';

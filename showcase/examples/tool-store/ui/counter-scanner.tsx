@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import type { RoutedScan } from '@agent-native/devices';
-import { deviceOperations } from '@agent-native/devices/contracts';
-import type { LiveBindings } from '@agent-native/react/query';
+import type { RoutedScan } from '@tortoise/devices';
+import { deviceOperations } from '@tortoise/devices/contracts';
+import type { LiveBindings } from '@tortoise/react/query';
 import { ScanPrompt, type ScanOutcome } from '@/components/scan-prompt';
 import { KeyBurstFilter } from '@/hooks/use-operator-keys';
 import { useScanner } from '@/hooks/use-scanner';

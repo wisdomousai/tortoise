@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { localHarness, type LocalModel } from '@agent-native/agents/local';
-import { satisfiesModel } from '@agent-native/agents/placement';
-import { LOCAL_INFERENCE_DESTINATION } from '@agent-native/agents/requirements';
-import type { Harness } from '@agent-native/agents/types';
-import { defineHostPlugin, type HostPorts } from '@agent-native/host/plugin';
+import { localHarness, type LocalModel } from '@tortoise/agents/local';
+import { satisfiesModel } from '@tortoise/agents/placement';
+import { LOCAL_INFERENCE_DESTINATION } from '@tortoise/agents/requirements';
+import type { Harness } from '@tortoise/agents/types';
+import { defineHostPlugin, type HostPorts } from '@tortoise/host/plugin';
 import type { TriggerDefinition } from './contracts';
 import type { Job } from './jobs';
 import { startLoop } from './loop';

@@ -3,8 +3,8 @@ import {
   own,
   type AuthorizationPort,
   type AuthorizationRoute,
-} from '@agent-native/runtime';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import type { Role } from '@tortoise/pattern-base/server';
 import { resultOperations, testResultsModule } from './contracts';
 import type { TestRequestsSandboxRoot } from './domain';
 

@@ -12,7 +12,7 @@ import {
   type Availability,
   type OfflineBehavior,
   type PeerApi,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { AnyAssignmentKind } from './kind';
 import type { Assignments } from './manifest';
 import { camel, type Camel } from './operations';
@@ -143,7 +143,7 @@ type FlatReports<K extends AnyAssignmentKind, Namespace extends string> = {
  * peer `target` whose feed is the issuer's `assignment.feed`, and the resource types it changes.
  *
  * Browser-safe. The server pairs it with `worklistHandlers`, `worklistRules` and
- * `connectWorklist` from `@agent-native/assignments/server`.
+ * `connectWorklist` from `@tortoise/assignments/server`.
  */
 export function defineWorklist<
   const K extends AnyAssignmentKind,

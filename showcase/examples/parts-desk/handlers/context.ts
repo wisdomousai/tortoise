@@ -4,8 +4,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import type { AppState } from '../domain';
 
 export interface Services {

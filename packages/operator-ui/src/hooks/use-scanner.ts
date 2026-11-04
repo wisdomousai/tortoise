@@ -11,7 +11,7 @@ import {
   type ScanRoute,
   type ScannerProfile,
   type ScannerSource,
-} from '@agent-native/devices';
+} from '@tortoise/devices';
 
 export type InputChannel = 'keyboard' | 'scanner' | 'touch';
 

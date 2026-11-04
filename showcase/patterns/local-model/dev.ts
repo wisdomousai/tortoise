@@ -1,9 +1,9 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
-import { defineModelEntry } from '@agent-native/agents/models';
-import { measure } from '@agent-native/model-server/measure';
-import { llamaServerStandIn } from '@agent-native/model-server/testing';
+import { defineModelEntry } from '@tortoise/agents/models';
+import { measure } from '@tortoise/model-server/measure';
+import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { methodSuggester, METHOD_MODEL } from './contracts';
 
 /**

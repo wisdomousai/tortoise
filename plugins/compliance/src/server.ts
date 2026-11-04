@@ -3,8 +3,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { complianceModule, complianceOperations } from './contracts';
 import type { CompliancePort } from './monitor';
 

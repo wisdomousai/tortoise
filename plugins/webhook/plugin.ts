@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { startDelivery } from './delivery';
 import { webhookPluginManifest } from './plugin-manifest';
 import {

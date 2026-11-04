@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
 
 /**
  * The intent scanner plugin: scans that a rugged Android device's scanner app broadcasts as

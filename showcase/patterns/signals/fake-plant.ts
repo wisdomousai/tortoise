@@ -1,6 +1,6 @@
-import { DataType } from '@agent-native/connector-mqtt/sparkplug';
-import { FakeBroker, encodeSparkplug } from '@agent-native/connector-mqtt/testing';
-import { FakeOpcUaServer } from '@agent-native/connector-opcua/testing';
+import { DataType } from '@tortoise/connector-mqtt/sparkplug';
+import { FakeBroker, encodeSparkplug } from '@tortoise/connector-mqtt/testing';
+import { FakeOpcUaServer } from '@tortoise/connector-opcua/testing';
 import type { ChamberDefinition } from './domain';
 
 const HUMIDITY = 1;

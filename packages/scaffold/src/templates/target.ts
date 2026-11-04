@@ -10,7 +10,7 @@ import {
   deliveryStatusSchema,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { ${one.camel}Schema } from './${one.kebab}';
 
 /** ${t.title} as a system of record: ${many.words} are sent to it, and its feed delivers the ${many.words} it holds. */
@@ -45,9 +45,9 @@ const handlers = (
   t: Names,
   one: Names,
   many: Names,
-) => `import { ApplicationError } from '@agent-native/contracts';
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
-import { own, put, records, type HandlerContribution } from '@agent-native/runtime';
+) => `import { ApplicationError } from '@tortoise/contracts';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
+import { own, put, records, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { ${many.camel} } from '../contracts/${one.kebab}';
 import { ${t.camel}Target } from '../contracts/${t.kebab}-target';
@@ -109,8 +109,8 @@ export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] 
 const port = (
   t: Names,
   app: AppNames,
-) => `import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import type { PullBatch, SystemOfRecordPort } from '@agent-native/integration';
+) => `import type { Effect, EffectOutcome } from '@tortoise/runtime';
+import type { PullBatch, SystemOfRecordPort } from '@tortoise/integration';
 
 export type ${t.pascal}Item = { id: string; title: string };
 
@@ -165,7 +165,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
     ],
   },
   'domain.ts': {
-    imports: ["import type { Delivered } from '@agent-native/integration';"],
+    imports: ["import type { Delivered } from '@tortoise/integration';"],
     state: [
       `/** Delivery to ${t.words} by ${one.words} id. */`,
       `${t.camel}Deliveries: Record<string, Delivered>;`,
@@ -175,7 +175,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
   },
   'policy.ts': {
     imports: [
-      "import { targetAllowlist, targetRules } from '@agent-native/integration';",
+      "import { targetAllowlist, targetRules } from '@tortoise/integration';",
       `import { ${t.camel}Target } from './contracts/${t.kebab}-target';`,
     ],
     integrations: [
@@ -189,7 +189,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
   },
   'application.ts': {
     imports: [
-      "import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';",
+      "import { connectTarget, type SystemOfRecordPort } from '@tortoise/integration';",
       `import { ${t.camel}Target } from './contracts/${t.kebab}-target';`,
       `import { Fake${t.pascal}, type ${t.pascal}Item } from './${t.kebab}-port';`,
     ],

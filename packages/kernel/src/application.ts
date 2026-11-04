@@ -6,9 +6,9 @@ import {
   type HandlerContribution,
   type RemoteSource,
   type Storage,
-} from '@agent-native/runtime';
-import type { CapabilityModule, EventLogPort, HostComponent } from '@agent-native/contracts';
-import type { TargetIntegration } from '@agent-native/integration';
+} from '@tortoise/runtime';
+import type { CapabilityModule, EventLogPort, HostComponent } from '@tortoise/contracts';
+import type { TargetIntegration } from '@tortoise/integration';
 import type { BuildStamp } from './build';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';

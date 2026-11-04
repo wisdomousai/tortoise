@@ -6,7 +6,7 @@ import {
   records,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { requestOperations, testRequestCollection, type TestRequest } from './contracts';
 import type { TestRequestsState } from './domain';
 

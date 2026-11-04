@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import type { AnyCapability, DisplayDeclaration, JsonObject } from '@agent-native/contracts';
+import type { AnyCapability, DisplayDeclaration, JsonObject } from '@tortoise/contracts';
 import { CapabilityForm } from '@/components/capability-form';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { Badge } from '@/components/ui/badge';

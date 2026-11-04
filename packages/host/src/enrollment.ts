@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /**
  * Pairing by a one-use code, as the device link and the peer link use it: a person creates an

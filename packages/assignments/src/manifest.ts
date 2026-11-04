@@ -5,7 +5,7 @@ import {
   defineTarget,
   type AnyCapability,
   type HostComponent,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { AnyAssignmentKind } from './kind';
 import {
   ASSIGNMENT,
@@ -88,7 +88,7 @@ export interface AssigneeOperations {
  * - `assignees`: what a device and a peer may call, to merge into the device link's sync operations
  *   and the application's peer API.
  *
- * Browser-safe. The server mounts it with `assignmentFeature` from `@agent-native/assignments/server`.
+ * Browser-safe. The server mounts it with `assignmentFeature` from `@tortoise/assignments/server`.
  */
 export function defineAssignments<const K extends AnyAssignmentKind>(spec: {
   readonly kinds: readonly K[];

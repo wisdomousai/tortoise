@@ -1,9 +1,9 @@
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { errorEnvelope } from '@agent-native/contracts';
-import { startHost } from '@agent-native/host/host';
-import { llamaServerStandIn } from '@agent-native/model-server/testing';
+import { errorEnvelope } from '@tortoise/contracts';
+import { startHost } from '@tortoise/host/host';
+import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { composeTestRequestsLocalModel, type TestRequestsLocalModelOptions } from '../application';
 
 export const owner = { workspaceId: 'local', principalId: 'owner' };

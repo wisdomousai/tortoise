@@ -1,5 +1,5 @@
-import type { CatalogOs } from '@agent-native/contracts';
-import { shareHandlerFor, webShareTargetPath } from '@agent-native/shell';
+import type { CatalogOs } from '@tortoise/contracts';
+import { shareHandlerFor, webShareTargetPath } from '@tortoise/shell';
 import type { HeldShare, HeldShares } from './held';
 
 /** Room for the multipart boundaries, headers and the text fields around a file. */

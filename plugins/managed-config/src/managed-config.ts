@@ -1,5 +1,5 @@
-import type { ApplicationManifest } from '@agent-native/kernel/manifest';
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import type { ApplicationManifest } from '@tortoise/kernel/manifest';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { managedConfigPluginManifest } from './plugin-manifest';
 
 /** Managed values by key, as the native module reads them; `null` for a type it cannot express. */

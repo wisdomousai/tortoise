@@ -1,4 +1,4 @@
-import { canonicalJson, type AuditEvent, type AuditRecord } from '@agent-native/contracts';
+import { canonicalJson, type AuditEvent, type AuditRecord } from '@tortoise/contracts';
 import type { WorkspaceSnapshot } from '../types.js';
 import { receiptScope } from './audit.js';
 import type { Kernel } from './kernel.js';

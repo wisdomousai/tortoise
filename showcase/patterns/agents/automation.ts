@@ -1,8 +1,8 @@
-import { approvalOperations } from '@agent-native/contracts';
-import { defineTrigger } from '@agent-native/automation/contracts';
-import type { Job } from '@agent-native/automation/jobs';
-import { createAutomationPlugin } from '@agent-native/automation/plugin';
-import { requestOperations, type TestRequest } from '@agent-native/pattern-base/server';
+import { approvalOperations } from '@tortoise/contracts';
+import { defineTrigger } from '@tortoise/automation/contracts';
+import type { Job } from '@tortoise/automation/jobs';
+import { createAutomationPlugin } from '@tortoise/automation/plugin';
+import { requestOperations, type TestRequest } from '@tortoise/pattern-base/server';
 import { methodFor } from './method';
 
 /**

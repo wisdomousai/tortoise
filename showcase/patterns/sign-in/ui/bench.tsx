@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useOperatorSession } from '@agent-native/workstation-sign-in/plugin-screens';
-import { requestOperations, type TestRequestRecord } from '@agent-native/pattern-base/contracts';
+import { useOperatorSession } from '@tortoise/workstation-sign-in/plugin-screens';
+import { requestOperations, type TestRequestRecord } from '@tortoise/pattern-base/contracts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

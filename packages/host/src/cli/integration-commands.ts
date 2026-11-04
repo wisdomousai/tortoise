@@ -1,4 +1,4 @@
-import { PENDING_EXIT_CODE, takeFlag } from '@agent-native/adapters/cli';
+import { PENDING_EXIT_CODE, takeFlag } from '@tortoise/adapters/cli';
 import type { AnyApplicationDefinition } from '../application';
 import { openEmbeddedInstance, type EmbeddedInstance } from '../embedded';
 import type { PluginSettings } from '../plugins/settings';

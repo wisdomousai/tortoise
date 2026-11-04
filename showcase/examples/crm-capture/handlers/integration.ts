@@ -1,7 +1,7 @@
 import type { z } from 'zod';
-import { ApplicationError } from '@agent-native/contracts';
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
-import type { EffectOutcome, HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
+import type { EffectOutcome, HandlerContribution } from '@tortoise/runtime';
 import { accountSnapshotSchema } from '../contracts/schemas';
 import { crmTarget } from '../contracts/target';
 import { coversRegion, type CrmState } from '../domain';

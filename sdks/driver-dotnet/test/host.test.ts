@@ -4,14 +4,14 @@ import { mkdirSync } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { driverContractFile } from '@agent-native/connector-driver/cli';
-import type { DriverProcess } from '@agent-native/connector-driver/supervisor';
+import { driverContractFile } from '@tortoise/connector-driver/cli';
+import type { DriverProcess } from '@tortoise/connector-driver/supervisor';
 import {
   chamber,
   chamberConformance,
   checkDriver,
   type ChamberSimulation,
-} from '@agent-native/connector-driver/testing';
+} from '@tortoise/connector-driver/testing';
 
 /**
  * The .NET SDK against the host: the solution builds offline from the .NET SDK alone into a

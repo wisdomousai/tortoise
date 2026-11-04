@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { JsonObject } from '@agent-native/contracts';
+import type { JsonObject } from '@tortoise/contracts';
 import { driverContractText, driverProtocolVersion, type DriverContract } from '../contracts';
 import {
   createRpcConnection,

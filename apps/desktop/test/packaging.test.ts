@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { resourcePath } from '@agent-native/host/runtime-manifest';
+import { resourcePath } from '@tortoise/host/runtime-manifest';
 import { validateLoopbackEndpoint } from '../src/service-lifecycle';
 import { readNpmTarball, targetPackages, verifyIntegrity } from '../../../scripts/package-assets';
 function tar(path: string, type = '0') {

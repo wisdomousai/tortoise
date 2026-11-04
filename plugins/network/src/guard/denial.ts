@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** Why a connection was refused. Codes are stable and safe to log and display. */
 export type DenialReason =

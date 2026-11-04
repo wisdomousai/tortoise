@@ -1,6 +1,6 @@
-# @agent-native/peer-link
+# @tortoise/peer-link
 
-Calls between two agent-native apps. The called app publishes a peer API with `definePeerApi`; the calling app declares a peer target with `definePeerTarget`, enrolls with a one-use code and gets its own credential. Compose `createPeerLinkPlugin` from `@agent-native/peer-link/plugin` with its `plugin-manifest` and `plugin-screens`. The enrollment route runs before the session check, so anyone who reaches the listener reaches it; it redeems a code through the instance as the local owner, narrowed to the redeem and resolve capabilities.
+Calls between two agent-native apps. The called app publishes a peer API with `definePeerApi`; the calling app declares a peer target with `definePeerTarget`, enrolls with a one-use code and gets its own credential. Compose `createPeerLinkPlugin` from `@tortoise/peer-link/plugin` with its `plugin-manifest` and `plugin-screens`. The enrollment route runs before the session check, so anyone who reaches the listener reaches it; it redeems a code through the instance as the local owner, narrowed to the redeem and resolve capabilities.
 
 Primitives:
 

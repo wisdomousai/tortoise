@@ -1,4 +1,4 @@
-import { own, type HandlerContribution } from '@agent-native/runtime';
+import { own, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { FIND_LIMIT } from '../contracts/transformer-find';
 import type { AppState } from '../domain';

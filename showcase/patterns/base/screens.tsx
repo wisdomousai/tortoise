@@ -1,4 +1,4 @@
-import { defineScreens } from '@agent-native/frame/screens';
+import { defineScreens } from '@tortoise/frame/screens';
 import manifest from './manifest';
 import { requestCapabilityScreens, requestNavigation, requestRoutes } from './ui/requests';
 

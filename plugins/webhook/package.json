@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/webhook",
+  "name": "@tortoise/webhook",
   "version": "0.1.0",
   "type": "module",
   "description": "Example host plugin: posts change notifications for chosen operations to one declared webhook destination.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/webhook"
   },
   "files": [
@@ -21,11 +21,11 @@
     "./*": "./*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

@@ -1,8 +1,8 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { errorEnvelope } from '@agent-native/contracts';
-import { startHost } from '@agent-native/host/host';
+import { errorEnvelope } from '@tortoise/contracts';
+import { startHost } from '@tortoise/host/host';
 import { createTestRequestsAgentsApplication } from '../application';
 
 export const owner = { workspaceId: 'local', principalId: 'owner' };

@@ -1,4 +1,4 @@
-import { defineAgent } from '@agent-native/contracts';
+import { defineAgent } from '@tortoise/contracts';
 
 /**
  * The repair triage agent: for a tool in repair it reads the tool's loans, whose damaged returns

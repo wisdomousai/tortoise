@@ -4,9 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
-import { driverContractFile } from '@agent-native/connector-driver/cli';
-import type { DriverProcess } from '@agent-native/connector-driver/supervisor';
-import { checkDriver } from '@agent-native/connector-driver/testing';
+import { driverContractFile } from '@tortoise/connector-driver/cli';
+import type { DriverProcess } from '@tortoise/connector-driver/supervisor';
+import { checkDriver } from '@tortoise/connector-driver/testing';
 import { instrumentContract } from '../contracts/instrument';
 import { connectInstrument, setup, T0, until } from './instrument-fixture';
 

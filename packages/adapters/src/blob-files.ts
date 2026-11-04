@@ -1,7 +1,7 @@
 import { mkdir, open, readdir, readFile, rename, rm, stat, utimes } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { blobDigestPattern } from '@agent-native/contracts';
-import type { BlobStore } from '@agent-native/runtime';
+import { blobDigestPattern } from '@tortoise/contracts';
+import type { BlobStore } from '@tortoise/runtime';
 
 const missing = (error: unknown) => (error as { code?: string }).code === 'ENOENT';
 

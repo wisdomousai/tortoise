@@ -3,7 +3,7 @@ import {
   createMemoryStorage,
   type BlobStore,
   type Storage,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import type { HostPlatform, PlatformCapability, PlatformId } from '../src/platform';
 
 /**

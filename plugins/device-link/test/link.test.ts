@@ -2,11 +2,11 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { startHost } from '@agent-native/host/host';
-import { openMobileInstance, type MobileInstance } from '@agent-native/mobile';
-import { enrollPath as deviceEnrollPath } from '@agent-native/hub-link/contracts';
-import { hubLinkServiceOf } from '@agent-native/hub-link/plugin';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { startHost } from '@tortoise/host/host';
+import { openMobileInstance, type MobileInstance } from '@tortoise/mobile';
+import { enrollPath as deviceEnrollPath } from '@tortoise/hub-link/contracts';
+import { hubLinkServiceOf } from '@tortoise/hub-link/plugin';
 import { enrollPath } from '../src/contracts';
 import { devicePlatform, fieldApplication, hubApplication, memorySecrets } from './fixtures';
 

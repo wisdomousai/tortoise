@@ -1,6 +1,6 @@
 import { Activity, Layers, ListChecks, MonitorSmartphone, Package, Radio } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { deviceLinkScreens } from '@agent-native/device-link/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { deviceLinkScreens } from '@tortoise/device-link/plugin-screens';
 import manifest from './manifest';
 import { auditRoutes } from './ui/audit';
 import { HealthScreen } from './ui/health';

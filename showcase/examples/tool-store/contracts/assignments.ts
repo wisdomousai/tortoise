@@ -1,4 +1,4 @@
-import { defineAssignments } from '@agent-native/assignments';
+import { defineAssignments } from '@tortoise/assignments';
 import { cycleCount } from './cycle-count-assignment';
 // scaffold:imports
 

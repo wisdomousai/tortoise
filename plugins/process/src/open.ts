@@ -1,5 +1,5 @@
-import { ApplicationError, type AuditRecord } from '@agent-native/contracts';
-import type { ResolvedProcess } from '@agent-native/site/policy';
+import { ApplicationError, type AuditRecord } from '@tortoise/contracts';
+import type { ResolvedProcess } from '@tortoise/site/policy';
 import type {
   BunProcessPort,
   HostPorts,
@@ -7,8 +7,8 @@ import type {
   PluginOpenContext,
   ProcessSpawnOptions,
   SpawnedProcess,
-} from '@agent-native/host/plugin';
-import { siteServiceOf } from '@agent-native/site/open';
+} from '@tortoise/host/plugin';
+import { siteServiceOf } from '@tortoise/site/open';
 import { availability, bindingFor, environment, type Decision } from './decide';
 import { baseEnvironment, digestFile, startChild, terminateTree } from './spawn';
 

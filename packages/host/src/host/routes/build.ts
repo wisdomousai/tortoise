@@ -1,5 +1,5 @@
-import { jsonResponse } from '@agent-native/adapters/http';
-import { pastBestBefore } from '@agent-native/kernel/build';
+import { jsonResponse } from '@tortoise/adapters/http';
+import { pastBestBefore } from '@tortoise/kernel/build';
 import type { HostRoute } from './types';
 
 /**

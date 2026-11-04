@@ -6,7 +6,7 @@ import {
   verifyBundle,
   type BundleManifest,
   type TrustedKey,
-} from '@agent-native/bundle';
+} from '@tortoise/bundle';
 import type { FleetRelease } from './contracts';
 import type { FleetLink } from './link';
 

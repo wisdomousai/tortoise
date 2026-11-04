@@ -1,4 +1,4 @@
-import type { CapabilityModule } from '@agent-native/contracts';
+import type { CapabilityModule } from '@tortoise/contracts';
 import {
   featureHandlers,
   routeAuthorization,
@@ -6,7 +6,7 @@ import {
   type FeatureComposition,
   type HandlerContribution,
   type RemoteSource,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import type { ApplicationConnections, ConnectContext, Observer } from '../application';
 import { statefulUnits, type ComposedUnit } from './units';
 

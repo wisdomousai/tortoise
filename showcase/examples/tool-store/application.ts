@@ -1,13 +1,13 @@
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { createStationSignInPlugin } from '@agent-native/workstation-sign-in/plugin';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { createStationSignInPlugin } from '@tortoise/workstation-sign-in/plugin';
 import manifest from './manifest';
 import { createState, upgradeState, type AppState, type Role } from './domain';
 import { appPolicy, createHandlers, type Services } from './server';
-import { mountFeature } from '@agent-native/host/feature';
+import { mountFeature } from '@tortoise/host/feature';
 import { newId, now } from './handlers/context';
 import {
   approvalAccess,
@@ -22,8 +22,8 @@ import {
   type HandoverAccess,
   type HandoverHooks,
 } from './features/handover/feature';
-import { deviceFeature, type DeviceAccess } from '@agent-native/devices/server';
-import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
+import { deviceFeature, type DeviceAccess } from '@tortoise/devices/server';
+import { connectTarget, type SystemOfRecordPort } from '@tortoise/integration';
 import {
   approvalFeature,
   reconciliationFeature,
@@ -31,7 +31,7 @@ import {
   type ApprovalHooks,
   type ReconciliationAccess,
   type ReconciliationHooks,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { eamTarget, type EamTool } from './contracts/eam-target';
 import { FakeEam, tagList } from './eam-port';
 import { recordReconciled } from './handlers/eam-target';
@@ -41,7 +41,7 @@ import {
   assignmentFeature,
   type AssignmentAccess,
   type AssignmentHooks,
-} from '@agent-native/assignments/server';
+} from '@tortoise/assignments/server';
 import { assignments } from './contracts/assignments';
 import { assignmentHooks } from './handlers/assignments';
 // scaffold:imports

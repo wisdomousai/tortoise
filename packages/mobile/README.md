@@ -1,4 +1,4 @@
-# @agent-native/mobile
+# @tortoise/mobile
 
 The host platform for Android and iOS. It runs the same kernel and runtime as desktop, one workspace per application in the device's SQLite. It declares no capabilities: a deployment that needs raw sockets, an inbound listener or a child process refuses to start here and names what needs it.
 

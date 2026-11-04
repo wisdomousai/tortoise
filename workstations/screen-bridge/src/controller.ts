@@ -1,4 +1,4 @@
-import type { SystemOfRecordPort } from '@agent-native/integration';
+import type { SystemOfRecordPort } from '@tortoise/integration';
 import type { ComputerUseDriver, Extractor, ScreenTransport } from './ports';
 import type { StationProfile } from './profile';
 import { createControllerKernel } from './controller/kernel';

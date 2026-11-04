@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { startIdentityProvider } from '@agent-native/site/testing';
+import { startIdentityProvider } from '@tortoise/site/testing';
 import { labStaff } from './application';
 
 /**

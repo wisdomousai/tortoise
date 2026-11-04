@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/assignments",
+  "name": "@tortoise/assignments",
   "version": "0.1.0",
   "type": "module",
   "description": "Work handed to a person, an agent, a device, a peer application or a service, and the reports it returns for review.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/assignments"
   },
   "files": [
@@ -22,16 +22,16 @@
     "./*": "./src/*.ts"
   },
   "devDependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/agents": "workspace:*",
-    "@agent-native/testing": "workspace:*"
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/agents": "workspace:*",
+    "@tortoise/testing": "workspace:*"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@noble/hashes": "2.4.0",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "zod": "4.6.5"
   }
 }

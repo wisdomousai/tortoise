@@ -1,4 +1,4 @@
-import type { JsonValue } from '@agent-native/contracts';
+import type { JsonValue } from '@tortoise/contracts';
 import {
   abortableSleep,
   AttemptMemory,
@@ -13,8 +13,8 @@ import {
   type LookupResult,
   type ReadClock,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import type { DriverAction, DriverCondition, DriverContract } from '../contracts';
 import { DriverError, type StateResult } from '../protocol';
 import type { DriverMode, DriverSupervisor } from '../supervisor';

@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/network",
+  "name": "@tortoise/network",
   "version": "0.1.0",
   "type": "module",
   "description": "Network host plugin: the egress guard and child proxy over the site policy's bindings, mutual TLS ingress, and default-deny OS and orchestrator rule exports.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/network"
   },
   "files": [
@@ -21,9 +21,9 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/site": "workspace:*"
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/site": "workspace:*"
   }
 }

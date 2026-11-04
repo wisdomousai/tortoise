@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { defaultPorts } from '@agent-native/host';
-import { passOnce, type Runner } from '@agent-native/workflows/runner';
+import { defaultPorts } from '@tortoise/host';
+import { passOnce, type Runner } from '@tortoise/workflows/runner';
 import { at, dispatched, open, rita } from './survey';
 
 const WEEK = 7 * 86_400_000;

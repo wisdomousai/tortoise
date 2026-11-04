@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { screenForCapability } from '@agent-native/frame/screens';
+import { screenForCapability } from '@tortoise/frame/screens';
 import { transport } from '@/lib/session';
 import { useScreens } from '@/screens-context';
 

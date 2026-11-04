@@ -2,9 +2,9 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { errorEnvelope } from '@agent-native/contracts';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { directDriver, runScenarios, type BehavioralScenario } from '@agent-native/testing';
+import { errorEnvelope } from '@tortoise/contracts';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing';
 import { createTestRequestsApplication } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };

@@ -1,11 +1,11 @@
 {
-  "name": "@agent-native/testing",
+  "name": "@tortoise/testing",
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/testing"
   },
   "files": [
@@ -20,11 +20,11 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/agents": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@electric-sql/pglite": "0.5.8"
+    "@electric-sql/pglite": "0.5.8",
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/agents": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

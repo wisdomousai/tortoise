@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PackageCheck } from 'lucide-react';
-import { defaultWedgeProfile, type ScannerProfile, type ScanRoute } from '@agent-native/devices';
+import { defaultWedgeProfile, type ScannerProfile, type ScanRoute } from '@tortoise/devices';
 import { BigAction } from '@/components/big-action';
 import { ScanPrompt, type ScanOutcome } from '@/components/scan-prompt';
 import { TilePicker } from '@/components/tile-picker';

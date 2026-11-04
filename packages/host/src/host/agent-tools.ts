@@ -3,15 +3,15 @@ import {
   operationToolSchema,
   type JsonObject,
   type UiIntent,
-} from '@agent-native/contracts';
-import type { DelegationGrant, ExecutionContext } from '@agent-native/runtime';
-import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
+} from '@tortoise/contracts';
+import type { DelegationGrant, ExecutionContext } from '@tortoise/runtime';
+import type { UiSessionStore } from '@tortoise/adapters/ui-sessions';
 import type {
   RunSnapshot,
   ToolDefinition,
   ToolExecutionContext,
   ToolPort,
-} from '@agent-native/agents/types';
+} from '@tortoise/agents/types';
 import type { HostedApplication } from '../application';
 
 /** Every catalog operation as a harness tool taking an `{ input }` envelope, and `expectedRevisions` for a command. */

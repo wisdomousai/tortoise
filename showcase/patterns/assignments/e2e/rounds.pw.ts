@@ -30,7 +30,7 @@ test('send a sampling round to yourself, report a sample per transformer, link a
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-rounds-'));
-  const host = await startService('@agent-native/pattern-assignments', workspace);
+  const host = await startService('@tortoise/pattern-assignments', workspace);
   try {
     await submitRequest(host, {
       sample: 'OS-24-0301',

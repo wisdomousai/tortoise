@@ -5,7 +5,7 @@ import {
   MAX_PAGE,
   recordKeySchema,
   type Capability,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { AnyAssignmentKind } from './kind';
 import {
   anyAssignmentSchema,

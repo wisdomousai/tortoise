@@ -1,5 +1,5 @@
 import { Smartphone } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { DevicesScreen } from './ui/devices';
 
 /** The device list with enrollment, its sidebar entry and palette target for `link.*`. */

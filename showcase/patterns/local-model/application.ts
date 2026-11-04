@@ -1,12 +1,12 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { approvalOperations } from '@agent-native/contracts';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { createAutomationPlugin } from '@agent-native/automation/plugin';
-import { defineApplication } from '@agent-native/host/application';
-import { createModelServer } from '@agent-native/model-server/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { approvalOperations } from '@tortoise/contracts';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { createAutomationPlugin } from '@tortoise/automation/plugin';
+import { defineApplication } from '@tortoise/host/application';
+import { createModelServer } from '@tortoise/model-server/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -15,7 +15,7 @@ import {
   requestOperations,
   type TestRequestsServices,
   type Role,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import { suggestMethodsOnLocalModel } from './automation';
 import type { TestRequestsLocalModelRoot } from './domain';

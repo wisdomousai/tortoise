@@ -6,11 +6,8 @@ import {
   records,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
-import {
-  testRequestCollection,
-  type TestRequestsServices,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { testRequestCollection, type TestRequestsServices } from '@tortoise/pattern-base/server';
 import { resultOperations, testResults, type TestResult } from './contracts';
 import type { TestRequestsSandboxRoot } from './domain';
 

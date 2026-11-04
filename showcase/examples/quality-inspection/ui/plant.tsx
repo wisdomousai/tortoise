@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { OutputOf } from '@agent-native/contracts';
-import { useCapabilityForm } from '@agent-native/react/form';
+import type { OutputOf } from '@tortoise/contracts';
+import { useCapabilityForm } from '@tortoise/react/form';
 import { operations } from '../contracts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

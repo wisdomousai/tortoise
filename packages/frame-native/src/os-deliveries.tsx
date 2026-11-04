@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import type { JsonObject, OsDelivery, OsProvenance } from '@agent-native/contracts';
+import type { JsonObject, OsDelivery, OsProvenance } from '@tortoise/contracts';
 import { nativeScreenForCapability, type NativeApplicationScreens } from './screens';
 import { useSession, type NativeSession } from './session';
 

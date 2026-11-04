@@ -1,8 +1,8 @@
-import type { OsNotifyAction } from '@agent-native/contracts';
-import { createEffectDispatcher } from '@agent-native/integration';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { PluginInstance, PluginOpenContext } from '@agent-native/kernel/plugin';
-import { osServiceOf } from '@agent-native/os';
+import type { OsNotifyAction } from '@tortoise/contracts';
+import { createEffectDispatcher } from '@tortoise/integration';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { PluginInstance, PluginOpenContext } from '@tortoise/kernel/plugin';
+import { osServiceOf } from '@tortoise/os';
 import { notificationOperations as ops } from './contracts';
 import { createNotificationPort } from './deliver';
 import type { NotificationsService } from './handlers';

@@ -1,14 +1,14 @@
-import { acquireExclusiveLock } from '@agent-native/adapters/exclusive-lock';
-import { SnapshotStorage } from '@agent-native/adapters/snapshot-storage';
-import type { SqlDriver } from '@agent-native/adapters/sql-driver';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import type { HostPlatform, SecretStore } from '@agent-native/kernel/platform';
-import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
-import type { BlobStore } from '@agent-native/runtime';
+import { acquireExclusiveLock } from '@tortoise/adapters/exclusive-lock';
+import { SnapshotStorage } from '@tortoise/adapters/snapshot-storage';
+import type { SqlDriver } from '@tortoise/adapters/sql-driver';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import type { HostPlatform, SecretStore } from '@tortoise/kernel/platform';
+import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
+import type { BlobStore } from '@tortoise/runtime';
 
 /**
- * What the device supplies to the mobile platform. The Expo bindings in `@agent-native/mobile/expo`
+ * What the device supplies to the mobile platform. The Expo bindings in `@tortoise/mobile/expo`
  * implement it with `expo-sqlite` and `expo-file-system`; tests implement it with Bun's.
  */
 export interface MobileBindings {

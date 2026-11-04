@@ -5,12 +5,12 @@ import {
   operationToolSchema,
   type Catalog,
   type EventLogPort,
-} from '@agent-native/contracts';
-import { agentGrant, type DelegationGrant, type ExecutionContext } from '@agent-native/runtime';
-import { chooseHarness, createRunSupervisor, runAuditRecord } from '@agent-native/agents';
-import type { Harness, ToolPort } from '@agent-native/agents/types';
-import type { HostedApplication } from '@agent-native/host/application';
-import type { OutputOf } from '@agent-native/contracts';
+} from '@tortoise/contracts';
+import { agentGrant, type DelegationGrant, type ExecutionContext } from '@tortoise/runtime';
+import { chooseHarness, createRunSupervisor, runAuditRecord } from '@tortoise/agents';
+import type { Harness, ToolPort } from '@tortoise/agents/types';
+import type { HostedApplication } from '@tortoise/host/application';
+import type { OutputOf } from '@tortoise/contracts';
 import type { automationOperations } from './contracts';
 import { createJobHarness, JOB_HARNESS, type Job, type JobPrompt, type TriggerEvent } from './jobs';
 import type { ResolvedTrigger } from './triggers';

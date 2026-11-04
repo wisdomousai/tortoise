@@ -4,9 +4,9 @@ import {
   type AuthorizationPort,
   type AuthorizationRoute,
   type OperationRule,
-} from '@agent-native/runtime';
-import { worklistRules } from '@agent-native/assignments/server';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { worklistRules } from '@tortoise/assignments/server';
+import type { Role } from '@tortoise/pattern-base/server';
 import { worklist, worklistOperations } from './contracts';
 import { INTEGRATION_PRINCIPAL, type TestRequestsWorklistRoot } from './domain';
 

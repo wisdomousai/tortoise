@@ -1,4 +1,4 @@
-import { approvalOperations } from '@agent-native/contracts';
+import { approvalOperations } from '@tortoise/contracts';
 import { ApprovalReview } from '@/components/approval-review';
 
 /** Pending approval requests from every agent, each with Approve and Reject. */

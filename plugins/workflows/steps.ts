@@ -1,5 +1,5 @@
-import type { JsonValue, RetryPolicy, RunStep, WaitStep } from '@agent-native/contracts';
-import type { Effect } from '@agent-native/runtime';
+import type { JsonValue, RetryPolicy, RunStep, WaitStep } from '@tortoise/contracts';
+import type { Effect } from '@tortoise/runtime';
 import { holds, keep, resolve, type Scope } from './bindings';
 import type { Definition } from './definitions';
 import type { Context, Instance } from './state';

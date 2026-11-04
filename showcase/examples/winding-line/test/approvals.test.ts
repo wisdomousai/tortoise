@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { buildCatalog } from '@agent-native/contracts';
-import { createApplicationRuntime } from '@agent-native/host';
-import { agentGrant, createMemoryStorage, type ExecutionContext } from '@agent-native/runtime';
+import { buildCatalog } from '@tortoise/contracts';
+import { createApplicationRuntime } from '@tortoise/host';
+import { agentGrant, createMemoryStorage, type ExecutionContext } from '@tortoise/runtime';
 import { createWindingLineApplication } from '../application';
 import { expireJob } from '../automation';
 import manifest from '../manifest';

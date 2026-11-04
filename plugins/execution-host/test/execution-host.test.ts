@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { collectRequirements, defineHostComponent } from '@agent-native/contracts';
+import { collectRequirements, defineHostComponent } from '@tortoise/contracts';
 import { createBroker } from '../src/broker';
 import {
   bwrapArguments,

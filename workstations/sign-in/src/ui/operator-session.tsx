@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { z } from 'zod';
-import { createClient, createHttpTransport } from '@agent-native/client';
-import { createLiveBindings, type LiveBindings } from '@agent-native/react/query';
+import { createClient, createHttpTransport } from '@tortoise/client';
+import { createLiveBindings, type LiveBindings } from '@tortoise/react/query';
 import type { operatorSessionSchema } from '../contracts';
 
 export type OperatorSessionRecord = z.infer<typeof operatorSessionSchema>;

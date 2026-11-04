@@ -1,7 +1,7 @@
-import { toolName } from '@agent-native/agents/types';
-import { agentInstructions } from '@agent-native/contracts';
-import { deploymentCatalog } from '@agent-native/host/components';
-import type { StandInMessage, StandInResponder } from '@agent-native/model-server/testing';
+import { toolName } from '@tortoise/agents/types';
+import { agentInstructions } from '@tortoise/contracts';
+import { deploymentCatalog } from '@tortoise/host/components';
+import type { StandInMessage, StandInResponder } from '@tortoise/model-server/testing';
 import { currentRequest } from './conversation';
 import { assistantAgent } from './contracts/assistant-agent';
 import type { Part } from './contracts/part';
@@ -9,7 +9,7 @@ import { DESK_DISCOUNT_LIMIT } from './contracts/quote';
 import type { Transformer } from './contracts/transformer';
 import manifest from './manifest';
 
-/** The question tool of the local harness (`ASK_TOOL` in `@agent-native/agents/ai-sdk`). */
+/** The question tool of the local harness (`ASK_TOOL` in `@tortoise/agents/ai-sdk`). */
 const ASK = 'ask_person';
 const FIND = toolName('transformer.find');
 const SEARCH = toolName('part.search');

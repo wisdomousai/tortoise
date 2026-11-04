@@ -2,11 +2,11 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { auditServiceOf } from '@agent-native/audit';
-import { readEvents } from '@agent-native/event-log';
-import { startHost } from '@agent-native/host/host';
-import { hostContext } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
+import { auditServiceOf } from '@tortoise/audit';
+import { readEvents } from '@tortoise/event-log';
+import { startHost } from '@tortoise/host/host';
+import { hostContext } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
 import type { TelemetryService } from '../src/plugin';
 import { startCollector, telemetryApplication, type Received } from './fixtures';
 

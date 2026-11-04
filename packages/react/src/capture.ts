@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { ScanDetector } from '@agent-native/devices/scanner/wedge';
+import { ScanDetector } from '@tortoise/devices/scanner/wedge';
 
 export type CaptureInput = 'keyboard' | 'scanner' | 'instrument' | 'touch';
 
 /**
- * Keyboard-wedge burst detection lives with the other scanner logic in `@agent-native/devices`;
+ * Keyboard-wedge burst detection lives with the other scanner logic in `@tortoise/devices`;
  * it is re-exported here so existing capture screens keep their import.
  */
-export { ScanDetector } from '@agent-native/devices/scanner/wedge';
+export { ScanDetector } from '@tortoise/devices/scanner/wedge';
 
 const editable = (target: EventTarget | null) =>
   target instanceof HTMLElement &&

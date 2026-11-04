@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/workstation-sign-in",
+  "name": "@tortoise/workstation-sign-in",
   "version": "0.1.0",
   "type": "module",
   "description": "Workstation sign-in host plugin: operators sign in at a shared terminal with a badge scan and PIN, for a short-lived session of their own.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "workstations/sign-in"
   },
   "files": [
@@ -23,15 +23,15 @@
     "./plugin-screens": "./src/plugin-screens.tsx"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/client": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/react": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@noble/hashes": "2.4.0",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/client": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/react": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

@@ -1,5 +1,5 @@
-import type { Target } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { Target } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { targetContext } from './target-handlers.js';
 import { createEffectDispatcher, type DispatcherApplication } from './dispatcher.js';
 import { createInboundSync, type InboundSyncOptions } from './inbound-sync.js';

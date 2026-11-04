@@ -23,7 +23,7 @@ export const publishedFiles = [
 /**
  * Dependencies the application must install once, so a framework package names them as peers:
  * React and React Native, Expo modules, and the build tools (from the root's dev dependencies)
- * that only some entrypoints use, such as Vite for `@agent-native/frame/vite`.
+ * that only some entrypoints use, such as Vite for `@tortoise/frame/vite`.
  */
 const singleCopy = /^(?:react|react-dom|react-native|react-native-.+|expo|expo-.+)$/;
 
@@ -147,7 +147,7 @@ export function expectedManifest(
   const problems: string[] = [];
   for (const name of [...importedPackages(root, workspace)].sort(byCode)) {
     if (published.has(name)) dependencies[name] = 'workspace:*';
-    else if (name.startsWith('@agent-native/'))
+    else if (name.startsWith('@tortoise/'))
       problems.push(`imports ${name}, which is not a published framework package`);
     else if (rootManifest.dependencies?.[name])
       (singleCopy.test(name) ? peers : dependencies)[name] = rootManifest.dependencies[name]!;

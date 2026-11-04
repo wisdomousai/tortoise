@@ -4,7 +4,7 @@ import {
   type HostComponent,
   type JsonObject,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { DriverContract } from './define';
 
 /** The protocol version this host speaks; a driver reporting another is refused. */

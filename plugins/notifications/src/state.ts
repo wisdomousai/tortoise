@@ -1,6 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
-import type { JsonValue } from '@agent-native/contracts';
+import type { JsonValue } from '@tortoise/contracts';
 
 /** A reply a notification offers. Only the digest of its nonce is kept; the nonce went to the OS. */
 export interface ReplyRecord {

@@ -1,6 +1,6 @@
 import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { SecretStore } from '@agent-native/kernel/platform';
+import type { SecretStore } from '@tortoise/kernel/platform';
 
 /** What a connection keeps secret: the peer credential and the assertion signing key. */
 export interface ConnectionSecret {

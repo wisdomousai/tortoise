@@ -1,4 +1,4 @@
-# @agent-native/screen-bridge
+# @tortoise/screen-bridge
 
 Reads a workstation application through its screen and operates it. Readings come in as observations (`createStationObserver`); actions go out through the outbox (`createStationConnector`) and count only after a stable readback. The bridge reaches the workstation application only through its ports, and each reading records its source, model identity, frame digest, time and confidence.
 

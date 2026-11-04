@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { AnyCapability } from '@agent-native/contracts';
+import type { AnyCapability } from '@tortoise/contracts';
 import { ReportBody } from '@/components/assignment-reports';
 import { GeneratedReportForm, type SubmitReport } from '@/components/my-assignments';
 import { Badge } from '@/components/ui/badge';

@@ -1,5 +1,5 @@
-import type { BlobRef } from '@agent-native/contracts';
-import type { StateMigrations } from '@agent-native/runtime';
+import type { BlobRef } from '@tortoise/contracts';
+import type { StateMigrations } from '@tortoise/runtime';
 
 export type Role = 'dispatcher' | 'technician' | 'customer';
 export interface WorkOrder {

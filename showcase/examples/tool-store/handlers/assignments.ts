@@ -1,4 +1,4 @@
-import { byKind } from '@agent-native/assignments/server';
+import { byKind } from '@tortoise/assignments/server';
 import { newId, now, type Context } from './context';
 import { cycleCountHooks } from './cycle-count-assignment';
 // scaffold:imports

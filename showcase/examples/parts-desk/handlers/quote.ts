@@ -1,11 +1,11 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,
   own,
   records,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { Transformer } from '../contracts/transformer';
 import { quotes, totalOf, type Quote, type QuoteLine } from '../contracts/quote';

@@ -65,9 +65,7 @@ export const layers: View = (element, data, links) => {
   const chips = new Map<string, HTMLButtonElement>();
   const overlay = s('svg', { class: 'ov-overlay', 'aria-hidden': 'true' });
   const panel = h('div', { class: 'ov-detail', 'aria-live': 'polite' });
-  let selected = byName.has('@agent-native/runtime')
-    ? '@agent-native/runtime'
-    : data.workspaces[0]!.name;
+  let selected = byName.has('@tortoise/runtime') ? '@tortoise/runtime' : data.workspaces[0]!.name;
 
   const bands = data.layers.map((layer) => {
     const members = data.workspaces

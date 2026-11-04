@@ -10,7 +10,7 @@ import {
   defineModule,
   jsonSchema,
   type Catalog,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { CliText, exitCodes, formatText, runCli, runCliMain, type CliClient } from './cli';
 import { synopsis } from './cli-syntax';
 import { readGrantFile } from './direct';

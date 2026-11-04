@@ -5,7 +5,7 @@ import {
   type JsonValue,
   type OsAction,
   type OsInstruction,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** Why an action was refused while it was built. */
 export class OsActionError extends Error {

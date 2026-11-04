@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineHostComponent, jsonSchema } from '@agent-native/contracts';
+import { defineHostComponent, jsonSchema } from '@tortoise/contracts';
 
 /** 32 random bytes in base64url, as the authorization request makes them. */
 const secret = z.string().regex(/^[A-Za-z0-9_-]{43}$/);

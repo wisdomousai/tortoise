@@ -1,6 +1,6 @@
-import { ApplicationError, canonicalJson } from '@agent-native/contracts';
-import { jsonResponse, type HostSession } from '@agent-native/adapters/http';
-import type { Harness } from '@agent-native/agents/types';
+import { ApplicationError, canonicalJson } from '@tortoise/contracts';
+import { jsonResponse, type HostSession } from '@tortoise/adapters/http';
+import type { Harness } from '@tortoise/agents/types';
 import { fetchModelCatalog } from './model-catalog';
 import { chooseModel, profileCredentials } from './profiles';
 import { connectionOf, liveScope, scopedVault, type ProviderState } from './state';

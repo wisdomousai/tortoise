@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/asset-survey",
+  "name": "@tortoise/asset-survey",
   "version": "0.1.0",
   "private": true,
   "type": "module",

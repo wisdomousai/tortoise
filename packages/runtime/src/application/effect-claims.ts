@@ -1,4 +1,4 @@
-import { errorEnvelope } from '@agent-native/contracts';
+import { errorEnvelope } from '@tortoise/contracts';
 import type { Effect, ExecutionContext, WorkspaceSnapshot } from '../types.js';
 import { actorOf } from './audit.js';
 import {

@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { networkCliCommand } from './cli';
 import { openNetwork } from './open';
 import { networkPluginManifest } from './plugin-manifest';

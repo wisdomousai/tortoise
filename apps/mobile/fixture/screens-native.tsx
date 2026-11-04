@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { FlatList, TextInput, View } from 'react-native';
 import { NotebookPen } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
-import { HoldButton } from '@agent-native/frame-native/components/hold-button';
-import { ListRow } from '@agent-native/frame-native/components/list-row';
-import { defineNativeScreens } from '@agent-native/frame-native/screens';
-import { useSession } from '@agent-native/frame-native/session';
+import { HoldButton } from '@tortoise/frame-native/components/hold-button';
+import { ListRow } from '@tortoise/frame-native/components/list-row';
+import { defineNativeScreens } from '@tortoise/frame-native/screens';
+import { useSession } from '@tortoise/frame-native/session';
 import { noteAdd, noteList } from './manifest';
 
 function Notes() {

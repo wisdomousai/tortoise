@@ -70,7 +70,7 @@ const browserContent =
 // Layers by directory: framework `packages/*`, workstations `workstations/*`, plugins `plugins/*`,
 // shell `apps/*`, content `showcase/examples/*` and `showcase/patterns/*`, and driver SDKs `sdks/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
-// `@agent-native/winding-line` cannot bypass a rule that a relative path would break.
+// `@tortoise/winding-line` cannot bypass a rule that a relative path would break.
 type Layer = 'framework' | 'workstation' | 'plugin' | 'shell' | 'content' | 'sdk';
 const layerDirectories: Record<string, Layer> = {
   packages: 'framework',
@@ -102,10 +102,8 @@ for (const [directory, layer] of Object.entries(layerDirectories))
     }
 // An application installed from a registry has no framework source; its framework packages
 // name the directory they were published from.
-for (const name of await readdir(resolve(root, 'node_modules/@agent-native')).catch(() => [])) {
-  const manifest = await manifestOf(
-    resolve(root, 'node_modules/@agent-native', name, 'package.json'),
-  );
+for (const name of await readdir(resolve(root, 'node_modules/@tortoise')).catch(() => [])) {
+  const manifest = await manifestOf(resolve(root, 'node_modules/@tortoise', name, 'package.json'));
   const layer = layerDirectories[layerDirectoryOf(manifest?.repository?.directory ?? '')];
   if (manifest?.name && layer && !packageLayers.has(manifest.name))
     packageLayers.set(manifest.name, layer);
@@ -126,12 +124,12 @@ function layerOfImport(file: string, dependency: string): Layer | undefined {
   return packageLayers.get(scope!.startsWith('@') ? `${scope}/${name}` : scope!);
 }
 
-/** `@agent-native/<plugin>` or a subpath of it that is not one of its browser entrypoints. */
+/** `@tortoise/<plugin>` or a subpath of it that is not one of its browser entrypoints. */
 function serverPluginEntry(dependency: string) {
   const [scope, name, ...rest] = dependency.split('/');
   const pkg = `${scope}/${name}`;
   return (
-    (packageLayers.get(pkg) === 'plugin' || pkg === '@agent-native/workstation-sign-in') &&
+    (packageLayers.get(pkg) === 'plugin' || pkg === '@tortoise/workstation-sign-in') &&
     !pluginBrowserEntry.test(rest.join('/'))
   );
 }

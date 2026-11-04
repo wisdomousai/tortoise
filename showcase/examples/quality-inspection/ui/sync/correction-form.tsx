@@ -1,4 +1,4 @@
-import { useCapabilityForm } from '@agent-native/react/form';
+import { useCapabilityForm } from '@tortoise/react/form';
 import { operations } from '../../contracts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

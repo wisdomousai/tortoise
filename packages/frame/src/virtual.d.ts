@@ -1,5 +1,5 @@
-/** The starter's configured application screens, resolved by `@agent-native/frame/vite`. */
+/** The starter's configured application screens, resolved by `@tortoise/frame/vite`. */
 declare module 'virtual:agent-native/screens' {
-  const screens: import('@agent-native/frame/screens').ApplicationScreens;
+  const screens: import('@tortoise/frame/screens').ApplicationScreens;
   export default screens;
 }

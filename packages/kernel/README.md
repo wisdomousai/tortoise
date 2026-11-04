@@ -1,4 +1,4 @@
-# @agent-native/kernel
+# @tortoise/kernel
 
 The portable core of the host: composes an application and its plugins and opens its instance on a `HostPlatform`. It uses no Node, Bun or React Native API, so the desktop and mobile hosts share it. The starter chooses the platform; content never supplies one.
 

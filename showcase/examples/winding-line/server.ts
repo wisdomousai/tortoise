@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { LineState } from './domain';
 import { administrationHandlers } from './handlers/administration';
 import { attentionHandlers } from './handlers/attention';

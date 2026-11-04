@@ -1,5 +1,5 @@
-import type { InputOf, OutputOf } from '@agent-native/contracts';
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { InputOf, OutputOf } from '@tortoise/contracts';
+import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import {
   FIELDS,

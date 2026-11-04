@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { OsConsumer } from '@agent-native/os';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { OsConsumer } from '@tortoise/os';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { notificationOperations as ops } from './contracts';
 import { digestOf } from './state';
 

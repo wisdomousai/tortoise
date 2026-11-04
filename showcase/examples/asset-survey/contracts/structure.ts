@@ -7,7 +7,7 @@ import {
   collectionTree,
   collectionUpdate,
   defineCollection,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { operation } from './operation';
 import { documentLimits, documentSchema, nodeSchema, recordId, scheme } from './schemas';
 

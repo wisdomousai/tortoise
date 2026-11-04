@@ -1,5 +1,5 @@
-import { assertJson } from '@agent-native/contracts';
-import type { Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import { assertJson } from '@tortoise/contracts';
+import type { Storage, WorkspaceSnapshot } from '@tortoise/runtime';
 import { lockKey, type PgDriver, type PgQuery } from './postgres/driver';
 import { loadPgRows, persistPgRows, readPgMeta } from './postgres/rows';
 import { openPgSchema } from './postgres/schema';

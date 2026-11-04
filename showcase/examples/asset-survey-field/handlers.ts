@@ -1,6 +1,6 @@
-import type { AnyCapability, InputOf, OutputOf } from '@agent-native/contracts';
-import type { WorklistAssignment } from '@agent-native/assignments/server';
-import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import type { AnyCapability, InputOf, OutputOf } from '@tortoise/contracts';
+import type { WorklistAssignment } from '@tortoise/assignments/server';
+import type { HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { fieldOperations as ops, worklist } from './contracts';
 import type { FieldServices, FieldState } from './domain';
 import { matches, type SurveyBrief } from './ui-native/brief';

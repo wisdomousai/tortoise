@@ -8,7 +8,7 @@ import {
   type AuditRequirement,
   type EventLogPort,
   type JsonObject,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { Effect, ExecutionContext } from '../types.js';
 
 /** Bounded, framework-generated error text; free text from handlers never reaches the log. */

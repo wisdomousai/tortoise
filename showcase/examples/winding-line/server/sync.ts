@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import { own, type Synchronized } from '../domain';
 import type { Context } from './context';
 

@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
+import { ApplicationError } from '@tortoise/contracts';
+import { jsonResponse, readJsonBody } from '@tortoise/adapters/http';
 import type { HostRoute } from './types';
 
 /** Only the native host that owns this instance, holding the owner token, may stop it. */

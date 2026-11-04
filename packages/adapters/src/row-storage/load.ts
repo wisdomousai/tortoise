@@ -1,10 +1,10 @@
-import { assertJson } from '@agent-native/contracts';
+import { assertJson } from '@tortoise/contracts';
 import type {
   ChangeEvent,
   StateUpgrade,
   StateVersions,
   WorkspaceSnapshot,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { recordFrom, rowKinds, stateFrom, type Rows } from './rows';
 import type { SqlRowsDriver } from './schema';
 

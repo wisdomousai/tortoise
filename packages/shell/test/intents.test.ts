@@ -7,7 +7,7 @@ import {
   jsonSchema,
   type OsAction,
   type OsHandler,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   buildInstruction,
   intentListening,
@@ -138,7 +138,7 @@ test('intent handlers become intent filters with their names as declared', () =>
   // Expo's own intent filters would prefix the names, so the framework's config plugin writes them.
   expect(native.android.intentFilters).toEqual([]);
   expect(native.plugins).toContainEqual([
-    '@agent-native/mobile/intent-filters',
+    '@tortoise/mobile/intent-filters',
     {
       // In handler id order, as the catalog sorts them.
       filters: [

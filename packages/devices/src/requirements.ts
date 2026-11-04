@@ -1,4 +1,4 @@
-import { defineHostComponent } from '@agent-native/contracts';
+import { defineHostComponent } from '@tortoise/contracts';
 
 /**
  * Devices the scanner kit can use, as data for the requirements manifest. Side-effect free and

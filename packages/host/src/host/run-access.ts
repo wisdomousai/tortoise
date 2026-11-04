@@ -1,7 +1,7 @@
-import { canonicalJson } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
-import type { HostSession } from '@agent-native/adapters/http';
-import type { RunSnapshot } from '@agent-native/agents/types';
+import { canonicalJson } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
+import type { HostSession } from '@tortoise/adapters/http';
+import type { RunSnapshot } from '@tortoise/agents/types';
 import type { HostedApplication } from '../application';
 
 /** A session sees its own runs: same principal, workspace and grant, while the grant is live. */

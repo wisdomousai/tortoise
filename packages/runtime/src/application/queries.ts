@@ -1,4 +1,4 @@
-import { ApplicationError, type JsonObject } from '@agent-native/contracts';
+import { ApplicationError, type JsonObject } from '@tortoise/contracts';
 import type { ExecutionContext, Invocation, QueryResult } from '../types.js';
 import { sameState } from '../state-equality.js';
 import { actorOf, describeInput, failureRecord } from './audit.js';

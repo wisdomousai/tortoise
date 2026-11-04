@@ -1,5 +1,5 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { testRequestsModule } from '@agent-native/pattern-base/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { activityPluginManifest } from './plugins/activity/plugin-manifest';
 
 /** The test requests module with the pattern's own activity plugin. Browser-safe. */

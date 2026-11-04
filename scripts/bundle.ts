@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { ROW_SCHEMA_VERSION } from '@agent-native/adapters/row-storage';
+import { ROW_SCHEMA_VERSION } from '@tortoise/adapters/row-storage';
 import {
   admissionRefusals,
   createBundle,
@@ -14,10 +14,10 @@ import {
   type SigningKey,
   type SiteApproval,
   type TrustedKey,
-} from '@agent-native/bundle';
-import { cycloneDx, type SecurityManifest } from '@agent-native/compliance';
-import { loadManifest, readStarterConfig } from '@agent-native/host';
-import { bestBeforeDate } from '@agent-native/kernel/build';
+} from '@tortoise/bundle';
+import { cycloneDx, type SecurityManifest } from '@tortoise/compliance';
+import { loadManifest, readStarterConfig } from '@tortoise/host';
+import { bestBeforeDate } from '@tortoise/kernel/build';
 import { compileCli } from './build-cli';
 import { artifacts } from './reference-artifacts';
 

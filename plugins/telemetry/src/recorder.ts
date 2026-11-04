@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { AuditEvent } from '@agent-native/contracts';
+import type { AuditEvent } from '@tortoise/contracts';
 
 /**
  * Every attribute a metric or span may carry. Each value is a catalog operation ID, an outbox

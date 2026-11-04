@@ -1,8 +1,8 @@
-import type { NetworkPort } from '@agent-native/host/plugin';
-import type { ObservationBase } from '@agent-native/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
-import { createMqttObserver } from '@agent-native/connector-mqtt/observe';
-import { createOpcUaObserver } from '@agent-native/connector-opcua/observe';
+import type { NetworkPort } from '@tortoise/host/plugin';
+import type { ObservationBase } from '@tortoise/observation';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import { createMqttObserver } from '@tortoise/connector-mqtt/observe';
+import { createOpcUaObserver } from '@tortoise/connector-opcua/observe';
 import { CHAMBER_BROKER, CHAMBER_GATEWAY, chamberOperations } from './contracts';
 import { OBSERVER_PRINCIPAL, fieldId, type ChamberDefinition } from './domain';
 

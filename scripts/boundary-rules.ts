@@ -1,12 +1,12 @@
 /**
  * Modules that must never reach the browser bundle: host runtimes, provider SDKs, credential
- * stores and the server-only framework packages (of `@agent-native/host`, only the manifests are
+ * stores and the server-only framework packages (of `@tortoise/host`, only the manifests are
  * browser-safe). Shared by the static import scan and the Vite plugin that checks the real
  * browser dependency graph. Plugin packages are covered by `pluginBrowserEntry` and by the
  * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/screen-bridge(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@agent-native\/assignments\/server(?:\/|$)|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@tortoise\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@tortoise\/screen-bridge(?!\/requirements$)(?:\/|$)|@tortoise\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@tortoise\/devices\/server$|@tortoise\/assignments\/server(?:\/|$)|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
@@ -15,7 +15,7 @@ export const forbiddenBrowserImport =
  */
 export const pluginBrowserSource =
   /^(?:(?:showcase\/patterns\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
-/** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
+/** The browser-safe subpaths of a plugin package, for `@tortoise/<plugin>/<subpath>`. */
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
@@ -26,8 +26,7 @@ export const hostSourcePath =
  * import. The event log is used by the audit plugin; an import here would bring an audit concept
  * back into every application. Plugins themselves are a layer the framework never imports at all.
  */
-export const kernelForbiddenImport =
-  /^@agent-native\/event-log(?:\/|$)|(?:^|\/)packages\/event-log\//;
+export const kernelForbiddenImport = /^@tortoise\/event-log(?:\/|$)|(?:^|\/)packages\/event-log\//;
 
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
@@ -124,7 +123,7 @@ export const portableSource =
   /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|schema-version|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|patterns)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
-  /^(?:node:|bun:|@agent-native\/(?:host|agents|station)(?:\/|$)|@agent-native\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
+  /^(?:node:|bun:|@tortoise\/(?:host|agents|station)(?:\/|$)|@tortoise\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@tortoise\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@tortoise\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
 /** Node and Bun globals; React Native declares `process` too, so the type check alone misses it. */
 export const nonPortableGlobal =
   /(?<![\w$.])(?:Bun|process|Buffer|__dirname|__filename|require)\s*[.(]/;

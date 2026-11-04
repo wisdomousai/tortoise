@@ -60,7 +60,7 @@ test('the assistant panel finds TR-40417, asks which transformer TR-404 means an
   test.setTimeout(120_000);
   const directory = await mkdtemp(join(tmpdir(), 'parts-desk-assistant-'));
   const env = prepare(directory);
-  const host = await startService('@agent-native/parts-desk', env.WORKSPACE_PATH!, env);
+  const host = await startService('@tortoise/parts-desk', env.WORKSPACE_PATH!, env);
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Inquiries', level: 1 })).toBeVisible();
@@ -137,7 +137,7 @@ test('the assistant panel sees TR-40417 on its screen, offers its requests and n
   test.setTimeout(120_000);
   const directory = await mkdtemp(join(tmpdir(), 'parts-desk-context-'));
   const env = prepare(directory);
-  const host = await startService('@agent-native/parts-desk', env.WORKSPACE_PATH!, env);
+  const host = await startService('@tortoise/parts-desk', env.WORKSPACE_PATH!, env);
   try {
     await page.goto(host.launchUrl);
     const panel = assistant(page);
@@ -249,7 +249,7 @@ test('the assistant prepares a quote of two HV bushings for TR-40417 in the quot
   test.setTimeout(120_000);
   const directory = await mkdtemp(join(tmpdir(), 'parts-desk-prepare-'));
   const env = prepare(directory);
-  const host = await startService('@agent-native/parts-desk', env.WORKSPACE_PATH!, env);
+  const host = await startService('@tortoise/parts-desk', env.WORKSPACE_PATH!, env);
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Inquiries', level: 1 })).toBeVisible();
@@ -367,7 +367,7 @@ test('the assistant panel resizes between 320 and 640 pixels, keeps its width, c
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'parts-desk-panel-'));
-  const host = await startService('@agent-native/parts-desk', workspace);
+  const host = await startService('@tortoise/parts-desk', workspace);
   try {
     await page.goto(host.launchUrl);
     const panel = assistant(page);
@@ -430,7 +430,7 @@ test('the composer offers dictation only with on-device recognition for English,
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'parts-desk-dictation-'));
-  const host = await startService('@agent-native/parts-desk', workspace);
+  const host = await startService('@tortoise/parts-desk', workspace);
   try {
     const panel = assistant(page);
     const composer = panel.getByRole('textbox', { name: 'Message' });

@@ -1,7 +1,7 @@
-import type { ApprovalRequest } from '@agent-native/contracts';
-import { defineTrigger } from '@agent-native/automation/contracts';
-import type { Job } from '@agent-native/automation/jobs';
-import { createAutomationPlugin } from '@agent-native/automation/plugin';
+import type { ApprovalRequest } from '@tortoise/contracts';
+import { defineTrigger } from '@tortoise/automation/contracts';
+import type { Job } from '@tortoise/automation/jobs';
+import { createAutomationPlugin } from '@tortoise/automation/plugin';
 
 /**
  * Closes stop-reason approval requests nobody approved in time, so the station's attention queue does

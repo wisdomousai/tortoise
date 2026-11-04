@@ -1,4 +1,4 @@
-import { defineModule } from '@agent-native/contracts';
+import { defineModule } from '@tortoise/contracts';
 // scaffold:imports
 
 /** Every operation of the {{displayName}} module, by key. Browser-safe. */

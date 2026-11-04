@@ -35,7 +35,7 @@ test('the default customer screens add a utility, and the Inquiries screen logs 
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'parts-desk-screens-'));
-  const host = await startService('@agent-native/parts-desk', workspace);
+  const host = await startService('@tortoise/parts-desk', workspace);
   try {
     await page.goto(host.launchUrl);
     await section(page, 'Customers');
@@ -78,7 +78,7 @@ test('the desk opens TR-40417 from a call, quotes two HV bushings at 8 percent a
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'parts-desk-quote-'));
   seedTrialRecords(workspace);
-  const host = await startService('@agent-native/parts-desk', workspace);
+  const host = await startService('@tortoise/parts-desk', workspace);
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Inquiries', level: 1 })).toBeVisible();

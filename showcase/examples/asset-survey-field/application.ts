@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
-import { intentScannerPlugin } from '@agent-native/intent-scanner/plugin';
-import { managedConfigPlugin } from '@agent-native/managed-config/plugin';
+import { intentScannerPlugin } from '@tortoise/intent-scanner/plugin';
+import { managedConfigPlugin } from '@tortoise/managed-config/plugin';
 import { createFieldApplication } from './field-application';
 
 /**

@@ -4,7 +4,7 @@ import {
   type Catalog,
   type ContractApplication,
   type PeerApi,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** Why an operation of the API no longer matches what the peer serves. */
 export type DriftReason = 'changed' | 'missing' | 'application';

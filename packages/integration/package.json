@@ -1,11 +1,11 @@
 {
-  "name": "@agent-native/integration",
+  "name": "@tortoise/integration",
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/integration"
   },
   "files": [
@@ -20,8 +20,8 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

@@ -1,6 +1,6 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { ResolvedPolicy } from './policy';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 
 /**
  * Enforce the site policy's identity floor before a session or embedded call is created.

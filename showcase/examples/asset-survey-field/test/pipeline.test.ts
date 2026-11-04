@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'bun:test';
-import { LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { nameplatePhoto } from '@agent-native/asset-survey/connectors/nameplate-photo';
+import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { nameplatePhoto } from '@tortoise/asset-survey/connectors/nameplate-photo';
 import { matches, tree, type BriefNode } from '../ui-native/brief';
 import { cleanUp, openPhone, owner, startHub, type Rows } from './fixtures';
 

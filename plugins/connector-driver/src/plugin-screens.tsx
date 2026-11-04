@@ -1,5 +1,5 @@
 import { Cpu } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { DriverScreen } from './components/driver-screen';
 
 /**

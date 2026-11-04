@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf } from '@agent-native/contracts';
-import { own, records, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf } from '@tortoise/contracts';
+import { own, records, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { tools, type Tool } from '../contracts/tool';
 import type { AppState } from '../domain';

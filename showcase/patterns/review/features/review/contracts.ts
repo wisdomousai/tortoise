@@ -5,7 +5,7 @@ import {
   defineModule,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /**
  * One signature on a record. `subject` is the journal resource signed, such as

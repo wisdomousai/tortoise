@@ -1,4 +1,4 @@
-import type { AuditActor, AuditRecord, JsonObject } from '@agent-native/contracts';
+import type { AuditActor, AuditRecord, JsonObject } from '@tortoise/contracts';
 import type { RunSnapshot } from '../types';
 
 const outcomes = {

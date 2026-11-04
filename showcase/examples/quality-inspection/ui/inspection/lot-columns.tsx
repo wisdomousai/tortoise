@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { CircleAlert, Clock3 } from 'lucide-react';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import type { operations } from '../../contracts';
 import type { LiveColumn } from '@/components/live-data-table';
 import { cn } from '@/lib/utils';

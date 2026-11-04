@@ -1,4 +1,4 @@
-import { ApplicationError, type InputOf, type OutputOf } from '@agent-native/contracts';
+import { ApplicationError, type InputOf, type OutputOf } from '@tortoise/contracts';
 import {
   isDelegated,
   own,
@@ -6,7 +6,7 @@ import {
   type AuthorizationPort,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { automationModule, automationOperations as ops } from './contracts';
 import type { ResolvedTrigger } from './triggers';
 import { runPrefix } from './run-ids';

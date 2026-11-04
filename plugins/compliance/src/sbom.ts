@@ -101,7 +101,7 @@ export function cycloneDx(options: SbomOptions): Record<string, unknown> {
     version: 1,
     metadata: {
       tools: {
-        components: [{ type: 'application', name: '@agent-native/compliance', version: '0.1.0' }],
+        components: [{ type: 'application', name: '@tortoise/compliance', version: '0.1.0' }],
       },
       component: {
         type: 'application',

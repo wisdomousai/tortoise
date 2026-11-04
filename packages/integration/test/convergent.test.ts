@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { Effect } from '@agent-native/runtime';
+import type { Effect } from '@tortoise/runtime';
 import {
   AttemptMemory,
   DeliveryFailure,

@@ -3,7 +3,7 @@ import {
   approvalOperations,
   type AnyCapability,
   type ApprovalRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { approvalHandlers } from './approval.js';
 import { own } from './collection.js';
 import type { FeatureHandlerContext, FeatureServer } from './feature.js';

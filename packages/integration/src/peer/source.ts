@@ -3,8 +3,8 @@ import {
   type AnyCapability,
   type ErrorCode,
   type JsonValue,
-} from '@agent-native/contracts';
-import type { RemoteSource, SourceCall } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { RemoteSource, SourceCall } from '@tortoise/runtime';
 import { createPeerCall, PeerCallError, type PeerClient } from '../peer-call.js';
 import { createCursorSeal, type CursorSeal } from './cursor.js';
 import type { PeerDrift } from './drift.js';

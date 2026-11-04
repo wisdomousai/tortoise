@@ -1,10 +1,10 @@
-import { peerLinkScreens } from '@agent-native/peer-link/plugin-screens';
-import { defineScreens } from '@agent-native/frame/screens';
+import { peerLinkScreens } from '@tortoise/peer-link/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
 import {
   requestCapabilityScreens,
   requestNavigation,
   requestRoutes,
-} from '@agent-native/pattern-base/ui/requests';
+} from '@tortoise/pattern-base/ui/requests';
 import manifest from './manifest';
 import { roundCapabilityScreens, roundNavigation, roundRoutes } from './ui/rounds';
 

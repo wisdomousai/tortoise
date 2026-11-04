@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { defineFeatureScreens } from '@agent-native/frame/feature-screens';
+import { defineFeatureScreens } from '@tortoise/frame/feature-screens';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

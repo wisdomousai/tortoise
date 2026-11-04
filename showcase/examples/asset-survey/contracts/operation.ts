@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { defineCapability, jsonSchema, type BlobLimits } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, type BlobLimits } from '@tortoise/contracts';
 
 /** One operation of the survey: description, UI binding, blobs, and the outbox target it forwards to. */
 export function operation<const Id extends string, const Kind extends 'command' | 'query', I, O>(

@@ -1,13 +1,13 @@
 import { mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-import { buildFacts } from '@agent-native/kernel/build';
+import { buildFacts } from '@tortoise/kernel/build';
 import { bunPlatform } from './platform/bun';
 import {
   createHttpHandler,
   Sessions,
   type HostSession,
   type TokenAuthenticator,
-} from '@agent-native/adapters/http';
+} from '@tortoise/adapters/http';
 import type { AnyApplicationDefinition } from './application';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from './embedded';
 import { startAgents } from './host/agents';

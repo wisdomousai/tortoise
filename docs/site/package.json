@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/docs-site",
+  "name": "@tortoise/docs-site",
   "version": "0.0.0",
   "private": true,
   "type": "module",

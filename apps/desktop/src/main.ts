@@ -13,8 +13,8 @@ import {
   loadRuntimeManifest,
   resourcePath,
   verifyRuntimeFiles,
-} from '@agent-native/host/runtime-manifest';
-import { readApplicationIdentity } from '@agent-native/host/config';
+} from '@tortoise/host/runtime-manifest';
+import { readApplicationIdentity } from '@tortoise/host/config';
 
 let service: ServiceHandle | undefined;
 let window: BrowserWindow | undefined;

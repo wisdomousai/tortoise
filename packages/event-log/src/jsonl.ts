@@ -7,7 +7,7 @@ import {
   type AuditMode,
   type AuditRecord,
   type EventLogPort,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { genesisHead, sealEvents, serialized, type ChainHead, type EventSource } from './chain';
 
 export interface JsonlEventLogOptions {

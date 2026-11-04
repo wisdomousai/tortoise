@@ -3,7 +3,7 @@ import {
   reconciliationOperations,
   type HeldEffect,
   type ReconciliationDecision,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { Effect, EffectOutcome, HandlerContext, HandlerContribution } from './types.js';
 
 type Ops = typeof reconciliationOperations;

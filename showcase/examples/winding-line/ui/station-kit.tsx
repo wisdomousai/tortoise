@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { defaultWedgeProfile, type ScanRoute, type ScannerProfile } from '@agent-native/devices';
+import { defaultWedgeProfile, type ScanRoute, type ScannerProfile } from '@tortoise/devices';
 import {
   OperatorHeader,
   OperatorSurface,

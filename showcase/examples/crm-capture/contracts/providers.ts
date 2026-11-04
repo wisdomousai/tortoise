@@ -1,4 +1,4 @@
-import { defineDataProvider } from '@agent-native/contracts';
+import { defineDataProvider } from '@tortoise/contracts';
 import { accountFoundSchema, contactFoundSchema, searchInput } from './schemas';
 
 /**

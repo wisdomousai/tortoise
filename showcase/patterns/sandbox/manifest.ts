@@ -1,10 +1,10 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { executionSandbox } from '@agent-native/execution-host/contracts';
-import { executionHostPluginManifest } from '@agent-native/execution-host/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { processPluginManifest } from '@agent-native/process/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { testRequestsModule } from '@agent-native/pattern-base/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { executionSandbox } from '@tortoise/execution-host/contracts';
+import { executionHostPluginManifest } from '@tortoise/execution-host/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { processPluginManifest } from '@tortoise/process/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { testResultsModule } from './contracts';
 import {
   ANALYSIS_SANDBOX,

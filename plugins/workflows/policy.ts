@@ -1,4 +1,4 @@
-import { isDelegated, own, type AuthorizationPort } from '@agent-native/runtime';
+import { isDelegated, own, type AuthorizationPort } from '@tortoise/runtime';
 import { RUN_PREFIX, runIdOf, workflowOperations as ops, workflowsModule } from './contracts';
 import type { WorkflowsState } from './state';
 

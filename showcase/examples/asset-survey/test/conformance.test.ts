@@ -4,10 +4,10 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createHttpTransport } from '@agent-native/client';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { enrollPath } from '@agent-native/device-link/contracts';
-import { startHost } from '@agent-native/host/host';
+import { createHttpTransport } from '@tortoise/client';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { enrollPath } from '@tortoise/device-link/contracts';
+import { startHost } from '@tortoise/host/host';
 import { createAssetSurveyApplication } from '../application';
 import { nameplatePhoto } from '../connectors/nameplate-photo';
 
@@ -23,7 +23,7 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
-      [process.execPath, Bun.resolveSync('@agent-native/adapters/cli', import.meta.dir), ...args],
+      [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
       { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },
     );
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);

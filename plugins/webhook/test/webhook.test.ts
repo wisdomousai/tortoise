@@ -3,22 +3,18 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import { createApplicationRuntime, defineApplication } from '@agent-native/host/application';
-import { startHost } from '@agent-native/host/host';
-import { defineManifest } from '@agent-native/host/manifest';
-import { defaultPorts, defineHostPlugin, type NetworkPort } from '@agent-native/host';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
-import { createMemoryStorage, type AuthorizationPort } from '@agent-native/runtime';
-import {
-  directDriver,
-  runScenarios,
-  type BehavioralScenario,
-} from '@agent-native/testing/scenarios';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { createApplicationRuntime, defineApplication } from '@tortoise/host/application';
+import { startHost } from '@tortoise/host/host';
+import { defineManifest } from '@tortoise/host/manifest';
+import { defaultPorts, defineHostPlugin, type NetworkPort } from '@tortoise/host';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
+import { createMemoryStorage, type AuthorizationPort } from '@tortoise/runtime';
+import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { webhookOperations } from '../contracts';
 import { createWebhookPlugin } from '../plugin';
 import { webhookPluginManifest } from '../plugin-manifest';

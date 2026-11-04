@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { complianceModule } from './contracts';
 
 /**

@@ -6,7 +6,7 @@ import type {
   HostComponent,
   NetworkDestination,
   ProcessRequirement,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { osManifest, osTables, type OsManifest } from './os-manifest';
 
 /** One operation's path off the host: which destinations its effects reach, carrying what. */

@@ -6,7 +6,7 @@ import {
   type Catalog,
   type CapabilityModule,
   type DeclaredWorkflow,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { readPaths } from './bindings';
 import { workflowOperations as ops } from './contracts';
 

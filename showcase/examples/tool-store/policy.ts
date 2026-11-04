@@ -5,15 +5,15 @@ import {
   type ApprovalAccess,
   type OperationRule,
   type ReconciliationAccess,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from './contracts';
 import type { AppState, Role } from './domain';
 import type { HandoverAccess } from './features/handover/feature';
-import type { DeviceAccess } from '@agent-native/devices/server';
+import type { DeviceAccess } from '@tortoise/devices/server';
 import { counterStation } from './scanner';
-import { targetAllowlist, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@tortoise/integration';
 import { eamTarget } from './contracts/eam-target';
-import type { AssignmentAccess } from '@agent-native/assignments/server';
+import type { AssignmentAccess } from '@tortoise/assignments/server';
 // scaffold:imports
 
 /** The EAM connector's principal. It holds no role and calls only the EAM target's operations. */

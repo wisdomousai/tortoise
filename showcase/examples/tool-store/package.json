@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/tool-store",
+  "name": "@tortoise/tool-store",
   "version": "0.1.0",
   "private": true,
   "type": "module",

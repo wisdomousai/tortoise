@@ -11,7 +11,7 @@ import {
   defineCollection,
   defineModule,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   ancestors,
   collectionCommandHandlers,

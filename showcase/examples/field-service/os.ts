@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { jsonSchema, type OsDeclarations } from '@agent-native/contracts';
+import { jsonSchema, type OsDeclarations } from '@tortoise/contracts';
 import { attachmentLimits } from './attachments';
 
 const id = z

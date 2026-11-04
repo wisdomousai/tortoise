@@ -1,4 +1,4 @@
-# @agent-native/devices
+# @tortoise/devices
 
 Turns scanner input (keyboard wedge, serial, HID POS, camera) into the same command a button sends, with no model involved. A scan is input data and grants no permission. The application registers each source; the package discovers none.
 

@@ -4,7 +4,7 @@ import {
   defineFeatureManifest,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { scannerProfileSchema } from './scanner/profile';
 import { scanRouteSchema } from './scanner/router';
 

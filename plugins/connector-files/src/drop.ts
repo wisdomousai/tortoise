@@ -5,9 +5,9 @@ import {
   type DeliveryResult,
   type LookupResult,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { FolderPort } from '@agent-native/kernel/plugin';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { FolderPort } from '@tortoise/kernel/plugin';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import {
   extensionOf,
   serializeRecords,

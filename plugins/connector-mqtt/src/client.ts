@@ -1,5 +1,5 @@
-import type { NetworkPort } from '@agent-native/kernel/plugin';
-import { bunSocket } from '@agent-native/host/plugin';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
+import { bunSocket } from '@tortoise/host/plugin';
 import {
   PacketReader,
   PacketType,

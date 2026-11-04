@@ -14,7 +14,7 @@ import {
   defineModule,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** One entry of the ${id.words} feature. */
 export const ${id.camel}EntrySchema = z.strictObject({
@@ -56,7 +56,7 @@ export const ${id.camel}FeatureManifest = defineFeatureManifest({
 `;
 };
 
-const feature = (id: Names) => `import { defineFeature } from '@agent-native/host/feature';
+const feature = (id: Names) => `import { defineFeature } from '@tortoise/host/feature';
 import {
   isDelegated,
   own,
@@ -64,7 +64,7 @@ import {
   type ExecutionContext,
   type FeatureHandler,
   type FeaturePolicy,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { ${id.camel}FeatureManifest, ${id.camel}Operations, type ${id.pascal}Entry } from './contracts';
 
 /** What a caller does in the ${id.words} feature. */
@@ -160,7 +160,7 @@ export function ${id.camel}Feature() {
 const screens = (id: Names) => `import { useState } from 'react';
 import { List } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { defineFeatureScreens } from '@agent-native/frame/feature-screens';
+import { defineFeatureScreens } from '@tortoise/frame/feature-screens';
 import { client, live } from '@/lib/session';
 import { ${id.camel}Operations } from './contracts';
 
@@ -215,8 +215,8 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { featureConformance } from '@agent-native/testing/features';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { featureConformance } from '@tortoise/testing/features';
 import { create${app.app.pascal}Application } from '../application';
 import { ${id.camel}Feature } from '../features/${id.kebab}/feature';
 
@@ -304,7 +304,7 @@ export function featurePart(app: AppNames, id: Names, withScreens: boolean): Gen
       },
       'application.ts': {
         imports: [
-          `import { mountFeature } from '@agent-native/host/feature';`,
+          `import { mountFeature } from '@tortoise/host/feature';`,
           `import { newId, now } from './handlers/context';`,
           `import { ${id.camel}Access } from './policy';`,
           `import { ${id.camel}Feature, type ${id.pascal}Access, type ${id.pascal}Hooks } from './${base}/feature';`,

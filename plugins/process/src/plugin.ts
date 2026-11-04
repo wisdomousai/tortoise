@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { openProcesses } from './open';
 import { processPluginManifest } from './plugin-manifest';
 

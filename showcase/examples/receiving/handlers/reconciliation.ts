@@ -1,5 +1,5 @@
-import { completeDelivery } from '@agent-native/integration';
-import { records, type Effect, type EffectOutcome } from '@agent-native/runtime';
+import { completeDelivery } from '@tortoise/integration';
+import { records, type Effect, type EffectOutcome } from '@tortoise/runtime';
 import { deliveries } from '../contracts/delivery';
 import { qualityPeer } from '../contracts/quality-peer';
 import type { Context } from './context';

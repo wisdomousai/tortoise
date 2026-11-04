@@ -1,10 +1,10 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { createTelemetryPlugin } from '@agent-native/telemetry/plugin';
-import type { TestRequestsRoot } from '@agent-native/pattern-base/application';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { createTelemetryPlugin } from '@tortoise/telemetry/plugin';
+import type { TestRequestsRoot } from '@tortoise/pattern-base/application';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -12,7 +12,7 @@ import {
   testRequestsPolicy,
   type TestRequestsServices,
   type Role,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import { testRequestsMigrations } from './migrations';
 

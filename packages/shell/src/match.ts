@@ -8,7 +8,7 @@ import {
   type OsLinkHandler,
   type OsShareHandler,
   type RawOsRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { OsRequestError } from './parse';
 import { shortcutIdOf } from './shortcuts';
 

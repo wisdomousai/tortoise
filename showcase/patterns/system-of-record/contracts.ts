@@ -10,7 +10,7 @@ import {
   jsonSchema,
   reconciliationOperations,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** The network destination that carries the LIMS; the site policy binds its URL. */
 export const LIMS_DESTINATION = 'lims-api';

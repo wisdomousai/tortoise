@@ -31,7 +31,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
 
 ## Checks
 
-- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@agent-native/connector-mqtt/testing`, or `FakeOpcUaServer` from `@agent-native/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `showcase/patterns/signals/test/signals.test.ts` goes through an embedded instance's network port with a site policy that binds the fakes. Cover:
+- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@tortoise/connector-mqtt/testing`, or `FakeOpcUaServer` from `@tortoise/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `showcase/patterns/signals/test/signals.test.ts` goes through an embedded instance's network port with a site policy that binds the fakes. Cover:
   - a value becoming a reading;
   - a death or lost connection making it `uncertain`;
   - the ingest command's handling of both.
@@ -46,7 +46,7 @@ Record a run against a real broker, edge node or server separately in [implement
 
 ## References
 
-- [`@agent-native/observation`](../../README.md)
+- [`@tortoise/observation`](../../README.md)
 - [MQTT](../../../../plugins/connector-mqtt/README.md)
 - [OPC UA](../../../../plugins/connector-opcua/README.md)
 - [Signals pattern](../../../../showcase/patterns/signals/README.md)

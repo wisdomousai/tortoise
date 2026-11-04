@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { DeliveryFailure, type PullBatch } from '@agent-native/integration';
-import type { FolderPort } from '@agent-native/kernel/plugin';
+import { DeliveryFailure, type PullBatch } from '@tortoise/integration';
+import type { FolderPort } from '@tortoise/kernel/plugin';
 import {
   extensionOf,
   parseRecords,

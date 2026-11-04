@@ -1,10 +1,10 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { readConnection, takeFlag } from '@agent-native/adapters/cli';
-import { createDirectTransport, readGrantFile } from '@agent-native/adapters/direct';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { createHttpTransport } from '@agent-native/client';
-import { ApplicationError, errorEnvelope } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { readConnection, takeFlag } from '@tortoise/adapters/cli';
+import { createDirectTransport, readGrantFile } from '@tortoise/adapters/direct';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { createHttpTransport } from '@tortoise/client';
+import { ApplicationError, errorEnvelope } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { LOCAL_WORKSPACE, openEmbeddedInstance } from '../embedded';
 import { rejectRemaining, settingsOf, workspaceOf } from './args';

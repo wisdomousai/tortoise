@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
 
 /**
  * The browser-safe part of the share target plugin. It adds no module and no setting: the share

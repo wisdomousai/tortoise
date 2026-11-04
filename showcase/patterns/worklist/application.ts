@@ -1,14 +1,14 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import {
   connectWorklist,
   createWorklistSlice,
   worklistHandlers,
-} from '@agent-native/assignments/server';
-import { createPeerLinkPlugin, peerLinkServiceOf } from '@agent-native/peer-link/plugin';
+} from '@tortoise/assignments/server';
+import { createPeerLinkPlugin, peerLinkServiceOf } from '@tortoise/peer-link/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -16,7 +16,7 @@ import {
   testRequestsPolicy,
   type Role,
   type TestRequestsServices,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import { worklist } from './contracts';
 import { INTEGRATION_PRINCIPAL, type TestRequestsWorklistRoot } from './domain';

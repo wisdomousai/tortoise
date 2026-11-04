@@ -3,8 +3,8 @@ import type { Generated } from './collection';
 import { plural, type Names } from './names';
 
 const kindContract = (kind: Names, one: Names, many: Names) => `import { z } from 'zod';
-import { recordKeySchema } from '@agent-native/contracts';
-import { defineAssignmentKind } from '@agent-native/assignments';
+import { recordKeySchema } from '@tortoise/contracts';
+import { defineAssignmentKind } from '@tortoise/assignments';
 import { ${one.camel}Schema } from './${one.kebab}';
 
 /**
@@ -35,7 +35,7 @@ export const ${kind.camel} = defineAssignmentKind({
 
 const assignmentsContract = (
   kind: Names,
-) => `import { defineAssignments } from '@agent-native/assignments';
+) => `import { defineAssignments } from '@tortoise/assignments';
 import { ${kind.camel} } from './${kind.kebab}-assignment';
 // scaffold:imports
 
@@ -52,7 +52,7 @@ export const assignmentOperations = assignments.operations;
 `;
 
 const assigneesContract = (app: AppNames) => `import { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema } from '@tortoise/contracts';
 
 const assigneeSchema = z.strictObject({
   type: z.literal('person'),
@@ -72,7 +72,7 @@ export const assigneeList = defineCapability({
 });
 `;
 
-const assigneesHandler = `import type { HandlerContribution } from '@agent-native/runtime';
+const assigneesHandler = `import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import type { AppState } from '../domain';
 import { handler, type Services } from './context';
@@ -93,9 +93,9 @@ const kindHooks = (
   kind: Names,
   one: Names,
   many: Names,
-) => `import { ApplicationError } from '@agent-native/contracts';
-import { own } from '@agent-native/runtime';
-import type { StoredAssignment, StoredReport } from '@agent-native/assignments/server';
+) => `import { ApplicationError } from '@tortoise/contracts';
+import { own } from '@tortoise/runtime';
+import type { StoredAssignment, StoredReport } from '@tortoise/assignments/server';
 import { operations } from '../contracts';
 import type { Context } from './context';
 
@@ -139,7 +139,7 @@ export const ${kind.camel}Hooks = {
 };
 `;
 
-const hooksIndex = (kind: Names) => `import { byKind } from '@agent-native/assignments/server';
+const hooksIndex = (kind: Names) => `import { byKind } from '@tortoise/assignments/server';
 import { newId, now, type Context } from './context';
 import { ${kind.camel}Hooks } from './${kind.kebab}-assignment';
 // scaffold:imports
@@ -273,7 +273,7 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
@@ -468,8 +468,8 @@ export function assignmentKind(app: AppNames, kind: Names, one: Names, first: bo
       },
       'policy.ts': {
         imports: [
-          `import { isDelegated } from '@agent-native/runtime';`,
-          `import type { AssignmentAccess } from '@agent-native/assignments/server';`,
+          `import { isDelegated } from '@tortoise/runtime';`,
+          `import type { AssignmentAccess } from '@tortoise/assignments/server';`,
         ],
         rules: [`[operations.assigneeList.id]: 'open',`],
         access,
@@ -480,8 +480,8 @@ export function assignmentKind(app: AppNames, kind: Names, one: Names, first: bo
       },
       'application.ts': {
         imports: [
-          `import { assignmentFeature, type AssignmentAccess, type AssignmentHooks } from '@agent-native/assignments/server';`,
-          `import { mountFeature } from '@agent-native/host/feature';`,
+          `import { assignmentFeature, type AssignmentAccess, type AssignmentHooks } from '@tortoise/assignments/server';`,
+          `import { mountFeature } from '@tortoise/host/feature';`,
           `import { assignments } from './contracts/assignments';`,
           `import { assignmentHooks } from './handlers/assignments';`,
           `import { assignmentAccess } from './policy';`,

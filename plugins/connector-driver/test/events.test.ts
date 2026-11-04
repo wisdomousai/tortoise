@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { CommandReceipt, Invocation } from '@agent-native/runtime';
+import type { CommandReceipt, Invocation } from '@tortoise/runtime';
 import { createDriverEventIngest } from '../src/connect';
 import { defineDriverContract } from '../src/contracts';
 import type { DriverService } from '../src/open';

@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { Invocation, WorkspaceSnapshot } from '../types.js';
 import { sameState } from '../state-equality.js';
 import type { Command } from './command-request.js';

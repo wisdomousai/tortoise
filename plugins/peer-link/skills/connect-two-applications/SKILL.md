@@ -5,7 +5,7 @@ description: Let one agent-native application call another, as its service princ
 
 # Connect two applications
 
-The called application publishes a peer API and serves it with `@agent-native/peer-link`. The calling application declares that application as a target and delivers outbox effects to it and reads it through the same plugin. A call either runs as the caller's service principal there, `peer:<id>`, or on behalf of a person, under that person's own policy.
+The called application publishes a peer API and serves it with `@tortoise/peer-link`. The calling application declares that application as a target and delivers outbox effects to it and reads it through the same plugin. A call either runs as the caller's service principal there, `peer:<id>`, or on behalf of a person, under that person's own policy.
 
 ## Before writing
 
@@ -17,10 +17,10 @@ The called application publishes a peer API and serves it with `@agent-native/pe
 ## Steps
 
 1. In the called application's browser-safe contracts, declare the API with `definePeerApi({ application, commands, queries, onBehalfOf })`, as `showcase/examples/quality-inspection/contracts/peer.ts` does. Every operation already exists in its catalog.
-2. In the called application's policy, add `peerAllowlist(api)` from `@agent-native/integration` to `integrations` and give each service operation a rule, usually `'integration'`. Name the integration principals in `reserved`, so no subject maps to them.
+2. In the called application's policy, add `peerAllowlist(api)` from `@tortoise/integration` to `integrations` and give each service operation a rule, usually `'integration'`. Name the integration principals in `reserved`, so no subject maps to them.
 3. Compose the peer link in the called application: `peerLinkPluginManifest` in the manifest's plugins and `createPeerLinkPlugin({ api, reserved })` in the application's plugins, with the site and network plugins that open its listener.
 4. In the calling application, declare the target with `definePeerTarget({ target, api, destination, ... })` and list `target.component` in the manifest's `components`, so the deployment binds its destination. Build effects with `target.effect(command, { resource, payload })` in commands, as `showcase/examples/receiving/contracts/quality-peer.ts` and `handlers/quality-peer.ts` do.
-5. Compose `createPeerLinkPlugin({ targets: [target] })` in the calling application; `peerLinkServiceOf` comes from `@agent-native/peer-link/plugin`. In its `connect`, deliver with `connectPeerTarget({ target, link: () => peerLinkServiceOf(services)!.link(target.target), ... })` and read with `createPeerSource` for data providers, passing one `createPeerDrift` to both. The `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers completion, the feed and data providers.
+5. Compose `createPeerLinkPlugin({ targets: [target] })` in the calling application; `peerLinkServiceOf` comes from `@tortoise/peer-link/plugin`. In its `connect`, deliver with `connectPeerTarget({ target, link: () => peerLinkServiceOf(services)!.link(target.target), ... })` and read with `createPeerSource` for data providers, passing one `createPeerDrift` to both. The `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers completion, the feed and data providers.
 6. Bind the destination in the caller's site policy with an `https` URL, its addresses and the site CA. The site plugin refuses a plaintext binding of an authenticated destination off loopback.
 7. Connect: on the called application's peers screen, create an enrollment code; on the caller's peers screen, enter it for the target. Map the caller's people on the called side.
 8. To hand work to another application and take its reports back, put `assignments.assignees.peer` in the issuing application's peer API, as `showcase/patterns/assignments/contracts.ts` does. The taking application declares a worklist with `defineWorklist` and delivers through `connectWorklist`, as `showcase/patterns/worklist/application.ts` does. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers both sides.
@@ -29,7 +29,7 @@ Never take the subject from command input: it comes only from `effect.principalI
 
 ## Checks
 
-- `plugins/peer-link/test/security.test.ts` shows the assertion checks a called application relies on, and `plugins/peer-link/test/link.test.ts` shows two hosts started with `startPeerPair` and `peerNetworkFixture` from `@agent-native/peer-link/testing`. Use the same harness for an application pair's own test: `showcase/examples/receiving/test/quality-peer.test.ts` starts two example applications with their own network plugins, passes each host's options through `hosts`, and binds the destination in the caller's site policy to a test gateway that drops responses or rewrites the contract.
+- `plugins/peer-link/test/security.test.ts` shows the assertion checks a called application relies on, and `plugins/peer-link/test/link.test.ts` shows two hosts started with `startPeerPair` and `peerNetworkFixture` from `@tortoise/peer-link/testing`. Use the same harness for an application pair's own test: `showcase/examples/receiving/test/quality-peer.test.ts` starts two example applications with their own network plugins, passes each host's options through `hosts`, and binds the destination in the caller's site policy to a test gateway that drops responses or rewrites the contract.
 - Test the unmapped person, the disconnected target and a drifted operation as well as the happy path.
 
 ```sh

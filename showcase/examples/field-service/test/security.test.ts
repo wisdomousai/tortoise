@@ -2,18 +2,13 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { EgressDenied } from '@agent-native/network/guard';
-import {
-  openJsonlEventLog,
-  readEvents,
-  segmentName,
-  verifyEventLog,
-} from '@agent-native/event-log';
-import { startHost } from '@agent-native/host/host';
-import { auditServiceOf } from '@agent-native/audit';
-import { networkServiceOf } from '@agent-native/network';
-import { siteServiceOf } from '@agent-native/site';
-import { openEmbeddedInstance } from '@agent-native/host/embedded';
+import { EgressDenied } from '@tortoise/network/guard';
+import { openJsonlEventLog, readEvents, segmentName, verifyEventLog } from '@tortoise/event-log';
+import { startHost } from '@tortoise/host/host';
+import { auditServiceOf } from '@tortoise/audit';
+import { networkServiceOf } from '@tortoise/network';
+import { siteServiceOf } from '@tortoise/site';
+import { openEmbeddedInstance } from '@tortoise/host/embedded';
 import fieldService from '../application';
 
 // The site, network and audit plugins are generic; field-service is only the fixture application.

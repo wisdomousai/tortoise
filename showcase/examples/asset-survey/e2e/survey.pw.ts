@@ -82,7 +82,7 @@ test('prepare, send to a phone, review what the model read and file it into the 
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
-  const host = await startService('@agent-native/asset-survey', workspace);
+  const host = await startService('@tortoise/asset-survey', workspace);
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Structure' })).toBeVisible();
@@ -148,7 +148,7 @@ test('prepare, send to a phone, review what the model read and file it into the 
 
 test('the review queue is one column of large rows at tablet width', async ({ page }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
-  const host = await startService('@agent-native/asset-survey', workspace);
+  const host = await startService('@tortoise/asset-survey', workspace);
   try {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto(host.launchUrl);

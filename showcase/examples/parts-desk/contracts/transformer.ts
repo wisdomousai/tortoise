@@ -6,7 +6,7 @@ import {
   collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** A transformer's serial on its rating plate. Inquiries and searches name a transformer by it. */
 export const serialSchema = z

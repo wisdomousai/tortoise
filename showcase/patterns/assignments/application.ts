@@ -1,12 +1,12 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
 import {
   assignmentFeature,
   type AssignmentAccess,
   type AssignmentHooks,
-} from '@agent-native/assignments/server';
-import { createPeerLinkPlugin } from '@agent-native/peer-link/plugin';
+} from '@tortoise/assignments/server';
+import { createPeerLinkPlugin } from '@tortoise/peer-link/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -15,7 +15,7 @@ import {
   testRequestsPolicy,
   type Role,
   type TestRequestsServices,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import { assignmentOperations, assignments, samplingApi } from './contracts';
 import type { TestRequestsAssignmentsRoot } from './domain';

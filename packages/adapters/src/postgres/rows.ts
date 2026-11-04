@@ -1,4 +1,4 @@
-import type { StateUpgrade, WorkspaceSnapshot } from '@agent-native/runtime';
+import type { StateUpgrade, WorkspaceSnapshot } from '@tortoise/runtime';
 import { emptyRows, snapshotFrom, type Loaded, type Meta } from '../row-storage/load';
 import type { WriteStats } from '../row-storage/persist';
 import { rowChanges, rowsOf, type RowKind, type Rows } from '../row-storage/rows';

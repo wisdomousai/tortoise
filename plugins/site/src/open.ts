@@ -1,6 +1,6 @@
-import { ApplicationError, type CatalogRequirements } from '@agent-native/contracts';
+import { ApplicationError, type CatalogRequirements } from '@tortoise/contracts';
 import { assertPolicyUsable, isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
-import type { PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
+import type { PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
 import { assertIdentity } from './identity';
 import { portsNeeded } from './needs';
 import { createWorkforceSignIn } from './workforce/sign-in';

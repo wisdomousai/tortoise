@@ -4,7 +4,7 @@ import type {
   JsonValue,
   NetworkDestination,
   Schema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /**
  * How a host keeps a driver action from acting twice:

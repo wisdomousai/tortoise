@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createHttpTransport } from '@agent-native/client';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { startHost } from '@agent-native/host/host';
+import { createHttpTransport } from '@tortoise/client';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { startHost } from '@tortoise/host/host';
 import { createPartsDeskApplication } from '../application';
 
 test('the screen, HTTP, the CLI and MCP read the same inquiry list', async () => {
@@ -44,7 +44,7 @@ test('the screen, HTTP, the CLI and MCP read the same inquiry list', async () =>
     const child = Bun.spawn(
       [
         process.execPath,
-        Bun.resolveSync('@agent-native/adapters/cli', import.meta.dir),
+        Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir),
         'inquiry.list',
       ],
       { env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: connection }, stdout: 'pipe' },

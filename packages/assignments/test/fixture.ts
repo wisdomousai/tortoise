@@ -8,7 +8,7 @@ import {
   definePeerApi,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { defineAssignmentKind, defineAssignments } from '../src';
 
 /**

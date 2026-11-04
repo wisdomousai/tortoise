@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { approvalHandlers, own } from '@agent-native/runtime';
-import { requestOperations, type TestRequestsServices } from '@agent-native/pattern-base/server';
+import { approvalHandlers, own } from '@tortoise/runtime';
+import { requestOperations, type TestRequestsServices } from '@tortoise/pattern-base/server';
 import type { TestRequestsLocalModelRoot } from './domain';
 
 /**

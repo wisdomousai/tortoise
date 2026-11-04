@@ -2,15 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, mkdtemp, readFile, readlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
-import { ApplicationError, type AuditRecord } from '@agent-native/contracts';
+import { ApplicationError, type AuditRecord } from '@tortoise/contracts';
 import {
   bunProcesses,
   childEnvironment,
   type HostPorts,
   type ProcessAvailability,
   type SpawnedProcess,
-} from '@agent-native/host/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/host/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { Broker } from './broker';
 import {
   bwrapArguments,

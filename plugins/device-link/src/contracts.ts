@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /** The hub route a device posts its enrollment code to; it returns the device credential once. */
 export const enrollPath = '/api/v1/link/enroll';

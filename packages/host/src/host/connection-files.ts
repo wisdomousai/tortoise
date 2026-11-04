@@ -1,6 +1,6 @@
 import { chmod, writeFile } from 'node:fs/promises';
-import type { ExecutionContext } from '@agent-native/runtime';
-import type { HostSession, Sessions } from '@agent-native/adapters/http';
+import type { ExecutionContext } from '@tortoise/runtime';
+import type { HostSession, Sessions } from '@tortoise/adapters/http';
 
 /** Write `{ endpoint, token }` readable by the owner only. */
 export async function writeConnectionFile(path: string, endpoint: string, token: string) {

@@ -3,9 +3,9 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
-import { defineModelEntry } from '@agent-native/agents/models';
-import { startHost } from '@agent-native/host/host';
-import { runAgentScenario, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+import { defineModelEntry } from '@tortoise/agents/models';
+import { startHost } from '@tortoise/host/host';
+import { runAgentScenario, type AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { measure } from '../src/measure';
 import { ENTRY, notesApplication, person } from './fixture';
 

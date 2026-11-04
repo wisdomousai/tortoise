@@ -1,4 +1,4 @@
-# @agent-native/fleet-agent
+# @tortoise/fleet-agent
 
 The site side of a fleet. Compose `createFleetAgentPlugin` after the site, network and audit plugins. It reports health, forwards the audit log and stages assigned releases, all over outbound calls through the `fleet` destination, and relays remote requests to the site's own API when enabled.
 

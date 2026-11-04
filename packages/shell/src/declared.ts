@@ -1,4 +1,4 @@
-import type { CatalogOs, CatalogOsHandler } from '@agent-native/contracts';
+import type { CatalogOs, CatalogOsHandler } from '@tortoise/contracts';
 
 /** The declared handlers of one kind, typed as that kind. */
 export type Of<K extends CatalogOsHandler['kind']> = Extract<CatalogOsHandler, { kind: K }>;

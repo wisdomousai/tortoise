@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { createHandlerFactory } from '@agent-native/runtime';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { createHandlerFactory } from '@tortoise/runtime';
 import { createStationSignInPlugin } from '../src/plugin';
 import { stationSignInPluginManifest } from '../src/plugin-manifest';
 

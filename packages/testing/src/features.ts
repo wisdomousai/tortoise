@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
-import type { AnyCapability, CapabilityModule } from '@agent-native/contracts';
-import type { ChangeEvent, ExecutionContext, FeatureServer } from '@agent-native/runtime';
+import type { AnyCapability, CapabilityModule } from '@tortoise/contracts';
+import type { ChangeEvent, ExecutionContext, FeatureServer } from '@tortoise/runtime';
 import type { ConformanceCase } from './connectors';
 
 /** A command or query the suite asks the feature's policy about, over `sampleSlice`. */

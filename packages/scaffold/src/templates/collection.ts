@@ -19,7 +19,7 @@ import {
 ${only(tree, '  collectionMove,', '  collectionRetire,', '  collectionTree,')}  collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** What a caller sees of one ${one.words}. */
 export const ${one.camel}Schema = z.strictObject({
@@ -85,7 +85,7 @@ const handlers = (one: Names, many: Names, tree: boolean) => `import {
   collectionGetHandler,
   collectionListHandler,
 ${only(tree, '  collectionTreeHandler,')}  type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { ${many.camel}, type ${one.pascal} } from '../contracts/${one.kebab}';
 import type { AppState } from '../domain';
@@ -239,7 +239,7 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };

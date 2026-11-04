@@ -1,5 +1,5 @@
-import { definePolicy } from '@agent-native/runtime';
-import { worklistRules } from '@agent-native/assignments/server';
+import { definePolicy } from '@tortoise/runtime';
+import { worklistRules } from '@tortoise/assignments/server';
 import { fieldOperations, worklist } from './contracts';
 import type { FieldState } from './domain';
 

@@ -10,8 +10,8 @@ import {
   defineModule,
   failClosedAuditMode,
   jsonSchema,
-} from '@agent-native/contracts';
-import { createMemoryStorage, type AuthorizationPort } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { createMemoryStorage, type AuthorizationPort } from '@tortoise/runtime';
 import { createApplicationRuntime, defineApplication } from '../src/application';
 import { openEmbeddedInstance } from '../src/embedded';
 import { startHost } from '../src/host';

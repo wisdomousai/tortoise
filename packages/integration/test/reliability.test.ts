@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineCapability, defineModule, defineTarget, jsonSchema } from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
+import { defineCapability, defineModule, defineTarget, jsonSchema } from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
 import {
   createApplication,
   createHandlerFactory,
@@ -11,7 +11,7 @@ import {
   own,
   put,
   type Effect,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   createEffectDispatcher,
   DeliveryFailure,

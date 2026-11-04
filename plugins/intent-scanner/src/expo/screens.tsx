@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { ScanBarcode } from 'lucide-react-native';
-import type { ScanEvent } from '@agent-native/devices/scanner/decode';
-import type { ScannerProfile } from '@agent-native/devices/scanner/profile';
-import { ListRow } from '@agent-native/frame-native/components/list-row';
-import { StatusPill } from '@agent-native/frame-native/components/status-pill';
-import { definePluginNativeScreens } from '@agent-native/frame-native/plugin-screens';
+import type { ScanEvent } from '@tortoise/devices/scanner/decode';
+import type { ScannerProfile } from '@tortoise/devices/scanner/profile';
+import { ListRow } from '@tortoise/frame-native/components/list-row';
+import { StatusPill } from '@tortoise/frame-native/components/status-pill';
+import { definePluginNativeScreens } from '@tortoise/frame-native/plugin-screens';
 import { intentSource } from './source';
 
 const kept = 20;

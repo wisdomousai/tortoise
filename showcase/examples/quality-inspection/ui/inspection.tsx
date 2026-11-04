@@ -5,7 +5,7 @@ import { ScanBarcode, Search } from 'lucide-react';
 import { operations } from '../contracts';
 import { LiveDataTable } from '@/components/live-data-table';
 import { columns } from './inspection/lot-columns';
-import { useScannerInput } from '@agent-native/react/capture';
+import { useScannerInput } from '@tortoise/react/capture';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

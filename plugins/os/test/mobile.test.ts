@@ -3,24 +3,24 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { bunSqlDriver } from '@tortoise/adapters/sqlite';
 import {
   blobRefSchema,
   defineCapability,
   defineModule,
   jsonSchema,
   type OsDelivery,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
-import { defineManifest } from '@agent-native/kernel/manifest';
+} from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/kernel/application';
+import { defineManifest } from '@tortoise/kernel/manifest';
 import {
   connectMobileShell,
   createMobilePlatform,
   openMobileInstance,
   type MobileInstance,
   type MobileOsBindings,
-} from '@agent-native/mobile';
+} from '@tortoise/mobile';
 import { createOsPlugin } from '../src/plugin';
 import { osPluginManifest } from '../src/plugin-manifest';
 

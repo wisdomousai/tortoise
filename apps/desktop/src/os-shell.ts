@@ -1,7 +1,7 @@
 import { app, Menu, Notification, shell, ShareMenu } from 'electron';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { CatalogOs, OsActionResult, OsPlatform } from '@agent-native/contracts';
+import type { CatalogOs, OsActionResult, OsPlatform } from '@tortoise/contracts';
 import {
   createDesktopShell,
   desktopArguments,
@@ -11,7 +11,7 @@ import {
   type DesktopArguments,
   type DesktopShellClient,
   type ShellNotification,
-} from '@agent-native/shell';
+} from '@tortoise/shell';
 
 const platform: OsPlatform =
   process.platform === 'darwin' ? 'macos' : process.platform === 'win32' ? 'windows' : 'linux';

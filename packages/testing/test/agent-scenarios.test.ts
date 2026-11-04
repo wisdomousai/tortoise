@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { deterministicHarness } from '@agent-native/agents';
-import type { Harness } from '@agent-native/agents/types';
+import { deterministicHarness } from '@tortoise/agents';
+import type { Harness } from '@tortoise/agents/types';
 import {
   defineAgent,
   defineCapability,
@@ -12,7 +12,7 @@ import {
   type InputOf,
   type OutputOf,
   type ApprovalRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createApplication,
   createMemoryStorage,
@@ -22,7 +22,7 @@ import {
   type ExecutionContext,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   assertAgentScenarios,
   containsValue,

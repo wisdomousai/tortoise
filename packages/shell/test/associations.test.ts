@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
-import { buildCatalog, defineModule, jsonSchema, type OsHandler } from '@agent-native/contracts';
+import { buildCatalog, defineModule, jsonSchema, type OsHandler } from '@tortoise/contracts';
 import { associationFiles } from '../src/index';
 
 const id = jsonSchema(z.strictObject({ id: z.string() }));

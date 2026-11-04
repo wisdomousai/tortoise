@@ -1,16 +1,16 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { createHttpHandler } from '@agent-native/adapters/http';
-import { Sessions } from '@agent-native/adapters/http/sessions';
-import { definePeerApi } from '@agent-native/contracts';
-import { createApplicationRuntime, defineApplication, defineManifest } from '@agent-native/kernel';
-import type { PeerClient } from '@agent-native/integration';
+import { createHttpHandler } from '@tortoise/adapters/http';
+import { Sessions } from '@tortoise/adapters/http/sessions';
+import { definePeerApi } from '@tortoise/contracts';
+import { createApplicationRuntime, defineApplication, defineManifest } from '@tortoise/kernel';
+import type { PeerClient } from '@tortoise/integration';
 import {
   createMemoryBlobStore,
   createMemoryStorage,
   definePolicy,
   type ExecutionContext,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   defineAssignmentKind,
   defineAssignments,

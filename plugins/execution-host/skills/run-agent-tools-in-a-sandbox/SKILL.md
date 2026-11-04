@@ -14,11 +14,11 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 - List the destinations the tools must reach, such as a model API. The manifest declares each one, and the deployment policy binds it.
 - A sandbox without destinations has no network except the host API.
 - `showcase/patterns/sandbox` runs a tool that reads and records through the application CLI, started from a plugin route as the signed-in caller.
-- Decide who the sandbox acts as. Its context must include a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`. The sandbox can then call only what the agent definition allows.
+- Decide who the sandbox acts as. Its context must include a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@tortoise/runtime`. The sandbox can then call only what the agent definition allows.
 
 ## Steps
 
-1. Declare the sandbox in the manifest's `components` with `executionSandbox({ id, description, network: ['model-api'] })` from `@agent-native/execution-host/contracts`.
+1. Declare the sandbox in the manifest's `components` with `executionSandbox({ id, description, network: ['model-api'] })` from `@tortoise/execution-host/contracts`.
 2. Declare each destination the sandbox names.
 3. Add `executionHostPluginManifest` to the manifest's `plugins`, after the site, network and process plugins.
 4. Add `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun' } })` to the definition's `plugins`, in the same order.

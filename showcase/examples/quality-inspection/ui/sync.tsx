@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { CircleCheck } from 'lucide-react';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { operations } from '../contracts';
 import { CorrectionForm } from './sync/correction-form';
 import { syncStatusQuery } from './sync-status';

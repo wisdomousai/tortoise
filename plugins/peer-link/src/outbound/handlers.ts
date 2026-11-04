@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf } from '@agent-native/contracts';
-import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf } from '@tortoise/contracts';
+import type { HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { peerLinkOperations as ops } from '../contracts';
 import { serviceOf, type PeerLinkServices } from '../service';
 import type { PeerLinkState } from '../state';

@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { DispatcherApplication } from './dispatcher.js';
 import { createLoop } from './loop.js';
 import type { SystemOfRecordPort } from './port.js';

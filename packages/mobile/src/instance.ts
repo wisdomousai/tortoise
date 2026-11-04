@@ -1,8 +1,8 @@
-import { createDirectTransport } from '@agent-native/adapters/direct-transport';
-import type { AnyApplicationDefinition, Observer } from '@agent-native/kernel/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '@agent-native/kernel/instance';
-import type { HostPlatform } from '@agent-native/kernel/platform';
-import type { PluginSettings } from '@agent-native/kernel/plugins/settings';
+import { createDirectTransport } from '@tortoise/adapters/direct-transport';
+import type { AnyApplicationDefinition, Observer } from '@tortoise/kernel/application';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '@tortoise/kernel/instance';
+import type { HostPlatform } from '@tortoise/kernel/platform';
+import type { PluginSettings } from '@tortoise/kernel/plugins/settings';
 
 export interface MobileInstanceOptions {
   readonly platform: HostPlatform;

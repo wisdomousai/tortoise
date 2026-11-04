@@ -30,7 +30,7 @@ function urlScheme(configured: unknown, appId: string): string {
 /**
  * The starter's configuration (`app.config.json`): its platform identity and the one application
  * it hosts. `application` is a module specifier for content: a package name such as
- * `@agent-native/field-service`, or a path relative to the config file. It names a directory
+ * `@tortoise/field-service`, or a path relative to the config file. It names a directory
  * whose `manifest`, `application` and `screens` entrypoints the starter resolves.
  */
 export interface StarterConfig extends ApplicationIdentity {

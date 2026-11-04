@@ -1,9 +1,9 @@
 import { resolve } from 'node:path';
-import { ApplicationError } from '@agent-native/contracts';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { verifyEventLog } from '@agent-native/event-log';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
-import type { PluginCommand } from '@agent-native/host/plugin';
+import { ApplicationError } from '@tortoise/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { verifyEventLog } from '@tortoise/event-log';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
+import type { PluginCommand } from '@tortoise/host/plugin';
 
 /** `audit verify` found the chain damaged. Distinct from operation errors (0–8) and 75. */
 export const AUDIT_INVALID_EXIT_CODE = 10;

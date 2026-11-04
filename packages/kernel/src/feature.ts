@@ -1,5 +1,5 @@
-import { ownedName, unitIdPattern } from '@agent-native/contracts';
-import type { FeatureServer, HandlerContext } from '@agent-native/runtime';
+import { ownedName, unitIdPattern } from '@tortoise/contracts';
+import type { FeatureServer, HandlerContext } from '@tortoise/runtime';
 import type { ApplicationConnections, ConnectContext } from './application';
 
 /**

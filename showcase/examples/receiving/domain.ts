@@ -1,4 +1,4 @@
-import type { StateMigrations } from '@agent-native/runtime';
+import type { StateMigrations } from '@tortoise/runtime';
 import type { Delivery } from './contracts/delivery';
 // scaffold:imports
 

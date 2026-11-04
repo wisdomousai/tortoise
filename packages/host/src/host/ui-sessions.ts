@@ -1,8 +1,8 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
-import type { Sessions } from '@agent-native/adapters/http';
-import { UiDeliveryStore } from '@agent-native/adapters/ui-deliveries';
-import { UiSessionStore, type UiContextInput } from '@agent-native/adapters/ui-sessions';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
+import type { Sessions } from '@tortoise/adapters/http';
+import { UiDeliveryStore } from '@tortoise/adapters/ui-deliveries';
+import { UiSessionStore, type UiContextInput } from '@tortoise/adapters/ui-sessions';
 import type { HostedApplication } from '../application';
 
 /**

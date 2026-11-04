@@ -3,9 +3,9 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { startPeerPair } from '@agent-native/peer-link/testing';
-import { createTestRequestsAssignmentsApplication } from '@agent-native/pattern-assignments/application';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { startPeerPair } from '@tortoise/peer-link/testing';
+import { createTestRequestsAssignmentsApplication } from '@tortoise/pattern-assignments/application';
 import { createTestRequestsWorklistApplication } from '../application';
 
 /** The oil lab sends a sampling round to the field crew's worklist, two hosts on loopback. */

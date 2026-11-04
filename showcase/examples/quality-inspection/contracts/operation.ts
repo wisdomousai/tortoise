@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema } from '@tortoise/contracts';
 
 const descriptions: Readonly<Record<string, string>> = {
   'inspection.lot.get':

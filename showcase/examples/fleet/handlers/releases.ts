@@ -1,11 +1,11 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { parseBundleManifest } from '@agent-native/bundle/manifest';
+import { ApplicationError } from '@tortoise/contracts';
+import { parseBundleManifest } from '@tortoise/bundle/manifest';
 import {
   collectionGetHandler,
   collectionListHandler,
   records,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { channels, releases, type Channel, type ReleaseRecord } from '../contracts/releases';
 import type { AppState } from '../domain';

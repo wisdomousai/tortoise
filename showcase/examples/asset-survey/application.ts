@@ -1,20 +1,20 @@
-import { connectTarget, createRemoteSource } from '@agent-native/integration';
-import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@agent-native/runtime';
+import { connectTarget, createRemoteSource } from '@tortoise/integration';
+import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@tortoise/runtime';
 import {
   assignmentFeature,
   type AssignmentAccess,
   type AssignmentHooks,
-} from '@agent-native/assignments/server';
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import { bunProcesses, type NetworkPort } from '@agent-native/host/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { createWorkflowsPlugin, type WorkflowsOptions } from '@agent-native/workflows/plugin';
+} from '@tortoise/assignments/server';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { createDeviceLinkPlugin } from '@tortoise/device-link/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import { bunProcesses, type NetworkPort } from '@tortoise/host/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { createWorkflowsPlugin, type WorkflowsOptions } from '@tortoise/workflows/plugin';
 import manifest from './manifest';
 import { assignments, eamTarget, exportTarget, operations, structureOperations } from './contracts';
 import {

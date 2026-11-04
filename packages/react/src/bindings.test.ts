@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
 import { InfiniteQueryObserver, QueryClient, QueryObserver } from '@tanstack/react-query';
 import { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
-import type { ChangeBatch, Snapshot, Transport } from '@agent-native/client';
+import { defineCapability, jsonSchema } from '@tortoise/contracts';
+import type { ChangeBatch, Snapshot, Transport } from '@tortoise/client';
 import { ScanDetector } from './capture';
 import { changedResourceTypes, createLiveBindings, isAffected } from './query';
 

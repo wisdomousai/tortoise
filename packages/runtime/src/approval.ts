@@ -4,7 +4,7 @@ import {
   approvals,
   type AnyCapability,
   type ApprovalRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { collectionGetHandler, collectionListHandler, records } from './collection.js';
 import type { HandlerContext, HandlerContribution } from './types.js';
 

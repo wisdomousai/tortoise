@@ -1,18 +1,18 @@
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { createModelServer } from '@agent-native/model-server/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { createModelServer } from '@tortoise/model-server/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import manifest from './manifest';
 import { ASSISTANT_MODEL_PROCESS } from './contracts/assistant-agent';
 import { assistantModelFrom, type AssistantModel } from './model';
 import { createState, upgradeState, type AppState, type Role } from './domain';
 import { appPolicy, createHandlers, type Services } from './server';
 import { operations } from './contracts';
-import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@agent-native/runtime';
-import { mountFeature } from '@agent-native/host/feature';
+import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@tortoise/runtime';
+import { mountFeature } from '@tortoise/host/feature';
 import { newId, now } from './handlers/context';
 import { approvalAccess } from './policy';
 // scaffold:imports

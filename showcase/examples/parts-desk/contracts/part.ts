@@ -6,7 +6,7 @@ import {
   collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { modelSchema } from './transformer';
 
 export const partCategories = ['bushing', 'tap-changer', 'gasket', 'relay'] as const;

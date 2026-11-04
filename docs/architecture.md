@@ -62,7 +62,7 @@ All surfaces call the same handlers with the same checks. The caller's identity 
 | Live updates | `GET /api/v1/events` (SSE)                                  | Same session; read access filters the stream.                       |
 | MCP          | `bun run mcp`; `task.create` becomes tool `task_create`     | Connection file, or a grant file with `bun run cli mcp --embedded`. |
 | CLI          | `bun run cli <collection> <verb>`                           | Same as MCP.                                                        |
-| React        | `useLiveQuery`, `useCommand` from `@agent-native/react`     | Browser session.                                                    |
+| React        | `useLiveQuery`, `useCommand` from `@tortoise/react`     | Browser session.                                                    |
 
 ## Instances and hosts
 

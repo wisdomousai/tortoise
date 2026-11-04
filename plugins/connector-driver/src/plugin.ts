@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@tortoise/host/plugin';
 import { driverCliCommand } from './cli';
 import { openDrivers, type DriverPluginOptions } from './open';
 import { driverPluginManifest } from './plugin-manifest';

@@ -5,8 +5,8 @@ import {
   type BlobRef,
   type ErrorEnvelope,
   type JsonValue,
-} from '@agent-native/contracts';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import { createPeerCall, PeerCallError, type PeerCall, type PeerClient } from './peer-call.js';
 import type { PeerDrift } from './peer/drift.js';
 import {

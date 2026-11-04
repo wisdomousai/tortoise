@@ -6,7 +6,7 @@ import {
   collectionUpdate,
   defineCollection,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { serialSchema } from './transformer';
 
 /** What a caller sees of one inquiry: a utility's call to the desk. */

@@ -275,7 +275,7 @@ standalone(
         name: 'fresh-application',
         displayName: 'Fresh Application',
         appId: 'dev.agentnative.fresh-application',
-        application: '@agent-native/field-service',
+        application: '@tortoise/field-service',
       });
       expect(manifest.files.some((file) => file.path === 'packages/runtime/src/index.ts')).toBe(
         true,
@@ -344,8 +344,8 @@ standalone(
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { startHost } from '@agent-native/host';
-import { createHttpTransport } from '@agent-native/client';
+import { startHost } from '@tortoise/host';
+import { createHttpTransport } from '@tortoise/client';
 import application from './application';
 test('authored summary is available through the exported HTTP host', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'authored-extension-'));

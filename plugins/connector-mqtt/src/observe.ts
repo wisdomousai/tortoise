@@ -5,8 +5,8 @@ import {
   debounceReadings,
   type ObservationBase,
   type Reading,
-} from '@agent-native/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
+} from '@tortoise/observation';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { createMqttSubscriber, type MqttSubscriberOptions } from './client';
 import { decodePayload, parseTopic, SparkplugState, type MetricValue } from './sparkplug';
 

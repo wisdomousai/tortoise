@@ -46,7 +46,7 @@ test('parts desk tutorial screenshots', async ({ page }) => {
   test.setTimeout(180_000);
   const directory = await mkdtemp(join(tmpdir(), 'parts-desk-shots-'));
   const env = prepare(directory);
-  const host = await startService('@agent-native/parts-desk', env.WORKSPACE_PATH!, env);
+  const host = await startService('@tortoise/parts-desk', env.WORKSPACE_PATH!, env);
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Inquiries', level: 1 })).toBeVisible();

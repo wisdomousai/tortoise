@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/devices",
+  "name": "@tortoise/devices",
   "version": "0.1.0",
   "type": "module",
   "description": "Point-of-work device logic: scanner profiles, decoding, calibration, sources and the device configuration module.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/devices"
   },
   "files": [
@@ -21,11 +21,11 @@
     "./*": "./src/*.ts"
   },
   "devDependencies": {
-    "@agent-native/testing": "workspace:*"
+    "@tortoise/testing": "workspace:*"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "zod": "4.6.5"
   }
 }

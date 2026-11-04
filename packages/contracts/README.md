@@ -1,4 +1,4 @@
-# @agent-native/contracts
+# @tortoise/contracts
 
 Capabilities, modules and the catalog as browser-safe data: schemas, permissions, UI bindings and requirements, never handlers. Start with `defineCapability`, `defineModule` and `buildCatalog`. `jsonSchema` validation rejects input it would have to strip or transform; wire values must be JSON.
 

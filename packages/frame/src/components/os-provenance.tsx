@@ -1,4 +1,4 @@
-import type { OsProvenance } from '@agent-native/contracts';
+import type { OsProvenance } from '@tortoise/contracts';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { describeProvenance } from '@/lib/os-deliveries';

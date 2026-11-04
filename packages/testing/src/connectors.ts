@@ -3,9 +3,9 @@ import {
   type DeliveryResult,
   type LookupResult,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { JsonValue } from '@agent-native/contracts';
-import type { Effect } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { JsonValue } from '@tortoise/contracts';
+import type { Effect } from '@tortoise/runtime';
 
 /**
  * One connector under test, with its target in a fresh state. The suite drives the port as the

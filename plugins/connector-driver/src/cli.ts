@@ -1,9 +1,9 @@
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { ApplicationError } from '@agent-native/contracts';
-import type { PluginCommand } from '@agent-native/host/plugin';
-import { baseEnvironment, startChild, terminateTree } from '@agent-native/process/spawn';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { ApplicationError } from '@tortoise/contracts';
+import type { PluginCommand } from '@tortoise/host/plugin';
+import { baseEnvironment, startChild, terminateTree } from '@tortoise/process/spawn';
 import type { DriverContract } from './contracts/define';
 import { driverContractDocument } from './contracts/document';
 import { driverContractDigest, type DriverProcess } from './supervisor';

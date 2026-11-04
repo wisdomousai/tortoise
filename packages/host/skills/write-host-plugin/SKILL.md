@@ -17,7 +17,7 @@ A host plugin is a feature with settings, lifecycle hooks and ports: it adds mod
 
 ## Steps
 
-1. Create `plugins/<name>` with a `package.json` named `@agent-native/<name>`.
+1. Create `plugins/<name>` with a `package.json` named `@tortoise/<name>`.
 2. Document what the plugin does, what it trusts and how to test it in its README.
 3. Declare the browser-safe `plugin-manifest` entrypoint with `definePluginManifest`. List its modules and the settings it claims. Every operation ID starts with the plugin's ID; `namespace` names another prefix only for operation IDs that are already a wire protocol. Put its requirement declarations in `components`: destinations, exchange folders, devices and child processes. Startup refuses a setting that no composed plugin claims.
 4. Declare the server `plugin` entrypoint with `defineHostPlugin`: `state.create` for its own slice, its handlers, and an authorization port over its own resource types only. A resource type the application's policy covers, or another unit claims, is refused at composition. Return targets, observers and remote-query sources from `connect`; expose a service from `open`.
@@ -26,7 +26,7 @@ A host plugin is a feature with settings, lifecycle hooks and ports: it adds mod
 7. Reach the network, ingress, identity, processes, exchange folders and the audit log only through `HostPorts`. Never reach them through another plugin's imports.
 8. Write from a loop or job only through the plugin's own commands, as a caller under a delegated grant. Never write into application state.
 9. For a plugin that issues its own credentials, as the device link and the peer link do:
-   - pair by a one-use code with `@agent-native/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
+   - pair by a one-use code with `@tortoise/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
    - serve the code exchange from `publicRoute`, which runs before the session check;
    - resolve the credential on every request in `authenticate(token, request)`, which returns the caller's context and grant;
    - read the request body in `authenticate` only from `request.clone()`, so the handler can still read it;

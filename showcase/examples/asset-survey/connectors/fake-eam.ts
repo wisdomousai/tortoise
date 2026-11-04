@@ -1,12 +1,12 @@
-import type { BlobRef } from '@agent-native/contracts';
+import type { BlobRef } from '@tortoise/contracts';
 import {
   DeliveryFailure,
   type CallerCredentials,
   type PullBatch,
   type SearchPage,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import type { Effect, EffectOutcome, SourceRequest } from '@agent-native/runtime';
+} from '@tortoise/integration';
+import type { Effect, EffectOutcome, SourceRequest } from '@tortoise/runtime';
 
 /** How the EAM reads an evidence photo of the filing it is delivering. */
 export type EvidenceReader = (

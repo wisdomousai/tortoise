@@ -1,8 +1,8 @@
 import { ClipboardCheck, Factory, PackageCheck, TriangleAlert } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
-import { driverScreens } from '@agent-native/connector-driver/plugin-screens';
-import { peerLinkScreens } from '@agent-native/peer-link/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
+import { driverScreens } from '@tortoise/connector-driver/plugin-screens';
+import { peerLinkScreens } from '@tortoise/peer-link/plugin-screens';
 import manifest from './manifest';
 import { inspectionRequestRoutes } from './ui/inspection-requests';
 import { LotsScreen } from './ui/inspection';

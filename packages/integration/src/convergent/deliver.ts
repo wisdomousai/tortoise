@@ -1,4 +1,4 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import { DeliveryFailure, DeliveryUncertain, type LookupResult } from '../port.js';
 import type { ConditionCheck } from './reads.js';
 

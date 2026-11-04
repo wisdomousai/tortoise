@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/observation",
+  "name": "@tortoise/observation",
   "version": "0.1.0",
   "type": "module",
   "description": "Server-only observation of sources that cannot be queried: readings with provenance, a debouncer and an observer that submits through a domain ingest command.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/observation"
   },
   "files": [
@@ -21,6 +21,6 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/runtime": "workspace:*"
+    "@tortoise/runtime": "workspace:*"
   }
 }

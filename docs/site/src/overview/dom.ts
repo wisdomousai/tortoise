@@ -79,8 +79,8 @@ export function link(href: string, ...children: Child[]) {
   );
 }
 
-/** The short name of a workspace: `@agent-native/runtime` becomes `runtime`. */
-export const shortName = (name: string) => name.replace(/^@agent-native\//, '');
+/** The short name of a workspace: `@tortoise/runtime` becomes `runtime`. */
+export const shortName = (name: string) => name.replace(/^@tortoise\//, '');
 
 /** A row of toggle buttons; `select` runs with the chosen id and once for the initial one. */
 export function segmented(

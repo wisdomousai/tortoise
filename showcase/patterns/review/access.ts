@@ -1,5 +1,5 @@
-import { own } from '@agent-native/runtime';
-import type { TestRequestsRoot } from '@agent-native/pattern-base/application';
+import { own } from '@tortoise/runtime';
+import type { TestRequestsRoot } from '@tortoise/pattern-base/application';
 import type { ReviewAccess } from './features/review/feature';
 
 const prefix = 'test-request:';

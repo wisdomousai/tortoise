@@ -1,5 +1,5 @@
 import { ShieldCheck } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { ComplianceScreen } from './components/compliance-screen';
 
 /**

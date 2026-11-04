@@ -27,7 +27,7 @@ import {
   type FieldValue,
   type Frame,
   type GoldenFrame,
-} from '@agent-native/screen-bridge';
+} from '@tortoise/screen-bridge';
 
 interface Manifest {
   readonly profile: string;

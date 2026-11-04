@@ -1,4 +1,4 @@
-# @agent-native/os
+# @tortoise/os
 
 Provides the shell port. `createOsPlugin` delivers incoming OS requests to the right screen and runs declared OS actions through the caller's shell adapter. A request never sets the principal, workspace or grant; the plugin attributes it to the session that submitted it and delivers it only to that session's frame.
 

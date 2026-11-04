@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { implementDataProvider } from '@agent-native/integration';
-import { own } from '@agent-native/runtime';
+import { implementDataProvider } from '@tortoise/integration';
+import { own } from '@tortoise/runtime';
 import { crmAccounts, crmContacts } from '../contracts';
 import { coversRegion, type CrmState } from '../domain';
 import type { Context, CrmServices } from './context';

@@ -1,7 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, Output, type LanguageModel } from 'ai';
 import { z } from 'zod';
-import type { NetworkPort } from '@agent-native/host/plugin';
+import type { NetworkPort } from '@tortoise/host/plugin';
 import { attributeName } from '../contracts/schemas';
 import type { ProposedField } from '../domain';
 import type { Extractor, Photo } from './extractor';

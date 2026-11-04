@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { buildCatalog, definePeerApi } from '@agent-native/contracts';
+import { buildCatalog, definePeerApi } from '@tortoise/contracts';
 import { defineAssignmentKind, defineAssignments, defineWorklist, offerEventType } from '../src';
 import { assignments, checker, issuerApi, notesModule, review, survey } from './fixture';
 

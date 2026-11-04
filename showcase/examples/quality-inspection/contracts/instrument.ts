@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { jsonSchema } from '@agent-native/contracts';
-import { defineDriverContract } from '@agent-native/connector-driver/contracts';
+import { jsonSchema } from '@tortoise/contracts';
+import { defineDriverContract } from '@tortoise/connector-driver/contracts';
 
 /** What the instrument sends when the inspector presses its data button. */
 export const instrumentMeasurementSchema = z.strictObject({

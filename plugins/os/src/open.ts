@@ -3,10 +3,10 @@ import type {
   OsActionOutcome,
   OsHandlerKind,
   OsInstruction,
-} from '@agent-native/contracts';
-import type { PluginInstance, PluginOpenContext, ShellPort } from '@agent-native/kernel/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { webScheme } from '@agent-native/shell';
+} from '@tortoise/contracts';
+import type { PluginInstance, PluginOpenContext, ShellPort } from '@tortoise/kernel/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { webScheme } from '@tortoise/shell';
 import { createOsAudit, createRateLimit } from './audit';
 import {
   assertServed,

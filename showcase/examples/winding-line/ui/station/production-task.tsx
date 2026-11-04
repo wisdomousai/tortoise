@@ -1,4 +1,4 @@
-import type { ScannerProfile, ScanRoute } from '@agent-native/devices';
+import type { ScannerProfile, ScanRoute } from '@tortoise/devices';
 import { OperatorPanel } from '@/components/operator-station';
 import { reading, type Station } from './format';
 import { Counters } from './counters';

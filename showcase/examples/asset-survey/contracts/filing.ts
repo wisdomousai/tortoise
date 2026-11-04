@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineDataProvider, defineTarget } from '@agent-native/contracts';
+import { defineDataProvider, defineTarget } from '@tortoise/contracts';
 import { operation } from './operation';
 import {
   assetFoundSchema,

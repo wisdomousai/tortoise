@@ -3,11 +3,11 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { SitePolicyInput } from '@agent-native/site/policy';
-import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { openMobileInstance } from '@agent-native/mobile';
-import { hubLinkServiceOf } from '@agent-native/hub-link/plugin';
+import type { SitePolicyInput } from '@tortoise/site/policy';
+import { startHost } from '@tortoise/host/host';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { openMobileInstance } from '@tortoise/mobile';
+import { hubLinkServiceOf } from '@tortoise/hub-link/plugin';
 import { devicePlatform, fieldApplication, hubApplication } from './fixtures';
 
 /** A throwaway site CA and a server certificate for `localhost` signed by it. */

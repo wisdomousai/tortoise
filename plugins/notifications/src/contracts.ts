@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  defineCapability,
-  defineModule,
-  jsonSchema,
-  jsonValueSchema,
-} from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema, jsonValueSchema } from '@tortoise/contracts';
 
 const id = z.string().regex(/^[A-Za-z0-9._:-]{1,128}$/);
 const digest = z.string().regex(/^[0-9a-f]{64}$/);

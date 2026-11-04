@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { openShareTarget } from './open';
 import { shareTargetPluginManifest } from './plugin-manifest';
 

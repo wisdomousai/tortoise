@@ -1,2 +1,2 @@
 /** Moved to the portable kernel; this subpath keeps existing imports working. */
-export * from '@agent-native/kernel/plugin-manifest';
+export * from '@tortoise/kernel/plugin-manifest';

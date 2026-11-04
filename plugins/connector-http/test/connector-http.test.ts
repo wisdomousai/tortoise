@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
-import { connectorConformance, conformanceEffect } from '@agent-native/testing/connectors';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
+import { connectorConformance, conformanceEffect } from '@tortoise/testing/connectors';
 import { httpTargetPort, readPointer, type HttpTargetOptions } from '../src';
 import { FakeRestSystem } from '../src/testing';
 

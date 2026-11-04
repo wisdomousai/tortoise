@@ -1,19 +1,19 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
-import { createHttpTransport } from '@agent-native/client';
+import { createHttpTransport } from '@tortoise/client';
 import {
   ApplicationError,
   blobRefSchema,
   defineCapability,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createApplication,
   createHandlerFactory,
   createMemoryBlobStore,
   createMemoryStorage,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { createDirectTransport } from './direct-transport';
 import { createHttpHandler } from './http';
 import { Sessions } from './http/sessions';

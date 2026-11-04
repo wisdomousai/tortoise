@@ -4,8 +4,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import type { Snapshot, Transport } from '@agent-native/client';
+} from '@tortoise/contracts';
+import type { Snapshot, Transport } from '@tortoise/client';
 import { CAPABILITY_QUERY_KEY, type CapabilityQueryMeta, type SnapshotFence } from './keys';
 
 /** How long a remote result counts as fresh before revisiting the same input refetches it. */

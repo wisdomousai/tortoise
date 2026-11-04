@@ -1,4 +1,4 @@
-import type { Catalog, ErrorEnvelope, JsonValue } from '@agent-native/contracts';
+import type { Catalog, ErrorEnvelope, JsonValue } from '@tortoise/contracts';
 
 /** A `fetch` bound to the peer's origin, as `NetworkPort.client` returns it. */
 export interface PeerClient {

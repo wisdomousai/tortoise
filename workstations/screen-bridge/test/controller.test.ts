@@ -1,17 +1,13 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import {
-  DeliveryFailure,
-  DeliveryUncertain,
-  createEffectDispatcher,
-} from '@agent-native/integration';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { DeliveryFailure, DeliveryUncertain, createEffectDispatcher } from '@tortoise/integration';
 import {
   createApplication,
   createHandlerFactory,
   createMemoryStorage,
   type EffectOutcome,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { createStationConnector, type BridgeControl } from '../src/controller';
 import { createAccessibilityExtractor } from '../src/recognition/accessibility';
 import { createScriptedDriver } from '../src/scripted-driver';

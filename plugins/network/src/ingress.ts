@@ -1,5 +1,5 @@
-import type { ResolvedPolicy } from '@agent-native/site/policy';
-import type { IngressPort } from '@agent-native/host/plugin';
+import type { ResolvedPolicy } from '@tortoise/site/policy';
+import type { IngressPort } from '@tortoise/host/plugin';
 
 /**
  * The TLS listener a site policy selects, on the policy's host name and fixed port. With `mtls`

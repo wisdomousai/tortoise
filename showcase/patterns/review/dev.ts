@@ -5,7 +5,7 @@
  * nothing. A workspace created before this script has no `lena`; delete `.workspace` to reseed.
  */
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { createTestRequestsReviewApplication } from './application';
 
 const workspacePath = process.env.WORKSPACE_PATH ?? join(import.meta.dir, '.workspace');

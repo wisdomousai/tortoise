@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
 import { peerLinkModule } from './contracts';
 
 /**

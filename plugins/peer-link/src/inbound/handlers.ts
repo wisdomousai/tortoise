@@ -1,10 +1,10 @@
-import { ApplicationError, type InputOf } from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf } from '@tortoise/contracts';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import {
   credentialDigest as digestOf,
   newEnrollmentCode,
   normalizeCode,
-} from '@agent-native/host/enrollment';
+} from '@tortoise/host/enrollment';
 import { peerLinkModule, peerLinkOperations as ops } from '../contracts';
 import {
   mappingKey,

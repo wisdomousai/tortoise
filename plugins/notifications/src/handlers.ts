@@ -1,5 +1,5 @@
-import { ApplicationError, type InputOf } from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type InputOf } from '@tortoise/contracts';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { notificationsModule, notificationOperations as ops } from './contracts';
 import { digestOf, type NotificationsState } from './state';
 

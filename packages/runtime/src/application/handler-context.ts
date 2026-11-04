@@ -4,7 +4,7 @@ import {
   isBlobRef,
   type BlobRef,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type {
   Effect,
   EffectOutcome,

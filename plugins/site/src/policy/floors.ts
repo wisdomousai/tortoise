@@ -1,4 +1,4 @@
-import type { CatalogRequirements } from '@agent-native/contracts';
+import type { CatalogRequirements } from '@tortoise/contracts';
 import type { OfflineConsequence, ResolvedBinding } from '../policy';
 import type { Findings } from './findings';
 import type { SitePolicy } from './schema';

@@ -1,4 +1,4 @@
-import { defineModule } from '@agent-native/contracts';
+import { defineModule } from '@tortoise/contracts';
 import { captureOperations } from './contracts/captures';
 import { assignmentOperations } from './contracts/kinds';
 import { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';

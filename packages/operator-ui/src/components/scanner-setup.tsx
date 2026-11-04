@@ -5,7 +5,7 @@ import {
   type CalibrationResult,
   type ScanRoute,
   type ScannerProfile,
-} from '@agent-native/devices';
+} from '@tortoise/devices';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BigAction } from '@/components/big-action';

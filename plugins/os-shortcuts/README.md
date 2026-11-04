@@ -1,4 +1,4 @@
-# @agent-native/os-shortcuts
+# @tortoise/os-shortcuts
 
 Serves the app's `shortcut` OS handlers: launcher entries such as "New task". Compose `openOsShortcuts` beside the OS plugin. Any app or web page can open a shortcut link, as any page can open the launch page, so the plugin treats a shortcut as an unsolicited OS request.
 

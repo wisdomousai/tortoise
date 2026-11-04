@@ -1,14 +1,14 @@
 import { join } from 'node:path';
-import type { AuditEvent, AuditRecord, EventLogPort } from '@agent-native/contracts';
+import type { AuditEvent, AuditRecord, EventLogPort } from '@tortoise/contracts';
 import {
   digest,
   readEvents,
   unresolvedCommands,
   type ChainHead,
   type ForwardingStats,
-} from '@agent-native/event-log';
-import type { PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
-import { siteServiceOf } from '@agent-native/site/open';
+} from '@tortoise/event-log';
+import type { PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
+import { siteServiceOf } from '@tortoise/site/open';
 import { attestationRecords } from './attestation';
 import { openAuditChannel } from './audit-channel';
 import { digestExecutable } from './executable-digest';

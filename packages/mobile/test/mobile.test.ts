@@ -3,20 +3,20 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { bunSqlDriver } from '@tortoise/adapters/sqlite';
 import {
   blobRefSchema,
   defineCapability,
   defineHostComponent,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
-import { defineApplication, type ApplicationConnections } from '@agent-native/kernel/application';
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
-import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
-import { createHandlerFactory } from '@agent-native/runtime';
-import { defineManifest } from '@agent-native/kernel/manifest';
+} from '@tortoise/contracts';
+import { defineApplication, type ApplicationConnections } from '@tortoise/kernel/application';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
+import { definePluginManifest } from '@tortoise/kernel/plugin-manifest';
+import { createHandlerFactory } from '@tortoise/runtime';
+import { defineManifest } from '@tortoise/kernel/manifest';
 import { createMobilePlatform, openMobileInstance, type MobileBindings } from '../src/index';
 
 const directories: string[] = [];

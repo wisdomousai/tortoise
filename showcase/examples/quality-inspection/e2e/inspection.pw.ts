@@ -21,7 +21,7 @@ test('keyboard-only capture records, advances, deduplicates and shows SoR outcom
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-inspection-'));
   // Another quality-system user holds lot 4000002, so its forwarded results are rejected.
-  const host = await startService('@agent-native/quality-inspection', workspace, {
+  const host = await startService('@tortoise/quality-inspection', workspace, {
     DEMO_QUALITY_LOCKED_LOTS: '4000002',
   });
   try {
@@ -122,7 +122,7 @@ test('an unfinished draft keeps its sample when another caller records that samp
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-inspection-'));
-  const host = await startService('@agent-native/quality-inspection', workspace);
+  const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);
     await page

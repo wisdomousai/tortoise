@@ -1,8 +1,8 @@
-import { ApplicationError, type ContractApplication } from '@agent-native/contracts';
-import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
-import { createPeerCall, PeerCallError } from '@agent-native/integration';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError, type ContractApplication } from '@tortoise/contracts';
+import { jsonResponse, readJsonBody } from '@tortoise/adapters/http';
+import { createPeerCall, PeerCallError } from '@tortoise/integration';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { generateAssertionKey } from '../assertion';
 import { enrollPath, peerLinkOperations as ops } from '../contracts';
 import type { PeerCaller } from '../inbound/routes';

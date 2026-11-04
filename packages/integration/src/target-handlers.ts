@@ -1,4 +1,4 @@
-import { ApplicationError, type SyncBatch, type Target } from '@agent-native/contracts';
+import { ApplicationError, type SyncBatch, type Target } from '@tortoise/contracts';
 import type {
   Effect,
   EffectOutcome,
@@ -6,7 +6,7 @@ import type {
   HandlerContext,
   HandlerContribution,
   IntegrationAllowlist,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 
 /** Where a target's inbound position is stored in the module's state. */
 export interface TargetCursor {

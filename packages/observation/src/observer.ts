@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
+import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
 import type { ObservedReading } from './debounce';
 
 /**

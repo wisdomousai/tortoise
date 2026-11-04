@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
-import type { ScanEvent } from '@agent-native/devices/scanner/decode';
-import type { ScannerProfile } from '@agent-native/devices/scanner/profile';
-import { intentSource } from '@agent-native/intent-scanner/expo';
+import type { ScanEvent } from '@tortoise/devices/scanner/decode';
+import type { ScannerProfile } from '@tortoise/devices/scanner/profile';
+import { intentSource } from '@tortoise/intent-scanner/expo';
 
 export const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 

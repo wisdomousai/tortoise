@@ -5,7 +5,7 @@ import type {
   OsInstruction,
   OsRequestOutcome,
   RawOsRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { openActionFor } from './actions';
 import { intentListening, intentRequest, intentToStart, type AndroidIntent } from './intents';
 import { fileHandlerFor, fileRequest, type BlobUpload } from './local-files';

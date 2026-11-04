@@ -5,8 +5,8 @@ import {
   deliveryStatusSchema,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
-import { fileExchange } from '@agent-native/connector-files/contracts';
+} from '@tortoise/contracts';
+import { fileExchange } from '@tortoise/connector-files/contracts';
 import { deliverySchema } from './delivery';
 
 /** What the ERP's advance shipping notice export carries for one line. */

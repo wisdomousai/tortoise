@@ -7,8 +7,8 @@ import {
   DeliveryFailure,
   peerQuery,
   type PeerLink,
-} from '@agent-native/integration';
-import { conformanceEffect } from '@agent-native/testing/connectors';
+} from '@tortoise/integration';
+import { conformanceEffect } from '@tortoise/testing/connectors';
 import { peerLinkServiceOf } from '../src/service';
 import { startPeerPair, type PeerPair } from '../src/testing';
 import {

@@ -1,5 +1,5 @@
-import type { Transport } from '@agent-native/client';
-import type { Catalog } from '@agent-native/contracts';
+import type { Transport } from '@tortoise/client';
+import type { Catalog } from '@tortoise/contracts';
 
 /** Help and workflow text printed verbatim instead of as a JSON value. */
 export class CliText {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, jsonSchema, recordKeySchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, recordKeySchema } from '@tortoise/contracts';
 import { borrowerSchema, loanSchema } from './loan';
 
 /** Lend an available tool to an employee for a work order. Attendants only. */

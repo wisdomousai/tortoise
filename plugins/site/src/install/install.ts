@@ -11,18 +11,18 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { ROW_SCHEMA_VERSION } from '@agent-native/adapters/row-storage';
+import { ROW_SCHEMA_VERSION } from '@tortoise/adapters/row-storage';
 import {
   admissionRefusals,
   verifyBundle,
   type BundleManifest,
   type SiteApproval,
   type TrustedKey,
-} from '@agent-native/bundle';
-import { ApplicationError } from '@agent-native/contracts';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
+} from '@tortoise/bundle';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
 import { policyErrors, sitePolicyFor } from '../policy-file';
-import { pastBestBefore } from '@agent-native/kernel/build';
+import { pastBestBefore } from '@tortoise/kernel/build';
 import {
   binaryOf,
   installLayout,

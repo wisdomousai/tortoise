@@ -1,4 +1,4 @@
-import { definePolicy, own, type ApprovalAccess, type OperationRule } from '@agent-native/runtime';
+import { definePolicy, own, type ApprovalAccess, type OperationRule } from '@tortoise/runtime';
 import { operations } from './contracts';
 import { DESK_DISCOUNT_LIMIT } from './contracts/quote';
 import type { AppState, Role } from './domain';

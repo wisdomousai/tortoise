@@ -16,7 +16,7 @@ const model = z.strictObject({
   digest: z.string().max(200).optional(),
 });
 
-/** One reading as the bridge submits it (see `Observation` in @agent-native/screen-bridge). */
+/** One reading as the bridge submits it (see `Observation` in @tortoise/screen-bridge). */
 const fieldDeclaration = z.strictObject({
   type: z.enum(['number', 'text', 'enum', 'boolean']),
   options: z.array(z.string().max(100)).max(100).optional(),

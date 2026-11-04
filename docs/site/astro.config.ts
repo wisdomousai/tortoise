@@ -14,8 +14,8 @@ import { repoRoot, sidebar } from './sidebar';
 import { pageOutline } from './src/plugins/page-outline';
 import { repoLinks } from './src/plugins/repo-links';
 
-const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
-const base = '/agent-native-desktop-starter';
+const repository = 'https://github.com/wisdomousai/tortoise';
+const base = '/tortoise';
 const site = fileURLToPath(new URL('./src', import.meta.url));
 
 export default defineConfig({

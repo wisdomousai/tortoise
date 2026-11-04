@@ -1,5 +1,5 @@
 import { describe, test } from 'bun:test';
-import { featureConformance } from '@agent-native/testing/features';
+import { featureConformance } from '@tortoise/testing/features';
 import { assignmentFeature, type AssignmentAccess, type AssignmentSlice } from '../src/server';
 import { assignments } from './fixture';
 

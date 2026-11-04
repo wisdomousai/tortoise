@@ -1,5 +1,5 @@
-import { blobDigestPattern } from '@agent-native/contracts';
-import type { BlobStore } from '@agent-native/runtime';
+import { blobDigestPattern } from '@tortoise/contracts';
+import type { BlobStore } from '@tortoise/runtime';
 import { Directory, File, Paths } from 'expo-file-system';
 
 /**

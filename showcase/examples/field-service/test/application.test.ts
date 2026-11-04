@@ -2,9 +2,9 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { createApplication } from '@agent-native/runtime';
-import { createApplicationRuntime, workspaceStorage } from '@agent-native/host';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { createApplication } from '@tortoise/runtime';
+import { createApplicationRuntime, workspaceStorage } from '@tortoise/host';
 import fieldService from '../application';
 import {
   createServiceHandlers,

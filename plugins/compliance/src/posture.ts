@@ -1,7 +1,7 @@
-import type { AuditEvent } from '@agent-native/contracts';
-import { judgeCertificates, type ResolvedPolicy } from '@agent-native/site/policy';
-import type { ForwardingStats, VerificationReport } from '@agent-native/event-log';
-import { pastBestBefore } from '@agent-native/kernel/build';
+import type { AuditEvent } from '@tortoise/contracts';
+import { judgeCertificates, type ResolvedPolicy } from '@tortoise/site/policy';
+import type { ForwardingStats, VerificationReport } from '@tortoise/event-log';
+import { pastBestBefore } from '@tortoise/kernel/build';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
 
 /** Per-destination egress use, accumulated from `egress.*` audit events. */

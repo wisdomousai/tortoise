@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { createApplication, createMemoryStorage } from '@agent-native/runtime';
+import { createApplication, createMemoryStorage } from '@tortoise/runtime';
 import { createHttpHandler } from './http';
 import { sessionCookieName } from './http/session-cookie';
 import { Sessions, type CredentialSource } from './http/sessions';

@@ -1,11 +1,11 @@
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
 import {
   own,
   records,
   type Effect,
   type EffectOutcome,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { eamTarget, type EamTool } from '../contracts/eam-target';
 import { loans } from '../contracts/loan';
 import { tools } from '../contracts/tool';

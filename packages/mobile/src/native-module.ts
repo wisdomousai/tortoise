@@ -1,4 +1,4 @@
-import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
+import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
 
 /** Looks a native module up by name; `null` when the build does not include it. */
 export type NativeModuleLookup = <Module>(name: string) => Module | null;

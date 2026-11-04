@@ -6,7 +6,7 @@ import {
   defineCollection,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { partSchema } from './part';
 import { serialSchema } from './transformer';
 

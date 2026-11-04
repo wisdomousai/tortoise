@@ -1,4 +1,4 @@
-import { defineMembership } from '@agent-native/contracts';
+import { defineMembership } from '@tortoise/contracts';
 import { plantRoleSchema } from './schemas';
 
 /** Plant roles: inspectors record, supervisors decide and manage roles, viewers read. */

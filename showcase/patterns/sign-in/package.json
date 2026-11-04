@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/pattern-sign-in",
+  "name": "@tortoise/pattern-sign-in",
   "version": "0.1.0",
   "private": true,
   "type": "module",

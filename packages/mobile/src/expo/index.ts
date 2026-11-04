@@ -2,7 +2,7 @@
  * Device bindings for the mobile platform on Expo. Import this entry first in the app, before any
  * framework code runs, so the Web globals Hermes lacks are installed before they are needed.
  */
-import { installGlobals } from '@agent-native/kernel/globals';
+import { installGlobals } from '@tortoise/kernel/globals';
 import { getRandomValues } from 'expo-crypto';
 import { Platform } from 'react-native';
 import { createMobilePlatform } from '../platform';

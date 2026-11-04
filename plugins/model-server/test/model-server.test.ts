@@ -9,11 +9,11 @@ import {
   defineModelEntry,
   type ModelActivation,
   type ModelEntry,
-} from '@agent-native/agents/models';
-import { toolName } from '@agent-native/agents/types';
-import { startHost } from '@agent-native/host/host';
-import { gateModel } from '@agent-native/testing/activation';
-import { runAgentScenario, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+} from '@tortoise/agents/models';
+import { toolName } from '@tortoise/agents/types';
+import { startHost } from '@tortoise/host/host';
+import { gateModel } from '@tortoise/testing/activation';
+import { runAgentScenario, type AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { serverArguments } from '../src/arguments';
 import { llamaServerStandIn } from '../src/testing';
 import { measure } from '../src/measure';

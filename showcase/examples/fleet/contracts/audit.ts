@@ -5,7 +5,7 @@ import {
   defineCollection,
   jsonValueSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /**
  * One audit event a site forwarded, keyed `<site>:<seq>`, after the fleet checked its hash and

@@ -2,8 +2,8 @@ import { afterAll, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Harness, HarnessTurn, RunSnapshot } from '@agent-native/agents/types';
-import { startHost } from '@agent-native/host/host';
+import type { Harness, HarnessTurn, RunSnapshot } from '@tortoise/agents/types';
+import { startHost } from '@tortoise/host/host';
 import { createToolStoreApplication } from '../application';
 import {
   calibrationPullPrompt,

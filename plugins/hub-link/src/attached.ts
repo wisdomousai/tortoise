@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { Link } from './network';
 
 /** A page of the hub's own web build, opened with a one-use launch key. */

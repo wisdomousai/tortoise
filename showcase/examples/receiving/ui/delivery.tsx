@@ -2,7 +2,7 @@ import { useParams } from '@tanstack/react-router';
 import { CapabilityForm } from '@/components/capability-form';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { ApprovalReview } from '@/components/approval-review';
-import { approvalOperations } from '@agent-native/contracts';
+import { approvalOperations } from '@tortoise/contracts';
 import { operations } from '../contracts';
 
 export const reasonOf = (approval: { operation: string; input: Record<string, unknown> }) =>

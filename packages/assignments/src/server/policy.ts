@@ -1,5 +1,5 @@
-import type { AnyCapability } from '@agent-native/contracts';
-import { isDelegated, own, type Decision, type ExecutionContext } from '@agent-native/runtime';
+import type { AnyCapability } from '@tortoise/contracts';
+import { isDelegated, own, type Decision, type ExecutionContext } from '@tortoise/runtime';
 import type { Assignee } from '../schemas';
 import type { AssignmentAccess, AssignmentAction } from './hooks';
 import {

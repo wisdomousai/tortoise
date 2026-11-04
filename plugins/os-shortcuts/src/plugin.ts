@@ -1,5 +1,5 @@
-import { defineHostPlugin, type PluginOpenContext } from '@agent-native/kernel/plugin';
-import { osServiceOf } from '@agent-native/os';
+import { defineHostPlugin, type PluginOpenContext } from '@tortoise/kernel/plugin';
+import { osServiceOf } from '@tortoise/os';
 import { osShortcutsPluginManifest } from './plugin-manifest';
 
 /**

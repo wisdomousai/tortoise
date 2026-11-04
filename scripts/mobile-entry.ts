@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import { readPluginSettings } from '@agent-native/host';
-import { loadManifest } from '@agent-native/host/config';
-import { readMobileTarget } from '@agent-native/host/mobile-target';
-import { deploymentCatalog } from '@agent-native/kernel/components';
-import { nativeOsConfig } from '@agent-native/shell/registrations';
+import { readPluginSettings } from '@tortoise/host';
+import { loadManifest } from '@tortoise/host/config';
+import { readMobileTarget } from '@tortoise/host/mobile-target';
+import { deploymentCatalog } from '@tortoise/kernel/components';
+import { nativeOsConfig } from '@tortoise/shell/registrations';
 
 const root = resolve(import.meta.dir, '..');
 

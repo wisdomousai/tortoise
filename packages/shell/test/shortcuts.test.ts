@@ -7,7 +7,7 @@ import {
   jsonSchema,
   type CatalogOs,
   type OsHandler,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createDesktopShell,
   launcherShortcuts,
@@ -80,7 +80,7 @@ test('launchers on every platform come from the same shortcut handlers', () => {
     { id: 'note.new', title: "Today's note", link: 'dev.example.notes:///?os-shortcut=note.new' },
   ]);
   expect(nativeOsConfig(os, { appId: 'dev.example.notes', scheme }).plugins).toContainEqual([
-    '@agent-native/mobile/shortcuts',
+    '@tortoise/mobile/shortcuts',
     { shortcuts: entries },
   ]);
   expect(webManifestOs(os, { appId: 'dev.example.notes', scheme }).shortcuts).toEqual([

@@ -1,4 +1,4 @@
-import type { NetworkProtocol } from '@agent-native/contracts';
+import type { NetworkProtocol } from '@tortoise/contracts';
 
 export const schemes: Record<NetworkProtocol, string> = {
   https: 'https:',

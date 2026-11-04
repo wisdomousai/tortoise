@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { ApplicationError } from '@agent-native/contracts';
-import { defineFeature } from '@agent-native/host/feature';
+import { ApplicationError } from '@tortoise/contracts';
+import { defineFeature } from '@tortoise/host/feature';
 import {
   isDelegated,
   own,
@@ -8,7 +8,7 @@ import {
   type ExecutionContext,
   type FeatureHandler,
   type FeaturePolicy,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { reviewFeatureManifest, reviewOperations, type Review } from './contracts';
 
 /** What a caller does in the review feature. */

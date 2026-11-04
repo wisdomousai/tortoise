@@ -14,7 +14,7 @@ Browser-safe data: a stable ID and explicit schemas.
 
 ```ts
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 export const rename = defineCapability({
   id: 'note.rename',
@@ -34,8 +34,8 @@ Make protected output fields optional, so output the policy trimmed still valida
 Server-only, with types from its capability.
 
 ```ts
-import { createHandlerFactory } from '@agent-native/runtime';
-import { ApplicationError } from '@agent-native/contracts';
+import { createHandlerFactory } from '@tortoise/runtime';
+import { ApplicationError } from '@tortoise/contracts';
 import { rename } from './contracts';
 
 type State = { notes: Record<string, { id: string; title: string }> };
@@ -126,8 +126,8 @@ Bindings: `from.input`, `from.step` (earlier result), `from.effect` (an awaited 
 For keyed records, use a collection. Its `records` helper does the lookup, `NOT_FOUND` and `ctx.change` for you.
 
 ```ts
-import { defineCollection, collectionList } from '@agent-native/contracts';
-import { records, collectionListHandler } from '@agent-native/runtime';
+import { defineCollection, collectionList } from '@tortoise/contracts';
+import { records, collectionListHandler } from '@tortoise/runtime';
 
 export const noteRecords = defineCollection({
   type: 'note',

@@ -1,7 +1,7 @@
 import { ClipboardCheck, Inbox, List, Network, TriangleAlert } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
-import { peerLinkScreens } from '@agent-native/peer-link/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
+import { peerLinkScreens } from '@tortoise/peer-link/plugin-screens';
 import manifest from './manifest';
 import { deliveryRoutes } from './ui/delivery';
 import { ErpScreen } from './ui/erp-target';

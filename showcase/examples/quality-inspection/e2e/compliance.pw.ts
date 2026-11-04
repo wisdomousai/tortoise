@@ -6,7 +6,7 @@ import { startService } from '../../../../tests/e2e/service';
 
 test('the compliance screen shows posture and a new denial without a reload', async ({ page }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-compliance-'));
-  const host = await startService('@agent-native/quality-inspection', workspace);
+  const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);
     await page.getByRole('link', { name: 'Compliance', exact: true }).click();

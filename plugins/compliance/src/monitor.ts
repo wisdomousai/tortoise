@@ -1,11 +1,11 @@
-import type { AuditOutcome, EventLogPort } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/site/policy';
+import type { AuditOutcome, EventLogPort } from '@tortoise/contracts';
+import type { ResolvedPolicy } from '@tortoise/site/policy';
 import {
   readEvents,
   verifyEventLog,
   type ChainHead,
   type ForwardingStats,
-} from '@agent-native/event-log';
+} from '@tortoise/event-log';
 import { auditEvents } from './audit-events';
 import type { AuditEventView, LogVerification, Posture } from './contracts';
 import { accumulateEgress, assessPosture, type EgressUsage } from './posture';

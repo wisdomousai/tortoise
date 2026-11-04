@@ -1,7 +1,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
-import { canonicalJson, isBlobRef, type BlobRef } from '@agent-native/contracts';
-import type { TargetCursor } from '@agent-native/integration';
+import { canonicalJson, isBlobRef, type BlobRef } from '@tortoise/contracts';
+import type { TargetCursor } from '@tortoise/integration';
 import type {
   Assignee,
   AssignmentStage,

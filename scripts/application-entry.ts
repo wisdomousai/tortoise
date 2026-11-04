@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
-import { readStarterConfig } from '@agent-native/host/config';
+import { readStarterConfig } from '@tortoise/host/config';
 
 const root = resolve(import.meta.dir, '..');
 
@@ -25,14 +25,14 @@ export async function writeApplicationEntry(
     ? Bun.resolveSync(join(config.application, 'application'), root)
     : Bun.resolveSync(`${config.application}/application`, root);
   const stamp = [
-    `import { stampBuild } from ${JSON.stringify(Bun.resolveSync('@agent-native/kernel/build', root))};`,
+    `import { stampBuild } from ${JSON.stringify(Bun.resolveSync('@tortoise/kernel/build', root))};`,
     `import definition from ${JSON.stringify(definition)};`,
     `const application = stampBuild(definition, ${JSON.stringify(builtAt)});`,
   ];
   const lines =
     kind === 'cli'
       ? [
-          `import { createCli } from ${JSON.stringify(Bun.resolveSync('@agent-native/host/cli', root))};`,
+          `import { createCli } from ${JSON.stringify(Bun.resolveSync('@tortoise/host/cli', root))};`,
           ...stamp,
           `process.exitCode = await createCli(application, { program: ${JSON.stringify(config.name)} })(process.argv.slice(2));`,
         ]

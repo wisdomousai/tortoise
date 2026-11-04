@@ -8,14 +8,14 @@ import {
   defineFeatureManifest,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+} from '@tortoise/contracts';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import {
   createMemoryStorage,
   definePolicy,
   type AuthorizationPort,
   type RemoteSource,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { createApplicationRuntime, defineApplication } from '../src/application';
 import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineFeature, mountFeature, type FeatureAdoption } from '../src/feature';

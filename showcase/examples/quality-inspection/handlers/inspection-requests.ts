@@ -1,10 +1,10 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,
   records,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { inspectionRequests, type InspectionRequest } from '../contracts/inspection-requests';
 import { capturesAnywhere, type QualityState } from '../domain';

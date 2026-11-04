@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
-import type { AnyApplicationDefinition } from '@agent-native/host/application';
-import { serve } from '@agent-native/host/serve';
-import { readPluginSettings } from '@agent-native/host';
+import type { AnyApplicationDefinition } from '@tortoise/host/application';
+import { serve } from '@tortoise/host/serve';
+import { readPluginSettings } from '@tortoise/host';
 
 /**
  * Sidecar entry used by the desktop shell and `bun run dev`; configuration comes from the
@@ -22,7 +22,7 @@ export async function runService(
   const env = identity ? { AGENT_NATIVE_OS_SCHEME: identity.scheme, ...process.env } : process.env;
   // Loaded only when asked for, so the desktop sidecar never loads the Postgres client.
   const platform = options.hostedWorkspace
-    ? (await import('@agent-native/host/platform/hosted')).hostedPlatformFromEnvironment(
+    ? (await import('@tortoise/host/platform/hosted')).hostedPlatformFromEnvironment(
         options.hostedWorkspace,
       )
     : undefined;

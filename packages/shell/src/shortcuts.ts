@@ -1,4 +1,4 @@
-import type { CatalogOs } from '@agent-native/contracts';
+import type { CatalogOs } from '@tortoise/contracts';
 
 /** A launcher entry as a platform registers it: the handler id, its title and its link. */
 export interface LauncherShortcut {

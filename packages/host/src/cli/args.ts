@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
-import { takeFlag } from '@agent-native/adapters/cli';
-import { ApplicationError } from '@agent-native/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import { ApplicationError } from '@tortoise/contracts';
 import type { ApplicationManifest } from '../manifest';
 import { readPluginSettings, type PluginSettings } from '../plugins/settings';
 

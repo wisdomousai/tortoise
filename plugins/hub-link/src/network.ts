@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { NetworkPort } from '@agent-native/kernel/plugin';
+import { ApplicationError } from '@tortoise/contracts';
+import type { NetworkPort } from '@tortoise/kernel/plugin';
 
 /** The hub the device talks to right now, with its credential; undefined while unpaired. */
 export interface Link {

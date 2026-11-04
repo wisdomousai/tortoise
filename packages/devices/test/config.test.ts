@@ -4,8 +4,8 @@ import {
   createMemoryStorage,
   featureHandlers,
   routeAuthorization,
-} from '@agent-native/runtime';
-import { featureConformance } from '@agent-native/testing/features';
+} from '@tortoise/runtime';
+import { featureConformance } from '@tortoise/testing/features';
 import { defaultWedgeProfile } from '../src/index';
 import {
   createDeviceState,

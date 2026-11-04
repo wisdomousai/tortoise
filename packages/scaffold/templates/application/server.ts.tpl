@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { AppState } from './domain';
 import type { Services } from './handlers/context';
 // scaffold:imports

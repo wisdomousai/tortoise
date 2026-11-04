@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/pattern-local-model",
+  "name": "@tortoise/pattern-local-model",
   "version": "0.1.0",
   "private": true,
   "type": "module",

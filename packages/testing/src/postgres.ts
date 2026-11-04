@@ -1,5 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
-import type { PgDriver, PgQuery, PgValue } from '@agent-native/adapters/postgres-storage';
+import type { PgDriver, PgQuery, PgValue } from '@tortoise/adapters/postgres-storage';
 
 /**
  * An in-process Postgres (PGlite, Postgres compiled to WebAssembly) behind `PgDriver`, for the

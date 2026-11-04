@@ -2,8 +2,8 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { chmod, lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import { createBundle, generateSigningKey, type SigningKey } from '@agent-native/bundle';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { createBundle, generateSigningKey, type SigningKey } from '@tortoise/bundle';
 
 /**
  * `app install` end to end on a staged prefix: the bundles' binaries are scripts running the
@@ -100,7 +100,7 @@ test('install places a verified release, renders the unit and firewall rules, an
   expect(admit).toMatchObject({ installed: false });
 
   const approval = join(directory, 'approval.json');
-  const { requirementsDigest } = await import('@agent-native/bundle');
+  const { requirementsDigest } = await import('@tortoise/bundle');
   await writeFile(
     approval,
     JSON.stringify({

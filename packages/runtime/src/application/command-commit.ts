@@ -4,7 +4,7 @@ import {
   type AuditRecord,
   type JsonObject,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { CommandReceipt, Effect, WorkspaceSnapshot } from '../types.js';
 import { actorOf, describeInput } from './audit.js';
 import type { Command } from './command-request.js';

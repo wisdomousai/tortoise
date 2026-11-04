@@ -3,17 +3,17 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { connectPeerTarget } from '@agent-native/integration';
-import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import type { SitePolicyInput } from '@agent-native/site/policy';
-import { conformanceEffect } from '@agent-native/testing/connectors';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { connectPeerTarget } from '@tortoise/integration';
+import { startHost } from '@tortoise/host/host';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import type { SitePolicyInput } from '@tortoise/site/policy';
+import { conformanceEffect } from '@tortoise/testing/connectors';
 import { peerLinkServiceOf } from '../src/service';
 import {
   requestInspection,

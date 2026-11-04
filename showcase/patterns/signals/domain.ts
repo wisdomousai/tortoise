@@ -1,5 +1,5 @@
-import type { TestRequestsState } from '@agent-native/pattern-base/server';
-import type { SparkplugField } from '@agent-native/connector-mqtt/observe';
+import type { TestRequestsState } from '@tortoise/pattern-base/server';
+import type { SparkplugField } from '@tortoise/connector-mqtt/observe';
 import type { Condition } from './contracts';
 
 /** The principal the OPC UA and MQTT observers submit as; it holds no lab role. */

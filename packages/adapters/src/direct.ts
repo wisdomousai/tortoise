@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { ApplicationError } from '@agent-native/contracts';
-import type { DelegationGrant, ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { DelegationGrant, ExecutionContext } from '@tortoise/runtime';
 
 export { createDirectTransport } from './direct-transport';
 

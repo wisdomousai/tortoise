@@ -7,7 +7,7 @@ import type {
   OsInstruction,
   OsPlatform,
   RawOsRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { openActionFor, openUrl } from './actions';
 import { pathName, type DesktopArguments } from './desktop-arguments';
 import { fileHandlerFor, fileRequest } from './local-files';

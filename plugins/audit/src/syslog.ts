@@ -1,7 +1,7 @@
 import { hostname } from 'node:os';
-import type { AuditEvent } from '@agent-native/contracts';
-import { rfc5424, type EventSink } from '@agent-native/event-log';
-import { bunSocket, type NetworkPort } from '@agent-native/host/plugin';
+import type { AuditEvent } from '@tortoise/contracts';
+import { rfc5424, type EventSink } from '@tortoise/event-log';
+import { bunSocket, type NetworkPort } from '@tortoise/host/plugin';
 
 /**
  * Forward audit events to a bound `tcp` destination as RFC 5424 syslog with RFC 5425

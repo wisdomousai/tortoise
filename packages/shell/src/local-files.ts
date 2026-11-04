@@ -1,4 +1,4 @@
-import type { BlobRef, CatalogOs, RawOsRequest } from '@agent-native/contracts';
+import type { BlobRef, CatalogOs, RawOsRequest } from '@tortoise/contracts';
 import { claimCode } from './parse';
 
 type FileHandler = Extract<CatalogOs['handlers'][number], { kind: 'file' }>;

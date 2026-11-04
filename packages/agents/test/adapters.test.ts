@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { MockLanguageModelV4 } from 'ai/test';
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import { AiSdkHarness, ASK_TOOL } from '../src/ai-sdk';
 import { ClaudeHarness } from '../src/claude';
 import { CodexHarness } from '../src/codex';

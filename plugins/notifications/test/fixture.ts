@@ -7,12 +7,12 @@ import {
   jsonSchema,
   type OsAction,
   type OsHandler,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { createOsPlugin } from '@agent-native/os/plugin';
-import { osPluginManifest } from '@agent-native/os/plugin-manifest';
-import { createHandlerFactory } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/kernel/application';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { createOsPlugin } from '@tortoise/os/plugin';
+import { osPluginManifest } from '@tortoise/os/plugin-manifest';
+import { createHandlerFactory } from '@tortoise/runtime';
 import { createNotificationsPlugin } from '../src/plugin';
 import { notificationsPluginManifest } from '../src/plugin-manifest';
 

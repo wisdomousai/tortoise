@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { deviceLinkOperations as ops, enrollPath } from './contracts';
 import { authenticateDevice } from './hub/credentials';
 import {
@@ -7,7 +7,7 @@ import {
   type DeviceLinkService,
   type DeviceLinkServices,
 } from './hub/handlers';
-import { createAttemptLimit } from '@agent-native/host/enrollment';
+import { createAttemptLimit } from '@tortoise/host/enrollment';
 import { enroll, type LinkCaller } from './hub/routes';
 import { createDeviceLinkState, type DeviceLinkState } from './hub/state';
 import { deviceLinkPluginManifest } from './plugin-manifest';

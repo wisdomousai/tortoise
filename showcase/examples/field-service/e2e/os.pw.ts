@@ -24,7 +24,7 @@ test('a protocol-handler launch opens the task; files and shares prefill tasks t
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   try {
-    host = await startService('@agent-native/field-service', workspace);
+    host = await startService('@tortoise/field-service', workspace);
     const manifest = await (await page.request.get(`${host.origin}/manifest.webmanifest`)).json();
     const protocol: string = manifest.protocol_handlers[0].protocol;
     expect(manifest.protocol_handlers[0].url).toBe('/?os=%s');
@@ -172,7 +172,7 @@ test('Open map opens the site search without an opener, and Send summary shares 
     });
   });
   try {
-    host = await startService('@agent-native/field-service', workspace);
+    host = await startService('@tortoise/field-service', workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New work order').fill('Chiller C2 service');
     await page.getByLabel('Site address').fill('Hafenstrasse 12, Basel');

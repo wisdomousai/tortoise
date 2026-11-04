@@ -1,4 +1,4 @@
-import type { Effect, EffectOutcome, SourceRequest } from '@agent-native/runtime';
+import type { Effect, EffectOutcome, SourceRequest } from '@tortoise/runtime';
 
 /** Delivery guarantees a target offers; they decide how retries avoid duplicate external records. */
 export interface TargetDescription {

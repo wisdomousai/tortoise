@@ -8,7 +8,7 @@ import {
   defineModule,
   jsonSchema,
   listFilters,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,

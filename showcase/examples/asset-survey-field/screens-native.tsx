@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import { ClipboardList, ImageOff, RefreshCw } from 'lucide-react-native';
-import { defineNativeScreens } from '@agent-native/frame-native/screens';
-import { hubLinkNativeScreens } from '@agent-native/hub-link/plugin-screens-native';
-import { intentScannerScreens } from '@agent-native/intent-scanner/plugin-screens-native';
+import { defineNativeScreens } from '@tortoise/frame-native/screens';
+import { hubLinkNativeScreens } from '@tortoise/hub-link/plugin-screens-native';
+import { intentScannerScreens } from '@tortoise/intent-scanner/plugin-screens-native';
 import { AssignmentScreen } from './ui-native/assignment';
 import { AssignmentsScreen } from './ui-native/assignments';
 import { CaptureScreen } from './ui-native/capture';

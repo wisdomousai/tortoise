@@ -1,5 +1,5 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import { DeliveryFailure, deliverConvergent } from '@agent-native/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
+import { DeliveryFailure, deliverConvergent } from '@tortoise/integration';
 import { resolveBinding, type Procedure } from '../profile';
 import { accepted, confirm, observe, rejected, type ControllerKernel } from './kernel';
 import { runProcedure } from './procedure';

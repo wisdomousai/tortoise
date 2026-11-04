@@ -1,9 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import {
-  createApplication,
-  createMemoryStorage,
-  type ExecutionContext,
-} from '@agent-native/runtime';
+import { createApplication, createMemoryStorage, type ExecutionContext } from '@tortoise/runtime';
 import { qualityPeerApi } from '../contracts/peer';
 import {
   createQualityHandlers,

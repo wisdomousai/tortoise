@@ -4,8 +4,8 @@ import {
   type AuthorizationPort,
   type AuthorizationRoute,
   type OperationRule,
-} from '@agent-native/runtime';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import type { Role } from '@tortoise/pattern-base/server';
 import { chamberModule, chamberOperations } from './contracts';
 import { OBSERVER_PRINCIPAL, type LabSignalsRoot } from './domain';
 

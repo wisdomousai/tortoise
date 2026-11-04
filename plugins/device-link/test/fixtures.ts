@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { createFileBlobStore } from '@agent-native/adapters/blob-files';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
+import { createFileBlobStore } from '@tortoise/adapters/blob-files';
+import { bunSqlDriver } from '@tortoise/adapters/sqlite';
 import {
   ApplicationError,
   blobRefSchema,
@@ -11,22 +11,22 @@ import {
   defineModule,
   jsonSchema,
   type BlobRef,
-} from '@agent-native/contracts';
-import { createPeerPort, createTargetIntegration } from '@agent-native/integration';
-import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import type { SecretStore } from '@agent-native/kernel/platform';
-import { createMobilePlatform } from '@agent-native/mobile';
-import { createHandlerFactory, type EffectOutcome } from '@agent-native/runtime';
-import { createHubLinkPlugin } from '@agent-native/hub-link/plugin';
-import { hubLinkPluginManifest } from '@agent-native/hub-link/plugin-manifest';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/contracts';
+import { createPeerPort, createTargetIntegration } from '@tortoise/integration';
+import { defineApplication } from '@tortoise/kernel/application';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import type { SecretStore } from '@tortoise/kernel/platform';
+import { createMobilePlatform } from '@tortoise/mobile';
+import { createHandlerFactory, type EffectOutcome } from '@tortoise/runtime';
+import { createHubLinkPlugin } from '@tortoise/hub-link/plugin';
+import { hubLinkPluginManifest } from '@tortoise/hub-link/plugin-manifest';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { createDeviceLinkPlugin } from '../src/plugin';
 import { deviceLinkPluginManifest } from '../src/plugin-manifest';
 

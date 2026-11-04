@@ -2,9 +2,9 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+import { deterministicHarness } from '@tortoise/agents';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 

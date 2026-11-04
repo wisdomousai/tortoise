@@ -1,4 +1,4 @@
-import { ApplicationError, MAX_INVOKE_DEPTH, type AnyCapability } from '@agent-native/contracts';
+import { ApplicationError, MAX_INVOKE_DEPTH, type AnyCapability } from '@tortoise/contracts';
 import type { Invocation } from '../types.js';
 import { sameState } from '../state-equality.js';
 import { prepareCommand } from './command-request.js';

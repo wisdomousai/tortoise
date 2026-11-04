@@ -1,5 +1,5 @@
-import { assertJson } from '@agent-native/contracts';
-import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import { assertJson } from '@tortoise/contracts';
+import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@tortoise/runtime';
 import { loadRows, readMeta, type Loaded } from './row-storage/load';
 import { persistRows, type WriteStats } from './row-storage/persist';
 import { openSchema, type SqlRowsDriver } from './row-storage/schema';

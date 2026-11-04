@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/operator-ui",
+  "name": "@tortoise/operator-ui",
   "version": "0.1.0",
   "type": "module",
   "description": "Thick-finger operator input primitives, distributed as a shadcn registry.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/operator-ui"
   },
   "files": [
@@ -22,7 +22,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@agent-native/devices": "workspace:*",
+    "@tortoise/devices": "workspace:*",
     "bwip-js": "4.11.4",
     "class-variance-authority": "0.7.1",
     "lucide-react": "1.52.0"

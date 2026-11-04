@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 
 export interface HostSession {
   token: string;

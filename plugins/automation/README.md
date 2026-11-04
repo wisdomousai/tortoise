@@ -1,6 +1,6 @@
-# @agent-native/automation
+# @tortoise/automation
 
-Runs agents or jobs without a person at the screen, on a committed change or a schedule. Declare a trigger with `defineTrigger`, compose `createAutomationPlugin`, and list its screens from `@agent-native/automation/plugin-screens`. A trigger does nothing until a person issues a trigger grant. Each run then acts as that person under a delegated grant that lists the trigger's capabilities, and `agentGrant` narrows an agent's grant further.
+Runs agents or jobs without a person at the screen, on a committed change or a schedule. Declare a trigger with `defineTrigger`, compose `createAutomationPlugin`, and list its screens from `@tortoise/automation/plugin-screens`. A trigger does nothing until a person issues a trigger grant. Each run then acts as that person under a delegated grant that lists the trigger's capabilities, and `agentGrant` narrows an agent's grant further.
 
 Primitives:
 

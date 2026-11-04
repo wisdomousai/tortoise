@@ -16,10 +16,10 @@ async function installed() {
     ['contracts', 'packages/contracts'],
     ['site', 'plugins/site'],
   ] as const) {
-    await mkdir(join(root, 'node_modules/@agent-native', name, 'src'), { recursive: true });
+    await mkdir(join(root, 'node_modules/@tortoise', name, 'src'), { recursive: true });
     await writeFile(
-      join(root, 'node_modules/@agent-native', name, 'package.json'),
-      JSON.stringify({ name: `@agent-native/${name}`, repository: { directory } }),
+      join(root, 'node_modules/@tortoise', name, 'package.json'),
+      JSON.stringify({ name: `@tortoise/${name}`, repository: { directory } }),
     );
   }
   return root;
@@ -37,7 +37,7 @@ test('an installed framework file meets the rule for the directory it was publis
       },
       id,
     );
-  const file = (path: string) => join(root, 'node_modules/@agent-native', path);
+  const file = (path: string) => join(root, 'node_modules/@tortoise', path);
   expect(() => load(file('runtime/src/runtime.ts'))).toThrow('Browser bundle includes host module');
   expect(() => load(file('site/src/plugin.ts'))).toThrow('Browser bundle includes host module');
   expect(load(file('site/src/plugin-manifest.ts'))).toBeNull();

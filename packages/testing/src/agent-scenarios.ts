@@ -1,18 +1,18 @@
-import { createRunSupervisor } from '@agent-native/agents';
-import type { Harness, ModelIdentity, ToolPort } from '@agent-native/agents/types';
+import { createRunSupervisor } from '@tortoise/agents';
+import type { Harness, ModelIdentity, ToolPort } from '@tortoise/agents/types';
 import {
   agentInstructions,
   errorEnvelope,
   operationToolSchema,
   type Catalog,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   agentGrant,
   type CommandReceipt,
   type ExecutionContext,
   type Invocation,
   type QueryResult,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 
 /**
  * Agent scenarios: an agent definition, a task and fixture state, judged only by what the run

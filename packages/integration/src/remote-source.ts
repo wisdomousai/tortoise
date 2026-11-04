@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { RemoteSource } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { RemoteSource } from '@tortoise/runtime';
 import { DeliveryFailure, type SearchAccess, type SystemOfRecordPort } from './port.js';
 
 /**

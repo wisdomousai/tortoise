@@ -1,4 +1,4 @@
-import { linkPathSegments, type CatalogOs, type CatalogOsHandler } from '@agent-native/contracts';
+import { linkPathSegments, type CatalogOs, type CatalogOsHandler } from '@tortoise/contracts';
 import { of, shareAccepts, type Of } from './declared';
 import { expoOsPlugins } from './expo-plugins';
 

@@ -115,7 +115,7 @@ Publish a release over HTTP with an operator's session:
 2. Call `release.publish` with `release` (ID, version, parsed `bundle.json` as `manifest`, parsed `bundle.sig` as `signature`) and `files` (the blob references).
 3. Call `channel.assign` to point a channel at it.
 
-Test: `bun test showcase/examples/fleet`. To test against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin, as `showcase/examples/fleet/test/site.ts` does.
+Test: `bun test showcase/examples/fleet`. To test against real sites, compose `fleetNetworkFixture` from `@tortoise/fleet-agent/testing` in place of the network plugin, as `showcase/examples/fleet/test/site.ts` does.
 
 ## See also
 

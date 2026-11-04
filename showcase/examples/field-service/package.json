@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/field-service",
+  "name": "@tortoise/field-service",
   "version": "0.1.0",
   "private": true,
   "type": "module",

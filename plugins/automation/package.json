@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/automation",
+  "name": "@tortoise/automation",
   "version": "0.1.0",
   "type": "module",
   "description": "Host plugin: triggers that run agents or jobs on journal events or a schedule, under trigger grants people issue.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/automation"
   },
   "files": [
@@ -21,12 +21,12 @@
     "./*": "./*.ts"
   },
   "dependencies": {
-    "@agent-native/agents": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/agents": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

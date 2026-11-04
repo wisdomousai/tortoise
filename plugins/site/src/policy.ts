@@ -7,7 +7,7 @@ import {
   canonicalJson,
   type CatalogRequirements,
   type NetworkDestination,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { Cidr } from './cidr';
 import { resolveBinding } from './policy/bindings';
 import {

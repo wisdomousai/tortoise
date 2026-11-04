@@ -27,7 +27,7 @@ test.use({ viewport: { width: 1440, height: 900 } });
 test('tool store tutorial screenshots', async ({ page }) => {
   test.setTimeout(120_000);
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-shots-'));
-  const host = await startService('@agent-native/tool-store', workspace);
+  const host = await startService('@tortoise/tool-store', workspace);
   try {
     const token = await bearerOf(host.connectionFile);
     const run = async (id: string, input: Record<string, unknown>, key: string) =>

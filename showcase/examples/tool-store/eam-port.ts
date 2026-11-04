@@ -1,11 +1,11 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import {
   DeliveryFailure,
   type DeliveryResult,
   type LookupResult,
   type PullBatch,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
+} from '@tortoise/integration';
 import { repairOrderEffect, type EamTool, type RepairOrderPayload } from './contracts/eam-target';
 
 /** A repair order the fake EAM opened, with the effect ID as its external reference. */

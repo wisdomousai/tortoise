@@ -11,7 +11,7 @@ const root = resolve('repo-root');
 const workspace = resolve('work');
 const env: NodeJS.ProcessEnv = {
   AGENT_NATIVE_DESKTOP_DEV: '1',
-  AGENT_NATIVE_APPLICATION: '@agent-native/field-service',
+  AGENT_NATIVE_APPLICATION: '@tortoise/field-service',
   AGENT_NATIVE_BUN: process.execPath,
   AGENT_NATIVE_SERVICE_ENTRY: resolve('apps/service/src/index.ts'),
   AGENT_NATIVE_WEB_ROOT: resolve('dist/web/field-service'),
@@ -61,9 +61,9 @@ test('development launch refuses relative paths and a missing flag', () => {
 
 test('each development application gets its own single-instance name', () => {
   // One literal: a scaffold export renames it, and the calls must not depend on its length.
-  const appName = 'agent-native-desktop-starter';
-  expect(developmentAppName(appName, '@agent-native/field-service')).toBe(
-    `${appName}.agent-native-field-service`,
+  const appName = 'tortoise-starter';
+  expect(developmentAppName(appName, '@tortoise/field-service')).toBe(
+    `${appName}.tortoise-field-service`,
   );
   expect(developmentAppName(appName, undefined)).toBe(appName);
 });

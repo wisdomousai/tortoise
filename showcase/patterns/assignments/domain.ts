@@ -1,5 +1,5 @@
-import type { AssignmentSlice } from '@agent-native/assignments/server';
-import type { TestRequestsState } from '@agent-native/pattern-base/server';
+import type { AssignmentSlice } from '@tortoise/assignments/server';
+import type { TestRequestsState } from '@tortoise/pattern-base/server';
 
 /** Workspace state: the base `testRequests` slice, and the `assignment` slice the feature keeps. */
 export interface TestRequestsAssignmentsRoot {

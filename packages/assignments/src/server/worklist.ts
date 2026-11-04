@@ -1,4 +1,4 @@
-import { ApplicationError, type AnyCapability, type SyncBatch } from '@agent-native/contracts';
+import { ApplicationError, type AnyCapability, type SyncBatch } from '@tortoise/contracts';
 import {
   connectTarget,
   createPeerCall,
@@ -10,15 +10,15 @@ import {
   type PeerPortOptions,
   type TargetCursor,
   type TargetIntegration,
-} from '@agent-native/integration';
-import type { ConnectContext } from '@agent-native/kernel';
+} from '@tortoise/integration';
+import type { ConnectContext } from '@tortoise/kernel';
 import {
   own,
   put,
   type EffectOutcome,
   type HandlerContext,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { camel } from '../operations';
 import type { AnyFeedItemOf, StoredBody } from '../schemas';
 import type { Worklist } from '../worklist';

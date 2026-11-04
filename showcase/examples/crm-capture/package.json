@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/crm-capture",
+  "name": "@tortoise/crm-capture",
   "version": "0.1.0",
   "private": true,
   "type": "module",

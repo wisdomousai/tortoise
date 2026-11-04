@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { records, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { records, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { eamTarget, repairOrderEffect, type RepairOrderPayload } from '../contracts/eam-target';
 import { loans } from '../contracts/loan';

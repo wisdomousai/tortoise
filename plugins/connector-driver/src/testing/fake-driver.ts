@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { createInterface } from 'node:readline';
 import { PassThrough } from 'node:stream';
-import type { JsonValue } from '@agent-native/contracts';
+import type { JsonValue } from '@tortoise/contracts';
 import type { DriverContract } from '../contracts';
 import type { DriverErrorKind } from '../protocol';
 import { driverContractDigest, type DriverMode, type DriverProcess } from '../supervisor';

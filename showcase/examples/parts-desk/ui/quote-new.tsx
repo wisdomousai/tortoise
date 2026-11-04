@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Sparkles } from 'lucide-react';
-import { MAX_PAGE } from '@agent-native/contracts';
+import { MAX_PAGE } from '@tortoise/contracts';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { usePreparedInput } from '@/lib/os-deliveries';

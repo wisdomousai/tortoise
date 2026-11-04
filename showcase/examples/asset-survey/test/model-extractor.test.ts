@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { MockLanguageModelV4 } from 'ai/test';
-import type { NetworkPort } from '@agent-native/host/plugin';
+import type { NetworkPort } from '@tortoise/host/plugin';
 import type { Photo } from '../connectors/extractor';
 import { createModelExtractor, modelExtractorFromEnv } from '../connectors/model-extractor';
 

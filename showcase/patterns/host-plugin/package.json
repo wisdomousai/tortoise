@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/pattern-host-plugin",
+  "name": "@tortoise/pattern-host-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",

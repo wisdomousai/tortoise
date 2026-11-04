@@ -1,6 +1,6 @@
 import { Building2, Search } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
 import manifest from './manifest';
 import { AccountScreen } from './ui/account';
 import { AccountsScreen } from './ui/accounts';

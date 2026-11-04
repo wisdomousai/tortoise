@@ -1,12 +1,12 @@
-import type { AuditEvent, JsonValue } from '@agent-native/contracts';
-import { hashEvent } from '@agent-native/event-log/chain';
-import { fleetSiteOperations } from '@agent-native/fleet-agent/contracts';
+import type { AuditEvent, JsonValue } from '@tortoise/contracts';
+import { hashEvent } from '@tortoise/event-log/chain';
+import { fleetSiteOperations } from '@tortoise/fleet-agent/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,
   records,
   type HandlerContribution,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { AUDIT_EVENTS_PER_SITE, auditEvents, type AuditEventRecord } from '../contracts/audit';
 import { sites } from '../contracts/sites';

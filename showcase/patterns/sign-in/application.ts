@@ -1,6 +1,6 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { createStationSignInPlugin } from '@agent-native/workstation-sign-in/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { createStationSignInPlugin } from '@tortoise/workstation-sign-in/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -9,7 +9,7 @@ import {
   type TestRequestsServices,
   type TestRequestsState,
   type Role,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 
 export interface TestRequestsSignInRoot {

@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { InstallLayout, ServiceManager } from './layout';
 
 /** Run one command to completion and return its exit code and output, whatever it exited with. */

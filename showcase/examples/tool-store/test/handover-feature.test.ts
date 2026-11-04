@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance } from '@agent-native/host';
-import { featureConformance } from '@agent-native/testing/features';
+import { openEmbeddedInstance } from '@tortoise/host';
+import { featureConformance } from '@tortoise/testing/features';
 import { createToolStoreApplication } from '../application';
 import { handoverFeature } from '../features/handover/feature';
 

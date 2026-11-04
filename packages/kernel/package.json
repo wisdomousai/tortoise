@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/kernel",
+  "name": "@tortoise/kernel",
   "version": "0.1.0",
   "type": "module",
   "description": "Portable host kernel: application and plugin composition, ports and instance opening on any platform.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/kernel"
   },
   "files": [
@@ -21,9 +21,9 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "@ungap/structured-clone": "1.4.0"
   }
 }

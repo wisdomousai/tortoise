@@ -1,5 +1,5 @@
 import { Activity } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { ActivityScreen } from './ui/summary';
 
 /** The activity plugin's summary screen, sidebar entry and palette target for `activity.*`. */

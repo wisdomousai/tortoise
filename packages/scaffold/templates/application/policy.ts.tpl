@@ -1,4 +1,4 @@
-import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
+import { definePolicy, own, type OperationRule } from '@tortoise/runtime';
 import { operations } from './contracts';
 import type { AppState, Role } from './domain';
 // scaffold:imports

@@ -1,4 +1,4 @@
-import { hostContext, type HostedApplication } from '@agent-native/kernel/application';
+import { hostContext, type HostedApplication } from '@tortoise/kernel/application';
 import type { SiteReport } from './contracts';
 
 /**

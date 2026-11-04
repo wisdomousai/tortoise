@@ -7,8 +7,8 @@ import {
   type AuditMode,
   type AuditRecord,
   type EventLogPort,
-} from '@agent-native/contracts';
-import { createMemoryEventLog, unresolvedCommands } from '@agent-native/event-log';
+} from '@tortoise/contracts';
+import { createMemoryEventLog, unresolvedCommands } from '@tortoise/event-log';
 import {
   createApplication,
   createHandlerFactory,

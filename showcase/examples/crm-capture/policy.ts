@@ -1,5 +1,5 @@
-import { targetAllowlist, targetRules } from '@agent-native/integration';
-import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
+import { targetAllowlist, targetRules } from '@tortoise/integration';
+import { definePolicy, own, type OperationRule } from '@tortoise/runtime';
 import { crmAccounts, crmContacts, operations } from './contracts';
 import { crmTarget } from './contracts/target';
 import { memberOf, visibleAccount, type CrmState } from './domain';

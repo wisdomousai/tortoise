@@ -1,4 +1,4 @@
-# @agent-native/desktop
+# @tortoise/desktop
 
 The Electron window for the application named in `app.config.json`. It attaches to a running instance, or starts `apps/service` and stops it when the window closes. The renderer runs sandboxed with context isolation, no Node integration and web security on; it denies every permission request and refuses webviews. `bun run dev` opens it; `bun run package:desktop <target>` packages it.
 

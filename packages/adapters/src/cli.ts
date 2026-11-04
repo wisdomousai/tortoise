@@ -1,5 +1,5 @@
-import { createHttpTransport } from '@agent-native/client';
-import { ApplicationError, errorEnvelope, type ErrorCode } from '@agent-native/contracts';
+import { createHttpTransport } from '@tortoise/client';
+import { ApplicationError, errorEnvelope, type ErrorCode } from '@tortoise/contracts';
 import { operationInput, resolveOperation, takeFlag, usageError } from './cli/args';
 import { readConnection } from './cli/connection';
 import { execute, validateOnly } from './cli/execute';

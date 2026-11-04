@@ -6,8 +6,8 @@ import {
   defineCollection,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
-import { siteReportSchema } from '@agent-native/fleet-agent/contracts';
+} from '@tortoise/contracts';
+import { siteReportSchema } from '@tortoise/fleet-agent/contracts';
 
 const count = z.number().int().nonnegative();
 export const channelIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/);

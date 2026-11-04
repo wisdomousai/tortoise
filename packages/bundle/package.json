@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/bundle",
+  "name": "@tortoise/bundle",
   "version": "0.1.0",
   "type": "module",
   "description": "Server-only site bundles: one signed, versioned artifact per application and platform, verified and admitted before a site installs it.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/bundle"
   },
   "files": [
@@ -21,6 +21,6 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*"
+    "@tortoise/contracts": "workspace:*"
   }
 }

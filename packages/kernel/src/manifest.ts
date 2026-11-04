@@ -4,7 +4,7 @@ import {
   type FeatureManifest,
   type FeatureModules,
   type HostComponent,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   moduleSpecifierPattern,
   pluginNamespace,

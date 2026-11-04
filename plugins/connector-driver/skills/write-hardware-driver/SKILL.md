@@ -56,7 +56,7 @@ A driver is an executable in any language. The host starts it as a child process
    bun test showcase/examples/<app>
    ```
 
-2. Test the application's wiring with `createFakeDriver` from `@agent-native/connector-driver/testing`, which injects faults in process.
+2. Test the application's wiring with `createFakeDriver` from `@tortoise/connector-driver/testing`, which injects faults in process.
 3. Prove a new SDK with `checkDriver` and `chamberConformance` against its simulated chamber, run as a real child process.
 4. Record a run against real hardware or its real software in [implementation status](../../../../docs/implementation-status.md#hardware-drivers), with its platform and what it did not show. A kind of equipment counts as supported only after such a run.
 5. Record simulator and pseudo-terminal runs as such.
@@ -64,4 +64,4 @@ A driver is an executable in any language. The host starts it as a child process
 ## References
 
 - [Hardware drivers](../../../../docs/hardware-drivers.md)
-- [`@agent-native/connector-driver`](../../README.md)
+- [`@tortoise/connector-driver`](../../README.md)

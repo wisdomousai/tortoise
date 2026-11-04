@@ -1,4 +1,4 @@
-# @agent-native/scaffold
+# @tortoise/scaffold
 
 Creates new applications, adds parts to them and exports the framework as a standalone application. `bun run scaffold new <dir> --name <name>` starts one; `bun run scaffold add` inserts a collection, capability, target, agent, assignment kind or feature at the `// scaffold:` markers. It copies source only, never overwrites an existing directory and refuses a target inside the source checkout.
 

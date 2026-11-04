@@ -1,12 +1,12 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startHost, type StartHostOptions } from '@agent-native/host/host';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
-import { defaultPorts } from '@agent-native/kernel';
-import type { ApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { defineHostPlugin, type NetworkPort } from '@agent-native/kernel/plugin';
+import { startHost, type StartHostOptions } from '@tortoise/host/host';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
+import { defaultPorts } from '@tortoise/kernel';
+import type { ApplicationDefinition } from '@tortoise/kernel/application';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { defineHostPlugin, type NetworkPort } from '@tortoise/kernel/plugin';
 import { peerLinkOperations as ops } from './contracts';
 import { peerLinkServiceOf } from './service';
 

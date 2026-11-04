@@ -1,5 +1,5 @@
-import { defineHostComponent } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defineHostComponent } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /** The destination the exporter posts OTLP/HTTP JSON to: a collector on this machine. */
 export const TELEMETRY_DESTINATION = 'telemetry';

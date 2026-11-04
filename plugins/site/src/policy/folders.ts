@@ -1,4 +1,4 @@
-import type { CatalogRequirements, FolderRequirement } from '@agent-native/contracts';
+import type { CatalogRequirements, FolderRequirement } from '@tortoise/contracts';
 import type { Findings } from './findings';
 import type { SitePolicy } from './schema';
 

@@ -1,4 +1,4 @@
-import { ApplicationError, type Catalog, type ErrorEnvelope } from '@agent-native/contracts';
+import { ApplicationError, type Catalog, type ErrorEnvelope } from '@tortoise/contracts';
 import type {
   BlobReference,
   BlobTransport,

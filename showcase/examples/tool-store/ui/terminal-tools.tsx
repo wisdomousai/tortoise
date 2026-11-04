@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useOperatorSession } from '@agent-native/workstation-sign-in/plugin-screens';
+import { useOperatorSession } from '@tortoise/workstation-sign-in/plugin-screens';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { operations } from '../contracts';

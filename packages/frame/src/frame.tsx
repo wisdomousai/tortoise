@@ -10,7 +10,7 @@ import {
   redirect,
   RouterProvider,
 } from '@tanstack/react-router';
-import type { ApplicationScreens, ScreenRoute } from '@agent-native/frame/screens';
+import type { ApplicationScreens, ScreenRoute } from '@tortoise/frame/screens';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/app-shell';
 import { ScreensProvider } from '@/screens-context';

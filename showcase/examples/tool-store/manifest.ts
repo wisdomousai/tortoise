@@ -1,13 +1,13 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { stationSignInPluginManifest } from '@agent-native/workstation-sign-in/plugin-manifest';
+import { defineManifest } from '@tortoise/host/manifest';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { stationSignInPluginManifest } from '@tortoise/workstation-sign-in/plugin-manifest';
 import { toolStoreModule } from './contracts';
 import { handoverFeatureManifest } from './features/handover/contracts';
-import { deviceFeatureManifest } from '@agent-native/devices/contracts';
-import { approvalFeatureManifest, reconciliationFeatureManifest } from '@agent-native/contracts';
+import { deviceFeatureManifest } from '@tortoise/devices/contracts';
+import { approvalFeatureManifest, reconciliationFeatureManifest } from '@tortoise/contracts';
 import { assignments } from './contracts/assignments';
 // scaffold:imports
 

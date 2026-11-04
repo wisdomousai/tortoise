@@ -6,21 +6,21 @@ import {
   jsonSchema,
   approvalOperations,
   type ApprovalRequest,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/host/application';
-import { defineManifest } from '@agent-native/host/manifest';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { processPlugin } from '@agent-native/process/plugin';
-import { processPluginManifest } from '@agent-native/process/plugin-manifest';
+} from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/host/application';
+import { defineManifest } from '@tortoise/host/manifest';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { processPlugin } from '@tortoise/process/plugin';
+import { processPluginManifest } from '@tortoise/process/plugin-manifest';
 import {
   approvalHandlers,
   put,
   type ExecutionContext,
   type HandlerContext,
-} from '@agent-native/runtime';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/runtime';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { modelServer } from '../src/contracts';
 import { createModelServer, type ModelServerOptions } from '../src/plugin';
 import { modelServerPluginManifest } from '../src/plugin-manifest';

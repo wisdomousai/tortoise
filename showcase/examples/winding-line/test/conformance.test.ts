@@ -4,10 +4,10 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createHttpTransport } from '@agent-native/client';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { createAccessibilityExtractor } from '@agent-native/screen-bridge';
-import { startHost } from '@agent-native/host/host';
+import { createHttpTransport } from '@tortoise/client';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { createAccessibilityExtractor } from '@tortoise/screen-bridge';
+import { startHost } from '@tortoise/host/host';
 import { createWindingLineApplication } from '../application';
 import { createWindingLineBridge } from '../bridge';
 import { FakeMes } from '../fake-mes';
@@ -46,7 +46,7 @@ test('a station observed through its screen reads the same on every transport; e
   });
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
-      [process.execPath, Bun.resolveSync('@agent-native/adapters/cli', import.meta.dir), ...args],
+      [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
       {
         env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: file },
         stdout: 'pipe',

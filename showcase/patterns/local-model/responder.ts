@@ -1,5 +1,5 @@
-import { toolName } from '@agent-native/agents/types';
-import type { StandInMessage, StandInResponder } from '@agent-native/model-server/testing';
+import { toolName } from '@tortoise/agents/types';
+import type { StandInMessage, StandInResponder } from '@tortoise/model-server/testing';
 
 /**
  * The stand-in model for tests and the development launch, loaded by the llama-server stand-in

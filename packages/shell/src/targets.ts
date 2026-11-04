@@ -7,7 +7,7 @@ import {
   type OsDelivery,
   type OsProvenance,
   type OsTarget,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { OsMatch, OsRequestValues } from './match';
 import { OsRequestError } from './parse';
 

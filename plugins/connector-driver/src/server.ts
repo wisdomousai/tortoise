@@ -1,4 +1,4 @@
-import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { driverModule, driverOperations } from './contracts/status';
 import { driverServiceOf } from './open';
 

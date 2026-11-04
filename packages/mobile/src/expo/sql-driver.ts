@@ -1,4 +1,4 @@
-import type { SqlDriver, SqlValue } from '@agent-native/adapters/sql-driver';
+import type { SqlDriver, SqlValue } from '@tortoise/adapters/sql-driver';
 import { openDatabaseSync } from 'expo-sqlite';
 
 /**

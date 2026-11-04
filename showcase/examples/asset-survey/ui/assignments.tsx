@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useCommand } from '@agent-native/react';
-import { deviceLinkOperations } from '@agent-native/device-link/contracts';
+import { useCommand } from '@tortoise/react';
+import { deviceLinkOperations } from '@tortoise/device-link/contracts';
 import { AssignmentBoard } from '@/components/assignment-board';
 import { Button } from '@/components/ui/button';
 import { live, transport } from '@/lib/session';

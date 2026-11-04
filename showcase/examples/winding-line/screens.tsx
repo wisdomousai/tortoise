@@ -1,8 +1,8 @@
 import { Factory } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { automationScreens } from '@agent-native/automation/plugin-screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
-import { driverScreens } from '@agent-native/connector-driver/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { automationScreens } from '@tortoise/automation/plugin-screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
+import { driverScreens } from '@tortoise/connector-driver/plugin-screens';
 import manifest from './manifest';
 import { MesStatus, StationScreen, StationsScreen } from './ui/station';
 import { StationKitScreen } from './ui/station-kit';

@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startHost } from '@agent-native/host/host';
+import { startHost } from '@tortoise/host/host';
 import { notesApplication, scheme } from './fixture';
 
 const directories: string[] = [];

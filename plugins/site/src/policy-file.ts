@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
-import { deploymentRequirements } from '@agent-native/host/components';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
+import { deploymentRequirements } from '@tortoise/host/components';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
 
 /**
  * A site policy file resolved against one application's composed declarations, or the isolated

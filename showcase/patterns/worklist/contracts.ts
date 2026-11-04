@@ -1,5 +1,5 @@
-import { defineWorklist } from '@agent-native/assignments';
-import { assignments, samplingApi } from '@agent-native/pattern-assignments/contracts';
+import { defineWorklist } from '@tortoise/assignments';
+import { assignments, samplingApi } from '@tortoise/pattern-assignments/contracts';
 
 /**
  * The sampling rounds the oil lab sends this application over the peer link, and the samples
@@ -23,4 +23,4 @@ export const worklist = defineWorklist({
 
 /** The worklist's operations, flat, so screens bind them by name. */
 export const worklistOperations = worklist.operations;
-export { sampling } from '@agent-native/pattern-assignments/contracts';
+export { sampling } from '@tortoise/pattern-assignments/contracts';

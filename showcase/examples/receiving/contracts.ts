@@ -1,4 +1,4 @@
-import { defineAgent, defineModule } from '@agent-native/contracts';
+import { defineAgent, defineModule } from '@tortoise/contracts';
 import { deliveryOperations } from './contracts/delivery';
 import { erpSend, erpTarget } from './contracts/erp-target';
 import { qualityLots, qualityPeer } from './contracts/quality-peer';

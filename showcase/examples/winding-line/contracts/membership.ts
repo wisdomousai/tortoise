@@ -1,4 +1,4 @@
-import { defineMembership } from '@agent-native/contracts';
+import { defineMembership } from '@tortoise/contracts';
 import { stationRoleSchema } from './schemas';
 
 /** Station roles: operators run the station, supervisors also configure it, viewers read. */

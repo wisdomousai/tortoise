@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/mobile",
+  "name": "@tortoise/mobile",
   "version": "0.1.0",
   "type": "module",
   "description": "The mobile host platform: workspace ownership, snapshot storage and blobs on Android and iOS, and an embedded instance for the app's screens.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/mobile"
   },
   "files": [
@@ -23,11 +23,11 @@
     "./shortcuts": "./shortcuts.plugin.cjs"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@agent-native/shell": "workspace:*"
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
+    "@tortoise/shell": "workspace:*"
   },
   "peerDependencies": {
     "expo": "58.0.14",

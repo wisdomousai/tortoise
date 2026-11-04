@@ -1,12 +1,12 @@
-import { failClosedAuditMode, type AuditMode, type EventLogPort } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/site/policy';
+import { failClosedAuditMode, type AuditMode, type EventLogPort } from '@tortoise/contracts';
+import type { ResolvedPolicy } from '@tortoise/site/policy';
 import {
   forwardingEventLog,
   openJsonlEventLog,
   type ForwardingEventLog,
   type JsonlEventLog,
-} from '@agent-native/event-log';
-import type { NetworkPort } from '@agent-native/host/plugin';
+} from '@tortoise/event-log';
+import type { NetworkPort } from '@tortoise/host/plugin';
 import { syslogSink } from './syslog';
 
 const bestEffortAuditMode: AuditMode = Object.freeze({

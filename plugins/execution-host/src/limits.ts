@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** What one sandbox run may use. The host enforces the first two; the kernel the rest. */
 export interface SandboxLimits {

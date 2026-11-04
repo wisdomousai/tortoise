@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { credentialDigest, credentialPattern } from '@agent-native/host/enrollment';
-import { peerPrincipal } from '@agent-native/integration';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { credentialDigest, credentialPattern } from '@tortoise/host/enrollment';
+import { peerPrincipal } from '@tortoise/integration';
 import {
   assertionBodyLimit,
   assertionLifetime,

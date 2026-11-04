@@ -1,5 +1,5 @@
 import { Timer } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { AutomationScreen } from './ui/automation';
 
 /** The automation screen, its sidebar entry and the palette target for `automation.*`. */

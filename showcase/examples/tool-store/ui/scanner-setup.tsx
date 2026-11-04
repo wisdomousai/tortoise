@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { ScanBarcode } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { deviceOperations } from '@agent-native/devices/contracts';
-import { defineFeatureScreens } from '@agent-native/frame/feature-screens';
+import { deviceOperations } from '@tortoise/devices/contracts';
+import { defineFeatureScreens } from '@tortoise/frame/feature-screens';
 import { ScannerSetup } from '@/components/scanner-setup';
 import {
   Table,

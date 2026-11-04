@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, jsonSchema, MAX_PAGE } from '@agent-native/contracts';
+import { defineCapability, jsonSchema, MAX_PAGE } from '@tortoise/contracts';
 import { borrowerSchema, loanSchema } from './loan';
 
 /** An open loan past its due time, with what the tool is. */

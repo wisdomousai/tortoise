@@ -1,4 +1,4 @@
-import { type HandlerContribution } from '@agent-native/runtime';
+import { type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { percentile, type QualityState } from '../domain';
 import { accessiblePlants, lotVisible, resourceVisible } from '../server/access';

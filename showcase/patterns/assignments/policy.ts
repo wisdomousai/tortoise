@@ -4,9 +4,9 @@ import {
   own,
   type AuthorizationPort,
   type AuthorizationRoute,
-} from '@agent-native/runtime';
-import type { AssignmentAccess } from '@agent-native/assignments/server';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import type { AssignmentAccess } from '@tortoise/assignments/server';
+import type { Role } from '@tortoise/pattern-base/server';
 import { samplingModule, samplingOperations } from './contracts';
 import type { TestRequestsAssignmentsRoot } from './domain';
 

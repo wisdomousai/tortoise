@@ -1,2 +1,2 @@
 /** Moved to the portable kernel; this subpath keeps existing imports working. */
-export * from '@agent-native/kernel/integrations';
+export * from '@tortoise/kernel/integrations';

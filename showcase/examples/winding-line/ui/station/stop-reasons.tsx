@@ -1,4 +1,4 @@
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { OperatorPanel } from '@/components/operator-station';
 import { TilePicker } from '@/components/tile-picker';
 import { client } from '@/lib/session';

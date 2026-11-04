@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/connector-driver",
+  "name": "@tortoise/connector-driver",
   "version": "0.1.0",
   "type": "module",
   "description": "Driver connector host plugin: hardware drivers in any language as supervised child processes speaking JSON-RPC over stdio, delivered to as outbox targets and observed as readings.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/connector-driver"
   },
   "files": [
@@ -22,16 +22,16 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/frame": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/observation": "workspace:*",
-    "@agent-native/process": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@agent-native/testing": "workspace:*",
     "@tanstack/react-query": "5.104.1",
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/frame": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/observation": "workspace:*",
+    "@tortoise/process": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
+    "@tortoise/testing": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

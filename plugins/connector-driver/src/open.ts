@@ -1,9 +1,5 @@
-import { ApplicationError, type JsonObject } from '@agent-native/contracts';
-import {
-  bunProcesses,
-  type PluginInstance,
-  type PluginOpenContext,
-} from '@agent-native/host/plugin';
+import { ApplicationError, type JsonObject } from '@tortoise/contracts';
+import { bunProcesses, type PluginInstance, type PluginOpenContext } from '@tortoise/host/plugin';
 import type { DriverContract } from './contracts/define';
 import type { DriverStatusView } from './contracts/status';
 import type { EventNotification, InitializeResult } from './protocol';

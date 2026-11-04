@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { collectRequirements, type NetworkDestination } from '@agent-native/contracts';
+import { collectRequirements, type NetworkDestination } from '@tortoise/contracts';
 import { cidrContains, parseCidr } from '../src/cidr';
 import { judgeCertificates, type CertificateValidity } from '../src/policy/certificates';
 import {

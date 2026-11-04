@@ -1,14 +1,9 @@
 import { z } from 'zod';
-import {
-  defineCapability,
-  defineModule,
-  jsonSchema,
-  type OsHandler,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { createOsPlugin } from '@agent-native/os/plugin';
-import { osPluginManifest } from '@agent-native/os/plugin-manifest';
+import { defineCapability, defineModule, jsonSchema, type OsHandler } from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/kernel/application';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { createOsPlugin } from '@tortoise/os/plugin';
+import { osPluginManifest } from '@tortoise/os/plugin-manifest';
 import { osShortcutsPlugin } from '../src/plugin';
 import { osShortcutsPluginManifest } from '../src/plugin-manifest';
 

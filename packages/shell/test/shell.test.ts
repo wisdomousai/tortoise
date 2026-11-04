@@ -7,7 +7,7 @@ import {
   jsonSchema,
   type OsAction,
   type OsHandler,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   buildInstruction,
   desktopOsConfig,

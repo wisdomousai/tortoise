@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { checkUnitScreens, type UnitsManifest } from '@agent-native/contracts';
+import { checkUnitScreens, type UnitsManifest } from '@tortoise/contracts';
 import type { FeatureNativeScreens } from './feature-screens';
 import type { PluginNativeScreens } from './plugin-screens';
 import type { NativeSession } from './session';

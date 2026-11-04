@@ -1,6 +1,6 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { automationPluginManifest } from '@agent-native/automation/plugin-manifest';
-import { testRequestsModule } from '@agent-native/pattern-base/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { automationPluginManifest } from '@tortoise/automation/plugin-manifest';
+import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { methodSuggestionsModule } from './contracts';
 
 /**

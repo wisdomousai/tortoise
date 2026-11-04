@@ -6,7 +6,7 @@ import type {
   EffectOutcome,
   ExecutionContext,
   Invocation,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { createDelivery } from './dispatcher/delivery.js';
 import { abortableSleep, createLoop } from './loop.js';
 import type { SystemOfRecordPort } from './port.js';

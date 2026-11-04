@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import type { AnyCapability, InputOf, JsonObject, OutputOf } from '@agent-native/contracts';
-import type { Receipt } from '@agent-native/client';
-import { useCapabilityForm } from '@agent-native/react/form';
+import type { AnyCapability, InputOf, JsonObject, OutputOf } from '@tortoise/contracts';
+import type { Receipt } from '@tortoise/client';
+import { useCapabilityForm } from '@tortoise/react/form';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

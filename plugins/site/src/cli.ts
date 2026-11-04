@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { exitCodes, takeFlag } from '@agent-native/adapters/cli';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
-import type { PluginCommand } from '@agent-native/host/plugin';
+import { ApplicationError } from '@tortoise/contracts';
+import { exitCodes, takeFlag } from '@tortoise/adapters/cli';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
+import type { PluginCommand } from '@tortoise/host/plugin';
 import { installUsage, installVerb } from './install/cli';
 import { policyErrors, sitePolicyFor } from './policy-file';
 

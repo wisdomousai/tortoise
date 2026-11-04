@@ -1,5 +1,5 @@
-import { ApplicationError, type JsonValue } from '@agent-native/contracts';
-import { type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type JsonValue } from '@tortoise/contracts';
+import { type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { own, put, type Defect, type QualityState } from '../domain';
 import { appendResult } from '../server/append-result';

@@ -1,4 +1,4 @@
-import type { Catalog, CatalogAgent } from '@agent-native/contracts';
+import type { Catalog, CatalogAgent } from '@tortoise/contracts';
 
 const output = (agent: CatalogAgent) =>
   agent.output === 'direct'

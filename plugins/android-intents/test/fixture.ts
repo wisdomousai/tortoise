@@ -5,11 +5,11 @@ import {
   jsonSchema,
   type OsAction,
   type OsHandler,
-} from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { createOsPlugin } from '@agent-native/os/plugin';
-import { osPluginManifest } from '@agent-native/os/plugin-manifest';
+} from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/kernel/application';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { createOsPlugin } from '@tortoise/os/plugin';
+import { osPluginManifest } from '@tortoise/os/plugin-manifest';
 import { androidIntentsPlugin } from '../src/plugin';
 import { androidIntentsPluginManifest } from '../src/plugin-manifest';
 

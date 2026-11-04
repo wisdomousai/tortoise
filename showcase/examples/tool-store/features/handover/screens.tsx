@@ -1,6 +1,6 @@
 import { List } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { defineFeatureScreens } from '@agent-native/frame/feature-screens';
+import { defineFeatureScreens } from '@tortoise/frame/feature-screens';
 import { CapabilityForm } from '@/components/capability-form';
 import {
   Table,

@@ -1,10 +1,6 @@
 import type { z } from 'zod';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import {
-  DeliveryFailure,
-  type PullBatch,
-  type SystemOfRecordPort,
-} from '@agent-native/integration';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
+import { DeliveryFailure, type PullBatch, type SystemOfRecordPort } from '@tortoise/integration';
 import type { codeGroupSchema, lotSnapshotSchema } from './contracts';
 
 export type LotSnapshot = z.infer<typeof lotSnapshotSchema>;

@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/model-server",
+  "name": "@tortoise/model-server",
   "version": "0.1.0",
   "type": "module",
   "description": "Model server plugin: starts llama.cpp llama-server or vLLM through the process port on measured, activated weights and serves them to local agents.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/model-server"
   },
   "files": [
@@ -21,8 +21,8 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/agents": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/host": "workspace:*"
+    "@tortoise/agents": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/host": "workspace:*"
   }
 }

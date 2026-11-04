@@ -1,4 +1,4 @@
-import { createCli } from '@agent-native/host/cli';
+import { createCli } from '@tortoise/host/cli';
 import { configuredApplication, starterConfig } from './application';
 
 /** `bun run cli …`: the configured application's command line, named after the starter. */

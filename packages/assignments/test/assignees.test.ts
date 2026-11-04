@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { deterministicHarness } from '@agent-native/agents';
-import type { BlobRef } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { deterministicHarness } from '@tortoise/agents';
+import type { BlobRef } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import {
   assertAgentScenarios,
   runAgentScenarios,
   type AgentScenario,
-} from '@agent-native/testing/agent-scenarios';
+} from '@tortoise/testing/agent-scenarios';
 import { offerEventType } from '../src';
 import { assignmentTargetPort, type TargetWork } from '../src/server';
 import { createFixture, INTEGRATION, planner, worker, WORKSPACE } from './application';

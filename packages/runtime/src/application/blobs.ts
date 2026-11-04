@@ -7,7 +7,7 @@ import {
   mediaTypePattern,
   type AuditRecord,
   type BlobRef,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { ExecutionContext } from '../types.js';
 import { actorOf } from './audit.js';
 import { ownRecord, readable, storeOf } from './blob-references.js';

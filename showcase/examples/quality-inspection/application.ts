@@ -1,18 +1,18 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
-import { defineApplication } from '@agent-native/host/application';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { createDriverPlugin } from '@agent-native/connector-driver/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { connectTarget, type SystemOfRecordPort } from '@tortoise/integration';
+import { defineApplication } from '@tortoise/host/application';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { createDriverPlugin } from '@tortoise/connector-driver/plugin';
 import {
   createDriverEventIngest,
   type DriverEventIngestOptions,
-} from '@agent-native/connector-driver/connect';
-import { driverServiceOf } from '@agent-native/connector-driver/open';
-import { createPeerLinkPlugin } from '@agent-native/peer-link/plugin';
+} from '@tortoise/connector-driver/connect';
+import { driverServiceOf } from '@tortoise/connector-driver/open';
+import { createPeerLinkPlugin } from '@tortoise/peer-link/plugin';
 import manifest from './manifest';
 import { operations, qualityTarget } from './contracts';
 import { instrumentContract } from './contracts/instrument';

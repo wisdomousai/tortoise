@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { OutputOf } from '@agent-native/contracts';
-import { complianceOperations } from '@agent-native/compliance/contracts';
+import type { OutputOf } from '@tortoise/contracts';
+import { complianceOperations } from '@tortoise/compliance/contracts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

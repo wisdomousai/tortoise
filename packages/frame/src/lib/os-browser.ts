@@ -5,8 +5,8 @@ import type {
   JsonObject,
   OsActionOutcome,
   RawOsRequest,
-} from '@agent-native/contracts';
-import { fileHandlerFor, fileRequest, launchRequest } from '@agent-native/shell';
+} from '@tortoise/contracts';
+import { fileHandlerFor, fileRequest, launchRequest } from '@tortoise/shell';
 import { hostJson } from './host-client';
 
 /** What Chromium hands an installed web app that was opened with files. */

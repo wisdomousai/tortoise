@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { loadApplication, readStarterConfig } from '@agent-native/host/config';
+import { loadApplication, readStarterConfig } from '@tortoise/host/config';
 
 /**
  * The starter's composition point: the one place it learns which content it hosts. The

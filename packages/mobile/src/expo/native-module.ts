@@ -1,5 +1,5 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
-import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
+import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
 import { requirePluginNativeModule } from '../native-module';
 
 /**

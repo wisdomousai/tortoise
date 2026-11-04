@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { SiteApproval, TrustedKey } from '@agent-native/bundle';
-import { ApplicationError } from '@agent-native/contracts';
-import { takeFlag } from '@agent-native/adapters/cli';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
+import type { SiteApproval, TrustedKey } from '@tortoise/bundle';
+import { ApplicationError } from '@tortoise/contracts';
+import { takeFlag } from '@tortoise/adapters/cli';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
 import { installBundle, installStatus, uninstall } from './install';
 import type { ServiceManager } from './layout';
 

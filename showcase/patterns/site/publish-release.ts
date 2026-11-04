@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { readConnection } from '@agent-native/adapters/cli/connection';
-import type { BundleManifest } from '@agent-native/bundle';
-import { createClient, createHttpTransport, type BlobReference } from '@agent-native/client';
-import type { InputOf } from '@agent-native/contracts';
-import { operations } from '@agent-native/fleet/contracts';
+import { readConnection } from '@tortoise/adapters/cli/connection';
+import type { BundleManifest } from '@tortoise/bundle';
+import { createClient, createHttpTransport, type BlobReference } from '@tortoise/client';
+import type { InputOf } from '@tortoise/contracts';
+import { operations } from '@tortoise/fleet/contracts';
 
 type Release = InputOf<typeof operations.releasePublish>['release'];
 

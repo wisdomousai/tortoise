@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { OutputOf } from '@agent-native/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { crmAccounts, crmContacts } from '../../contracts';
 import type { LocalStatus } from '../local-status';
 import { FollowButton } from './follow-button';

@@ -1,11 +1,11 @@
-import { ApplicationError, errorEnvelope, type Catalog } from '@agent-native/contracts';
+import { ApplicationError, errorEnvelope, type Catalog } from '@tortoise/contracts';
 import type {
   CommandReceipt,
   ExecutionContext,
   Invocation,
   QueryResult,
   EventBatch,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { withSignal, type ApplicationPort } from './application-port';
 import { Cursors } from './http/cursors';
 import { jsonResponse, statusCodes } from './http/response';

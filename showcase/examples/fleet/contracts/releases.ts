@@ -6,8 +6,8 @@ import {
   defineCapability,
   defineCollection,
   jsonSchema,
-} from '@agent-native/contracts';
-import { releaseSchema } from '@agent-native/fleet-agent/contracts';
+} from '@tortoise/contracts';
+import { releaseSchema } from '@tortoise/fleet-agent/contracts';
 import { channelIdSchema } from './sites';
 
 /** A release ID is also the site's staging directory name. */

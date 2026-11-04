@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/os",
+  "name": "@tortoise/os",
   "version": "0.1.0",
   "type": "module",
   "description": "OS host plugin: provides the shell port, matches OS requests to declared handlers and performs declared OS actions through an attached adapter.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/os"
   },
   "files": [
@@ -21,10 +21,10 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
-    "@agent-native/shell": "workspace:*",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
+    "@tortoise/shell": "workspace:*"
   }
 }

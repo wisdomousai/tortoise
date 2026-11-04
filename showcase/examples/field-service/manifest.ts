@@ -1,14 +1,14 @@
-import { approvalFeatureManifest } from '@agent-native/contracts';
-import { defineManifest } from '@agent-native/host/manifest';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
-import { notificationsPluginManifest } from '@agent-native/notifications/plugin-manifest';
-import { osPluginManifest } from '@agent-native/os/plugin-manifest';
-import { osShortcutsPluginManifest } from '@agent-native/os-shortcuts/plugin-manifest';
-import { shareTargetPluginManifest } from '@agent-native/share-target/plugin-manifest';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
-import { webhookPluginManifest } from '@agent-native/webhook/plugin-manifest';
+import { approvalFeatureManifest } from '@tortoise/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
+import { notificationsPluginManifest } from '@tortoise/notifications/plugin-manifest';
+import { osPluginManifest } from '@tortoise/os/plugin-manifest';
+import { osShortcutsPluginManifest } from '@tortoise/os-shortcuts/plugin-manifest';
+import { shareTargetPluginManifest } from '@tortoise/share-target/plugin-manifest';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { webhookPluginManifest } from '@tortoise/webhook/plugin-manifest';
 import { workOrderPlannerModule, fieldServiceModule } from './contracts';
 
 /**

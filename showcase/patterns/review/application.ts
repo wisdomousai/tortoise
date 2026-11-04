@@ -1,14 +1,14 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
-import type { TestRequestsOptions, TestRequestsRoot } from '@agent-native/pattern-base/application';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
+import type { TestRequestsOptions, TestRequestsRoot } from '@tortoise/pattern-base/application';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
   testRequestsModule,
   testRequestsPolicy,
   type TestRequestsServices,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import { reviewAccess } from './access';
 import { reviewFeature, type ReviewAccess, type ReviewHooks } from './features/review/feature';

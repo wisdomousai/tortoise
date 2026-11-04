@@ -32,11 +32,11 @@ Screens are the browser half of an application. They read through live queries a
    - A `prepare` intent fills a command's form for the person to submit. By default the prefill is held for `usePreparedInput(operation)`, which `CapabilityForm` reads, and the command's capability screen opens. A purpose-built form reads `usePreparedInput` itself, shows that an agent prepared it with a Discard, and calls `dismiss` once the person submits or discards. When that form is on a route of its own, pass `prepare`: it holds the prefill with `holdRunPrefill(id, operation, input)` from `@/lib/os-deliveries` and navigates there.
    - Render the returned `review` and call `acknowledgeReview` when the person has seen it. `showcase/patterns/agents/ui/methods.tsx` does both.
 3. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
-4. Declare a feature's screens with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, and a plugin's with `definePluginScreens` in its `plugin-screens` entrypoint. Capability screen prefixes start with the unit's operation namespace and a dot.
+4. Declare a feature's screens with `defineFeatureScreens` from `@tortoise/frame/feature-screens`, and a plugin's with `definePluginScreens` in its `plugin-screens` entrypoint. Capability screen prefixes start with the unit's operation namespace and a dot.
 5. Merge them with `defineScreens({ manifest, features, plugins })`, listed in the manifest's order. It fails on duplicate routes, on targets no route declares, and on unit screens that the manifest does not compose, are out of its order, or open capabilities outside the unit's namespace.
-6. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one idempotency key until the command commits, so a double tap or a scanner's double Enter records once. Do not create a key per click.
+6. Write commands with `useCapabilityForm` from `@tortoise/react/form`. It keeps one idempotency key until the command commits, so a double tap or a scanner's double Enter records once. Do not create a key per click.
 7. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
-8. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured. To put a scanned value into a `CapabilityForm` for the person to confirm, pass `fill` with a new `key` per scan; the other fields keep what the person typed, and nothing submits.
+8. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@tortoise/react/capture`, so capture time is measured. To put a scanned value into a `CapabilityForm` for the person to confirm, pass `fill` with a new `key` per scan; the other fields keep what the person typed, and nothing submits.
 9. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
 10. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
 11. Rebuild the frame registry with `bun run build:registry`.
@@ -49,7 +49,7 @@ Screens are the browser half of an application. They read through live queries a
 
 ## Checks
 
-1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `showcase/examples/field-service/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
+1. Add a UI-binding test with `unboundOperations` from `@tortoise/testing/ui-bindings`, as in `showcase/examples/field-service/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
 2. Add feature and plugin screen directories to that test's scan.
 3. Add a Playwright spec in `showcase/examples/<app>/e2e/` or `showcase/patterns/<app>/e2e/` that proves the screen renders and commits. The starter follows the operating system's color scheme, so `page.emulateMedia({ colorScheme: 'dark' })` shows a screen in dark.
 4. Run the checks:
@@ -65,7 +65,7 @@ Screens are the browser half of an application. They read through live queries a
 
 ## References
 
-- [`@agent-native/frame`](../../README.md)
+- [`@tortoise/frame`](../../README.md)
 - [`showcase/examples/field-service/screens.tsx`](../../../../showcase/examples/field-service/screens.tsx)
 - [`showcase/examples/quality-inspection/ui/capture-station.tsx`](../../../../showcase/examples/quality-inspection/ui/capture-station.tsx)
 - [Agents pattern](../../../../showcase/patterns/agents/README.md)

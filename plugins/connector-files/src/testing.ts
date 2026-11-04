@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { BoundFolder, FolderPort } from '@agent-native/kernel/plugin';
+import type { BoundFolder, FolderPort } from '@tortoise/kernel/plugin';
 import { parseRecords, type FileFormat, type FileRecord } from './formats';
 
 /** A folder port over a temporary directory per folder ID, for tests. */

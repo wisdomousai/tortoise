@@ -1,6 +1,6 @@
-import type { Catalog } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
-import type { PluginStartContext } from '@agent-native/host/plugin';
+import type { Catalog } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
+import type { PluginStartContext } from '@tortoise/host/plugin';
 import { automationOperations as ops, type TriggerDefinition } from './contracts';
 import type { TriggerEvent } from './jobs';
 import { eventRunId, loopRunId, slotRunId } from './run-ids';

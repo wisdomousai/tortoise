@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { CommandReceipt, Invocation } from '@agent-native/runtime';
+import type { CommandReceipt, Invocation } from '@tortoise/runtime';
 import { createAccessibilityExtractor } from '../src/recognition/accessibility';
 import { createStationObserver, type Observation } from '../src/observer';
 import { createCounterModel, createHmi, profile } from './support';

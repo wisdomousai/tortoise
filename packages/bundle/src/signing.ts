@@ -1,4 +1,4 @@
-import { canonicalJson } from '@agent-native/contracts';
+import { canonicalJson } from '@tortoise/contracts';
 
 /** A public key a site trusts, by the ID signatures name. */
 export interface TrustedKey {

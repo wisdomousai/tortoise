@@ -1,17 +1,17 @@
-import type { ExecutionContext, Invocation, QueryResult } from '@agent-native/runtime';
+import type { ExecutionContext, Invocation, QueryResult } from '@tortoise/runtime';
 import {
   createEffectDispatcher,
   DeliveryFailure,
   type DispatcherApplication,
-} from '@agent-native/integration';
+} from '@tortoise/integration';
 import {
   createDriverConnector,
   createDriverObserver,
   type DriverObservation,
-} from '@agent-native/connector-driver/connect';
-import type { DriverSupervisor } from '@agent-native/connector-driver/supervisor';
-import type { DriverStateField } from '@agent-native/connector-driver/contracts';
-import type { BridgeControl } from '@agent-native/screen-bridge';
+} from '@tortoise/connector-driver/connect';
+import type { DriverSupervisor } from '@tortoise/connector-driver/supervisor';
+import type { DriverStateField } from '@tortoise/connector-driver/contracts';
+import type { BridgeControl } from '@tortoise/screen-bridge';
 import { operations } from './contracts';
 import { stationAutomationContract } from './contracts/automation';
 import { bridgePrincipal, hmiTarget } from './domain';

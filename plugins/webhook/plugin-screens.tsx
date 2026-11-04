@@ -1,5 +1,5 @@
 import { Webhook } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { WebhookScreen } from './ui/status';
 
 /** The webhook plugin's status screen, sidebar entry and palette target for `webhook.*`. */

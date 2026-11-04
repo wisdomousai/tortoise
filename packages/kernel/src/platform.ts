@@ -1,5 +1,5 @@
-import type { CatalogRequirements, HostComponent } from '@agent-native/contracts';
-import type { BlobStore, Storage } from '@agent-native/runtime';
+import type { CatalogRequirements, HostComponent } from '@tortoise/contracts';
+import type { BlobStore, Storage } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from './application';
 import type { IngressPort } from './plugin';
 import type { ShellAdapter } from './shell';

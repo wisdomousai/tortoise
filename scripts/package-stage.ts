@@ -5,7 +5,7 @@ import {
   desktopTargets,
   type DesktopTarget,
   type RuntimeManifest,
-} from '@agent-native/host/runtime-manifest';
+} from '@tortoise/host/runtime-manifest';
 import {
   downloadNativePackage,
   listFiles,
@@ -13,11 +13,11 @@ import {
   sha256,
   targetPackages,
 } from './package-assets';
-import { readApplicationIdentity } from '@agent-native/host/config';
-import { optionalHostPackages } from '@agent-native/host/optional-packages';
-import { loadManifest, readStarterConfig } from '@agent-native/host/config';
-import { deploymentCatalog } from '@agent-native/host/components';
-import { desktopOsConfig } from '@agent-native/shell';
+import { readApplicationIdentity } from '@tortoise/host/config';
+import { optionalHostPackages } from '@tortoise/host/optional-packages';
+import { loadManifest, readStarterConfig } from '@tortoise/host/config';
+import { deploymentCatalog } from '@tortoise/host/components';
+import { desktopOsConfig } from '@tortoise/shell';
 import { writeApplicationEntry } from './application-entry';
 
 export async function stageDesktop(target: DesktopTarget, output?: string) {
@@ -60,7 +60,7 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   // loader. Initialization precedes importing the service composition root.
   await writeFile(
     entry,
-    `import { installNativeCredentialBinding } from ${JSON.stringify(Bun.resolveSync('@agent-native/agents/credentials', root))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
+    `import { installNativeCredentialBinding } from ${JSON.stringify(Bun.resolveSync('@tortoise/agents/credentials', root))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
   );
   const service = resolve(resources, target.startsWith('win32') ? 'service.exe' : 'service');
   const bunTarget =

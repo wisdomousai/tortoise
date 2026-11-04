@@ -1,4 +1,4 @@
-# @agent-native/model-server
+# @tortoise/model-server
 
 Runs a local model (`llama-server` or vLLM) for agents that need one. Compose `createModelServer`. The deployment chooses the model entry, the files and the activation; at every start the plugin checks the weights' digests against the entry and that a fine-tune passed `gateModel`, and refuses to start on a mismatch. `StandInResponder` speaks the server's API for tests.
 

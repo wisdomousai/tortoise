@@ -5,7 +5,7 @@ import {
   defineCapability,
   defineCollection,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { id, timestamp } from './schemas';
 
 export const inspectionOutcomeSchema = z.enum(['accepted', 'rejected']);

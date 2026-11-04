@@ -1,4 +1,4 @@
-# @agent-native/driver-sdk-python
+# @tortoise/driver-sdk-python
 
 `agent-native-driver`: write a hardware driver in Python. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action, and the SDK does not repeat that check.
 

@@ -1,5 +1,5 @@
-import type { OutputOf } from '@agent-native/contracts';
-import type { ScanRoute } from '@agent-native/devices';
+import type { OutputOf } from '@tortoise/contracts';
+import type { ScanRoute } from '@tortoise/devices';
 import type { StationSignal } from '@/components/status-strip';
 import { operations } from '../../contracts';
 

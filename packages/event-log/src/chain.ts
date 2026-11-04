@@ -7,7 +7,7 @@ import {
   type AuditEvent,
   type AuditRecord,
   type JsonObject,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 export interface ChainHead {
   readonly seq: number;

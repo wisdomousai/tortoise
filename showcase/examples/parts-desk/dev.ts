@@ -28,9 +28,9 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
-import { openEmbeddedInstance, readPluginSettings } from '@agent-native/host';
-import { measure } from '@agent-native/model-server/measure';
-import { llamaServerStandIn } from '@agent-native/model-server/testing';
+import { openEmbeddedInstance, readPluginSettings } from '@tortoise/host';
+import { measure } from '@tortoise/model-server/measure';
+import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { ASSISTANT_MODEL_PROCESS } from './contracts/assistant-agent';
 import manifest from './manifest';
 import { ASSISTANT_CONTEXT_TOKENS, assistantModelEntry } from './model';

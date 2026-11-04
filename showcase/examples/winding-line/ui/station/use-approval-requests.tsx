@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { approvalOperations } from '@agent-native/contracts';
+import { approvalOperations } from '@tortoise/contracts';
 import { approvalChoices, type AttentionItem } from '@/components/attention-queue';
 import { client, live } from '@/lib/session';
 import { operations } from '../../contracts';

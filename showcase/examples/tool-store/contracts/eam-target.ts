@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineTarget } from '@agent-native/contracts';
+import { defineTarget } from '@tortoise/contracts';
 import { toolSchema } from './tool';
 
 /** The outbox effect type a damaged return enqueues for the EAM. */

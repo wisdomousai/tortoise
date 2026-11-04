@@ -1,5 +1,5 @@
-import type { BlobRef } from '@agent-native/contracts';
-import type { PullBatch, SystemOfRecordPort } from '@agent-native/integration';
+import type { BlobRef } from '@tortoise/contracts';
+import type { PullBatch, SystemOfRecordPort } from '@tortoise/integration';
 import type { AnyAssignmentKind } from '../kind';
 import { targetOf } from '../operations';
 import type { AnyOfferOf, StoredBody } from '../schemas';

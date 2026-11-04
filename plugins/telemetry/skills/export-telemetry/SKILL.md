@@ -18,7 +18,7 @@ The telemetry plugin turns the audit log and the outbox into OpenTelemetry metri
 
 1. Add `telemetryPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
 2. Add `telemetryPlugin`, or `createTelemetryPlugin({ intervalMs })`, to the application's `plugins` in the same order. `showcase/patterns/operations/application.ts` composes all four.
-3. Run a collector on the same machine with an OTLP/HTTP receiver, for example on `127.0.0.1:4318`. The collector holds any vendor credential and forwards to the backend; the instance never does. In tests and development, `startCollector` from `@agent-native/telemetry/testing` stands in for it on loopback. `showcase/patterns/operations/dev.ts` starts it on port 4318 when nothing listens there.
+3. Run a collector on the same machine with an OTLP/HTTP receiver, for example on `127.0.0.1:4318`. The collector holds any vendor credential and forwards to the backend; the instance never does. In tests and development, `startCollector` from `@tortoise/telemetry/testing` stands in for it on loopback. `showcase/patterns/operations/dev.ts` starts it on port 4318 when nothing listens there.
 4. Bind `destinations.telemetry` to the collector's address in the deployment policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy. Without the binding, the instance runs without exporting.
 5. Read `services.telemetry.status()`. `exports` counts successful exports, and `lastError` says why the last one failed.
 
@@ -45,5 +45,5 @@ The telemetry plugin turns the audit log and the outbox into OpenTelemetry metri
 ## References
 
 - [Architecture](../../../../docs/architecture.md#telemetry)
-- [`@agent-native/telemetry`](../../README.md)
+- [`@tortoise/telemetry`](../../README.md)
 - [Operations pattern](../../../../showcase/patterns/operations/README.md)

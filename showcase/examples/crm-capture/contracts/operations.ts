@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { collectionList, defineCapability, jsonSchema } from '@agent-native/contracts';
+import { collectionList, defineCapability, jsonSchema } from '@tortoise/contracts';
 import { accounts } from './collections';
 import { crmTarget } from './target';
 import { accountDetailSchema, activitySchema, externalId, localStatus, timestamp } from './schemas';

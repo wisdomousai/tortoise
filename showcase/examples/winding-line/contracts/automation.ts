@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { jsonSchema } from '@agent-native/contracts';
-import { defineDriverContract } from '@agent-native/connector-driver/contracts';
+import { jsonSchema } from '@tortoise/contracts';
+import { defineDriverContract } from '@tortoise/connector-driver/contracts';
 
 /**
  * The station software's automation interface (a vendor COM server or similar), reached through a

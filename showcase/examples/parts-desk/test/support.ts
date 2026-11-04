@@ -2,7 +2,7 @@ import { afterEach } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedInstance, type EmbeddedInstance } from '@agent-native/host';
+import { openEmbeddedInstance, type EmbeddedInstance } from '@tortoise/host';
 import { createPartsDeskApplication } from '../application';
 import { seedTrialRecords } from '../trial-records';
 

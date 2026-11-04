@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Paperclip } from 'lucide-react';
-import { isBlobRef, type BlobRef } from '@agent-native/contracts';
+import { isBlobRef, type BlobRef } from '@tortoise/contracts';
 import { operations } from '../../contracts';
 import { OsProvenanceNotice } from '@/components/os-provenance';
 import { Button } from '@/components/ui/button';

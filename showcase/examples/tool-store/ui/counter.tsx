@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { reconciliationOperations } from '@agent-native/contracts';
-import { useOperatorSession } from '@agent-native/workstation-sign-in/plugin-screens';
+import { reconciliationOperations } from '@tortoise/contracts';
+import { useOperatorSession } from '@tortoise/workstation-sign-in/plugin-screens';
 import type { AgentSelection } from '@/components/accounts';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { ScanPrompt } from '@/components/scan-prompt';

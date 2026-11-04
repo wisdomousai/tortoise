@@ -1,11 +1,11 @@
-import { targetRules } from '@agent-native/integration';
+import { targetRules } from '@tortoise/integration';
 import {
   definePolicy,
   isDelegated,
   type ApprovalAccess,
   type OperationRule,
-} from '@agent-native/runtime';
-import type { AssignmentAccess } from '@agent-native/assignments/server';
+} from '@tortoise/runtime';
+import type { AssignmentAccess } from '@tortoise/assignments/server';
 import { eamAssets, eamTarget, exportTarget, operations } from './contracts';
 import { deviceIdOf, roleOf, type Role, type SurveyState } from './domain';
 

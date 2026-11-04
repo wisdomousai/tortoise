@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { createApplicationRuntime, type AnyApplicationDefinition } from './application';
 import { assertGlobals } from './globals';
 import { combineIntegrations } from './integrations';

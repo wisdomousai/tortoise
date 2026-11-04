@@ -4,7 +4,7 @@ import {
   jsonSchema,
   MAX_PAGE,
   type WorkflowDeclaration,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { toolSchema } from './tool';
 
 /** The days `tool.calibration-due` looks ahead when the caller leaves `days` out. */

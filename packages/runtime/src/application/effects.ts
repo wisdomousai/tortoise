@@ -1,4 +1,4 @@
-import { ApplicationError, assertJson, type JsonValue } from '@agent-native/contracts';
+import { ApplicationError, assertJson, type JsonValue } from '@tortoise/contracts';
 import type { Effect, EffectOutcome, EffectRequest, WorkspaceSnapshot } from '../types.js';
 import { byCodePoint, defineOwn } from './records.js';
 

@@ -1,5 +1,5 @@
-import { defineHostComponent } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defineHostComponent } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /** The off-host audit forwarder's destination; bound by `audit.forwardTo` in the site policy. */
 export const auditCollectorComponent = defineHostComponent({

@@ -88,7 +88,7 @@ const item = <Item extends z.ZodObject>(collection: Collection<string, Item>) =>
  * Generate `<id>.create`: a new record from `fields`. The server picks the key, unless
  * `clientKey` lets the caller supply it as `id`, for records made where the instance is not
  * reachable, such as on a phone. A key that exists is `CONFLICT`. The server pairs it with
- * `collectionCommandHandlers` from `@agent-native/runtime`, which checks a tree's parent.
+ * `collectionCommandHandlers` from `@tortoise/runtime`, which checks a tree's parent.
  */
 export function collectionCreate<
   const Id extends string,
@@ -220,7 +220,7 @@ export interface CollectionTreeSpec<Id extends string> {
  * from every root), each with its `depth` below the start, down to `depth` levels and at most
  * `limit` records. `total` counts the visible records the walk reached before the limit. Retired
  * records are left out unless `includeRetired` is set. The server pairs it with
- * `collectionTreeHandler` from `@agent-native/runtime`.
+ * `collectionTreeHandler` from `@tortoise/runtime`.
  */
 export function collectionTree<
   const Id extends string,

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineAssignmentKind } from '@agent-native/assignments';
+import { defineAssignmentKind } from '@tortoise/assignments';
 import { toolSchema } from './tool';
 
 /**

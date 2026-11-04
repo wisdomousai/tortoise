@@ -1,4 +1,4 @@
-import { secureEndpoint } from '@agent-native/agents/oidc';
+import { secureEndpoint } from '@tortoise/agents/oidc';
 
 /** The bound destination's fetch, as the network port's client offers it. */
 export type DestinationFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;

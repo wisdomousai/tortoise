@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { createCli } from '@agent-native/host/cli';
+import { createCli } from '@tortoise/host/cli';
 import { configuredApplication } from '../../service/src/application';
 
 /**

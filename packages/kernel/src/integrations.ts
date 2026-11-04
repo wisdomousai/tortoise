@@ -1,4 +1,4 @@
-import { drainTargets, type TargetIntegration } from '@agent-native/integration';
+import { drainTargets, type TargetIntegration } from '@tortoise/integration';
 import { hostContext, type ApplicationConnections, type HostedApplication } from './application';
 
 /**

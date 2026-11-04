@@ -4,8 +4,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import { createClient, LiveQuery, type CommandOptions, type Transport } from '@agent-native/client';
+} from '@tortoise/contracts';
+import { createClient, LiveQuery, type CommandOptions, type Transport } from '@tortoise/client';
 
 /** A typed React subscription to committed data. Keep drafts in separate component state. */
 export function useLiveQuery<C extends AnyCapability>(

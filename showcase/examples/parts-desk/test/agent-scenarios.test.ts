@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { deterministicHarness } from '@agent-native/agents';
-import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+import { deterministicHarness } from '@tortoise/agents';
+import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { draftQuote, owner, supervisor, testWorkspaces, utilityIds } from './support';
 
 // The assistant's scenarios, played by the deterministic harness and judged by what each run

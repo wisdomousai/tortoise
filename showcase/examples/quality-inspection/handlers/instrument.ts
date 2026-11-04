@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import {
   capturesAnywhere,

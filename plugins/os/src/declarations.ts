@@ -5,7 +5,7 @@ import type {
   OsActionKind,
   OsHandler,
   OsHandlerKind,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** The kinds this plugin serves itself; other plugins enable the rest through `services.os`. */
 export const baseHandlerKinds: readonly OsHandlerKind[] = ['link', 'file'];

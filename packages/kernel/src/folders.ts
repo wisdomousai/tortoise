@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 
 /** A declared folder this deployment binds to a directory. */
 export interface BoundFolder {

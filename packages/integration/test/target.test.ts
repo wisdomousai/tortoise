@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { defineCapability, defineModule, defineTarget, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, defineTarget, jsonSchema } from '@tortoise/contracts';
 import {
   createApplication,
   createHandlerFactory,
@@ -8,7 +8,7 @@ import {
   definePolicy,
   own,
   put,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   connectTarget,
   completeDelivery,

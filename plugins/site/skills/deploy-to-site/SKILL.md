@@ -25,7 +25,7 @@ A deployment policy binds what the application declares to one site's addresses,
    - `ca` or `certificatePins` where required;
    - `audit`;
    - `identity`, either `grant-file` or `external` with `workforce` for workforce sign-in;
-     Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@agent-native/site/testing` stands in for it with a certificate the binding's `ca` trusts;
+     Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@tortoise/site/testing` stands in for it with a certificate the binding's `ca` trusts;
    - `grants.maxTtlSeconds`;
    - the listener for TLS or mTLS.
 2. In connected mode, bind or explicitly disable every required destination.
@@ -68,7 +68,7 @@ A deployment policy binds what the application declares to one site's addresses,
 ## References
 
 - [Security and compliance](../../../../docs/security-and-compliance.md)
-- [`@agent-native/site`](../../README.md)
+- [`@tortoise/site`](../../README.md)
 - [Profiles table](../../../../docs/security-and-compliance.md#hardening-profiles)
 - [Desktop](../../../../docs/desktop.md)
 - [Site pattern](../../../../showcase/patterns/site/README.md)

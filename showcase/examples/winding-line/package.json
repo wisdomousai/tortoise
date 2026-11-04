@@ -1,5 +1,5 @@
 {
-  "name": "@agent-native/winding-line",
+  "name": "@tortoise/winding-line",
   "version": "0.1.0",
   "private": true,
   "type": "module",

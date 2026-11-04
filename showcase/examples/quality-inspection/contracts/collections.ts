@@ -1,4 +1,4 @@
-import { defineCollection } from '@agent-native/contracts';
+import { defineCollection } from '@tortoise/contracts';
 import { lotSummarySchema } from './schemas';
 
 /** Inspection lots published by the quality system, keyed by lot number, grouped by plant. */

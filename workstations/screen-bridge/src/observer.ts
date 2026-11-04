@@ -4,7 +4,7 @@ import {
   Debouncer,
   type ObservedReading,
   type ObserverOptions,
-} from '@agent-native/observation';
+} from '@tortoise/observation';
 import type { Extractor, ScreenTransport } from './ports';
 import { createRecognizer } from './recognize';
 import type { StationProfile } from './profile';

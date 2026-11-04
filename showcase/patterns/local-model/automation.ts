@@ -1,5 +1,5 @@
-import { defineTrigger } from '@agent-native/automation/contracts';
-import { requestOperations } from '@agent-native/pattern-base/contracts';
+import { defineTrigger } from '@tortoise/automation/contracts';
+import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { methodSuggester } from './contracts';
 
 /**

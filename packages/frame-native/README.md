@@ -1,4 +1,4 @@
-# @agent-native/frame-native
+# @tortoise/frame-native
 
 The React Native frame around an application's native screens on Android and iOS: navigation, session and live updates, plus glove-sized components as a shadcn registry. It imports no application and no plugin; the starter passes the screens in from its generated entry.
 

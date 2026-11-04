@@ -1,6 +1,6 @@
-# @agent-native/compliance
+# @tortoise/compliance
 
-Builds the compliance bundle (security manifest, data flows, control mapping, CycloneDX SBOM) from the catalog and the site policy, and re-checks posture on a timer. Compose `createComplianceHandlers` with `createComplianceState`, and list the Compliance screen from `@agent-native/compliance/plugin-screens`. Its capabilities are queries only: nothing here changes configuration, and the log stays append-only. `bun run cli compliance report --format markdown` prints the posture report.
+Builds the compliance bundle (security manifest, data flows, control mapping, CycloneDX SBOM) from the catalog and the site policy, and re-checks posture on a timer. Compose `createComplianceHandlers` with `createComplianceState`, and list the Compliance screen from `@tortoise/compliance/plugin-screens`. Its capabilities are queries only: nothing here changes configuration, and the log stays append-only. `bun run cli compliance report --format markdown` prints the posture report.
 
 Primitives:
 

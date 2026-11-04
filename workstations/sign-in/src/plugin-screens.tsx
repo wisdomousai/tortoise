@@ -1,5 +1,5 @@
 import { IdCard, ScanLine } from 'lucide-react';
-import { definePluginScreens } from '@agent-native/frame/plugin-screens';
+import { definePluginScreens } from '@tortoise/frame/plugin-screens';
 import { BadgesScreen } from './ui/badges';
 import { TerminalScreen, type TerminalOptions } from './ui/terminal';
 

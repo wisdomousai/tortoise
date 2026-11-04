@@ -1,5 +1,5 @@
 import { isStepCount, jsonSchema, streamText, tool, type LanguageModel, type ToolSet } from 'ai';
-import { ApplicationError, errorEnvelope } from '@agent-native/contracts';
+import { ApplicationError, errorEnvelope } from '@tortoise/contracts';
 import type { Harness, HarnessEvent, HarnessTurn } from './types';
 import { modelPrompt, toolDescription, toolName } from './types';
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { createCli } from '@agent-native/host/cli';
+import { createCli } from '@tortoise/host/cli';
 import { createToolStoreApplication } from '../application';
 
 const policyFile = join(import.meta.dir, '../site-policy.store-terminal.json');

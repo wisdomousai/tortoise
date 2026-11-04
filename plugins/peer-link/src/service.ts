@@ -1,6 +1,6 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { PeerLink } from '@agent-native/integration';
-import type { ExecutionContext, HandlerContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { PeerLink } from '@tortoise/integration';
+import type { ExecutionContext, HandlerContext } from '@tortoise/runtime';
 import type { PeerLinkState } from './state';
 
 /** A peer target this application calls: the application it expects and its destination. */

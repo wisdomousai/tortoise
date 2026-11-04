@@ -1,5 +1,5 @@
-import { defineHostComponent } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defineHostComponent } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /**
  * The workforce identity provider's destination, bound only when the site policy signs people in

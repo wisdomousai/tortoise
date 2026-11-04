@@ -1,11 +1,11 @@
 {
-  "name": "@agent-native/agents",
+  "name": "@tortoise/agents",
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/agents"
   },
   "files": [
@@ -20,10 +20,10 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
     "@ai-sdk/openai": "4.0.86",
     "@anthropic-ai/claude-agent-sdk": "0.3.292",
     "@napi-rs/keyring": "2.1.0",
+    "@tortoise/contracts": "workspace:*",
     "ai": "7.0.130",
     "jose": "6.2.12",
     "zod": "4.6.5"

@@ -1,5 +1,5 @@
-import { errorEnvelope } from '@agent-native/contracts';
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import { errorEnvelope } from '@tortoise/contracts';
+import type { Effect, EffectOutcome } from '@tortoise/runtime';
 import type { DispatchReport, EffectDispatcherOptions } from '../dispatcher.js';
 import {
   DeliveryFailure,

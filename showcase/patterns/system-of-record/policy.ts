@@ -4,9 +4,9 @@ import {
   type AuthorizationPort,
   type AuthorizationRoute,
   type OperationRule,
-} from '@agent-native/runtime';
-import { targetAllowlist, targetRules } from '@agent-native/integration';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { targetAllowlist, targetRules } from '@tortoise/integration';
+import type { Role } from '@tortoise/pattern-base/server';
 import { limsTarget, publishingModule, publishingOperations } from './contracts';
 import { LIMS_PRINCIPAL, type LabPublishingRoot } from './domain';
 

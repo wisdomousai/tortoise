@@ -1,12 +1,7 @@
-import type {
-  JsonObject,
-  OsActionOutcome,
-  OsInstruction,
-  OsRefusal,
-} from '@agent-native/contracts';
-import type { ShellAdapter } from '@agent-native/kernel/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { buildInstruction, OsActionError } from '@agent-native/shell';
+import type { JsonObject, OsActionOutcome, OsInstruction, OsRefusal } from '@tortoise/contracts';
+import type { ShellAdapter } from '@tortoise/kernel/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { buildInstruction, OsActionError } from '@tortoise/shell';
 import type { OsAudit } from './audit';
 import type { OsDeclarationSet } from './declarations';
 

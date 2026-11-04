@@ -1,6 +1,6 @@
-# @agent-native/webhook
+# @tortoise/webhook
 
-An example third-party plugin. It posts a notification to one declared webhook whenever an observed command commits; `field-service` composes it, with screens from `@agent-native/webhook/plugin-screens`. The loop is a caller like an agent run: it acts as the local owner, narrowed by a delegated grant to the observed capabilities and the plugin's own two.
+An example third-party plugin. It posts a notification to one declared webhook whenever an observed command commits; `field-service` composes it, with screens from `@tortoise/webhook/plugin-screens`. The loop is a caller like an agent run: it acts as the local owner, narrowed by a delegated grant to the observed capabilities and the plugin's own two.
 
 Primitives:
 

@@ -1,4 +1,4 @@
-import type { SystemOfRecordPort } from '@agent-native/integration';
+import type { SystemOfRecordPort } from '@tortoise/integration';
 import { fileDropPort, type FileDropOptions } from './drop';
 import { folderFeed, type FolderFeedOptions } from './feed';
 

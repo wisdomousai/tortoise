@@ -1,4 +1,4 @@
-import { own } from '@agent-native/runtime';
+import { own } from '@tortoise/runtime';
 
 /**
  * CRM capture: find customers in the CRM live, bring the ones you work with into this workspace,

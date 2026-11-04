@@ -1,4 +1,4 @@
-import { DEFAULT_PAGE, type HandlerContribution } from '@agent-native/runtime';
+import { DEFAULT_PAGE, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { DEFAULT_CALIBRATION_DAYS } from '../contracts/tool-calibration-due';
 import type { AppState } from '../domain';

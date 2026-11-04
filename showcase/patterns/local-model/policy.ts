@@ -4,9 +4,9 @@ import {
   type AuthorizationPort,
   type AuthorizationRoute,
   type OperationRule,
-} from '@agent-native/runtime';
-import { approvalOperations } from '@agent-native/contracts';
-import type { Role } from '@agent-native/pattern-base/server';
+} from '@tortoise/runtime';
+import { approvalOperations } from '@tortoise/contracts';
+import type { Role } from '@tortoise/pattern-base/server';
 import { methodSuggestionsModule } from './contracts';
 import type { TestRequestsLocalModelRoot } from './domain';
 

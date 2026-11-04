@@ -4,9 +4,9 @@ import { mkdirSync } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { driverContractFile } from '@agent-native/connector-driver/cli';
-import type { DriverProcess } from '@agent-native/connector-driver/supervisor';
-import { checkDriver } from '@agent-native/connector-driver/testing';
+import { driverContractFile } from '@tortoise/connector-driver/cli';
+import type { DriverProcess } from '@tortoise/connector-driver/supervisor';
+import { checkDriver } from '@tortoise/connector-driver/testing';
 import { stationAutomationContract } from '../contracts/automation';
 import { automationRoute } from './automation-route';
 

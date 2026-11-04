@@ -1,4 +1,4 @@
-import { canonicalJson } from '@agent-native/contracts';
+import { canonicalJson } from '@tortoise/contracts';
 import type { Cursor, Snapshot, Transport } from './types.js';
 
 export interface LiveState<T> {

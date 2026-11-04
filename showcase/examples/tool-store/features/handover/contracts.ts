@@ -5,7 +5,7 @@ import {
   defineModule,
   jsonSchema,
   recordKeySchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** The store shifts a handover entry can be written for. */
 export const handoverShifts = ['early', 'late', 'night'] as const;

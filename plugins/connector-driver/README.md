@@ -1,4 +1,4 @@
-# @agent-native/connector-driver
+# @tortoise/connector-driver
 
 Puts hardware drivers written in any language behind the outbox: driver actions become outbox targets, driver state becomes observations, and the host runs the driver through the process port over JSON-RPC.
 

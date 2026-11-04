@@ -87,7 +87,7 @@ const lookupInput = z.strictObject({ externalId: z.string().min(1).max(128) });
  * - `<id>.lookup`: read one record by `externalId`.
  *
  * Browser-safe: this is data. The server pairs it with a source (`implementDataProvider` in
- * `@agent-native/integration`). Bringing a found record into local state is a domain command,
+ * `@tortoise/integration`). Bringing a found record into local state is a domain command,
  * because what a local copy means differs per application.
  */
 export function defineDataProvider<

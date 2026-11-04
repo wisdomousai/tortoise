@@ -1,6 +1,6 @@
-import { createCli } from '@agent-native/host/cli';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { createCli } from '@tortoise/host/cli';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { siteApplication } from './fixtures';
 
 /**

@@ -1,11 +1,11 @@
 {
-  "name": "@agent-native/react",
+  "name": "@tortoise/react",
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "packages/react"
   },
   "files": [
@@ -20,11 +20,11 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/client": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/devices": "workspace:*",
     "@tanstack/react-form": "1.33.5",
-    "@tanstack/react-query": "5.104.1"
+    "@tanstack/react-query": "5.104.1",
+    "@tortoise/client": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/devices": "workspace:*"
   },
   "peerDependencies": {
     "react": "19.3.0"

@@ -1,9 +1,9 @@
-import { defineScreens } from '@agent-native/frame/screens';
+import { defineScreens } from '@tortoise/frame/screens';
 import {
   requestCapabilityScreens,
   requestNavigation,
   requestRoutes,
-} from '@agent-native/pattern-base/ui/requests';
+} from '@tortoise/pattern-base/ui/requests';
 import manifest from './manifest';
 
 /** The base pattern's screens. The site's reports, audit events and releases show in the fleet. */

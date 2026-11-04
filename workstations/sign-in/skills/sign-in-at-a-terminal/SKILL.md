@@ -18,9 +18,9 @@ A terminal is a principal whose screen may sign people in. An operator scans a b
 
 ## Steps
 
-1. Add `stationSignInPluginManifest` from `@agent-native/workstation-sign-in/plugin-manifest` to the manifest's `plugins`.
-2. Add `createStationSignInPlugin()` from `@agent-native/workstation-sign-in/plugin` to the application's `plugins`.
-3. Write the screen an operator works on as a component without props. It is mounted at `/terminal` alone, and leaving that route ends the session, so several views behind sign-in are tabs inside the component, not routes. Read the operator's `client` and `live` bindings with `useOperatorSession()` from `@agent-native/workstation-sign-in/plugin-screens`.
+1. Add `stationSignInPluginManifest` from `@tortoise/workstation-sign-in/plugin-manifest` to the manifest's `plugins`.
+2. Add `createStationSignInPlugin()` from `@tortoise/workstation-sign-in/plugin` to the application's `plugins`.
+3. Write the screen an operator works on as a component without props. It is mounted at `/terminal` alone, and leaving that route ends the session, so several views behind sign-in are tabs inside the component, not routes. Read the operator's `client` and `live` bindings with `useOperatorSession()` from `@tortoise/workstation-sign-in/plugin-screens`.
 4. Use only that client in this component, never `@/lib/session`, which acts as the terminal. Frame components such as `collection-screen` and `CapabilityForm` read `@/lib/session`, so the work component uses its own hooks and forms that send through the operator client's `transport`. `useUiSession`, `Accounts` and `RunPanel` call the host with the terminal's session instead: a run started in the work component acts as the terminal's principal, and the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers handling its intents without leaving the terminal. An application-wide scanner listener must stop on `/terminal`, or it reads the badge burst too.
 5. Pass `stationSignInScreens({ terminal, work, idleMs, badgePattern })` to `defineScreens({ plugins })`, with the application's `manifest`. The terminal screen is at `/terminal` and the badge screen at `/badges`.
 6. Enroll badges on the badge screen as the local owner, who is the plugin's admin. Enrollment posts to `stationPaths.enroll`, which hashes the PIN, so neither the badge value nor the PIN becomes a stored command input.
@@ -49,7 +49,7 @@ For a PIN entry of your own, pass `code` and `masked` to the operator registry's
 
 ## References
 
-- [`@agent-native/workstation-sign-in`](../../README.md)
+- [`@tortoise/workstation-sign-in`](../../README.md)
 - [Operator workstations: workstation sign-in](../../../../docs/operator-workstations.md#workstation-sign-in)
 - [Sign-in pattern](../../../../showcase/patterns/sign-in/README.md)
-- [`@agent-native/operator-ui`](../../../../packages/operator-ui/README.md)
+- [`@tortoise/operator-ui`](../../../../packages/operator-ui/README.md)

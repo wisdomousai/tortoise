@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { BlobRef } from '@agent-native/contracts';
-import { implementDataProvider, completeDelivery, targetHandlers } from '@agent-native/integration';
-import { own, type HandlerContribution } from '@agent-native/runtime';
-import { workflowOperations } from '@agent-native/workflows/contracts';
+import type { BlobRef } from '@tortoise/contracts';
+import { implementDataProvider, completeDelivery, targetHandlers } from '@tortoise/integration';
+import { own, type HandlerContribution } from '@tortoise/runtime';
+import { workflowOperations } from '@tortoise/workflows/contracts';
 import { eamAssets, eamTarget, exportTarget, filingOperations as ops } from '../contracts/filing';
 import { captureFileWorkflow, captureToEam } from '../contracts/workflow';
 import type { assetSnapshotSchema } from '../contracts/schemas';

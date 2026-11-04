@@ -1,6 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
-import { canonicalJson, type ApprovalRequest } from '@agent-native/contracts';
+import { canonicalJson, type ApprovalRequest } from '@tortoise/contracts';
 import type { ExecutionContext, Invocation, QueryResult } from './types.js';
 
 /**

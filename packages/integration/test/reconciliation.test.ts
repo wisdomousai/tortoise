@@ -8,7 +8,7 @@ import {
   reconciliationOperations,
   type InputOf,
   type ReconciliationDecision,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createApplication,
   createHandlerFactory,
@@ -16,7 +16,7 @@ import {
   reconciliationHandlers,
   type Effect,
   type EffectOutcome,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { DeliveryUncertain, createEffectDispatcher, type SystemOfRecordPort } from '../src/index';
 
 // Two targets whose deliveries can end uncertain: a station screen and an ERP. Each person may

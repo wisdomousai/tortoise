@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { OsProvenance } from '@agent-native/contracts';
+import type { OsProvenance } from '@tortoise/contracts';
 import { applyOsDelivery } from '../src/os-deliveries';
 import { defineNativeScreens, type NativeScreenRoute } from '../src/screens';
 import type { NativeSession } from '../src/session';

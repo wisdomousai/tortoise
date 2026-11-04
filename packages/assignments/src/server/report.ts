@@ -1,5 +1,5 @@
-import { ApplicationError, canonicalJson, type AnyCapability } from '@agent-native/contracts';
-import { own, put } from '@agent-native/runtime';
+import { ApplicationError, canonicalJson, type AnyCapability } from '@tortoise/contracts';
+import { own, put } from '@tortoise/runtime';
 import type { AnyAssignmentKind } from '../kind';
 import type { Assignments } from '../manifest';
 import { camel } from '../operations';

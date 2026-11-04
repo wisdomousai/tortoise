@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/connector-opcua",
+  "name": "@tortoise/connector-opcua",
   "version": "0.1.0",
   "type": "module",
   "description": "OPC UA connector: read-only observation of node values through the network port with a UA binary client (security policy None, anonymous), submitted as readings through an ingest command.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/connector-opcua"
   },
   "files": [
@@ -21,10 +21,10 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/observation": "workspace:*",
-    "@agent-native/runtime": "workspace:*"
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/observation": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

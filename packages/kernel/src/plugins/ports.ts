@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { HostPorts, IngressPort, NetworkPort, PluginInstance } from '../plugin';
 import { noFolders } from '../folders';
 import { noProcesses } from '../processes';

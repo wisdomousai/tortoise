@@ -1,5 +1,5 @@
-import type { AuditEvent } from '@agent-native/contracts';
-import { readEvents, type ChainHead } from '@agent-native/event-log';
+import type { AuditEvent } from '@tortoise/contracts';
+import { readEvents, type ChainHead } from '@tortoise/event-log';
 import type { AuditEventView } from './contracts';
 import type { CompliancePort } from './monitor';
 

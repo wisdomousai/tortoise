@@ -1,5 +1,5 @@
-import { errorEnvelope } from '@agent-native/contracts';
-import { PENDING_EXIT_CODE, exitCodes } from '@agent-native/adapters/cli';
+import { errorEnvelope } from '@tortoise/contracts';
+import { PENDING_EXIT_CODE, exitCodes } from '@tortoise/adapters/cli';
 import type { AnyApplicationDefinition } from './application';
 import { report } from './cli/args';
 import { drainCommand, syncCommand } from './cli/integration-commands';

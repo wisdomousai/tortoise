@@ -11,10 +11,10 @@ import { forbiddenBrowserImport, hostSourcePath } from './boundary-rules.ts';
 export function browserBoundary(root = process.cwd()): Plugin {
   const name = (id: string) => relative(root, id).replaceAll('\\', '/');
   // An installed framework package is judged by the directory it was published from, so
-  // `node_modules/@agent-native/runtime/src/x.ts` meets the rule for `packages/runtime/src/`.
+  // `node_modules/@tortoise/runtime/src/x.ts` meets the rule for `packages/runtime/src/`.
   const published = new Map<string, string | undefined>();
   const sourcePath = (id: string) => {
-    const installed = /^(.*[\\/]node_modules[\\/]@agent-native[\\/][^\\/]+)[\\/](.*)$/.exec(id);
+    const installed = /^(.*[\\/]node_modules[\\/]@tortoise[\\/][^\\/]+)[\\/](.*)$/.exec(id);
     if (!installed) return id;
     const [, directory, rest] = installed as unknown as [string, string, string];
     if (!published.has(directory))

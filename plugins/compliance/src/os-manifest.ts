@@ -1,4 +1,4 @@
-import type { Catalog, CatalogOsAction, CatalogOsHandler } from '@agent-native/contracts';
+import type { Catalog, CatalogOsAction, CatalogOsHandler } from '@tortoise/contracts';
 
 /**
  * What other applications on the device can hand to this one (handlers: local ingress from an

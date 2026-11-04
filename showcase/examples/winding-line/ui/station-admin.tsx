@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { defaultWedgeProfile } from '@agent-native/devices';
-import { deviceOperations } from '@agent-native/devices/contracts';
-import type { OutputOf } from '@agent-native/contracts';
+import { defaultWedgeProfile } from '@tortoise/devices';
+import { deviceOperations } from '@tortoise/devices/contracts';
+import type { OutputOf } from '@tortoise/contracts';
 import { operations } from '../contracts';
 import { CapabilityForm } from '@/components/capability-form';
 import { OperatorHeader, OperatorSurface } from '@/components/operator-surface';

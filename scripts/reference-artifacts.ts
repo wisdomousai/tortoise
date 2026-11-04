@@ -3,11 +3,11 @@ import {
   workflowMarkdown,
   type Catalog,
   type CatalogOperation,
-} from '@agent-native/contracts';
-import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
-import { loadManifest, readStarterConfig, type ApplicationManifest } from '@agent-native/host';
-import { deploymentCatalog, deploymentComponents } from '@agent-native/host/components';
-import { dataFlowsMarkdown, securityManifest } from '@agent-native/compliance';
+} from '@tortoise/contracts';
+import { commandWords, synopsis } from '@tortoise/adapters/cli-syntax';
+import { loadManifest, readStarterConfig, type ApplicationManifest } from '@tortoise/host';
+import { deploymentCatalog, deploymentComponents } from '@tortoise/host/components';
+import { dataFlowsMarkdown, securityManifest } from '@tortoise/compliance';
 import { agentSkillSection, agentsMarkdown, agentsOf } from './agent-reference';
 import { readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';

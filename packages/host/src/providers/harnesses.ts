@@ -1,8 +1,8 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { AiSdkHarness } from '@agent-native/agents/ai-sdk';
-import { ClaudeHarness } from '@agent-native/agents/claude';
-import { CodexHarness, chatGptCodexOptions } from '@agent-native/agents/codex';
-import type { Harness, HarnessTurn } from '@agent-native/agents/types';
+import { ApplicationError } from '@tortoise/contracts';
+import { AiSdkHarness } from '@tortoise/agents/ai-sdk';
+import { ClaudeHarness } from '@tortoise/agents/claude';
+import { CodexHarness, chatGptCodexOptions } from '@tortoise/agents/codex';
+import type { Harness, HarnessTurn } from '@tortoise/agents/types';
 import { providerDirectories, verifiedRuntime } from './native-runtime';
 import { chooseModel, profileCredentials, turnSelection } from './profiles';
 import { scopeOf, scopedVault, type ProviderState } from './state';

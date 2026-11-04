@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
-import type { ScanEvent } from '@agent-native/devices/scanner/decode';
+import type { ScanEvent } from '@tortoise/devices/scanner/decode';
 import {
   defaultWedgeProfile,
   scannerProfileSchema,
   type ScannerProfile,
-} from '@agent-native/devices/scanner/profile';
+} from '@tortoise/devices/scanner/profile';
 import { intentScannerPluginManifest } from '../src/plugin-manifest';
 import { createIntentSource, type IntentScannerModule } from '../src/source';
 

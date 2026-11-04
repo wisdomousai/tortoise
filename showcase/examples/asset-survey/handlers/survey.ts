@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { Assignee } from '@agent-native/assignments';
-import { byKind, type StoredReport } from '@agent-native/assignments/server';
-import { own, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { Assignee } from '@tortoise/assignments';
+import { byKind, type StoredReport } from '@tortoise/assignments/server';
+import { own, type HandlerContribution } from '@tortoise/runtime';
 import { captureOperations as ops } from '../contracts/captures';
 import { ATTENTION_BELOW, assignmentOperations, reportLink } from '../contracts/kinds';
 import {

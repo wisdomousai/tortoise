@@ -1,10 +1,10 @@
 import { Thermometer } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
+import { defineScreens } from '@tortoise/frame/screens';
 import {
   requestCapabilityScreens,
   requestNavigation,
   requestRoutes,
-} from '@agent-native/pattern-base/ui/requests';
+} from '@tortoise/pattern-base/ui/requests';
 import manifest from './manifest';
 import { ChambersScreen, RequestChamber } from './ui/chambers';
 

@@ -1,4 +1,4 @@
-import type { SliceVersion, StateUpgrade, StateVersions } from '@agent-native/runtime';
+import type { SliceVersion, StateUpgrade, StateVersions } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from './application';
 import { composedUnits, statefulUnits } from './features/units';
 import { currentVersion, migrateSlice } from './migrations';

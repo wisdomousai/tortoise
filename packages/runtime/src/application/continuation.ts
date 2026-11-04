@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import type { CommandReceipt, Invocation, StoredReceipt, WorkspaceSnapshot } from '../types.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { runFrame } from './frame.js';

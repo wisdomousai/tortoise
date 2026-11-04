@@ -5,7 +5,7 @@ import {
   defineModule,
   jsonSchema,
   jsonValueSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /**
  * The fleet protocol: the operations a fleet application serves to the sites enrolled with it.

@@ -1,4 +1,4 @@
-import type { WorkspaceSnapshot } from '@agent-native/runtime';
+import type { WorkspaceSnapshot } from '@tortoise/runtime';
 
 /** The row kinds one workspace is stored as; the journal has its own table. */
 export type RowKind = 'state' | 'revision' | 'receipt' | 'effect' | 'blob' | 'version';

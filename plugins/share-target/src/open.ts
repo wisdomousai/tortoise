@@ -1,8 +1,8 @@
-import type { RawOsRequest } from '@agent-native/contracts';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { PluginInstance, PluginOpenContext } from '@agent-native/kernel/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { osServiceOf } from '@agent-native/os';
+import type { RawOsRequest } from '@tortoise/contracts';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { PluginInstance, PluginOpenContext } from '@tortoise/kernel/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { osServiceOf } from '@tortoise/os';
 import { createHeldShares, type HeldShare } from './held';
 import { shareTargetRoute } from './route';
 

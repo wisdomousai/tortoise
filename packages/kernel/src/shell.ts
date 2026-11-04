@@ -7,8 +7,8 @@ import {
   type OsPlatform,
   type OsRequestOutcome,
   type RawOsRequest,
-} from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 
 /**
  * Platform code that talks to the operating system: Electron main, a browser page, the Expo

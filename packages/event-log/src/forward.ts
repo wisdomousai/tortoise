@@ -1,4 +1,4 @@
-import type { AuditEvent, AuditRecord, EventLogPort } from '@agent-native/contracts';
+import type { AuditEvent, AuditRecord, EventLogPort } from '@tortoise/contracts';
 
 /** Ships sealed events somewhere else, for example an off-host syslog collector. */
 export type EventSink = (events: readonly AuditEvent[]) => Promise<void>;

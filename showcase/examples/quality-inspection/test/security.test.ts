@@ -2,9 +2,9 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { segmentName } from '@agent-native/event-log';
-import { startHost } from '@agent-native/host/host';
-import { auditServiceOf } from '@agent-native/audit';
+import { segmentName } from '@tortoise/event-log';
+import { startHost } from '@tortoise/host/host';
+import { auditServiceOf } from '@tortoise/audit';
 import { writeApplicationEntry } from '../../../../scripts/application-entry';
 import qualityInspection from '../application';
 

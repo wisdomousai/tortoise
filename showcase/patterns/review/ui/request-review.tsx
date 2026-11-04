@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { requestOperations } from '@agent-native/pattern-base/contracts';
+import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { live } from '@/lib/session';
 import { ReviewPanel } from '../features/review/screens';
 

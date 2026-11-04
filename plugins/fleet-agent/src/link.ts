@@ -1,5 +1,5 @@
-import type { NetworkPort } from '@agent-native/host/plugin';
-import { createPeerCall, PeerCallError } from '@agent-native/integration/peer-call';
+import type { NetworkPort } from '@tortoise/host/plugin';
+import { createPeerCall, PeerCallError } from '@tortoise/integration/peer-call';
 import { fleetEnrollPath } from './contracts';
 
 /** The fleet did not respond, or responded with an error; the message says which. */

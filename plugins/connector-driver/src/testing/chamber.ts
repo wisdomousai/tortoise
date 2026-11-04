@@ -1,12 +1,12 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { jsonSchema } from '@agent-native/contracts';
+import { jsonSchema } from '@tortoise/contracts';
 import {
   conformanceEffect,
   connectorConformance,
   type ConformanceCase,
-} from '@agent-native/testing/connectors';
+} from '@tortoise/testing/connectors';
 import { z } from 'zod';
 import { createDriverConnector } from '../connect/connector';
 import { defineDriverContract } from '../contracts/define';

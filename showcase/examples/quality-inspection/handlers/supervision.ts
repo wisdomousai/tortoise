@@ -1,5 +1,5 @@
-import { ApplicationError, type JsonValue } from '@agent-native/contracts';
-import { membershipHandler, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError, type JsonValue } from '@tortoise/contracts';
+import { membershipHandler, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { plantMembership } from '../contracts/membership';
 import { own, progress, type QualityState, type UsageDecision } from '../domain';

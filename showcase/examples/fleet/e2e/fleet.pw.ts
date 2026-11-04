@@ -15,7 +15,7 @@ test('an operator enrolls a site, assigns it a channel and sees it drift from th
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' } }),
   );
-  const host = await startService('@agent-native/fleet', join(directory, 'workspace'), {
+  const host = await startService('@tortoise/fleet', join(directory, 'workspace'), {
     AGENT_NATIVE_SITE_POLICY: policy,
   });
   const { token } = JSON.parse(await readFile(host.connectionFile, 'utf8')) as { token: string };

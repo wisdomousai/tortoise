@@ -1,4 +1,4 @@
-import { ApplicationError, invokesClosure, type Catalog } from '@agent-native/contracts';
+import { ApplicationError, invokesClosure, type Catalog } from '@tortoise/contracts';
 import type { DelegationGrant, ExecutionContext } from './types.js';
 
 export interface AgentGrantOptions {

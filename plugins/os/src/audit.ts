@@ -5,8 +5,8 @@ import {
   type AuditRecord,
   type EventLogPort,
   type JsonObject,
-} from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 
 /** A refusal or acceptance as the status query shows it; never content. */
 export interface OsActivity {

@@ -4,9 +4,9 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { sessionCookieName } from '@agent-native/adapters/http';
-import type { SitePolicyInput } from '@agent-native/site/policy';
-import { startHost } from '@agent-native/host/host';
+import { sessionCookieName } from '@tortoise/adapters/http';
+import type { SitePolicyInput } from '@tortoise/site/policy';
+import { startHost } from '@tortoise/host/host';
 import { writeApplicationEntry } from '../../../../scripts/application-entry';
 import fieldService from '../application';
 

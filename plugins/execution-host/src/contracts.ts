@@ -1,4 +1,4 @@
-import { defineHostComponent, type Availability } from '@agent-native/contracts';
+import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /**
  * Declare one sandbox as a host component, for an application manifest's `components`.

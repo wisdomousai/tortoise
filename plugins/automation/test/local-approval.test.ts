@@ -2,8 +2,8 @@ import { afterAll, expect, test } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { toolName } from '@agent-native/agents/types';
-import { startHost } from '@agent-native/host/host';
+import { toolName } from '@tortoise/agents/types';
+import { startHost } from '@tortoise/host/host';
 import { lotsApplication, person, reviewOnReceive } from './fixture';
 
 // An OpenAI-compatible model server on loopback. Its first response requests approval for inspecting the lot

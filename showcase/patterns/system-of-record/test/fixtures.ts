@@ -2,8 +2,8 @@ import { afterEach } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { errorEnvelope } from '@agent-native/contracts';
-import { openEmbeddedInstance } from '@agent-native/host';
+import { errorEnvelope } from '@tortoise/contracts';
+import { openEmbeddedInstance } from '@tortoise/host';
 import { createTestRequestsSystemOfRecordApplication } from '../application';
 import { FakeLims } from '../fake-lims';
 

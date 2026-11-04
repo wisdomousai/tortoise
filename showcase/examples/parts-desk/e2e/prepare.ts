@@ -14,8 +14,8 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@agent-native/host';
-import { llamaServerStandIn } from '@agent-native/model-server/testing';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { createPartsDeskApplication } from '../application';
 import { ASSISTANT_MODEL_PROCESS } from '../contracts/assistant-agent';
 import { seedTrialRecords } from '../trial-records';

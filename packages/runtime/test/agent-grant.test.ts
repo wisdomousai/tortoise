@@ -6,7 +6,7 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import { agentGrant } from '../src/index';
 import { grantPermits } from '../src/application/delegation';
 

@@ -1,8 +1,8 @@
 import { Archive, ClipboardList, FileText, Inbox, ListTree, ScanEye } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
-import { deviceLinkScreens } from '@agent-native/device-link/plugin-screens';
-import { workflowsScreens } from '@agent-native/workflows/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
+import { deviceLinkScreens } from '@tortoise/device-link/plugin-screens';
+import { workflowsScreens } from '@tortoise/workflows/plugin-screens';
 import manifest from './manifest';
 import { AssignmentsScreen } from './ui/assignments';
 import { ReadingScreen, SurveyScreen } from './ui/assignments/survey';

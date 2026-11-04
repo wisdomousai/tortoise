@@ -1,8 +1,8 @@
 import { join } from 'node:path';
-import { PENDING_EXIT_CODE } from '@agent-native/adapters/cli';
-import { verifyBundle, type BundleManifest, type TrustedKey } from '@agent-native/bundle';
-import { ApplicationError } from '@agent-native/contracts';
-import type { ApplicationManifest } from '@agent-native/host/manifest';
+import { PENDING_EXIT_CODE } from '@tortoise/adapters/cli';
+import { verifyBundle, type BundleManifest, type TrustedKey } from '@tortoise/bundle';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ApplicationManifest } from '@tortoise/host/manifest';
 import { binaryOf, type InstallLayout, type InstallRecord } from './layout';
 import { spawnCommand } from './native';
 

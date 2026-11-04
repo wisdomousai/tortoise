@@ -22,7 +22,7 @@
       "title": "Hold button",
       "description": "Full-width glove-sized button that confirms after a hold, with a fill bar; lifting or sliding off aborts. Exports useHold for custom controls.",
       "dependencies": ["uniwind"],
-      "registryDependencies": ["@agent-native-native/native-theme"],
+      "registryDependencies": ["@tortoise-native/native-theme"],
       "files": [
         {
           "path": "src/components/hold-button.tsx",
@@ -36,7 +36,7 @@
       "title": "Status pill",
       "description": "A station signal (ok, pending, attention, fault, idle) as icon plus word.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
-      "registryDependencies": ["@agent-native-native/native-theme"],
+      "registryDependencies": ["@tortoise-native/native-theme"],
       "files": [
         {
           "path": "src/components/status-pill.tsx",
@@ -50,7 +50,7 @@
       "title": "List row",
       "description": "A glove-sized pressable list row with a wrapping title, a detail line and a trailing slot.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
-      "registryDependencies": ["@agent-native-native/native-theme"],
+      "registryDependencies": ["@tortoise-native/native-theme"],
       "files": [
         {
           "path": "src/components/list-row.tsx",
@@ -65,9 +65,9 @@
       "description": "A worklist's assignments, open ones first, as glove-sized rows with the report count and where each stands: done and waiting for the issuer, done, done refused with the reason, or closed by the issuer.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
       "registryDependencies": [
-        "@agent-native-native/native-theme",
-        "@agent-native-native/list-row",
-        "@agent-native-native/status-pill"
+        "@tortoise-native/native-theme",
+        "@tortoise-native/list-row",
+        "@tortoise-native/status-pill"
       ],
       "files": [
         {
@@ -83,9 +83,9 @@
       "description": "A worklist target's counts of reports and done marks waiting, taken and refused, when assignments were last received, and every report with its state and the issuer's reason for a refusal.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
       "registryDependencies": [
-        "@agent-native-native/native-theme",
-        "@agent-native-native/list-row",
-        "@agent-native-native/status-pill"
+        "@tortoise-native/native-theme",
+        "@tortoise-native/list-row",
+        "@tortoise-native/status-pill"
       ],
       "files": [
         {

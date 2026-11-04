@@ -1,4 +1,4 @@
-export type { UiIntent } from '@agent-native/contracts';
+export type { UiIntent } from '@tortoise/contracts';
 export interface UiContext {
   sessionId: string;
   selectedResources: readonly string[];

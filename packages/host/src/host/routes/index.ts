@@ -1,4 +1,4 @@
-import type { HostSession } from '@agent-native/adapters/http';
+import type { HostSession } from '@tortoise/adapters/http';
 import { buildRoute } from './build';
 import { runRoute } from './runs';
 import { shellRoute } from './shell';

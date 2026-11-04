@@ -1,4 +1,4 @@
-import type { OsInstruction, OsNotificationButton, RawOsRequest } from '@agent-native/contracts';
+import type { OsInstruction, OsNotificationButton, RawOsRequest } from '@tortoise/contracts';
 
 type NotifyInstruction = Extract<OsInstruction, { kind: 'notify' }>;
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineTarget } from '@agent-native/contracts';
+import { defineTarget } from '@tortoise/contracts';
 import { codeGroupSchema, id, lotSnapshotSchema, timestamp } from './schemas';
 
 /**

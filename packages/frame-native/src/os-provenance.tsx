@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
-import type { OsProvenance } from '@agent-native/contracts';
-import { describeProvenance } from '@agent-native/shell/provenance';
+import type { OsProvenance } from '@tortoise/contracts';
+import { describeProvenance } from '@tortoise/shell/provenance';
 import { useShownProvenance } from './os-deliveries';
 
 /**

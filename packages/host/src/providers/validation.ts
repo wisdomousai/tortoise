@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import type { ChatGptProfile } from '@agent-native/agents/chatgpt';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ChatGptProfile } from '@tortoise/agents/chatgpt';
 
 export function validModel(value: unknown): string {
   if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/.test(value))

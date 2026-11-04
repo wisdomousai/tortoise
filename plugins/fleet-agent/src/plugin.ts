@@ -1,10 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import type { TrustedKey } from '@agent-native/bundle';
-import {
-  defineHostPlugin,
-  type HostPorts,
-  type PluginStartContext,
-} from '@agent-native/host/plugin';
+import type { TrustedKey } from '@tortoise/bundle';
+import { defineHostPlugin, type HostPorts, type PluginStartContext } from '@tortoise/host/plugin';
 import { forwardAudit, type AuditSource } from './audit';
 import {
   fleetSiteOperations,

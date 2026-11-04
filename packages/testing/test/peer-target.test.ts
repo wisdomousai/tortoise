@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { createHttpHandler } from '@agent-native/adapters/http';
-import { Sessions } from '@agent-native/adapters/http/sessions';
+import { createHttpHandler } from '@tortoise/adapters/http';
+import { Sessions } from '@tortoise/adapters/http/sessions';
 import {
   ApplicationError,
   defineCapability,
@@ -9,7 +9,7 @@ import {
   definePeerApi,
   definePeerTarget,
   jsonSchema,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   connectPeerTarget,
   createPeerDrift,
@@ -19,13 +19,13 @@ import {
   peerQuery,
   type PeerClient,
   type PeerLink,
-} from '@agent-native/integration';
+} from '@tortoise/integration';
 import {
   createApplication,
   createHandlerFactory,
   createMemoryStorage,
   type SourceCall,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import { conformanceEffect } from '../src/connectors';
 
 const lotInput = z.strictObject({ lot: z.string() });

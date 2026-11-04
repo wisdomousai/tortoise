@@ -4,10 +4,10 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createHttpTransport } from '@agent-native/client';
-import { createMcpServer } from '@agent-native/adapters/mcp';
-import { startHost } from '@agent-native/host/host';
-import { targetContext } from '@agent-native/integration';
+import { createHttpTransport } from '@tortoise/client';
+import { createMcpServer } from '@tortoise/adapters/mcp';
+import { startHost } from '@tortoise/host/host';
+import { targetContext } from '@tortoise/integration';
 import { createQualityInspectionApplication, INTEGRATION_PRINCIPAL } from '../application';
 import { qualityTarget } from '../contracts';
 import { FakeQualitySystem } from '../fake-sor';
@@ -35,7 +35,7 @@ test('a datapoint captured over any transport commits once, is forwarded once an
   const viewerFile = await connectionFile('viewer', viewerSession.token);
   const cli = async (file: string, args: string[]) => {
     const child = Bun.spawn(
-      [process.execPath, Bun.resolveSync('@agent-native/adapters/cli', import.meta.dir), ...args],
+      [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), ...args],
       {
         env: { PATH: process.env.PATH, AGENT_NATIVE_CONNECTION: file },
         stdout: 'pipe',

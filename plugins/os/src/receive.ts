@@ -5,8 +5,8 @@ import {
   type OsRefusal,
   type OsRequestOutcome,
   type RawOsRequest,
-} from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import {
   matchOsRequest,
   OsRequestError,
@@ -14,7 +14,7 @@ import {
   resolveTarget,
   type MatchOptions,
   type OsMatch,
-} from '@agent-native/shell';
+} from '@tortoise/shell';
 import type { OsAudit } from './audit';
 import { digestOf } from './audit';
 import type { OsDeclarationSet } from './declarations';

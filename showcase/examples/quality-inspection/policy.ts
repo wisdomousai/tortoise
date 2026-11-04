@@ -1,5 +1,5 @@
-import { peerAllowlist, targetAllowlist, targetRules } from '@agent-native/integration';
-import { definePolicy, membershipRule, own, type OperationRule } from '@agent-native/runtime';
+import { peerAllowlist, targetAllowlist, targetRules } from '@tortoise/integration';
+import { definePolicy, membershipRule, own, type OperationRule } from '@tortoise/runtime';
 import { operations, qualityTarget } from './contracts';
 import { plantMembership } from './contracts/membership';
 import { qualityPeerApi } from './contracts/peer';

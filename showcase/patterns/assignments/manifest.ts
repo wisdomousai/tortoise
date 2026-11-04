@@ -1,6 +1,6 @@
-import { defineManifest } from '@agent-native/host/manifest';
-import { peerLinkPluginManifest } from '@agent-native/peer-link/plugin-manifest';
-import { testRequestsModule } from '@agent-native/pattern-base/contracts';
+import { defineManifest } from '@tortoise/host/manifest';
+import { peerLinkPluginManifest } from '@tortoise/peer-link/plugin-manifest';
+import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { assignments, samplingModule } from './contracts';
 
 /**

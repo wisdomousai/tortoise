@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { ApplicationError, uiResourcePattern, type UiIntent } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError, uiResourcePattern, type UiIntent } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { HostSession } from './http';
 
 export interface UiContextInput {

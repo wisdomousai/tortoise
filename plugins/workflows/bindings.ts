@@ -8,7 +8,7 @@ import {
   type Condition,
   type DeclaredWorkflow,
   type JsonValue,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 
 /** What bindings read: the instance input, the kept step values and, in a wait, its result. */
 export interface Scope {

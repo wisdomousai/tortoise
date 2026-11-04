@@ -5,25 +5,25 @@ import {
   sliceHandlers,
   type ApprovalAccess,
   type ApprovalHooks,
-} from '@agent-native/runtime';
-import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
+} from '@tortoise/runtime';
+import { connectTarget, type SystemOfRecordPort } from '@tortoise/integration';
 import {
   createDeviceState,
   deviceFeature,
   type DeviceAccess,
   type DeviceState,
-} from '@agent-native/devices/server';
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
-import { auditPlugin } from '@agent-native/audit/plugin';
+} from '@tortoise/devices/server';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
+import { auditPlugin } from '@tortoise/audit/plugin';
 import { lineAutomationPlugin } from './automation';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import type { ProcessPort } from '@agent-native/host/plugin';
-import { createDriverPlugin } from '@agent-native/connector-driver/plugin';
-import { driverServiceOf } from '@agent-native/connector-driver/open';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import type { ProcessPort } from '@tortoise/host/plugin';
+import { createDriverPlugin } from '@tortoise/connector-driver/plugin';
+import { driverServiceOf } from '@tortoise/connector-driver/open';
+import { sitePlugin } from '@tortoise/site/plugin';
 import manifest from './manifest';
 import { mesTarget } from './contracts';
 import { migrations, type LineState } from './domain';

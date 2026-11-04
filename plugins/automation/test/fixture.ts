@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Harness } from '@agent-native/agents/types';
+import type { Harness } from '@tortoise/agents/types';
 import {
   buildCatalog,
   defineAgent,
@@ -8,14 +8,14 @@ import {
   jsonSchema,
   approvalOperations,
   type ApprovalRequest,
-} from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
-import { defaultPorts } from '@agent-native/host';
-import { createApplicationRuntime, defineApplication } from '@agent-native/host/application';
-import { defineManifest } from '@agent-native/host/manifest';
-import type { PluginStartContext } from '@agent-native/host/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+} from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
+import { defaultPorts } from '@tortoise/host';
+import { createApplicationRuntime, defineApplication } from '@tortoise/host/application';
+import { defineManifest } from '@tortoise/host/manifest';
+import type { PluginStartContext } from '@tortoise/host/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import {
   createMemoryStorage,
   own,
@@ -24,9 +24,9 @@ import {
   type AuthorizationPort,
   type ExecutionContext,
   type HandlerContext,
-} from '@agent-native/runtime';
-import { sitePlugin } from '@agent-native/site/plugin';
-import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+} from '@tortoise/runtime';
+import { sitePlugin } from '@tortoise/site/plugin';
+import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
 import { defineTrigger, type TriggerDefinition } from '../contracts';
 import type { Job } from '../jobs';
 import { passOnce, type Loop } from '../loop';

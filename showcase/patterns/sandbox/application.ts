@@ -1,9 +1,9 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { createExecutionHostPlugin } from '@agent-native/execution-host/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { processPlugin } from '@agent-native/process/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { createExecutionHostPlugin } from '@tortoise/execution-host/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { processPlugin } from '@tortoise/process/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -11,7 +11,7 @@ import {
   testRequestsPolicy,
   type TestRequestsServices,
   type Role,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 import type { TestRequestsSandboxRoot } from './domain';
 import { createResultHandlers } from './handlers';

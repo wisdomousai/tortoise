@@ -23,7 +23,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-worklist-'));
   await mkdir(join(workspace, 'lab'));
   await mkdir(join(workspace, 'crew'));
-  const lab = await startService('@agent-native/pattern-assignments', join(workspace, 'lab'));
+  const lab = await startService('@tortoise/pattern-assignments', join(workspace, 'lab'));
   let crew: Host | undefined;
   try {
     await submitRequest(lab, {
@@ -42,7 +42,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
         destinations: { 'lab-peer': { url: lab.origin, addresses: ['127.0.0.1/32'] } },
       }),
     );
-    crew = await startService('@agent-native/pattern-worklist', join(workspace, 'crew'), {
+    crew = await startService('@tortoise/pattern-worklist', join(workspace, 'crew'), {
       AGENT_NATIVE_SITE_POLICY: policy,
     });
     // Both applications sign in on 127.0.0.1, so each gets its own cookie jar.

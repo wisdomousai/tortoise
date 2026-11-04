@@ -1,5 +1,5 @@
-import type { OsActionOutcome, OutputOf } from '@agent-native/contracts';
-import type { NativeSession } from '@agent-native/frame-native/session';
+import type { OsActionOutcome, OutputOf } from '@tortoise/contracts';
+import type { NativeSession } from '@tortoise/frame-native/session';
 import { fieldOperations as ops } from '../contracts';
 import type { BriefNode, CaptureBody } from './brief';
 

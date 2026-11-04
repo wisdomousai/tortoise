@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import type { RunSnapshot, RunStore } from '@agent-native/agents/types';
+import type { RunSnapshot, RunStore } from '@tortoise/agents/types';
 
 /** Run snapshots are separate from business transactions; a completed run is never a commit receipt. */
 export class SQLiteRunStore implements RunStore {

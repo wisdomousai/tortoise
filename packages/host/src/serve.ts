@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from './application';
 import { startHost } from './host';
 import type { ServingPlatform } from './platform/bun';

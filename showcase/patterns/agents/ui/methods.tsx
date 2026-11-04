@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { approvalOperations } from '@agent-native/contracts';
-import { requestOperations } from '@agent-native/pattern-base/contracts';
+import { approvalOperations } from '@tortoise/contracts';
+import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { ApprovalReview } from '@/components/approval-review';
 import { Button } from '@/components/ui/button';
 import { live } from '@/lib/session';

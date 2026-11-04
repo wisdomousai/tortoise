@@ -1,4 +1,4 @@
-import type { Effect } from '@agent-native/runtime';
+import type { Effect } from '@tortoise/runtime';
 import {
   FIELDS,
   FRESH_MS,

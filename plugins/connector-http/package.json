@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/connector-http",
+  "name": "@tortoise/connector-http",
   "version": "0.1.0",
   "type": "module",
   "description": "HTTP connector: a generic REST system of record through the network port, with an idempotency header, lookup by key, rejection mapping as data and a paged change feed.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/connector-http"
   },
   "files": [
@@ -21,8 +21,8 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/runtime": "workspace:*"
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

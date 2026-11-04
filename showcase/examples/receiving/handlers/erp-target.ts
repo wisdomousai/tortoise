@@ -1,6 +1,6 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { completeDelivery, targetHandlers } from '@agent-native/integration';
-import { records, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { completeDelivery, targetHandlers } from '@tortoise/integration';
+import { records, type HandlerContribution } from '@tortoise/runtime';
 import { operations } from '../contracts';
 import { deliveries } from '../contracts/delivery';
 import { erpTarget, type AsnLine } from '../contracts/erp-target';

@@ -13,7 +13,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   let mcp: Client | undefined;
   try {
-    host = await startService('@agent-native/field-service', workspace);
+    host = await startService('@tortoise/field-service', workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New work order').fill('Boiler B1 service');
     await page.getByRole('button', { name: 'Create work order', exact: true }).click();
@@ -107,7 +107,7 @@ test('tasks after the first page stay reachable and totals come from authorized 
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   try {
-    host = await startService('@agent-native/field-service', workspace);
+    host = await startService('@tortoise/field-service', workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New work order').fill('Large backlog');
     await page.getByRole('button', { name: 'Create work order', exact: true }).click();

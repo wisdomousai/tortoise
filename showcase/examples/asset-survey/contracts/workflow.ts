@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { defineWorkflow, from, jsonSchema, step } from '@agent-native/contracts';
-import { instanceSchema } from '@agent-native/workflows/contracts';
+import { defineWorkflow, from, jsonSchema, step } from '@tortoise/contracts';
+import { instanceSchema } from '@tortoise/workflows/contracts';
 import { operation } from './operation';
 import { recordId } from './schemas';
 

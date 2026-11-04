@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useOperatorSession } from '@agent-native/workstation-sign-in/plugin-screens';
+import { useOperatorSession } from '@tortoise/workstation-sign-in/plugin-screens';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { operations } from '../contracts';
 import type { OverdueLoan } from '../contracts/loan-overdue';

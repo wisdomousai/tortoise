@@ -11,7 +11,7 @@ import {
   jsonSchema,
   type AuditRecord,
   type BlobRef,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createApplication,
   createHandlerFactory,

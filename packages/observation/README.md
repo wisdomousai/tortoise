@@ -1,4 +1,4 @@
-# @agent-native/observation
+# @tortoise/observation
 
 Turns readings from things you cannot query (a vendor screen through OCR, an instrument through a driver) into observations, submitted through the application's ingest command. It never writes storage directly. An observer submits as the principal in its `context`; grant that principal the ingest capability only.
 

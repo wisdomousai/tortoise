@@ -1,10 +1,10 @@
-import { defineScreens } from '@agent-native/frame/screens';
-import { stationSignInScreens } from '@agent-native/workstation-sign-in/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { stationSignInScreens } from '@tortoise/workstation-sign-in/plugin-screens';
 import {
   requestCapabilityScreens,
   requestNavigation,
   requestRoutes,
-} from '@agent-native/pattern-base/ui/requests';
+} from '@tortoise/pattern-base/ui/requests';
 import manifest from './manifest';
 import { BenchWork } from './ui/bench';
 

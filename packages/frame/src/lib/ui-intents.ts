@@ -1,4 +1,4 @@
-import type { JsonObject, UiIntent } from '@agent-native/contracts';
+import type { JsonObject, UiIntent } from '@tortoise/contracts';
 
 /** A review an agent asked for, shown until the person acknowledges or dismisses it. */
 export interface UiReview {

@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createClient, type Transport } from '@agent-native/client';
-import { createLiveBindings } from '@agent-native/react/query';
+import { createClient, type Transport } from '@tortoise/client';
+import { createLiveBindings } from '@tortoise/react/query';
 
 /** Services the open instance's plugins expose, keyed by plugin id. */
 export type PluginServices = Readonly<Record<string, unknown>>;

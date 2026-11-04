@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { Query, QueryClient } from '@tanstack/react-query';
-import type { AnyCapability, InputOf } from '@agent-native/contracts';
-import type { ChangeBatch, Snapshot, Transport } from '@agent-native/client';
+import type { AnyCapability, InputOf } from '@tortoise/contracts';
+import type { ChangeBatch, Snapshot, Transport } from '@tortoise/client';
 import { CAPABILITY_QUERY_KEY, type CapabilityQueryMeta } from './query/keys';
 import { liveQueryOptions } from './query/live';
 import { remoteInfiniteQueryOptions, remoteQueryOptions, type RemoteQuery } from './query/remote';

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { buildCatalog } from '@agent-native/contracts';
-import { buildInstruction, openActionFor } from '@agent-native/shell';
+import { buildCatalog } from '@tortoise/contracts';
+import { buildInstruction, openActionFor } from '@tortoise/shell';
 import { authorizationRequest } from '../src/chatgpt/authorization';
 import { openAiComponent } from '../src/requirements';
 

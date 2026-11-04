@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 const count = z.number().int().min(0);
 const counts = z.array(z.strictObject({ operation: z.string(), count }));

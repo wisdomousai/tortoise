@@ -1,11 +1,11 @@
-import type { BlobRef, Catalog } from '@agent-native/contracts';
+import type { BlobRef, Catalog } from '@tortoise/contracts';
 import type {
   CommandReceipt,
   EventBatch,
   ExecutionContext,
   Invocation,
   QueryResult,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 
 /** Minimal execution surface shared by all host adapters. No handler implementation lives here. */
 export interface ApplicationPort {

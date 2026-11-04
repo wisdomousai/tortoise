@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
-import { createClient, createHttpTransport } from '@agent-native/client';
-import { createLiveBindings } from '@agent-native/react/query';
+import { createClient, createHttpTransport } from '@tortoise/client';
+import { createLiveBindings } from '@tortoise/react/query';
 
 /**
  * One authenticated browser session: the HttpOnly session cookie identifies the principal, so

@@ -1,10 +1,5 @@
-import { canonicalJson } from '@agent-native/contracts';
-import type {
-  CommandReceipt,
-  ExecutionContext,
-  Invocation,
-  QueryResult,
-} from '@agent-native/runtime';
+import { canonicalJson } from '@tortoise/contracts';
+import type { CommandReceipt, ExecutionContext, Invocation, QueryResult } from '@tortoise/runtime';
 
 /** Transport drivers implement this interface so the same business scenario runs everywhere. */
 export interface ScenarioDriver {

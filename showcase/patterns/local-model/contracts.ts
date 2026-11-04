@@ -1,5 +1,5 @@
-import { approvalOperations, defineAgent, defineModule } from '@agent-native/contracts';
-import { modelServer } from '@agent-native/model-server/contracts';
+import { approvalOperations, defineAgent, defineModule } from '@tortoise/contracts';
+import { modelServer } from '@tortoise/model-server/contracts';
 
 /** The model entry the method suggester runs on; the deployment chooses its weights. */
 export const METHOD_MODEL = 'lab-methods';

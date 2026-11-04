@@ -1,4 +1,4 @@
-import type { JsonObject, JsonValue } from '@agent-native/contracts';
+import type { JsonObject, JsonValue } from '@tortoise/contracts';
 import type { DriverContract } from './contracts';
 import {
   DriverError,

@@ -1,6 +1,6 @@
-import { decodeScan } from '@agent-native/devices/scanner/decode';
-import type { ScannerProfile } from '@agent-native/devices/scanner/profile';
-import { ScannerUnsupported, type ScannerSource } from '@agent-native/devices/scanner/source';
+import { decodeScan } from '@tortoise/devices/scanner/decode';
+import type { ScannerProfile } from '@tortoise/devices/scanner/profile';
+import { ScannerUnsupported, type ScannerSource } from '@tortoise/devices/scanner/source';
 
 /** The native module's calls, as `AgentNativeIntentScanner` exposes them on Android. */
 export interface IntentScannerModule {

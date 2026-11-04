@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/execution-host",
+  "name": "@tortoise/execution-host",
   "version": "0.1.0",
   "type": "module",
   "description": "Execution host plugin: runs tools an agent uses in Linux bubblewrap sandboxes with a seccomp filter, relays to the host API and the egress proxy as the only network, and a run-bound token as the only credential.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/execution-host"
   },
   "files": [
@@ -21,8 +21,8 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/runtime": "workspace:*"
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/runtime": "workspace:*"
   }
 }

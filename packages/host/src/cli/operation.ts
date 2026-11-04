@@ -1,8 +1,8 @@
-import { readConnection, runCliMain, takeFlag, type CliClient } from '@agent-native/adapters/cli';
-import { createDirectTransport, readGrantFile } from '@agent-native/adapters/direct';
-import { createHttpTransport } from '@agent-native/client';
-import { ApplicationError } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { readConnection, runCliMain, takeFlag, type CliClient } from '@tortoise/adapters/cli';
+import { createDirectTransport, readGrantFile } from '@tortoise/adapters/direct';
+import { createHttpTransport } from '@tortoise/client';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { deploymentCatalog } from '../components';
 import {

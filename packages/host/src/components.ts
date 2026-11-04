@@ -1,10 +1,10 @@
-import { defineHostComponent, type CatalogRequirements } from '@agent-native/contracts';
-import { providerComponents } from '@agent-native/agents/requirements';
+import { defineHostComponent, type CatalogRequirements } from '@tortoise/contracts';
+import { providerComponents } from '@tortoise/agents/requirements';
 import {
   deploymentCatalog as kernelCatalog,
   deploymentComponents as kernelComponents,
-} from '@agent-native/kernel/components';
-import type { ApplicationManifest } from '@agent-native/kernel/manifest';
+} from '@tortoise/kernel/components';
+import type { ApplicationManifest } from '@tortoise/kernel/manifest';
 
 /**
  * The generic host's own requirement: its listener. Pure data; every application the host runs

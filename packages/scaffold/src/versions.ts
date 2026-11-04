@@ -8,7 +8,7 @@ export interface InstalledFramework {
   readonly problem?: string;
 }
 
-const SCOPE = '@agent-native';
+const SCOPE = '@tortoise';
 
 async function entries(directory: string): Promise<string[]> {
   return readdir(directory).catch(() => []);
@@ -64,7 +64,7 @@ export async function installedFramework(root: string): Promise<InstalledFramewo
         versions: result,
         problem: `Mixed framework versions installed: ${Object.entries(result)
           .map(([version, names]) => `${version} (${names.join(', ')})`)
-          .join('; ')}. Depend on every @agent-native package at the same version.`,
+          .join('; ')}. Depend on every @tortoise package at the same version.`,
       }
     : { versions: result };
 }

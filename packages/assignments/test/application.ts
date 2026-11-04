@@ -1,10 +1,10 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError } from '@tortoise/contracts';
 import {
   createApplicationRuntime,
   defineApplication,
   defineManifest,
   mountFeature,
-} from '@agent-native/kernel';
+} from '@tortoise/kernel';
 import {
   createMemoryBlobStore,
   createMemoryStorage,
@@ -12,7 +12,7 @@ import {
   isDelegated,
   type ExecutionContext,
   type HandlerContext,
-} from '@agent-native/runtime';
+} from '@tortoise/runtime';
 import {
   assignmentFeature,
   byKind,

@@ -1,4 +1,4 @@
-# @agent-native/driver-sdk-dotnet
+# @tortoise/driver-sdk-dotnet
 
 `AgentNative.Driver`: write a hardware driver in C#. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action.
 

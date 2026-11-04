@@ -1,8 +1,8 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
-import type { HostedApplication } from '@agent-native/kernel/application';
-import type { ExecutionContext } from '@agent-native/runtime';
-import { credentialDigest, newCredential, type AttemptLimit } from '@agent-native/host/enrollment';
+import { ApplicationError } from '@tortoise/contracts';
+import { jsonResponse, readJsonBody } from '@tortoise/adapters/http';
+import type { HostedApplication } from '@tortoise/kernel/application';
+import type { ExecutionContext } from '@tortoise/runtime';
+import { credentialDigest, newCredential, type AttemptLimit } from '@tortoise/host/enrollment';
 import { peerLinkOperations as ops } from '../contracts';
 
 /** What the routes and the authenticator need once the host listens; undefined before `start`. */

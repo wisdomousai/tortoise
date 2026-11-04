@@ -1,5 +1,5 @@
-import { defineApplication } from '@agent-native/kernel/application';
-import { createHandlerFactory } from '@agent-native/runtime';
+import { defineApplication } from '@tortoise/kernel/application';
+import { createHandlerFactory } from '@tortoise/runtime';
 import manifest, { noteAdd, noteList } from './manifest';
 
 type State = { notes: { id: string; text: string }[] };

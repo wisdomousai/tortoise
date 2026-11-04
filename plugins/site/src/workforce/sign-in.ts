@@ -5,11 +5,11 @@ import {
   type FetchImplementation,
   type JWTVerifyGetKey,
 } from 'jose';
-import { readSessionCookie, sessionCookie } from '@agent-native/adapters/http';
-import { verifyOidcIdentity } from '@agent-native/agents/oidc';
+import { readSessionCookie, sessionCookie } from '@tortoise/adapters/http';
+import { verifyOidcIdentity } from '@tortoise/agents/oidc';
 import type { SitePolicy } from '../policy';
-import { LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { discover, providerJson, type DestinationFetch, type ProviderMetadata } from './discovery';
 
 export type WorkforceConfig = NonNullable<SitePolicy['workforce']>;
@@ -63,7 +63,7 @@ function principalOf(config: WorkforceConfig, payload: Record<string, unknown>) 
  *   kept in memory for ten minutes.
  * - `GET /auth/callback` consumes the state once, exchanges the code, verifies the ID token
  *   (signature from the provider's keys, issuer, audience, nonce, expiry) and sets the host's
- *   session cookie (`sessionCookie` in `@agent-native/adapters/http`) to a session token of its
+ *   session cookie (`sessionCookie` in `@tortoise/adapters/http`) to a session token of its
  *   own, valid for `sessionMinutes`.
  * - `POST /auth/sign-out` ends that session; it checks the Origin itself, because public routes
  *   run before the host's origin check.

@@ -1,11 +1,11 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { WorkspaceOwnedError } from '@agent-native/adapters/ownership';
-import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { openInstance } from '@agent-native/kernel/instance';
-import type { PluginSettings } from '@agent-native/kernel/plugins/settings';
+import { ApplicationError } from '@tortoise/contracts';
+import { WorkspaceOwnedError } from '@tortoise/adapters/ownership';
+import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
+import { openInstance } from '@tortoise/kernel/instance';
+import type { PluginSettings } from '@tortoise/kernel/plugins/settings';
 import { bunPlatform } from './platform/bun';
 
-export { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
+export { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 export { workspaceStorage } from './platform/bun';
 
 /**

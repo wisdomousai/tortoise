@@ -1,4 +1,4 @@
-import type { Effect, EffectOutcome, SourceRequest } from '@agent-native/runtime';
+import type { Effect, EffectOutcome, SourceRequest } from '@tortoise/runtime';
 import {
   DeliveryFailure,
   type CallerCredentials,
@@ -6,7 +6,7 @@ import {
   type SearchAccess,
   type SearchPage,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
+} from '@tortoise/integration';
 import { page } from './fake-crm/cursor';
 import { crmUsers, demoSeed, type CrmAccountRecord, type CrmContactRecord } from './fake-crm/seed';
 

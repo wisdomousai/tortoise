@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/host/application';
-import { createCli } from '@agent-native/host/cli';
-import { defineManifest } from '@agent-native/host/manifest';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { defineApplication } from '@tortoise/host/application';
+import { createCli } from '@tortoise/host/cli';
+import { defineManifest } from '@tortoise/host/manifest';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { sitePlugin } from '../../src/plugin';
 import { sitePluginManifest } from '../../src/plugin-manifest';
 

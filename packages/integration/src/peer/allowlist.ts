@@ -1,5 +1,5 @@
-import type { PeerApi } from '@agent-native/contracts';
-import type { IntegrationAllowlist } from '@agent-native/runtime';
+import type { PeerApi } from '@tortoise/contracts';
+import type { IntegrationAllowlist } from '@tortoise/runtime';
 
 /** The service principal of an enrolled peer, as the peer link authenticates it. */
 export const peerPrincipal = (peerId: string) => `peer:${peerId}`;

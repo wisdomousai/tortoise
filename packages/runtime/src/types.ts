@@ -6,7 +6,7 @@ import type {
   OutputOf,
   JsonValue,
   RemoteReadDeclaration,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import type { Effect, EffectOutcome, EffectRequest } from './types/effects.js';
 
 import type { StateVersions } from './types/state-versions.js';

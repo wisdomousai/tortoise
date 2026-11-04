@@ -4,8 +4,8 @@ import type {
   CatalogRequirements,
   EventLogPort,
   ProcessRequirement,
-} from '@agent-native/contracts';
-import { portOf, type ResolvedPolicy } from '@agent-native/site/policy';
+} from '@tortoise/contracts';
+import { portOf, type ResolvedPolicy } from '@tortoise/site/policy';
 import { destinationClient } from './guard/client';
 import { EgressDenied } from './guard/denial';
 import {

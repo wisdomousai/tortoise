@@ -5,11 +5,11 @@ import {
   createWorkerExtractor,
   type Extractor,
   type PlaywrightPageLike,
-} from '@agent-native/screen-bridge';
+} from '@tortoise/screen-bridge';
 import { createWindingLineBridge, winder, loadProfile } from './bridge';
 import { createSimulatorOcr } from './fake-hmi/memory';
-import type { HostedApplication } from '@agent-native/host/application';
-import { bunProcesses, noProcesses, type ProcessPort } from '@agent-native/host/plugin';
+import type { HostedApplication } from '@tortoise/host/application';
+import { bunProcesses, noProcesses, type ProcessPort } from '@tortoise/host/plugin';
 
 /**
  * How the host reaches one station's screen. Supplied explicitly by the deploying application
@@ -91,7 +91,7 @@ export async function startStationBridge(options: {
 }) {
   const { config } = options;
   const profile = config.profilePath ? loadProfile(config.profilePath) : winder;
-  // Optional and external to standalone builds (see @agent-native/host/optional-packages).
+  // Optional and external to standalone builds (see @tortoise/host/optional-packages).
   const { chromium } = await import('@playwright/test').catch(() => {
     throw new Error(
       'The browser station bridge needs @playwright/test installed where the service runs',

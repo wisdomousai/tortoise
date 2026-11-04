@@ -4,8 +4,8 @@ import {
   createMemoryStorage,
   type CommandReceipt,
   type ExecutionContext,
-} from '@agent-native/runtime';
-import { createEffectDispatcher, createInboundSync } from '@agent-native/integration';
+} from '@tortoise/runtime';
+import { createEffectDispatcher, createInboundSync } from '@tortoise/integration';
 import {
   createQualityHandlers,
   createQualityState,

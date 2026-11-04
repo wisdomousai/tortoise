@@ -1,5 +1,5 @@
 import { isIP } from 'node:net';
-import { portOf, type ResolvedPolicy } from '@agent-native/site/policy';
+import { portOf, type ResolvedPolicy } from '@tortoise/site/policy';
 
 /** One allowed outbound flow, resolved to addresses an OS firewall can enforce. */
 export interface AllowRule {

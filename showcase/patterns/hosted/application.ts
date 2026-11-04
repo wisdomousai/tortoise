@@ -1,7 +1,7 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { defineApplication } from '@agent-native/host/application';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
+import { defineApplication } from '@tortoise/host/application';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -10,7 +10,7 @@ import {
   type TestRequestsServices,
   type TestRequestsState,
   type Role,
-} from '@agent-native/pattern-base/server';
+} from '@tortoise/pattern-base/server';
 import manifest from './manifest';
 
 export interface TestRequestsHostedRoot {

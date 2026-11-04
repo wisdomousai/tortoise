@@ -2,10 +2,10 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
-import type { ApprovalRequest } from '@agent-native/contracts';
-import { LOCAL_WORKSPACE, openEmbeddedInstance } from '@agent-native/host';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import type { ApprovalRequest } from '@tortoise/contracts';
+import { LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 

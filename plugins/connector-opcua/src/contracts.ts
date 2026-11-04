@@ -1,4 +1,4 @@
-import { defineHostComponent, type Availability } from '@agent-native/contracts';
+import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /**
  * Declare one OPC UA server as a host component: a `tcp` destination on the site network that

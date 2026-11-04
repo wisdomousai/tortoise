@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
-import type { JsonObject, OsActionOutcome, OsActionRequest } from '@agent-native/contracts';
+import type { JsonObject, OsActionOutcome, OsActionRequest } from '@tortoise/contracts';
 
 /** How the frame asks the device for an OS action: the mobile host's OS connection, or a fake. */
 export type PerformOsAction = (request: OsActionRequest) => Promise<OsActionOutcome>;

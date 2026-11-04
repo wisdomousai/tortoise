@@ -1,5 +1,5 @@
 import { ApprovalReview } from '@/components/approval-review';
-import { approvalOperations } from '@agent-native/contracts';
+import { approvalOperations } from '@tortoise/contracts';
 import { reasonOf } from './delivery';
 
 /** Pending approval requests across every delivery line, each with Approve and Reject. */

@@ -8,15 +8,15 @@ import {
   definePeerApi,
   definePeerTarget,
   jsonSchema,
-} from '@agent-native/contracts';
-import { peerAllowlist } from '@agent-native/integration';
-import { defineApplication } from '@agent-native/kernel/application';
-import type { AnyHostPlugin } from '@agent-native/kernel/plugin';
-import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { defineManifest } from '@agent-native/kernel/manifest';
-import { startHost } from '@agent-native/host/host';
-import { createHandlerFactory, definePolicy } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { peerAllowlist } from '@tortoise/integration';
+import { defineApplication } from '@tortoise/kernel/application';
+import type { AnyHostPlugin } from '@tortoise/kernel/plugin';
+import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { defineManifest } from '@tortoise/kernel/manifest';
+import { startHost } from '@tortoise/host/host';
+import { createHandlerFactory, definePolicy } from '@tortoise/runtime';
 import {
   bodyDigest,
   generateAssertionKey,

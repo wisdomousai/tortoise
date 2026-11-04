@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from 'bun:test';
-import { createClient } from '@agent-native/client';
-import type { OsDelivery } from '@agent-native/contracts';
-import { LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import { connectMobileShell, type MobileOsBindings } from '@agent-native/mobile';
-import type { AndroidIntent } from '@agent-native/shell/intents';
-import type { ShellNotification } from '@agent-native/shell/notifications';
+import { createClient } from '@tortoise/client';
+import type { OsDelivery } from '@tortoise/contracts';
+import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { connectMobileShell, type MobileOsBindings } from '@tortoise/mobile';
+import type { AndroidIntent } from '@tortoise/shell/intents';
+import type { ShellNotification } from '@tortoise/shell/notifications';
 import { findTagAction } from '../os';
 import type { BriefNode } from '../ui-native/brief';
 import { captureSummary, tagScreen, workRequest } from '../ui-native/os-requests';

@@ -1,6 +1,6 @@
-import { LOCAL_OWNER } from '@agent-native/kernel/instance';
-import { defineHostPlugin } from '@agent-native/kernel/plugin';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { defineHostPlugin } from '@tortoise/kernel/plugin';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { stationSignInOperations as ops } from './contracts';
 import {
   stationSignInHandlers,

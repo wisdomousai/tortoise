@@ -1,6 +1,6 @@
-import type { BlobTransport, ChangeBatch, Cursor, Transport } from '@agent-native/client';
-import { ApplicationError, type Catalog } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import type { BlobTransport, ChangeBatch, Cursor, Transport } from '@tortoise/client';
+import { ApplicationError, type Catalog } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 import { withSignal, type ApplicationPort } from './application-port';
 
 /** Direct cursors are `<journal position>.<authorization revision>`; no session exists to seal them. */

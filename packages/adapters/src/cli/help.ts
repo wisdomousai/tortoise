@@ -1,4 +1,4 @@
-import type { Catalog, CatalogOperation } from '@agent-native/contracts';
+import type { Catalog, CatalogOperation } from '@tortoise/contracts';
 import { commandWords, fieldSpecs, synopsis } from '../cli-syntax';
 import { CliText } from './types';
 

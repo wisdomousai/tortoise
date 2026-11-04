@@ -5,9 +5,9 @@ import {
   type OsActionResult,
   type OsInstruction,
   type OsPlatform,
-} from '@agent-native/contracts';
-import type { HostSession } from '@agent-native/adapters/http';
-import type { ShellPort } from '@agent-native/kernel/shell';
+} from '@tortoise/contracts';
+import type { HostSession } from '@tortoise/adapters/http';
+import type { ShellPort } from '@tortoise/kernel/shell';
 
 interface Waiting {
   readonly id: string;

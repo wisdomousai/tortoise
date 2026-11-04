@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { defineWorklist, WORKLIST_ASSIGNMENT } from '@agent-native/assignments';
-import { defineModule, effectOutcomeSchema, recordKeySchema } from '@agent-native/contracts';
-import { assignments, survey } from '@agent-native/asset-survey/contracts/kinds';
-import { operation } from '@agent-native/asset-survey/contracts/operation';
-import { hubApi } from '@agent-native/asset-survey/contracts/peer';
+import { defineWorklist, WORKLIST_ASSIGNMENT } from '@tortoise/assignments';
+import { defineModule, effectOutcomeSchema, recordKeySchema } from '@tortoise/contracts';
+import { assignments, survey } from '@tortoise/asset-survey/contracts/kinds';
+import { operation } from '@tortoise/asset-survey/contracts/operation';
+import { hubApi } from '@tortoise/asset-survey/contracts/peer';
 import { fieldOs } from './os';
 
 /**

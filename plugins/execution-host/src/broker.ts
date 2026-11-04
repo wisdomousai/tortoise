@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { ApplicationError } from '@agent-native/contracts';
-import type { ExecutionContext } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import type { ExecutionContext } from '@tortoise/runtime';
 
 /**
  * Credentials for sandboxes. Each run gets one random bearer token that stands for the run's

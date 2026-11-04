@@ -1,7 +1,7 @@
-import { auditServiceOf } from '@agent-native/audit';
-import { readEvents } from '@agent-native/event-log';
-import { defineHostPlugin, type PluginStartContext } from '@agent-native/host/plugin';
-import { hostContext } from '@agent-native/kernel/application';
+import { auditServiceOf } from '@tortoise/audit';
+import { readEvents } from '@tortoise/event-log';
+import { defineHostPlugin, type PluginStartContext } from '@tortoise/host/plugin';
+import { hostContext } from '@tortoise/kernel/application';
 import { metricsRequest, tracesRequest, type BacklogPoint, type Resource } from './otlp';
 import { TELEMETRY_DESTINATION, telemetryPluginManifest } from './plugin-manifest';
 import { createRecorder, type RecorderOptions } from './recorder';

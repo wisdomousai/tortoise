@@ -1,4 +1,4 @@
-import { defineHostComponent } from '@agent-native/contracts';
+import { defineHostComponent } from '@tortoise/contracts';
 
 /**
  * What the station bridge needs from the deployment, as data. Side-effect free: generators import

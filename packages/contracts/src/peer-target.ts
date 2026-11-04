@@ -37,7 +37,7 @@ export interface PeerEffectRequest {
  *   as the peer's service principal;
  * - `feed`, when given: a service query of the API that returns `{ items, cursor, more? }`.
  *
- * Browser-safe. The server pairs it with `connectPeerTarget` from `@agent-native/integration`.
+ * Browser-safe. The server pairs it with `connectPeerTarget` from `@tortoise/integration`.
  */
 export function definePeerTarget<
   const S extends PeerApi,

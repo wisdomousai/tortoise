@@ -1,5 +1,5 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { own, put, type HandlerContext, type HandlerContribution } from '@agent-native/runtime';
+import { ApplicationError } from '@tortoise/contracts';
+import { own, put, type HandlerContext, type HandlerContribution } from '@tortoise/runtime';
 import { chamberOperations, type Chamber, type Condition } from './contracts';
 import type { ChamberDefinition, LabSignalsRoot, Quantity } from './domain';
 

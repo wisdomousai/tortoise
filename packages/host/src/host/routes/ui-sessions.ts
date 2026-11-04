@@ -1,7 +1,7 @@
-import { ApplicationError } from '@agent-native/contracts';
-import { jsonResponse, readJsonBody, type HostSession } from '@agent-native/adapters/http';
-import type { UiContextInput } from '@agent-native/adapters/ui-sessions';
-import type { UiIntent } from '@agent-native/react';
+import { ApplicationError } from '@tortoise/contracts';
+import { jsonResponse, readJsonBody, type HostSession } from '@tortoise/adapters/http';
+import type { UiContextInput } from '@tortoise/adapters/ui-sessions';
+import type { UiIntent } from '@tortoise/react';
 import type { HostRoute, HostRouteContext } from './types';
 
 /**

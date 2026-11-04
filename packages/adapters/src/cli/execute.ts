@@ -1,4 +1,4 @@
-import { ApplicationError, type CatalogOperation, type JsonValue } from '@agent-native/contracts';
+import { ApplicationError, type CatalogOperation, type JsonValue } from '@tortoise/contracts';
 import { z } from 'zod';
 import { parseJson, usageError } from './args';
 import type { CliClient } from './types';

@@ -1,4 +1,4 @@
-# @agent-native/adapters
+# @tortoise/adapters
 
 Implementations behind the runtime's ports: SQLite and Postgres storage, blobs, workspace leases, and the HTTP, MCP and CLI surfaces. The surfaces hold no business logic, so a new capability appears on all of them at once. Every surface derives identity from the host session, the connection file or the grant file, never from a request body or tool arguments.
 

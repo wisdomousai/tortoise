@@ -3,13 +3,13 @@ import {
   createMemoryStorage,
   type CommandReceipt,
   type ExecutionContext,
-} from '@agent-native/runtime';
-import { createInboundSync } from '@agent-native/integration';
-import type { DriverService } from '@agent-native/connector-driver/open';
+} from '@tortoise/runtime';
+import { createInboundSync } from '@tortoise/integration';
+import type { DriverService } from '@tortoise/connector-driver/open';
 import {
   createDriverSupervisor,
   type DriverSupervisorOptions,
-} from '@agent-native/connector-driver/supervisor';
+} from '@tortoise/connector-driver/supervisor';
 import { createInstrumentIngest } from '../application';
 import { instrumentContract } from '../contracts/instrument';
 import { FakeQualitySystem, toSyncInput } from '../fake-sor';

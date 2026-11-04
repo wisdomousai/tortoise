@@ -11,7 +11,7 @@ import {
   type OsHandler,
   type OsInstruction,
   type RawOsRequest,
-} from '@agent-native/contracts';
+} from '@tortoise/contracts';
 import {
   createDesktopShell,
   desktopArguments,

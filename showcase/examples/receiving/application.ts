@@ -1,5 +1,5 @@
-import { defineApplication } from '@agent-native/host/application';
-import { mountFeature } from '@agent-native/host/feature';
+import { defineApplication } from '@tortoise/host/application';
+import { mountFeature } from '@tortoise/host/feature';
 import {
   approvalFeature,
   reconciliationFeature,
@@ -7,11 +7,11 @@ import {
   type ApprovalHooks,
   type ReconciliationAccess,
   type ReconciliationHooks,
-} from '@agent-native/runtime';
-import { auditPlugin } from '@agent-native/audit/plugin';
-import { compliancePlugin } from '@agent-native/compliance/plugin';
-import { networkPlugin } from '@agent-native/network/plugin';
-import { sitePlugin } from '@agent-native/site/plugin';
+} from '@tortoise/runtime';
+import { auditPlugin } from '@tortoise/audit/plugin';
+import { compliancePlugin } from '@tortoise/compliance/plugin';
+import { networkPlugin } from '@tortoise/network/plugin';
+import { sitePlugin } from '@tortoise/site/plugin';
 import {
   connectPeerTarget,
   connectTarget,
@@ -20,16 +20,16 @@ import {
   createPeerSource,
   peerQuery,
   type SystemOfRecordPort,
-} from '@agent-native/integration';
-import { createPeerLinkPlugin, peerLinkServiceOf } from '@agent-native/peer-link/plugin';
-import { queryOperations as qualityQueries } from '@agent-native/quality-inspection/contracts/queries';
+} from '@tortoise/integration';
+import { createPeerLinkPlugin, peerLinkServiceOf } from '@tortoise/peer-link/plugin';
+import { queryOperations as qualityQueries } from '@tortoise/quality-inspection/contracts/queries';
 import manifest from './manifest';
 import { erpTarget, type AsnLine } from './contracts/erp-target';
 import { qualityLots, qualityPeer } from './contracts/quality-peer';
 import { createState, migrations, upgradeState, type AppState, type Role } from './domain';
 import { erpPort } from './erp-port';
 import { newId, now } from './handlers/context';
-import type { ClosedInspectionRequest } from '@agent-native/quality-inspection/contracts/peer';
+import type { ClosedInspectionRequest } from '@tortoise/quality-inspection/contracts/peer';
 import {
   appPolicy,
   approvalAccess,

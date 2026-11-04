@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import type { survey } from '@agent-native/asset-survey/contracts/kinds';
+import type { survey } from '@tortoise/asset-survey/contracts/kinds';
 
 /** A survey's brief as the hub sent it: the kinds of capture wanted and the structure slice. */
 export type SurveyBrief = z.output<(typeof survey)['brief']>;

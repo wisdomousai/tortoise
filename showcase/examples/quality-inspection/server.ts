@@ -1,4 +1,4 @@
-import type { HandlerContribution } from '@agent-native/runtime';
+import type { HandlerContribution } from '@tortoise/runtime';
 import type { QualityState } from './domain';
 import { inspectionRequestHandlers } from './handlers/inspection-requests';
 import { captureHandlers } from './handlers/capture';

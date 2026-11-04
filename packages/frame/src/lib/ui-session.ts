@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import type { JsonObject, UiIntent } from '@agent-native/contracts';
-import { resourcePath, screenForCapability } from '@agent-native/frame/screens';
+import type { JsonObject, UiIntent } from '@tortoise/contracts';
+import { resourcePath, screenForCapability } from '@tortoise/frame/screens';
 import { useScreens } from '@/screens-context';
 import { hostJson } from './host-client';
 import {

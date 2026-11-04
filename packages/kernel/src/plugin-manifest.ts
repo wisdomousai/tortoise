@@ -1,8 +1,4 @@
-import {
-  checkNamespace,
-  type CapabilityModule,
-  type FeatureManifest,
-} from '@agent-native/contracts';
+import { checkNamespace, type CapabilityModule, type FeatureManifest } from '@tortoise/contracts';
 
 /** The JavaScript hosts an instance runs on: Bun on desktops and servers, Hermes on phones. */
 export type PlatformId = 'bun' | 'android' | 'ios';
@@ -56,7 +52,7 @@ export interface PluginManifest<
 export interface PluginNative {
   /**
    * The config plugin as a module specifier resolved from the app, for example
-   * `@agent-native/managed-config/app.plugin`. Expo runs it at prebuild with
+   * `@tortoise/managed-config/app.plugin`. Expo runs it at prebuild with
    * `{ application, settings }`: the application's id and title and every setting the composed
    * plugins declare.
    */

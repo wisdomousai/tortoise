@@ -1,6 +1,6 @@
 import { Boxes, Building2, FileText, List, PhoneIncoming, Search, Zap } from 'lucide-react';
-import { defineScreens } from '@agent-native/frame/screens';
-import { complianceScreens } from '@agent-native/compliance/plugin-screens';
+import { defineScreens } from '@tortoise/frame/screens';
+import { complianceScreens } from '@tortoise/compliance/plugin-screens';
 import manifest from './manifest';
 import { inquiryRoutes } from './ui/inquiry';
 import { customerRoutes } from './ui/customer';

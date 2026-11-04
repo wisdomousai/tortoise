@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { defineDataProvider, definePeerTarget } from '@agent-native/contracts';
+import { defineDataProvider, definePeerTarget } from '@tortoise/contracts';
 import {
   inspectionRequestOperations,
   closedInspectionRequestSchema,
   qualityPeerApi,
-} from '@agent-native/quality-inspection/contracts/peer';
+} from '@tortoise/quality-inspection/contracts/peer';
 
 /**
  * The quality-inspection application, called as a peer through its published API. Posting a

@@ -1,10 +1,10 @@
-import type { HostSession, Sessions } from '@agent-native/adapters/http';
-import type { UiDeliveryStore } from '@agent-native/adapters/ui-deliveries';
-import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
-import type { createRunSupervisor } from '@agent-native/agents/supervisor';
-import type { Harness } from '@agent-native/agents/types';
-import type { BuildFacts } from '@agent-native/kernel/build';
-import type { ShellPort } from '@agent-native/kernel/shell';
+import type { HostSession, Sessions } from '@tortoise/adapters/http';
+import type { UiDeliveryStore } from '@tortoise/adapters/ui-deliveries';
+import type { UiSessionStore } from '@tortoise/adapters/ui-sessions';
+import type { createRunSupervisor } from '@tortoise/agents/supervisor';
+import type { Harness } from '@tortoise/agents/types';
+import type { BuildFacts } from '@tortoise/kernel/build';
+import type { ShellPort } from '@tortoise/kernel/shell';
 import type { HostedApplication } from '../../application';
 import type { ShellRelay } from '../shell-relay';
 import type { createProviderAccess } from '../../providers';

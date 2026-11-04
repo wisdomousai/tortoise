@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import { defineCapability, jsonSchema } from '@tortoise/contracts';
 
 /** What each operation tells people and agents; every operation must have an entry. */
 const descriptions: Readonly<Record<string, string>> = {

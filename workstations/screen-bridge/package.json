@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/screen-bridge",
+  "name": "@tortoise/screen-bridge",
   "version": "0.1.0",
   "type": "module",
   "description": "Screen bridge to a workstation application that has no API and must stay unmodified: profiles, observer, gated controller and recognition adapters.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "workstations/screen-bridge"
   },
   "files": [
@@ -21,10 +21,10 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/integration": "workspace:*",
-    "@agent-native/observation": "workspace:*",
-    "@agent-native/runtime": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/integration": "workspace:*",
+    "@tortoise/observation": "workspace:*",
+    "@tortoise/runtime": "workspace:*",
     "zod": "4.6.5"
   }
 }

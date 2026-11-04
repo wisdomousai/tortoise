@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { collectionList } from '@agent-native/contracts';
+import { collectionList } from '@tortoise/contracts';
 import { lots } from './collections';
 import { operation } from './operation';
 import { qualityTarget } from './target';

@@ -1,8 +1,8 @@
-import { controls, controlsMarkdown } from '@agent-native/compliance';
+import { controls, controlsMarkdown } from '@tortoise/compliance';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import type { ApplicationManifest } from '@agent-native/host';
+import type { ApplicationManifest } from '@tortoise/host';
 import { applications, artifacts, json, root } from './reference-artifacts';
 
 // Writes every application's reference to an ignored directory, replacing what was there. The

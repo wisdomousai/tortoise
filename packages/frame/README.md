@@ -1,4 +1,4 @@
-# @agent-native/frame
+# @tortoise/frame
 
 The web frame: the browser shell around an application's screens, with sign-in, routing, navigation, the command palette, the agent run panel and accounts. It imports no application, feature or plugin. `defineScreens({ features, plugins })` passes their screens in, and the Vite plugin resolves `virtual:agent-native/screens` from `app.config.json` at build time.
 

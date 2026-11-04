@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import type { AnyCapability, CollectionTreeInput } from '@agent-native/contracts';
+import type { AnyCapability, CollectionTreeInput } from '@tortoise/contracts';
 import { CapabilityForm } from '@/components/capability-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

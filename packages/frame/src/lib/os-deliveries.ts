@@ -1,14 +1,14 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import type { JsonObject, OsDelivery, OsProvenance } from '@agent-native/contracts';
+import type { JsonObject, OsDelivery, OsProvenance } from '@tortoise/contracts';
 import {
   resourcePath,
   screenForCapability,
   type ApplicationScreens,
-} from '@agent-native/frame/screens';
+} from '@tortoise/frame/screens';
 import { hostJson } from './host-client';
 
-export { describeProvenance } from '@agent-native/shell/provenance';
+export { describeProvenance } from '@tortoise/shell/provenance';
 
 /**
  * A form prefill an OS request or an agent run asked for, until the person submits or dismisses

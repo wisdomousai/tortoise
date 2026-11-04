@@ -4,8 +4,8 @@ import {
   type AnyCapability,
   type InputOf,
   type OutputOf,
-} from '@agent-native/contracts';
-import { records, type HandlerContext, type HandlerContribution } from '@agent-native/runtime';
+} from '@tortoise/contracts';
+import { records, type HandlerContext, type HandlerContribution } from '@tortoise/runtime';
 import { accounts, activities } from '../contracts/collections';
 import type { CrmState, LocalAccount } from '../domain';
 

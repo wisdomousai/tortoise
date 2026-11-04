@@ -1,4 +1,4 @@
-import type { CatalogOs, RawOsRequest } from '@agent-native/contracts';
+import type { CatalogOs, RawOsRequest } from '@tortoise/contracts';
 import type { BlobUpload } from './local-files';
 
 type ShareHandler = Extract<CatalogOs['handlers'][number], { kind: 'share' }>;

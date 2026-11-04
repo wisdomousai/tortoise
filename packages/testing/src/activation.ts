@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import type { ModelActivation, ModelEntry } from '@agent-native/agents/models';
-import type { Harness } from '@agent-native/agents/types';
-import { canonicalJson } from '@agent-native/contracts';
+import type { ModelActivation, ModelEntry } from '@tortoise/agents/models';
+import type { Harness } from '@tortoise/agents/types';
+import { canonicalJson } from '@tortoise/contracts';
 import {
   runAgentScenarios,
   scenarioRegressions,

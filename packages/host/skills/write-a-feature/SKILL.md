@@ -18,8 +18,8 @@ A feature contributes modules whose operation IDs start with its ID, a state sli
 
 In an application made by `scaffold new`, `bun run scaffold add feature <id> [--screens]` writes the manifest, the server part, the access view, the mount, the screens and a test for steps 1 to 7; change them from there.
 
-1. Declare the browser-safe part with `defineFeatureManifest` from `@agent-native/contracts`. Every operation starts with `<id>.`; module, outbox target and remote-read target names are `<id>` or start with `<id>-`. List features it needs in `requires`.
-2. Declare the server part with `defineFeature<Slice, Access, Hooks>` from `@agent-native/host/feature`:
+1. Declare the browser-safe part with `defineFeatureManifest` from `@tortoise/contracts`. Every operation starts with `<id>.`; module, outbox target and remote-read target names are `<id>` or start with `<id>-`. List features it needs in `requires`.
+2. Declare the server part with `defineFeature<Slice, Access, Hooks>` from `@tortoise/host/feature`:
    - `state.create` for the slice, and `state.migrations` with a step whenever the slice shape changes;
    - `handlers`, or a function of the `FeatureComposition` when they depend on the application's modules, such as the commands an approval may be requested for;
    - `authorization` with resource types named `<id>` or `<id>-…` and a `FeaturePolicy` over the slice and `access`;
@@ -27,11 +27,11 @@ In an application made by `scaffold new`, `bun run scaffold add feature <id> [--
    - `connect`, returning `integrations`, `observe` and `sources` named `<id>` or `<id>-…`.
 3. Define `Access` as the checks the policy and handlers need the application to make, such as `allows(context, action, resource)`. The application implements them from its own state.
 4. Define `Hooks` for application work inside a handler, such as recording an outcome on an application record. Hooks are optional members; supply a default in the feature when one is missing. A query's hooks only read: a query whose hook changes the state fails.
-5. Decide person-only rules in the feature's own policy (`isDelegated` from `@agent-native/runtime`), not in the access view, so every application gets them.
+5. Decide person-only rules in the feature's own policy (`isDelegated` from `@tortoise/runtime`), not in the access view, so every application gets them.
 6. Mount it in the application:
    - list the manifest in `defineManifest({ features })`;
    - mount it in `defineApplication({ features: [mountFeature(feature, { access, hooks, adopt })] })` in the same order;
-   - add its screens, declared with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, to `defineScreens({ manifest, features })`; the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
+   - add its screens, declared with `defineFeatureScreens` from `@tortoise/frame/feature-screens`, to `defineScreens({ manifest, features })`; the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
 7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), integration allowlists and delegated-grant scope. The application policy never sees the feature's operations.
 8. Remove any application policy rule for the feature's operations and any event rule for its resource types. Composition refuses both when the application policy is built with `definePolicy`.
 9. When the data lived in application state before, adopt it:
@@ -47,7 +47,7 @@ bun run check:boundaries
 bun run generate
 ```
 
-Run `featureConformance` from `@agent-native/testing/features` in the feature's tests, with an allow-all and a deny-all access view, sample requests and events over a sample slice, and the person-only operations. Then test the feature through a fixture application in its own package, or through the application for a feature that lives in one. Those tests cover, when the feature has them:
+Run `featureConformance` from `@tortoise/testing/features` in the feature's tests, with an allow-all and a deny-all access view, sample requests and events over a sample slice, and the person-only operations. Then test the feature through a fixture application in its own package, or through the application for a feature that lives in one. Those tests cover, when the feature has them:
 
 - a hook that writes application state, and a failing handler that rolls the hook's write back;
 - adoption of a stored workspace at the version before the move, and older code refusing the result.

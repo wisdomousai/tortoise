@@ -1,5 +1,5 @@
-import { defineHostComponent } from '@agent-native/contracts';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { defineHostComponent } from '@tortoise/contracts';
+import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { webhookModule } from './contracts';
 
 /** The one destination this plugin may reach. A site policy binds it to an address. */

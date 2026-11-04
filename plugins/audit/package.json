@@ -1,12 +1,12 @@
 {
-  "name": "@agent-native/audit",
+  "name": "@tortoise/audit",
   "version": "0.1.0",
   "type": "module",
   "description": "Audit host plugin: the fail-closed, hash-chained event log with off-host forwarding, startup attestation, crash recovery and chain verification.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "url": "https://github.com/wisdomousai/tortoise.git",
     "directory": "plugins/audit"
   },
   "files": [
@@ -21,11 +21,11 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@agent-native/adapters": "workspace:*",
-    "@agent-native/contracts": "workspace:*",
-    "@agent-native/event-log": "workspace:*",
-    "@agent-native/host": "workspace:*",
-    "@agent-native/kernel": "workspace:*",
-    "@agent-native/site": "workspace:*"
+    "@tortoise/adapters": "workspace:*",
+    "@tortoise/contracts": "workspace:*",
+    "@tortoise/event-log": "workspace:*",
+    "@tortoise/host": "workspace:*",
+    "@tortoise/kernel": "workspace:*",
+    "@tortoise/site": "workspace:*"
   }
 }

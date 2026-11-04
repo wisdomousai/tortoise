@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { PGlite } from '@electric-sql/pglite';
-import { bunPostgres } from '@agent-native/adapters/postgres-bun';
-import { WorkspaceOwnedError } from '@agent-native/adapters/exclusive-lock';
+import { bunPostgres } from '@tortoise/adapters/postgres-bun';
+import { WorkspaceOwnedError } from '@tortoise/adapters/exclusive-lock';
 import {
   WorkspaceLeaseLostError,
   acquireWorkspaceLease,
   type WorkspaceLease,
-} from '@agent-native/adapters/postgres-lease';
-import { PostgresStorage, type PgDriver } from '@agent-native/adapters/postgres-storage';
+} from '@tortoise/adapters/postgres-lease';
+import { PostgresStorage, type PgDriver } from '@tortoise/adapters/postgres-storage';
 import { pgliteDriver } from '../src/postgres';
 import type { ConformanceState } from '../src/storage';
 

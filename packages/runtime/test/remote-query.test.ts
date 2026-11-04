@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
-import { ApplicationError, defineDataProvider, defineModule } from '@agent-native/contracts';
-import { createMemoryEventLog } from '@agent-native/event-log';
+import { ApplicationError, defineDataProvider, defineModule } from '@tortoise/contracts';
+import { createMemoryEventLog } from '@tortoise/event-log';
 import {
   createApplication,
   createHandlerFactory,

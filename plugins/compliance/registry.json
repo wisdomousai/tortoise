@@ -8,12 +8,8 @@
       "type": "registry:component",
       "title": "Compliance screen",
       "description": "Read-only security posture for auditors: bound, disabled and used destinations, recent denials and audit-chain status, from the compliance.* queries. Polls; each read is itself audited.",
-      "dependencies": [
-        "@tanstack/react-query",
-        "@agent-native/compliance",
-        "@agent-native/contracts"
-      ],
-      "registryDependencies": ["badge", "button", "card", "table", "@agent-native/session"],
+      "dependencies": ["@tanstack/react-query", "@tortoise/compliance", "@tortoise/contracts"],
+      "registryDependencies": ["badge", "button", "card", "table", "@tortoise/session"],
       "files": [
         {
           "path": "src/components/compliance-screen.tsx",

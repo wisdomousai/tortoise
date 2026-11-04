@@ -1,16 +1,16 @@
 ---
-'@agent-native/contracts': minor
-'@agent-native/runtime': minor
-'@agent-native/integration': minor
-'@agent-native/kernel': minor
-'@agent-native/host': minor
-'@agent-native/adapters': minor
-'@agent-native/testing': minor
-'@agent-native/site': minor
-'@agent-native/device-link': minor
-'@agent-native/fleet-agent': minor
-'@agent-native/workflows': minor
-'@agent-native/peer-link': minor
+'@tortoise/contracts': minor
+'@tortoise/runtime': minor
+'@tortoise/integration': minor
+'@tortoise/kernel': minor
+'@tortoise/host': minor
+'@tortoise/adapters': minor
+'@tortoise/testing': minor
+'@tortoise/site': minor
+'@tortoise/device-link': minor
+'@tortoise/fleet-agent': minor
+'@tortoise/workflows': minor
+'@tortoise/peer-link': minor
 ---
 
 Nested calls, durable workflows and calls between two applications.
@@ -20,7 +20,7 @@ Nested calls, durable workflows and calls between two applications.
 - An application publishes a peer API with `definePeerApi` and serves it through the `peer-link` plugin. Another application declares it with `definePeerTarget`, connects with a one-use code, and calls it as its service principal or, with a signed subject assertion, on behalf of a mapped person. `createPeerDrift` keeps calls to an operation whose schema changed at the peer pending.
 - `/api/v1/contract` names the application and gives each operation a `schemaDigest`.
 - A destination declared `authenticated` is refused when bound to plain text off loopback. Peer targets, the fleet agent's `fleet` and hub-link's `hub` destinations are declared so.
-- The one-use code and credential helpers move from the device link to `@agent-native/host/enrollment`.
+- The one-use code and credential helpers move from the device link to `@tortoise/host/enrollment`.
 - A plugin's `authenticate` also receives the request that carried the token.
 - Inbound sync idempotency keys name the sync operation, so two targets synced by one integration principal no longer collide.
 

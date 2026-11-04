@@ -1,4 +1,4 @@
-import type { StateMigrations } from '@agent-native/kernel/migrations';
+import type { StateMigrations } from '@tortoise/kernel/migrations';
 
 type Stored = { testRequests?: { requests?: Record<string, Record<string, unknown>> } };
 

@@ -20,29 +20,29 @@ async function install(packages: Record<string, { version: string; private?: boo
 
 test('one framework version passes and private workspaces are not counted', async () => {
   const root = await install({
-    'node_modules/@agent-native/kernel': { version: '0.2.0' },
-    'node_modules/@agent-native/host': { version: '0.2.0' },
-    'node_modules/@agent-native/field-notes': { version: '0.1.0', private: true },
+    'node_modules/@tortoise/kernel': { version: '0.2.0' },
+    'node_modules/@tortoise/host': { version: '0.2.0' },
+    'node_modules/@tortoise/field-notes': { version: '0.1.0', private: true },
   });
   expect(await installedFramework(root)).toEqual({
-    versions: { '0.2.0': ['@agent-native/host', '@agent-native/kernel'] },
+    versions: { '0.2.0': ['@tortoise/host', '@tortoise/kernel'] },
   });
 });
 
 test('a nested copy at another version is refused, wherever the installer put it', async () => {
   const root = await install({
-    'node_modules/@agent-native/kernel': { version: '0.2.0' },
-    'node_modules/@agent-native/host': { version: '0.1.0' },
-    'node_modules/@agent-native/host/node_modules/@agent-native/kernel': { version: '0.1.0' },
-    'node_modules/.bun/@agent-native+site@0.3.0/node_modules/@agent-native/site': {
+    'node_modules/@tortoise/kernel': { version: '0.2.0' },
+    'node_modules/@tortoise/host': { version: '0.1.0' },
+    'node_modules/@tortoise/host/node_modules/@tortoise/kernel': { version: '0.1.0' },
+    'node_modules/.bun/@tortoise+site@0.3.0/node_modules/@tortoise/site': {
       version: '0.3.0',
     },
   });
   const installed = await installedFramework(root);
   expect(installed.versions).toEqual({
-    '0.1.0': ['@agent-native/host', '@agent-native/kernel'],
-    '0.2.0': ['@agent-native/kernel'],
-    '0.3.0': ['@agent-native/site'],
+    '0.1.0': ['@tortoise/host', '@tortoise/kernel'],
+    '0.2.0': ['@tortoise/kernel'],
+    '0.3.0': ['@tortoise/site'],
   });
   expect(installed.problem).toContain('Mixed framework versions installed');
 });

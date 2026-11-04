@@ -1,5 +1,5 @@
-import { assertJson } from '@agent-native/contracts';
-import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import { assertJson } from '@tortoise/contracts';
+import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@tortoise/runtime';
 import { schemaVersionError, STORAGE_SCHEMA_VERSION } from './schema-version';
 import type { SqlDriver } from './sql-driver';
 
