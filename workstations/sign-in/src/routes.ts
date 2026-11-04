@@ -13,9 +13,33 @@ export interface StationCaller {
   readonly context: ExecutionContext;
 }
 
+/**
+ * One abort signal per open operator session, by token digest. A request runs with its session's
+ * signal, so a sign-out or the session's expiry stops it at the runtime's next check.
+ */
+export class OperatorSignals {
+  private open = new Map<string, { controller: AbortController; expiresAt: number }>();
+  constructor(private readonly now: () => number) {}
+  signal(digest: string, expiresAt: number): AbortSignal {
+    for (const [key, entry] of this.open) if (entry.expiresAt <= this.now()) this.open.delete(key);
+    let entry = this.open.get(digest);
+    if (!entry) this.open.set(digest, (entry = { controller: new AbortController(), expiresAt }));
+    // A timer holds at most 2^31 - 1 ms; the resolve at the next request catches a later expiry.
+    const remaining = Math.max(0, expiresAt - this.now());
+    return remaining < 2 ** 31
+      ? AbortSignal.any([entry.controller.signal, AbortSignal.timeout(remaining)])
+      : entry.controller.signal;
+  }
+  end(digest: string) {
+    this.open.get(digest)?.controller.abort(new ApplicationError('CANCELLED', 'Signed out'));
+    this.open.delete(digest);
+  }
+}
+
 export interface RouteOptions {
   /** Principals whose screens are station terminals; the local owner always is. */
   readonly terminals: ReadonlySet<string>;
+  readonly signals: OperatorSignals;
 }
 
 const pinPattern = /^\d{4,8}$/;
@@ -40,16 +64,21 @@ const command = (operation: string, input: unknown) => ({
  *    command input; then `station.session.start` records the attempt and applies the lockout.
  * 3. The operator token is generated here and returned once; state keeps only its digest.
  */
+/** Only a terminal acts at a terminal, and never under a delegated grant. */
+function assertTerminal(terminal: ExecutionContext, options: RouteOptions) {
+  if (terminal.grant)
+    throw new ApplicationError('FORBIDDEN', 'A delegated caller cannot sign people in');
+  if (!options.terminals.has(terminal.principalId))
+    throw new ApplicationError('FORBIDDEN', 'This caller is not a station terminal');
+}
+
 async function signIn(
   request: Request,
   terminal: ExecutionContext,
   caller: StationCaller,
   options: RouteOptions,
 ) {
-  if (terminal.grant)
-    throw new ApplicationError('FORBIDDEN', 'A delegated caller cannot sign people in');
-  if (!options.terminals.has(terminal.principalId))
-    throw new ApplicationError('FORBIDDEN', 'This caller is not a station terminal');
+  assertTerminal(terminal, options);
   const body = await readJsonBody(request);
   const badge = text(body.badge, 256);
   const pin = typeof body.pin === 'string' && pinPattern.test(body.pin) ? body.pin : undefined;
@@ -85,7 +114,7 @@ async function signIn(
   return jsonResponse({ token, session }, 201, { 'Cache-Control': 'no-store' });
 }
 
-async function signOut(request: Request, caller: StationCaller) {
+async function signOut(request: Request, caller: StationCaller, options: RouteOptions) {
   const body = await readJsonBody(request);
   const token = text(body.token, 64);
   if (!token) throw invalid('token is required');
@@ -93,7 +122,39 @@ async function signOut(request: Request, caller: StationCaller) {
     command(ops.sessionEnd.id, { tokenDigest: digestOf(token) }),
     { ...caller.context, channel: 'http' },
   );
+  options.signals.end(digestOf(token));
   return jsonResponse(receipt.result);
+}
+
+/**
+ * POST session `{ token, terminal }`: the open operator session a terminal screen kept across a
+ * reload, so the operator stays signed in. It answers only the terminal that signed the operator
+ * in, under the same terminal name; any other caller, or an ended session, gets `NOT_FOUND`.
+ */
+async function restore(
+  request: Request,
+  terminal: ExecutionContext,
+  caller: StationCaller,
+  options: RouteOptions,
+) {
+  assertTerminal(terminal, options);
+  const body = await readJsonBody(request);
+  const token = text(body.token, 64);
+  if (!token || typeof body.terminal !== 'string') throw invalid('token and terminal are required');
+  const found = await caller.application.queryRaw(
+    { operation: ops.sessionResolve.id, input: { tokenDigest: digestOf(token) } },
+    { ...caller.context, channel: 'http' },
+  );
+  const session = (
+    found.data as { session: { terminalPrincipal: string; terminal: string } | null }
+  ).session;
+  if (
+    !session ||
+    session.terminalPrincipal !== terminal.principalId ||
+    session.terminal !== body.terminal
+  )
+    throw new ApplicationError('NOT_FOUND', 'No open session at this terminal');
+  return jsonResponse({ session }, 200, { 'Cache-Control': 'no-store' });
 }
 
 /** POST enroll: hashes the PIN, then enrolls as the caller, whose instance the policy checks. */
@@ -127,6 +188,7 @@ export async function stationRoute(
     return undefined;
   if (!caller) throw new ApplicationError('UNAVAILABLE', 'The station is starting');
   if (pathname === stationPaths.signIn) return signIn(request, context, caller, options);
-  if (pathname === stationPaths.signOut) return signOut(request, caller);
+  if (pathname === stationPaths.signOut) return signOut(request, caller, options);
+  if (pathname === stationPaths.session) return restore(request, context, caller, options);
   return enroll(request, context, caller);
 }

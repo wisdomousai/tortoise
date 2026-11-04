@@ -9,7 +9,7 @@ import {
   type StationSignInServices,
 } from './handlers';
 import { stationSignInPluginManifest } from './plugin-manifest';
-import { stationRoute, type StationCaller } from './routes';
+import { OperatorSignals, stationRoute, type StationCaller } from './routes';
 import { createStationSignInState, digestOf, type StationSignInState } from './state';
 
 /** The shape `newOperatorToken` produces; anything else is not an operator token. */
@@ -26,21 +26,32 @@ function minutesOf(setting: string | undefined) {
 /**
  * The person an operator token stands for, looked up through the runtime on every request, so a
  * sign-out, a revoked badge or an expiry applies at the next one. The context carries no grant:
- * the operator acts with their own grants under the application's policy.
+ * the operator acts with their own grants under the application's policy. Its signal aborts at
+ * sign-out or expiry, so a request still running then stops. A badge revoked meanwhile ends the
+ * session at the next request, not during one.
  */
 async function authenticateOperator(
   token: string,
   caller: StationCaller | undefined,
+  signals: OperatorSignals,
 ): Promise<ExecutionContext | undefined> {
   if (!caller || !tokenPattern.test(token)) return undefined;
+  const digest = digestOf(token);
   const result = await caller.application.queryRaw(
-    { operation: ops.sessionResolve.id, input: { tokenDigest: digestOf(token) } },
+    { operation: ops.sessionResolve.id, input: { tokenDigest: digest } },
     caller.context,
   );
-  const session = (result.data as { session: { principalId: string } | null }).session;
-  return session
-    ? { workspaceId: caller.workspaceId, principalId: session.principalId }
-    : undefined;
+  const session = (result.data as { session: { principalId: string; expiresAt: number } | null })
+    .session;
+  if (!session) {
+    signals.end(digest);
+    return undefined;
+  }
+  return {
+    workspaceId: caller.workspaceId,
+    principalId: session.principalId,
+    signal: signals.signal(digest, session.expiresAt),
+  };
 }
 
 /**
@@ -68,6 +79,7 @@ export function createStationSignInPlugin(options: { readonly now?: () => number
           .filter(Boolean),
       ]);
       let caller: StationCaller | undefined;
+      const signals = new OperatorSignals(now);
       return {
         service,
         async start(context) {
@@ -85,8 +97,8 @@ export function createStationSignInPlugin(options: { readonly now?: () => number
           };
           return [{ stop: async () => void (caller = undefined) }];
         },
-        route: (request, context) => stationRoute(request, context, caller, { terminals }),
-        authenticate: (token) => authenticateOperator(token, caller),
+        route: (request, context) => stationRoute(request, context, caller, { terminals, signals }),
+        authenticate: (token) => authenticateOperator(token, caller, signals),
         describe: () => ({ terminals: [...terminals], sessionMinutes: service.sessionMinutes }),
       };
     },

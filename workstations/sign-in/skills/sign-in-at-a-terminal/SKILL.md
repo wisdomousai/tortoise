@@ -5,7 +5,7 @@ description: Let operators sign in at a shared workstation terminal with a badge
 
 # Sign in at a terminal
 
-A terminal is a principal whose screen may sign people in. An operator scans a badge there and enters a PIN. The terminal's screen then holds a short-lived operator token in memory and acts as that person until the session ends.
+A terminal is a principal whose screen may sign people in. An operator scans a badge there and enters a PIN. The terminal's screen then keeps a short-lived operator token in the tab's session storage and acts as that person until the session ends. After a reload it asks `POST /api/v1/station/session` for the open session that token names at the same terminal; an ended session returns it to sign-in. A sign-out or the session's expiry also stops a request still running as the operator.
 
 ## Before writing
 

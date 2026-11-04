@@ -8,9 +8,9 @@ import {
 import { readSessionCookie, sessionCookie } from '@tortoise/adapters/http';
 import { verifyOidcIdentity } from '@tortoise/agents/oidc';
 import type { SitePolicy } from '../policy';
-import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import type { ExecutionContext } from '@tortoise/runtime';
 import { discover, providerJson, type DestinationFetch, type ProviderMetadata } from './discovery';
+import { WorkforceSessions } from './session-store';
 
 export type WorkforceConfig = NonNullable<SitePolicy['workforce']>;
 
@@ -20,6 +20,8 @@ export interface WorkforceOptions {
    * plugin has opened.
    */
   readonly fetch: () => DestinationFetch;
+  /** The session file, `workforce-sessions.sqlite` in the workspace directory. */
+  readonly sessions: string;
   readonly now?: () => number;
   /** Key resolver for tests; otherwise the provider's JWKS, fetched through `fetch`. */
   readonly keys?: JWTVerifyGetKey;
@@ -70,12 +72,14 @@ function principalOf(config: WorkforceConfig, payload: Record<string, unknown>) 
  *
  * Trust boundary: the redirect URI is the request's own origin, which the host has already
  * checked against its Host header. The provider is reached only through the bound destination.
- * Sessions live in memory, so a restart signs everyone out. The ID token is not kept.
+ * Sessions are kept by token digest in the workspace directory (`WorkforceSessions`), so a restart
+ * keeps them; sign-out also stops a request still running under the session. The ID token is not
+ * kept.
  */
 export function createWorkforceSignIn(config: WorkforceConfig, options: WorkforceOptions) {
   const now = options.now ?? Date.now;
   const pending = new Map<string, { verifier: string; nonce: string; expires: number }>();
-  const sessions = new Map<string, { context: ExecutionContext; expires: number }>();
+  const sessions = new WorkforceSessions(options.sessions, now);
   let provider: Promise<{ metadata: ProviderMetadata; keys: JWTVerifyGetKey }> | undefined;
   const fetcher: DestinationFetch = (input, init) => options.fetch()(input, init);
 
@@ -156,13 +160,10 @@ export function createWorkforceSignIn(config: WorkforceConfig, options: Workforc
       now(),
     );
     const principalId = principalOf(config, payload);
-    prune(sessions, now(), MAX_SESSIONS);
+    if (!sessions.room(MAX_SESSIONS)) throw new Error('Too many sign-ins in progress');
     const token = secret();
     const maxAge = config.sessionMinutes * 60;
-    sessions.set(token, {
-      context: { workspaceId: LOCAL_WORKSPACE, principalId },
-      expires: now() + maxAge * 1000,
-    });
+    sessions.create(token, principalId, now() + maxAge * 1000);
     return new Response(null, {
       status: 302,
       headers: {
@@ -176,7 +177,7 @@ export function createWorkforceSignIn(config: WorkforceConfig, options: Workforc
   function signOut(request: Request, url: URL) {
     if (request.headers.get('origin') !== url.origin) return text(403, 'Untrusted origin');
     const token = readSessionCookie(request, url.origin);
-    if (token) sessions.delete(token);
+    if (token) sessions.revoke(token);
     return text(200, 'Signed out', { 'Set-Cookie': sessionCookie(url.origin, '', 0) });
   }
 
@@ -198,10 +199,8 @@ export function createWorkforceSignIn(config: WorkforceConfig, options: Workforc
     },
     /** The person a session cookie stands for, until the session expires or signs out. */
     async authenticateCookie(token: string): Promise<ExecutionContext | undefined> {
-      const session = sessions.get(token);
-      if (session && session.expires > now()) return session.context;
-      sessions.delete(token);
-      return undefined;
+      return sessions.get(token);
     },
+    close: () => sessions.close(),
   };
 }

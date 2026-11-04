@@ -15,7 +15,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 | [Station sign-in](#station-sign-in)                             | Badge and PIN in tests and in Chrome                       | A physical badge reader                                    |
 | [State migrations](#state-migrations)                           | Declared in most examples                                  | Keeping data of a removed feature                          |
 | [Workflows](#workflows)                                         | Unit tests                                                 | Browser test, multi-day run                                |
-| [Authorization and live queries](#authorization-and-live-queries) | Tests                                                    | Stopping a request on revocation                           |
+| [Authorization and live queries](#authorization-and-live-queries) | Tests                                                    | Device and peer revocation during a request                |
 | [Surfaces](#surfaces)                                           | Five apps in the browser                                   | —                                                          |
 | [Agents and providers](#agents-and-providers)                   | Gemma 4 E4B on llama.cpp, live                             | ChatGPT, Claude, AI SDK inference                          |
 | [Execution host](#execution-host)                               | bubblewrap in a Linux container                            | x86-64, glibc, macOS, Windows, a harness inside it         |
@@ -77,13 +77,14 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 - **Proven:** tests cover PKCE, one-use state, session expiry, ID-token checks, cookie-vs-bearer handling and sign-in through the network guard with a throwaway CA.
 - **Not yet:** a real identity provider.
-- **Limits:** the host refuses endpoints on another origin than the issuer (such as Google's). Sessions live in memory; a restart signs everyone out.
+- **Limits:** the host refuses endpoints on another origin than the issuer (such as Google's). Sessions survive a restart only on the same local directory.
 
 ### Station sign-in
 
 - **Proven:** `workstations/sign-in/test/sign-in.test.ts` covers badge and PIN, lockout, expiry, one session per terminal, badge revocation, and no badge or PIN in the database. By hand in Chrome, `showcase/patterns/sign-in` ran with keyboard-wedge badges. In the browser, `showcase/examples/tool-store` signs attendants in at its counter terminal with the badge typed as a key burst, refuses a viewer's check-out, and signs out after five idle minutes on the page's clock.
 - **Not yet:** a physical badge reader.
-- **Limits:** signing in does not take screen control from an agent. A page reload loses the operator token.
+- **Proven (browser, 4 Nov):** at the counter terminal of `showcase/examples/tool-store`, a reload keeps the attendant signed in.
+- **Limits:** signing in does not take screen control from an agent. A badge revoked during a request ends the operator's session at the next request, not during that one.
 
 ### State migrations
 
@@ -98,7 +99,8 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Authorization and live queries
 
-- **Open:** a session revoked during a request does not stop it ([known defects](#known-defects)).
+- **Proven:** `packages/adapters/src/http-credentials.test.ts` revokes a host session, and aborts a plugin credential's signal, inside a command's handler; the command returns `CANCELLED` and commits nothing. Workforce sign-out and operator sign-out abort their sessions' signals.
+- **Limits:** a plugin credential stops a running request only when the plugin sets a signal on the context it resolves. Paired-device and peer credentials set none, so their revocation applies at the next request.
 
 ### Surfaces
 
@@ -192,13 +194,11 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ## Known defects
 
-- A session revoked during a request does not stop the request. The command commits; the host refuses new requests with that token.
 - An example started with `dev` or `dev:web` titles its window with the display name in `app.config.json`, such as "Field Service".
 - Fixed without a regression test: Windows paths during staging, scanner default routes, scanner setup edits.
 
 ## Planned improvements
 
-- Abort a request when its session expires or the host revokes it.
 - Share event, receipt and cancellation handling between the HTTP and direct adapters.
 - Extract a reusable draft model from capture and scanner setup.
 - Replace `./*` wildcard exports with explicit entrypoints before 1.0.

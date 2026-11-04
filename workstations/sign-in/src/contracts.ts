@@ -10,6 +10,8 @@ export const stationPaths = {
   signIn: '/api/v1/station/sign-in',
   /** `{ token }`: ends that operator session. */
   signOut: '/api/v1/station/sign-out',
+  /** `{ token, terminal }` from the terminal's session after a reload: `200 { session }`. */
+  session: '/api/v1/station/session',
   /** `{ principalId, label, badge, pin }` from an admin: `201 { badge }`. */
   enroll: '/api/v1/station/badges',
 } as const;

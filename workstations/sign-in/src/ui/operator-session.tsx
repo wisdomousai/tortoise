@@ -30,10 +30,9 @@ export function useOperatorSession(): OperatorSession {
 }
 
 /**
- * Holds the operator token in memory only, with its own transport, live bindings and query cache,
- * so nothing the operator read stays cached for the terminal or the next operator. A response that
- * rejects the credential, after a sign-out elsewhere, a revoked badge or an expiry, ends the
- * session here too.
+ * Gives the operator token its own transport, live bindings and query cache, so nothing the
+ * operator read stays cached for the terminal or the next operator. A response that rejects the
+ * credential, after a sign-out elsewhere, a revoked badge or an expiry, ends the session here too.
  */
 export function OperatorSessionProvider({
   token,

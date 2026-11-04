@@ -43,6 +43,27 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 const time = (at: number) => new Date(at).toLocaleTimeString([], { timeStyle: 'short' });
 
+/**
+ * The operator token survives a reload in this tab's session storage, which the browser clears
+ * when the tab closes. Storage can be off or full; then a reload signs the operator out.
+ */
+const storageKey = (terminal: string) => `tortoise.station.${terminal}`;
+function kept(terminal: string): string | undefined {
+  try {
+    return sessionStorage.getItem(storageKey(terminal)) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+function keep(terminal: string, token: string | undefined) {
+  try {
+    if (token) sessionStorage.setItem(storageKey(terminal), token);
+    else sessionStorage.removeItem(storageKey(terminal));
+  } catch {
+    // The token then lasts as long as the page.
+  }
+}
+
 /** Badge, then PIN. The badge value stays in this component until the sign-in request returns. */
 function SignIn({
   terminal,
@@ -140,7 +161,8 @@ function SignIn({
  * A terminal at a shared workstation. Signed out, it reads a badge from the scanner or by hand and a
  * PIN from the keypad, and signs in at the station route with the terminal's own session. Signed in,
  * it shows `work` as the operator until sign-out, inactivity, the session's expiry or a rejected
- * credential returns it to sign-in.
+ * credential returns it to sign-in. After a reload it asks the host for the session the kept token
+ * names at this terminal, and shows sign-in when the session has ended.
  */
 export function TerminalScreen({
   terminal,
@@ -149,18 +171,34 @@ export function TerminalScreen({
   badgePattern = '^(.{1,256})$',
 }: TerminalOptions) {
   const [signedIn, setSignedIn] = useState<SignedIn>();
+  const [restoring, setRestoring] = useState(() => kept(terminal) !== undefined);
   const signOut = useCallback(() => setSignedIn(undefined), []);
+  useEffect(() => {
+    const token = kept(terminal);
+    if (!token) return;
+    let current = true;
+    post<{ session: OperatorSessionRecord }>(stationPaths.session, { token, terminal })
+      .then(({ session }) => current && setSignedIn({ token, session }))
+      .catch(() => keep(terminal, undefined))
+      .finally(() => current && setRestoring(false));
+    return () => {
+      current = false;
+    };
+  }, [terminal]);
   useIdleReturn(signOut, { idleMs, active: signedIn !== undefined });
-  // Every way out of a session ends it at the host, leaving the screen included, since the token
-  // lives only here. Ending one that already ended returns `ended: false`.
+  // Every way out of a session ends it at the host, leaving the screen included. A reload runs no
+  // cleanup, so the kept token still names an open session. Ending one that already ended returns
+  // `ended: false`.
   useEffect(() => {
     if (!signedIn) return;
+    keep(terminal, signedIn.token);
     const timer = setTimeout(signOut, Math.max(0, signedIn.session.expiresAt - Date.now()));
     return () => {
       clearTimeout(timer);
+      keep(terminal, undefined);
       void post(stationPaths.signOut, { token: signedIn.token }).catch(() => undefined);
     };
-  }, [signedIn, signOut]);
+  }, [signedIn, signOut, terminal]);
 
   return (
     <OperatorSurface density="touch" className="min-h-0 rounded-xl">
@@ -183,6 +221,8 @@ export function TerminalScreen({
           />
           <Work />
         </OperatorSessionProvider>
+      ) : restoring ? (
+        <OperatorHeader title={`Terminal ${terminal}`} context="Checking the session" />
       ) : (
         <>
           <OperatorHeader title={`Terminal ${terminal}`} context="Signed out" />

@@ -1,4 +1,7 @@
 import { beforeAll, expect, test } from 'bun:test';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { exportJWK, generateKeyPair, SignJWT, type CryptoKey, type JWK } from 'jose';
 import type { ResolvedPolicy } from '../src/policy';
 import { createWorkforceSignIn, type WorkforceConfig } from '../src/workforce/sign-in';
@@ -78,7 +81,13 @@ const cookieOf = (response: Response) =>
 test('a person signs in with PKCE and the session cookie stands for the verified principal', async () => {
   const idp = provider();
   let now = Date.now();
-  const signIn = createWorkforceSignIn(config, { fetch: () => idp.fetch, now: () => now });
+  const directory = await mkdtemp(join(tmpdir(), 'workforce-'));
+  const sessions = join(directory, 'workforce-sessions.sqlite');
+  const signIn = createWorkforceSignIn(config, {
+    fetch: () => idp.fetch,
+    now: () => now,
+    sessions,
+  });
   const redirect = (await signIn.publicRoute(get('/auth/sign-in')))!;
   expect(redirect.status).toBe(302);
   const location = new URL(redirect.headers.get('location')!);
@@ -102,10 +111,19 @@ test('a person signs in with PKCE and the session cookie stands for the verified
   expect(challenge).toBe(location.searchParams.get('code_challenge')!);
 
   const token = cookieOf(signedIn);
-  expect(await signIn.authenticateCookie(token)).toEqual({
-    workspaceId: 'local',
+  const context = await signIn.authenticateCookie(token);
+  expect(context).toMatchObject({ workspaceId: 'local', principalId: 'ada@plant.example' });
+  // A restart keeps the session, and the file holds its digest, never the token.
+  const restarted = createWorkforceSignIn(config, {
+    fetch: () => idp.fetch,
+    now: () => now,
+    sessions,
+  });
+  expect(await restarted.authenticateCookie(token)).toMatchObject({
     principalId: 'ada@plant.example',
   });
+  restarted.close();
+  expect((await readFile(sessions)).includes(Buffer.from(token))).toBe(false);
   // The state is used once: the same callback again is refused.
   expect((await signIn.publicRoute(get(callback)))!.status).toBe(403);
   // Signing out needs this origin, then ends the session.
@@ -120,6 +138,8 @@ test('a person signs in with PKCE and the session cookie stands for the verified
   expect(await signIn.authenticateCookie(token)).toBeDefined();
   expect((await signOut({ origin }))!.status).toBe(200);
   expect(await signIn.authenticateCookie(token)).toBeUndefined();
+  // A request still running under the session stops at the runtime's next check.
+  expect(context!.signal!.aborted).toBe(true);
 
   // A session ends after sessionMinutes.
   const again = (await signIn.publicRoute(get('/auth/sign-in')))!;
@@ -129,11 +149,13 @@ test('a person signs in with PKCE and the session cookie stands for the verified
   now += 61 * 60_000;
   expect(await signIn.authenticateCookie(second)).toBeUndefined();
   expect(await signIn.publicRoute(get('/api/v1/catalog'))).toBeUndefined();
+  signIn.close();
+  await rm(directory, { recursive: true, force: true });
 });
 
 test('a forged state, another audience, an unverified email or a foreign issuer is refused', async () => {
   const refused = async (idp: ReturnType<typeof provider>, alter = (url: string) => url) => {
-    const signIn = createWorkforceSignIn(config, { fetch: () => idp.fetch });
+    const signIn = createWorkforceSignIn(config, { fetch: () => idp.fetch, sessions: ':memory:' });
     const redirect = (await signIn.publicRoute(get('/auth/sign-in')))!;
     if (redirect.status !== 302) return redirect;
     return (await signIn.publicRoute(

@@ -83,9 +83,22 @@ test('an operator signs in at a terminal with badge and PIN, acts as themselves,
   expect(database).not.toContain('BADGE-0042');
   expect(database).not.toContain('"2468"');
 
+  // After a reload the terminal gets the session back for its own terminal name only, and an
+  // operator token cannot ask for it.
+  const restore = (as: string, terminalName = 'press-1') =>
+    post(stationPaths.session, as, { token, terminal: terminalName });
+  const restored = await restore(terminal);
+  expect(restored.status).toBe(200);
+  expect(((await restored.json()) as { session: unknown }).session).toMatchObject({
+    principalId: 'ada@plant',
+  });
+  expect((await restore(terminal, 'press-2')).status).toBe(404);
+  expect((await restore(token)).status).toBe(403);
+
   // Signing in again at the same terminal ends the previous operator's session.
   const second = (await (await signIn('BADGE-0042', '2468')).json()) as { token: string };
   expect(await whoami(token)).toBe(403);
+  expect((await restore(terminal)).status).toBe(404);
   expect((await post(stationPaths.signOut, terminal, { token: second.token })).status).toBe(200);
   expect(await whoami(second.token)).toBe(403);
 });
