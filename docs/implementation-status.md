@@ -15,7 +15,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 | [Station sign-in](#station-sign-in)                             | Badge and PIN in tests and in Chrome                       | A physical badge reader                                    |
 | [State migrations](#state-migrations)                           | Declared in most examples                                  | Keeping data of a removed feature                          |
 | [Workflows](#workflows)                                         | Unit tests                                                 | Browser test, multi-day run                                |
-| [Authorization and live queries](#authorization-and-live-queries) | Tests                                                    | Stopping a request on revocation                           |
+| [Authorization and live queries](#authorization-and-live-queries) | Tests                                                    | Device and peer revocation during a request                |
 | [Surfaces](#surfaces)                                           | Five apps in the browser                                   | —                                                          |
 | [Agents and providers](#agents-and-providers)                   | Gemma 4 E4B on llama.cpp, live                             | ChatGPT, Claude, AI SDK inference                          |
 | [Execution host](#execution-host)                               | bubblewrap in a Linux container                            | x86-64, glibc, macOS, Windows, a harness inside it         |
@@ -36,14 +36,13 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Catalog, runtime and storage
 
 - **Proven:** 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms. A triggered agent requested approval on a real local model.
-- **Not yet:** no host route starts an agent run from an agent definition.
 - **Limits:** row storage serializes every row to find the change, so commit CPU grows with state. The instance keeps receipts by default. The phone's snapshot storage has no rows or retention. No encryption at rest.
 
 ### Hosted instance
 
 - **Proven (by hand, 18 and 27 Oct):** against Postgres 17, two pools raced for one workspace lease and one won. A second `serve --hosted-workspace` got `CONFLICT` (exit 5). After the holder paused or stopped, a new instance took the lease with fencing token 2. `showcase/patterns/hosted` signed in against a stand-in identity provider, driven with curl.
 - **Not yet:** a hosted instance behind public TLS with workforce OIDC; a real orchestrator; Linux; a paused holder's commit caught by the fence in a live run.
-- **Limits:** one process serves one workspace. Blobs, run history, the audit log and plugin files stay in the local directory. `sync`, `drain`, `backup`, `restore`, `migrate` and `--embedded` open a local workspace only. No Cloudflare Durable Object host.
+- **Limits:** one process serves one workspace. Run history, workforce sessions, the audit log and plugin files stay in the local directory; blobs are in the database, tested on PGlite only. `sync`, `drain`, `backup`, `restore`, `migrate` and `--embedded` open a local workspace only. No Cloudflare Durable Object host.
 
 ### Fleet agent
 
@@ -78,13 +77,14 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 - **Proven:** tests cover PKCE, one-use state, session expiry, ID-token checks, cookie-vs-bearer handling and sign-in through the network guard with a throwaway CA.
 - **Not yet:** a real identity provider.
-- **Limits:** the host refuses endpoints on another origin than the issuer (such as Google's). Sessions live in memory; a restart signs everyone out.
+- **Limits:** the host refuses endpoints on another origin than the issuer (such as Google's). Sessions survive a restart only on the same local directory.
 
 ### Station sign-in
 
 - **Proven:** `workstations/sign-in/test/sign-in.test.ts` covers badge and PIN, lockout, expiry, one session per terminal, badge revocation, and no badge or PIN in the database. By hand in Chrome, `showcase/patterns/sign-in` ran with keyboard-wedge badges. In the browser, `showcase/examples/tool-store` signs attendants in at its counter terminal with the badge typed as a key burst, refuses a viewer's check-out, and signs out after five idle minutes on the page's clock.
 - **Not yet:** a physical badge reader.
-- **Limits:** signing in does not take screen control from an agent. A page reload loses the operator token.
+- **Proven (browser, 4 Nov):** at the counter terminal of `showcase/examples/tool-store`, a reload keeps the attendant signed in.
+- **Limits:** signing in does not take screen control from an agent. A badge revoked during a request ends the operator's session at the next request, not during that one.
 
 ### State migrations
 
@@ -99,11 +99,14 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Authorization and live queries
 
-- **Open:** a session revoked during a request does not stop it ([known defects](#known-defects)).
+- **Proven:** `packages/adapters/src/http-credentials.test.ts` revokes a host session, and aborts a plugin credential's signal, inside a command's handler; the command returns `CANCELLED` and commits nothing. Workforce sign-out and operator sign-out abort their sessions' signals.
+- **Limits:** a plugin credential stops a running request only when the plugin sets a signal on the context it resolves. Paired-device and peer credentials set none, so their revocation applies at the next request.
 
 ### Surfaces
 
 - **Proven (browser or by hand in Chrome):** field-service (live updates from an MCP process, drafts, paging), quality-inspection (keyboard capture, conflicting drafts), crm-capture (search, follow, log), review (approvals, revisions, signatures), signals (OPC UA and Sparkplug B readings from a plant stand-in).
+- **Proven (browser, 4 Nov):** `showcase/patterns/base/e2e/export-and-print.pw.ts` exports 120 test requests as one CSV over two list pages and checks the print layout with print media emulated in headless Chromium.
+- **Not yet:** No one has printed a record screen on paper or opened an export in Excel or LibreOffice. A CSV export reads the whole list into the page before the download, with no row limit. No label printing, XLSX or PDF.
 - **Not yet:** Parts desk dictation against a real microphone. The browser test plays a stub recognizer. On 3 Nov Chrome and Playwright's full Chromium reported on-device English as downloadable, and Playwright's headless shell crashed the page on `SpeechRecognition.available` ([Parts desk README](../showcase/examples/parts-desk/README.md#dictation-with-a-real-microphone)).
 
 ### Agents and providers
@@ -117,6 +120,8 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Not yet:** a model following the `calibration-pull` workflow of `showcase/examples/tool-store` over MCP. Its test reads the workflow resource and calls the tools it names through the MCP adapter, with no model.
 - **Proven (browser):** at the counter terminal of `showcase/examples/tool-store`, a run on the deterministic harness, started from the ticked tools, opened a tool on the Counter tab and asked for a review above its edit form. The attendant saved the bin and acknowledged the review. The run acts as the terminal's session, the owner.
 - **Not yet:** a provider model at that terminal. Without an agent definition such a run has the owner's whole grant, and only its instruction keeps it from `tool.update`.
+- **Proven (browser, 4 Nov):** the frame's assistant panel in `showcase/patterns/agents` ran two turns with the method suggester on the deterministic harness, from the request screen's record. The person answered its question in the panel, and after a reload the panel showed the request, the answer and the reply again (`e2e/assistant.pw.ts`).
+- **Not yet:** the frame's panel on a model, and the discrepancy classifier started from the receiving panel on a model. The work order planner starts from the field-service agent panel only with a provider account. The parts desk still has its own panel, with dictation and record links; the assistant tutorial still has each application write its panel.
 
 ### Execution host
 
@@ -176,7 +181,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### OS integration
 
 - **Proven (browser):** `showcase/examples/field-service/e2e/os.pw.ts` covers the web manifest's handlers, `?os=` launch URLs, file and share-target prefill, reminders, shortcuts and `navigator.share` (replaced with a recorder).
-- **Not yet:** anything through a real OS: Electron wiring, installed web apps, Expo bindings, real share sheets, real notifications, Android intents, launcher shortcuts. A restart loses staged uploads.
+- **Not yet:** anything through a real OS: Electron wiring, installed web apps, Expo bindings, real share sheets, real notifications, Android intents, launcher shortcuts.
 
 ### Layers and scaffold
 
@@ -189,13 +194,11 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ## Known defects
 
-- A session revoked during a request does not stop the request. The command commits; the host refuses new requests with that token.
 - An example started with `dev` or `dev:web` titles its window with the display name in `app.config.json`, such as "Field Service".
 - Fixed without a regression test: Windows paths during staging, scanner default routes, scanner setup edits.
 
 ## Planned improvements
 
-- Abort a request when its session expires or the host revokes it.
 - Share event, receipt and cancellation handling between the HTTP and direct adapters.
 - Extract a reusable draft model from capture and scanner setup.
 - Replace `./*` wildcard exports with explicit entrypoints before 1.0.

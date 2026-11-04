@@ -35,6 +35,7 @@ TORTOISE_SITE_POLICY=/tmp/erp/site-policy.json bun run dev:web
 - Count and post: `bun run --silent cli delivery receive --id ASN-1-1 --counted 10 --key r1`, then `bun run --silent cli erp send --id ASN-1-1 --key p1`. The line shows `sync: pending` and a file `<effect id>.csv` appears in `/tmp/erp/goods-receipts`. A count that differs from `expected` needs a reason first.
 - Answer as the ERP: write `{ "status": "accepted", "externalRef": "GR-1001" }` to `/tmp/erp/receipts/<effect id>.json`. After the next poll, `cli delivery get --id ASN-1-1` shows `status: posted` and `sorRef: GR-1001`. `{ "status": "rejected" }` reopens the line.
 - Until you bind the folders, the inbox imports nothing and posted receipts wait in the outbox.
+- On a line whose count differs, ask the discrepancy classifier in the assistant panel. It proposes a reason as an approval request, which an editor approves on **Approvals** or on the line. Without a model, the panel runs the deterministic demo, which takes a script instead of a request.
 
 ## References
 

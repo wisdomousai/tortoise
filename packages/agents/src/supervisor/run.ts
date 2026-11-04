@@ -164,6 +164,12 @@ export async function request(
     });
     const value = await response;
     abortCheck(run);
+    // The answer is kept with the run, so a conversation shows it after a reload.
+    await emit(kernel, run, {
+      type: 'answer',
+      requestId,
+      ...(typeof value === 'boolean' ? { approved: value } : { text: value }),
+    });
     await setState(kernel, run, 'running');
     return value;
   } finally {

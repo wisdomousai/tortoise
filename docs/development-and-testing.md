@@ -52,7 +52,7 @@ Notes:
 - TLS tests skip without `openssl`.
 - A sandbox that blocks listening sockets shows `EADDRINUSE`, even for port 0.
 - Subprocess tests can time out on a loaded machine. Rerun before calling it a regression.
-- Agent scenarios judge receipts and approval requests, never text. CI uses the deterministic harness; `AGENT_SCENARIOS=live` needs a configured harness.
+- Agent scenarios judge receipts and approval requests, never text. CI uses the deterministic harness. `scenarioHarness` from `@tortoise/testing` runs the local harness instead when `AGENT_SCENARIOS=live`, with a loopback `AGENT_SCENARIOS_URL` and `AGENT_SCENARIOS_MODEL`.
 - Provider checks are opt-in and use an explicitly configured account. Never pick up credentials from unrelated config or fall back to a paid key.
 
 ## Run and build

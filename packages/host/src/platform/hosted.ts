@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { createFileBlobStore } from '@tortoise/adapters/blob-files';
 import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
+import { createPostgresBlobStore } from '@tortoise/adapters/postgres-blobs';
 import { bunPostgres } from '@tortoise/adapters/postgres-bun';
 import { acquireWorkspaceLease, type WorkspaceLease } from '@tortoise/adapters/postgres-lease';
 import { PostgresStorage, type PgDriver } from '@tortoise/adapters/postgres-storage';
@@ -25,8 +26,8 @@ export interface HostedPlatformOptions {
 /**
  * The Bun platform with its workspace in a shared Postgres database, for a hosted instance that
  * another instance can take over. Ownership is the workspace's lease, renewed in the background,
- * plus the OS lock on the local directory, which still holds the run history, the blobs and the
- * plugins' local files. Every commit checks the lease's fence inside its transaction, so an
+ * plus the OS lock on the local directory, which still holds the run history and the plugins'
+ * local files. Blobs live in the database too, so a takeover reads the same attachments. Every commit checks the lease's fence inside its transaction, so an
  * instance that lost the lease (paused, partitioned, or replaced) commits nothing more, even
  * before it notices.
  *
@@ -86,8 +87,15 @@ export function hostedPlatform(options: HostedPlatformOptions): ServingPlatform 
         },
       );
     },
-    openBlobs: (ownership: { canonicalPath: string }) =>
-      createFileBlobStore(join(ownership.canonicalPath, 'blobs')),
+    // Blobs an earlier release kept in the local directory are read from there and copied in.
+    openBlobs(ownership: PlatformOwnership) {
+      const lease = leases.get(ownership.instance);
+      if (!lease) throw new Error('Workspace blobs need the ownership this platform issued');
+      return createPostgresBlobStore(options.database, options.workspace, {
+        fence: (tx) => lease.check(tx),
+        fallback: createFileBlobStore(join(ownership.canonicalPath, 'blobs')),
+      });
+    },
   } satisfies HostPlatform);
 }
 

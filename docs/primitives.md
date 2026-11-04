@@ -121,7 +121,7 @@ implemented · [`packages/kernel/src/migrations.ts`](../packages/kernel/src/migr
 
 ### Blob store
 
-_Content-addressed bytes, such as photos and documents, that commands reference from resources._
+_Content-addressed bytes, such as photos and documents, that commands reference from resources. An upload stays attachable by its uploader for the grace period, across a restart. A hosted instance keeps blobs in Postgres. No retention setting or thumbnails yet._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/client`](../packages/client/README.md) [`packages/kernel`](../packages/kernel/README.md)
 
@@ -195,7 +195,7 @@ implemented · [`packages/react`](../packages/react/README.md)
 
 ### Display metadata
 
-_How screens show a capability and its records: label, resource kind, key, title field and fields, each field with a label and a kind (date, date-time, status with tones, reference, file)._
+_How screens show a capability and its records: label, resource kind, key, title field and fields, each field with a label and a kind (date, date-time, status with tones, reference, file). A CSV export of a list takes its columns from the fields._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
@@ -207,9 +207,9 @@ implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/
 
 ### Agent run
 
-_An agent acting as one more caller on the catalog, under a grant narrowed from its issuer's._
+_An agent acting as one more caller on the catalog, under a grant narrowed from its issuer's. A run keeps what the person asked and their answers; the runs of one conversation share its ID, and the frame's assistant panel shows them._
 
-implemented · [`packages/agents`](../packages/agents/README.md)
+implemented · [`packages/agents`](../packages/agents/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md)
 
 ### Agent definition
 

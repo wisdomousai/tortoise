@@ -2,14 +2,19 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@tortoise/agents';
 import { openEmbeddedInstance } from '@tortoise/host';
-import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
+import {
+  runAgentScenarios,
+  scenarioHarness,
+  scenarioTimeout,
+  type AgentScenario,
+} from '@tortoise/testing/agent-scenarios';
 import { createTestRequestsAgentsApplication } from '../application';
 import { owner } from './fixtures';
 
 // The method suggester judged by what it commits and what it requests approval for. The
-// deterministic harness plays each script; a model harness would ignore it and read the task.
+// deterministic harness plays each script; with `AGENT_SCENARIOS=live` a model reads the task
+// instead (`scenarioHarness`).
 let directory: string;
 let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
 beforeAll(async () => {
@@ -97,12 +102,16 @@ const scenarios: AgentScenario[] = [
   },
 ];
 
-test('the method suggester requests approval for methods and never commits them', async () => {
-  const results = await runAgentScenarios(scenarios, {
-    application: instance.application,
-    harness: deterministicHarness,
-  });
-  expect(results.map((result) => [result.scenario, result.failures])).toEqual(
-    scenarios.map((scenario) => [scenario.name, []]),
-  );
-});
+test(
+  'the method suggester requests approval for methods and never commits them',
+  async () => {
+    const results = await runAgentScenarios(scenarios, {
+      application: instance.application,
+      harness: scenarioHarness(),
+    });
+    expect(results.map((result) => [result.scenario, result.failures])).toEqual(
+      scenarios.map((scenario) => [scenario.name, []]),
+    );
+  },
+  scenarioTimeout(),
+);

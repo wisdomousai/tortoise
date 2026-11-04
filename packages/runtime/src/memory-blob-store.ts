@@ -6,6 +6,7 @@ import type { BlobStore } from './types.js';
  */
 export function createMemoryBlobStore(now: () => number = Date.now): BlobStore {
   const blobs = new Map<string, { readonly data: Uint8Array; readonly storedAt: number }>();
+  const staged = new Map<string, number>();
   return {
     async put(digest, data) {
       blobs.set(digest, { data: data.slice(), storedAt: now() });
@@ -22,6 +23,15 @@ export function createMemoryBlobStore(now: () => number = Date.now): BlobStore {
     },
     async list() {
       return [...blobs.keys()];
+    },
+    async stage(key, until) {
+      staged.set(key, until);
+    },
+    async stagedUntil(key) {
+      return staged.get(key);
+    },
+    async unstage(at) {
+      for (const [key, until] of staged) if (until <= at) staged.delete(key);
     },
   };
 }

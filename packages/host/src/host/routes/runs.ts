@@ -151,6 +151,7 @@ async function startRun(request: Request, session: HostSession, host: HostRouteC
       id,
       harnessId,
       prompt,
+      request: body.prompt,
       context,
       ...(body.conversationId ? { conversationId: body.conversationId } : {}),
       ...(agent
@@ -190,8 +191,28 @@ async function respond(request: Request, id: string, session: HostSession, host:
   return jsonResponse({ accepted: true });
 }
 
-/** List, start, cancel and answer the session's own agent runs. */
+/**
+ * The harnesses the host picks from for a run without `harnessId`, with whether each can run now,
+ * for a screen's harness picker. Names no credential; a model names only its provider and model.
+ */
+async function harnessList(host: HostRouteContext) {
+  return Promise.all(
+    (host.harnesses ?? []).map(async (harness) => {
+      const status = await harness.availability().catch(() => ({ available: false }));
+      return {
+        id: harness.id,
+        inference: harness.inference ?? 'remote',
+        ...(harness.model ? { model: harness.model.model } : {}),
+        ...status,
+      };
+    }),
+  );
+}
+
+/** List, read, start, cancel and answer the session's own agent runs; list the host's harnesses. */
 export const runRoute: HostRoute = async (request, url, session, host) => {
+  if (url.pathname === '/api/v1/harnesses' && request.method === 'GET')
+    return jsonResponse(await harnessList(host));
   if (url.pathname === '/api/v1/runs' && request.method === 'GET')
     return jsonResponse(
       await Promise.all(
@@ -202,6 +223,11 @@ export const runRoute: HostRoute = async (request, url, session, host) => {
     );
   if (url.pathname === '/api/v1/runs' && request.method === 'POST')
     return startRun(request, session, host);
+  const one = url.pathname.match(/^\/api\/v1\/runs\/([^/]+)$/);
+  if (one && request.method === 'GET')
+    return jsonResponse(
+      await visibleRun(host.application, await ownRun(one[1]!, session, host), session.context),
+    );
   const cancel = url.pathname.match(/^\/api\/v1\/runs\/([^/]+)\/cancel$/);
   if (cancel && request.method === 'POST') {
     const run = await ownRun(cancel[1]!, session, host);

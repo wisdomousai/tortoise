@@ -11,6 +11,7 @@ bun run dev:web
 
 - Turn on the trigger on **Automation** (port 4352), then submit a request with no method and a description like "Dissolved gas after a Buchholz gas alarm."
 - Approve or reject the suggestion as a technician; a viewer cannot.
+- Open a request and send a message in the **Assistant** panel. Without a model the panel runs the deterministic harness, which reads a JSON script such as `{"commands":[],"text":"Done."}`. Reload: the conversation is still there.
 - **Suggest a method (offline run)** on the request screen starts the run directly and gives it a UI session, so it can ask for a review or open a record it may read without changing the stored request.
 
 ## References

@@ -1,5 +1,7 @@
 import { expect, test } from 'bun:test';
-import { createApplication, createMemoryStorage } from '@tortoise/runtime';
+import { z } from 'zod';
+import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
+import { createApplication, createHandlerFactory, createMemoryStorage } from '@tortoise/runtime';
 import { createHttpHandler } from './http';
 import { sessionCookieName } from './http/session-cookie';
 import { Sessions, type CredentialSource } from './http/sessions';
@@ -148,4 +150,91 @@ test('a call on behalf of a person opens no launch session or event stream', asy
   // As its own service principal, the peer may still open a launch session.
   expect((await call('/api/v1/launch', 'POST')).status).toBe(200);
   expect(requests).toEqual(['v1.rita', 'v1.rita', 'v1.rita', '']);
+});
+
+/** A request runs as its session only while the session lasts; ending it mid-request cancels it. */
+test('a session revoked or ended by its credential during a request stops the command', async () => {
+  const add = defineCapability({
+    id: 'counter.add',
+    kind: 'command',
+    input: jsonSchema(z.strictObject({})),
+    output: jsonSchema(z.number().int()),
+    permission: { action: 'update', resourceType: 'counter' },
+    ui: { exception: 'test fixture' },
+  });
+  const get = defineCapability({
+    id: 'counter.get',
+    kind: 'query',
+    input: jsonSchema(z.strictObject({})),
+    output: jsonSchema(z.number().int()),
+    permission: { action: 'read', resourceType: 'counter' },
+    ui: { exception: 'test fixture' },
+  });
+  const storage = createMemoryStorage<{ count: number }>({ count: 0 });
+  const bind = createHandlerFactory<{ count: number }, {}>();
+  let during: () => void = () => {};
+  const application = createApplication({
+    modules: [defineModule({ id: 'counter', capabilities: [add, get] })],
+    storage,
+    services: {},
+    authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
+    handlers: [
+      bind(add, async (_, ctx) => {
+        ctx.state.count += 1;
+        ctx.change('counter:one');
+        during();
+        await Promise.resolve();
+        return ctx.state.count;
+      }),
+      bind(get, (_, ctx) => ctx.state.count),
+    ],
+  });
+  const origin = 'http://127.0.0.1:4100';
+  const sessions = new Sessions();
+  const ended = new AbortController();
+  const handler = createHttpHandler({
+    application,
+    sessions,
+    origin: () => origin,
+    // A plugin credential that carries its own signal, as a signed-in person's cookie does.
+    authenticateToken: async (token, via) =>
+      token === 'person'
+        ? {
+            token,
+            context: { workspaceId: 'w', principalId: 'person', signal: ended.signal },
+            expiresAt: Infinity,
+            credential: token,
+            via,
+          }
+        : undefined,
+  });
+  const add1 = (token: string) =>
+    handler(
+      new Request(`${origin}/api/v1/commands/counter.add`, {
+        method: 'POST',
+        headers: {
+          host: '127.0.0.1:4100',
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ input: {}, idempotencyKey: crypto.randomUUID() }),
+      }),
+    );
+  const owner = { workspaceId: 'w', principalId: 'owner' };
+  const count = async () =>
+    (await application.query({ operation: 'counter.get', input: {} }, owner)).data;
+  const session = sessions.create({ workspaceId: 'w', principalId: 'owner' });
+  expect((await add1(session.token)).status).toBe(200);
+  expect(await count()).toBe(1);
+
+  during = () => sessions.revoke(session.token);
+  const revoked = await add1(session.token);
+  expect(((await revoked.json()) as { error: { code: string } }).error.code).toBe('CANCELLED');
+  expect(await count()).toBe(1);
+  expect((await add1(session.token)).status).toBe(403);
+
+  during = () => ended.abort();
+  const signedOut = await add1('person');
+  expect(((await signedOut.json()) as { error: { code: string } }).error.code).toBe('CANCELLED');
+  expect(await count()).toBe(1);
 });

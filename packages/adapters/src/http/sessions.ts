@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { ApplicationError } from '@tortoise/contracts';
 import type { ExecutionContext } from '@tortoise/runtime';
 
 export interface HostSession {
@@ -28,6 +29,7 @@ export type TokenAuthenticator = (
 /** Trusted hosts issue credentials. Request bodies never select principals or roles. */
 export class Sessions {
   private sessions = new Map<string, HostSession>();
+  private ended = new Map<string, AbortController>();
   private launches = new Map<string, { session: HostSession; expiresAt: number }>();
   constructor(private readonly now: () => number = Date.now) {}
   create(
@@ -67,10 +69,32 @@ export class Sessions {
   get(token: string): HostSession | undefined {
     const session = this.sessions.get(token);
     if (session && session.expiresAt > this.now()) return session;
-    this.sessions.delete(token);
+    this.end(token, 'Session expired');
     return undefined;
   }
+  /**
+   * Aborts when the session is revoked or expires, so a request still running under it stops at
+   * the runtime's next check instead of committing.
+   */
+  signal(token: string): AbortSignal {
+    let controller = this.ended.get(token);
+    if (!controller) {
+      controller = new AbortController();
+      if (this.sessions.has(token)) this.ended.set(token, controller);
+      else controller.abort(new ApplicationError('CANCELLED', 'Session ended'));
+    }
+    const remaining = (this.sessions.get(token)?.expiresAt ?? 0) - this.now();
+    // A timer holds at most 2^31 - 1 ms; a longer session is caught by `get` on its next request.
+    return remaining > 0 && remaining < 2 ** 31
+      ? AbortSignal.any([controller.signal, AbortSignal.timeout(remaining)])
+      : controller.signal;
+  }
   revoke(token: string): void {
+    this.end(token, 'Session revoked');
+  }
+  private end(token: string, reason: string) {
     this.sessions.delete(token);
+    this.ended.get(token)?.abort(new ApplicationError('CANCELLED', reason));
+    this.ended.delete(token);
   }
 }

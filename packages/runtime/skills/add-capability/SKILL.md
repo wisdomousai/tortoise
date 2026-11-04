@@ -29,7 +29,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
    - one handler set from `collectionCommandHandlers`, whose `defaults`, `normalize` and `validate` hooks contain the domain rules, such as a canonical form or a unique name.
    - a `present` option on the read handlers for fields a read returns but the store does not keep, such as `revision: ctx.getRevision('<type>:' + record.id)` for a record a screen shares with agent runs;
    - `filters` (equality on stored fields), `sort` (the fields a caller may order by, as `sortBy` and `sortDirection`) and `search` on `collectionList`; the generic list screen renders them and an agent gets them as tool parameters. `collectionUpdate` takes `null` for a field the item may leave out, which clears it;
-   - a hand-written list query for a filter computed when the query runs, such as a due date before today, because `collectionList` filters by equality on stored fields. It filters before paging and counting.
+   - a hand-written list query for a filter computed when the query runs, such as a due date before today, because `collectionList` filters by equality on stored fields. It filters before paging and counting. Give it `offset` and `limit` and return `{ items, total }`, so the CLI's `--output csv` and the list screen's export can page it.
    - `fields` on the collection with each field's `kind` (`date`, `date-time`, `status` with `tones`, `reference` with the resource kind, `file`), so screens and tool descriptions show the record without hand-written columns; see [capability authoring](../../../../docs/capability-authoring.md#collections).
 
    `add collection <type> --tree` generates a tree collection. Write a command by hand only when it does more than change one record's fields.
@@ -55,7 +55,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
     - the calls that must be refused;
     - for a run that asks the person, the `answers` and the number of `questions` expected; a deterministic `script` asks with `question`.
 
-    Scenarios judge the receipts, never the agent's text.
+    Scenarios judge the receipts, never the agent's text. Pass `harness: scenarioHarness()` from `@tortoise/testing` and give the test `scenarioTimeout()`, as the generated test does, so `AGENT_SCENARIOS=live` runs them against a local model.
 
     A `direct` agent that must ask before some changes lists those commands in `requests`, such as a cancellation, or a command it runs itself whose policy refuses it some input, such as a discount above its limit. Its grant then includes `approval.request` and its instructions list those commands. The policy decides which input needs approval: refuse it to a delegated caller (`context.grant?.agent`) and allow it to the approver.
 

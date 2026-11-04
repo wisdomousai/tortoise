@@ -75,7 +75,7 @@ Keep drafts in separate component state. Live updates refresh the record underne
 Cancellation stops future work; the runtime checks it before commit. It does not undo committed commands.
 
 - Cancelling an agent run aborts its tool calls still in flight.
-- A host session revoked during a request does not stop that request — this is a [known defect](implementation-status.md).
+- A request stops at the runtime's next check when its host session is revoked or expires, or when the plugin credential it presented aborts its signal; the command commits nothing.
 - After a restart, the host marks incomplete runs interrupted rather than replaying them.
 - Only a receipt shows that a change committed; a finished stream or run does not.
 

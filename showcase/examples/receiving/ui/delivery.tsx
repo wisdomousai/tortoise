@@ -1,7 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { CapabilityForm } from '@/components/capability-form';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { ApprovalReview } from '@/components/approval-review';
+import { useAssistantContext } from '@/lib/assistant-context';
+import { live } from '@/lib/session';
 import { approvalOperations } from '@tortoise/contracts';
 import { operations } from '../contracts';
 
@@ -10,9 +13,25 @@ export const reasonOf = (approval: { operation: string; input: Record<string, un
     ? `Reason: ${String(approval.input.reason)}${approval.input.note ? ` (${String(approval.input.note)})` : ''}`
     : approval.operation;
 
-/** One line: the default record view, then counting, the discrepancy reason and posting. */
+/**
+ * One line: the default record view, then counting, the discrepancy reason and posting. The
+ * assistant panel's next run, such as the discrepancy classifier's, sees the line; its read
+ * returns no revision, so the panel observes revision 0, the only one the host accepts for it.
+ */
 function DeliveryScreen() {
   const { id } = useParams({ strict: false }) as { id: string };
+  const line = useQuery(live.liveQueryOptions(operations.deliveryGet, { id })).data;
+  useAssistantContext(
+    line
+      ? [
+          {
+            id: `delivery:${line.id}`,
+            revision: 0,
+            label: `${line.purchaseOrder} ${line.sku}`,
+          },
+        ]
+      : [],
+  );
   return (
     <div className="space-y-8">
       <RecordScreen title="Delivery" get={operations.deliveryGet} />

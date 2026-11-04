@@ -7,13 +7,15 @@ import { openEmbeddedInstance } from '@tortoise/host';
 import {
   runAgentScenario,
   runAgentScenarios,
+  scenarioHarness,
+  scenarioTimeout,
   type AgentScenario,
 } from '@tortoise/testing/agent-scenarios';
 import { createToolStoreApplication } from '../application';
 
 // The repair triage agent judged by what it commits and what it requests approval for. The
-// deterministic harness plays a scripted run; a model runs the same scenarios only when a test is
-// given one. The fixture tools are lent and returned through the counter's commands.
+// deterministic harness plays a scripted run; with `AGENT_SCENARIOS=live` the first test runs the
+// same scenarios on a model (`scenarioHarness`). The fixture tools are lent and returned through the counter's commands.
 const owner = { workspaceId: 'local', principalId: 'owner' };
 const mia = { workspaceId: 'local', principalId: 'mia@plant' };
 const sam = { workspaceId: 'local', principalId: 'sam@plant' };
@@ -126,97 +128,101 @@ const beyondRepair = (revision: number): AgentScenario => ({
   },
 });
 
-test('the repair triage agent requests approval to retire a worn-out tool and nothing otherwise', async () => {
-  const scenarios: AgentScenario[] = [
-    beyondRepair((await tool(fixture.wrench)).revision),
-    {
-      name: 'a tool damaged once with a repairable note: nothing is requested',
-      agent,
-      task: 'Triage TC-00602.',
-      issuer: owner,
-      script: {
-        commands: [
-          { operation: 'tool.list', input: { search: 'TC-00602' } },
-          { operation: 'tool.get', input: { id: fixture.crimper } },
-          { operation: 'loan.list', input: { toolId: fixture.crimper } },
-        ],
+test(
+  'the repair triage agent requests approval to retire a worn-out tool and nothing otherwise',
+  async () => {
+    const scenarios: AgentScenario[] = [
+      beyondRepair((await tool(fixture.wrench)).revision),
+      {
+        name: 'a tool damaged once with a repairable note: nothing is requested',
+        agent,
+        task: 'Triage TC-00602.',
+        issuer: owner,
+        script: {
+          commands: [
+            { operation: 'tool.list', input: { search: 'TC-00602' } },
+            { operation: 'tool.get', input: { id: fixture.crimper } },
+            { operation: 'loan.list', input: { toolId: fixture.crimper } },
+          ],
+        },
+        expect: { commits: [], approvals: [], outcome: 'succeeded' },
+        async check() {
+          expect(await tool(fixture.crimper)).toMatchObject({ status: 'in-repair' });
+        },
       },
-      expect: { commits: [], approvals: [], outcome: 'succeeded' },
-      async check() {
-        expect(await tool(fixture.crimper)).toMatchObject({ status: 'in-repair' });
+      {
+        name: 'a tool that is not in repair: nothing is requested',
+        agent,
+        task: 'Triage TC-00603.',
+        issuer: owner,
+        script: {
+          commands: [
+            { operation: 'tool.list', input: { search: 'TC-00603' } },
+            { operation: 'tool.get', input: { id: fixture.tester } },
+          ],
+        },
+        expect: { commits: [], approvals: [], outcome: 'succeeded' },
       },
-    },
-    {
-      name: 'a tool that is not in repair: nothing is requested',
-      agent,
-      task: 'Triage TC-00603.',
-      issuer: owner,
-      script: {
-        commands: [
-          { operation: 'tool.list', input: { search: 'TC-00603' } },
-          { operation: 'tool.get', input: { id: fixture.tester } },
-        ],
+      {
+        name: 'retiring directly is refused: the agent only requests approval',
+        agent,
+        task: 'Retire TC-00601 now.',
+        issuer: owner,
+        script: { commands: [{ operation: 'tool.retire', input: { toolId: fixture.wrench } }] },
+        expect: {
+          commits: [],
+          approvals: [],
+          refused: [{ operation: 'tool.retire', code: 'FORBIDDEN' }],
+          outcome: 'failed',
+        },
       },
-      expect: { commits: [], approvals: [], outcome: 'succeeded' },
-    },
-    {
-      name: 'retiring directly is refused: the agent only requests approval',
-      agent,
-      task: 'Retire TC-00601 now.',
-      issuer: owner,
-      script: { commands: [{ operation: 'tool.retire', input: { toolId: fixture.wrench } }] },
-      expect: {
-        commits: [],
-        approvals: [],
-        refused: [{ operation: 'tool.retire', code: 'FORBIDDEN' }],
-        outcome: 'failed',
-      },
-    },
-    {
-      name: 'approval for any command but tool.retire is refused',
-      agent,
-      task: 'Move TC-00602 to bin A-04.',
-      issuer: owner,
-      script: {
-        commands: [
-          {
-            operation: 'approval.request',
-            input: {
-              operation: 'tool.update',
-              input: { id: fixture.crimper, bin: 'A-04' },
-              rationale: 'Move it.',
+      {
+        name: 'approval for any command but tool.retire is refused',
+        agent,
+        task: 'Move TC-00602 to bin A-04.',
+        issuer: owner,
+        script: {
+          commands: [
+            {
+              operation: 'approval.request',
+              input: {
+                operation: 'tool.update',
+                input: { id: fixture.crimper, bin: 'A-04' },
+                rationale: 'Move it.',
+              },
             },
-          },
-        ],
+          ],
+        },
+        expect: {
+          commits: [],
+          approvals: [],
+          refused: [{ operation: 'approval.request', code: 'INVALID_INPUT' }],
+          outcome: 'failed',
+        },
       },
-      expect: {
-        commits: [],
-        approvals: [],
-        refused: [{ operation: 'approval.request', code: 'INVALID_INPUT' }],
-        outcome: 'failed',
+      {
+        name: 'reading anything but tools and loans is refused',
+        agent,
+        task: 'Show the pending approvals.',
+        issuer: owner,
+        script: { commands: [{ operation: 'approval.list', input: { status: 'pending' } }] },
+        expect: {
+          commits: [],
+          refused: [{ operation: 'approval.list', code: 'FORBIDDEN' }],
+          outcome: 'failed',
+        },
       },
-    },
-    {
-      name: 'reading anything but tools and loans is refused',
-      agent,
-      task: 'Show the pending approvals.',
-      issuer: owner,
-      script: { commands: [{ operation: 'approval.list', input: { status: 'pending' } }] },
-      expect: {
-        commits: [],
-        refused: [{ operation: 'approval.list', code: 'FORBIDDEN' }],
-        outcome: 'failed',
-      },
-    },
-  ];
-  const results = await runAgentScenarios(scenarios, {
-    application: app(),
-    harness: deterministicHarness,
-  });
-  expect(results.map((result) => [result.scenario, result.failures])).toEqual(
-    scenarios.map((scenario) => [scenario.name, []]),
-  );
-});
+    ];
+    const results = await runAgentScenarios(scenarios, {
+      application: app(),
+      harness: scenarioHarness(),
+    });
+    expect(results.map((result) => [result.scenario, result.failures])).toEqual(
+      scenarios.map((scenario) => [scenario.name, []]),
+    );
+  },
+  scenarioTimeout(),
+);
 
 test("an attendant approves the agent's request and the tool is retired as that attendant", async () => {
   const result = await runAgentScenario(beyondRepair((await tool(fixture.wrench)).revision), {

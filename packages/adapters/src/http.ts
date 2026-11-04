@@ -108,7 +108,16 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
   if (!url.pathname.startsWith('/api/'))
     return (await options.static?.(url.pathname)) ?? new Response('Not found', { status: 404 });
   const session = await authenticate(options, request, requestOrigin, origin);
-  const context = withSignal({ ...session.context, channel: 'http' }, request.signal);
+  // The request stops when the client goes away, when the host revokes or expires its stored
+  // session, or when the credential's own signal aborts (a plugin sets one on the context it
+  // resolves). The runtime rechecks the signal after every await, so the command does not commit.
+  const ended = options.sessions.get(session.token)
+    ? options.sessions.signal(session.token)
+    : undefined;
+  const context = withSignal(
+    withSignal({ ...session.context, channel: 'http' }, request.signal),
+    ended,
+  );
   return (
     (await routeAuthenticated({ ...options, cursors }, request, session, context)) ??
     (await options.extra?.(request, session)) ??

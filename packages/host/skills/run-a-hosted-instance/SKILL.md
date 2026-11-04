@@ -12,7 +12,7 @@ A hosted instance is the same host on another host platform. `hostedPlatform` ke
 - Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a site. The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
 - `showcase/patterns/hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
-- Decide where the instance's local directory (`--workspace`) lives. It still contains blobs, agent run history, the audit log and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
+- Decide where the instance's local directory (`--workspace`) lives. It still contains agent run history, workforce sessions, the audit log and the plugins' files; blobs are stored in the database. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
 
 ## Steps
 

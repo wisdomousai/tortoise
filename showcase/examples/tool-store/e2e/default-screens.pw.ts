@@ -89,6 +89,10 @@ test('the tool screens add, filter and search tools, and the terminal edits, len
     );
     await expect(past).toContainText('RO-000001');
 
+    // A reload keeps the attendant signed in at the counter.
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'mia@plant', level: 1 })).toBeVisible();
+
     // Signing out returns the terminal to sign-in.
     await page.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByText('Scan your badge')).toBeVisible();

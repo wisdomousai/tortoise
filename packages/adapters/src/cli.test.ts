@@ -250,11 +250,84 @@ describe('catalog command line', () => {
       JSON.stringify({ error: { code: 'FORBIDDEN', message: 'No role at plant' } }),
       'FORBIDDEN: No role at plant',
       JSON.stringify({
-        error: { code: 'INVALID_INPUT', message: '--output must be json or text' },
+        error: { code: 'INVALID_INPUT', message: '--output must be json, text or csv' },
       }),
       JSON.stringify({ error: { code: 'INTERNAL', message: 'Application execution failed' } }),
       'id\nL1',
     ]);
+  });
+});
+
+describe('CSV output', () => {
+  const samples = defineModule({
+    id: 'lab',
+    capabilities: [
+      defineCapability({
+        id: 'lab.sample.list',
+        kind: 'query',
+        description: 'List samples.',
+        input: jsonSchema(
+          z.strictObject({
+            status: z.string().optional(),
+            offset: z.number().int(),
+            limit: z.number().int(),
+          }),
+        ),
+        output: jsonSchema(
+          z.strictObject({
+            items: z.array(z.strictObject({ id: z.string(), note: z.string() })),
+            total: z.number(),
+          }),
+        ),
+        permission: { action: 'Read', resourceType: 'sample' },
+        ui: { binding: 'test' },
+        display: { fields: [{ name: 'id', label: 'Sample' }, { name: 'note' }] },
+      }),
+    ],
+  });
+  const rows = Array.from({ length: 230 }, (_, index) => ({
+    id: `S${index + 1}`,
+    note: index === 0 ? '=HYPERLINK("x"), "quoted"' : 'ok',
+  }));
+
+  test('--output csv pages a list query to the end with the filters and escapes each cell', async () => {
+    const { client, calls } = fakeClient(buildCatalog([samples]));
+    const paging: CliClient = {
+      ...client,
+      async query(operation, input) {
+        calls.push({ kind: 'query', operation, input });
+        const { offset, limit } = input as { offset: number; limit: number };
+        const data = { items: rows.slice(offset, offset + limit), total: rows.length };
+        return { data: data as never, cursor: '1', authorizationRevision: 1 };
+      },
+    };
+    const lines: string[] = [];
+    const log = console.log;
+    console.log = (line: string) => void lines.push(line);
+    try {
+      expect(
+        await runCliMain(['lab', 'sample', 'list', '--status', 'open', '--output', 'csv'], paging),
+      ).toBe(0);
+      expect(await runCliMain(['qa', 'lot', 'list', '--output', 'csv'], fakeClient().client)).toBe(
+        2,
+      );
+    } finally {
+      console.log = log;
+    }
+    expect(calls.map((call) => call.input)).toEqual([
+      { status: 'open', offset: 0, limit: 100 },
+      { status: 'open', offset: 100, limit: 100 },
+      { status: 'open', offset: 200, limit: 100 },
+    ]);
+    const csv = lines[0]!.split('\r\n');
+    expect(csv).toHaveLength(231);
+    expect(csv[0]).toBe('Sample,note');
+    // A formula start opens as text, and quotes and commas stay inside one cell.
+    expect(csv[1]).toBe(`S1,"'=HYPERLINK(""x""), ""quoted"""`);
+    expect(csv[230]).toBe('S230,ok');
+    expect(JSON.parse(lines[1]!).error.message).toBe(
+      '--output csv needs a list query, one with offset and limit',
+    );
   });
 });
 

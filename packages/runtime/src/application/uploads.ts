@@ -1,10 +1,11 @@
-import type { ExecutionContext } from '../types.js';
+import type { BlobStore, ExecutionContext } from '../types.js';
 
 /**
  * Recent uploads, per workspace and principal, and a per-workspace lock that keeps a store write
  * and a sweep apart. A blob may be attached by the principal that uploaded it until `graceMs`
  * after the upload; after that only a caller who can already read it may attach it. Kept in
- * memory: after a restart, uploads that were never attached must be uploaded again.
+ * memory, and in the blob store when it keeps staging (`BlobStore.stage`), so an upload stays
+ * attachable by its uploader across a restart.
  */
 export function createUploads(now: () => number, graceMs: number) {
   const staged = new Map<string, number>();
@@ -17,12 +18,15 @@ export function createUploads(now: () => number, graceMs: number) {
   };
   return {
     graceMs,
-    stage(context: ExecutionContext, digest: string) {
+    async stage(context: ExecutionContext, digest: string, store: BlobStore) {
       prune();
-      staged.set(key(context, digest), now() + graceMs);
+      const until = now() + graceMs;
+      staged.set(key(context, digest), until);
+      await store.stage?.(key(context, digest), until);
     },
-    isStaged(context: ExecutionContext, digest: string) {
-      const expiresAt = staged.get(key(context, digest));
+    async isStaged(context: ExecutionContext, digest: string, store: BlobStore) {
+      const expiresAt =
+        staged.get(key(context, digest)) ?? (await store.stagedUntil?.(key(context, digest)));
       return expiresAt !== undefined && expiresAt > now();
     },
     /** Run `action` after every earlier action on this workspace's store has completed. */

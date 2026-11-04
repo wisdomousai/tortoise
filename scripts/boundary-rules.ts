@@ -87,6 +87,10 @@ export const networkExemptions: Readonly<Record<string, string>> = {
     'The desktop shell submits OS requests to and polls OS actions from its loopback instance.',
   'showcase/examples/winding-line/station-bridge.ts':
     "Launches Chromium for the workstation application's screen and reads simulator counters; to be routed through the screen-bridge destination.",
+  'packages/host/src/cli/runs-command.ts':
+    'Operator verb only, never inside an instance: `runs` calls the run route of the loopback instance its connection file names.',
+  'packages/testing/src/agent-scenarios.ts':
+    'Test tooling only: with `AGENT_SCENARIOS=live`, the scenario harness reaches the model server at a loopback `AGENT_SCENARIOS_URL` and refuses any other address.',
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':

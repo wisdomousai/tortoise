@@ -8,7 +8,6 @@ import { startHost } from '@tortoise/host/host';
 import { measure } from '@tortoise/model-server/measure';
 import { composePartsDesk } from '../application';
 import { ASSISTANT_MODEL_PROCESS, assistantAgent } from '../contracts/assistant-agent';
-import { conversationPrompt, type Turn } from '../conversation';
 import { ASSISTANT_CONTEXT_TOKENS, assistantModelEntry } from '../model';
 import { seedTrialRecords } from '../trial-records';
 import { owner, supervisor, utilityIds } from './support';
@@ -161,6 +160,16 @@ function receipts(run: RunSnapshot) {
       .map((event) => ({ requestId: event.requestId!, choices: event.choices ?? [] })),
   };
 }
+/**
+ * Earlier turns written before the request, for a run that stands in for a later turn without
+ * the runs before it. A real follow-up continues its conversation, and the host sends the earlier
+ * turns as messages.
+ */
+const withEarlier = (earlier: readonly { request: string; answer: string }[], request: string) =>
+  `Earlier in this conversation:\n\n${earlier
+    .map((turn) => `Person: ${turn.request}\nAssistant: ${turn.answer}`)
+    .join('\n\n')}\n\nThe request now:\n${request}`;
+
 const text = (run: RunSnapshot) =>
   run.events
     .filter((event) => event.type === 'text')
@@ -204,12 +213,13 @@ live(
     } else {
       // The run asked in its text, or not at all; the panel's person then answers in a follow-up.
       failures.push('the run did not ask through the question tool');
-      const earlier: Turn[] = [{ request, answer: text(run) }];
+      // The host gives the local harness the earlier turn of the conversation.
       runs.push(
-        await until(
-          (await start(conversationPrompt(earlier, 'TR-40471'), session, run.conversationId)).id,
-          ['succeeded', 'failed', 'cancelled'],
-        ),
+        await until((await start('TR-40471', session, run.conversationId)).id, [
+          'succeeded',
+          'failed',
+          'cancelled',
+        ]),
       );
     }
 
@@ -248,7 +258,7 @@ live(
     const quote = created.result as { id: string; number: string };
     const resource = `quote:${quote.id}`;
     // Turns 1 to 3 as the panel puts them before the request, with the answers the records give.
-    const earlier: Turn[] = [
+    const earlier = [
       {
         request: 'A caller from Northgrid reads TR-404 off the plate. Which transformer is it?',
         answer:
@@ -267,10 +277,7 @@ live(
     ];
     // The quote screen hands the quote to the panel, so the run's context names it.
     const session = await uiSession([resource]);
-    const prompt = conversationPrompt(
-      earlier,
-      'They want 15 percent off because of a late delivery.',
-    );
+    const prompt = withEarlier(earlier, 'They want 15 percent off because of a late delivery.');
     const run = await until((await start(prompt, session)).id, [
       'succeeded',
       'failed',

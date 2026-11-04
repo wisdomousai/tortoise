@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { defineAgent, defineCapability, defineModule, jsonSchema } from '@tortoi
 import type { AuthorizationPort } from '@tortoise/runtime';
 import type { Harness, HarnessTurn, RunSnapshot } from '@tortoise/agents/types';
 import { defineApplication } from '../src/application';
+import { createCli } from '../src/cli';
 import { startHost } from '../src/host';
 import { defineManifest } from '../src/manifest';
 import { defineHostPlugin } from '../src/plugin';
@@ -99,7 +100,11 @@ const definition = defineApplication<State>({
 });
 
 /** A local-model stand-in that records what it was given and calls the tools a script names. */
-function localStandIn(seen: { prompts: string[]; tools: string[][] }): Harness {
+function localStandIn(seen: {
+  prompts: string[];
+  tools: string[][];
+  earlier?: (HarnessTurn['earlier'] | undefined)[];
+}): Harness {
   return {
     id: 'local-stand-in',
     features: { questions: true, approvals: false, resume: false },
@@ -107,6 +112,7 @@ function localStandIn(seen: { prompts: string[]; tools: string[][] }): Harness {
     availability: async () => ({ available: true }),
     async *run(turn: HarnessTurn) {
       seen.prompts.push(turn.prompt);
+      seen.earlier?.push(turn.earlier);
       seen.tools.push((turn.tools.definitions ?? []).map((tool) => tool.operation));
       yield { type: 'text', text: 'done' };
     },
@@ -149,7 +155,7 @@ async function start(harnesses: Harness[] = []) {
     }
     throw new Error('Run did not settle');
   };
-  return { host, call, settled };
+  return { host, call, settled, session };
 }
 
 const tool = (operation: string, input: unknown) => ({ operation, input: { input } });
@@ -279,4 +285,60 @@ test('a plugin offers harnesses to the host', async () => {
   } as never);
   expect(opened.harnesses().map((harness) => (harness as Harness).id)).toEqual(['local-stand-in']);
   await opened.close();
+});
+
+test('a run keeps what the person asked, and a follow-up gives a harness without resume the earlier turns', async () => {
+  const seen = {
+    prompts: [] as string[],
+    tools: [] as string[][],
+    earlier: [] as (HarnessTurn['earlier'] | undefined)[],
+  };
+  const { call, settled } = await start([localStandIn(seen)]);
+  const first = await call<RunSnapshot>('/api/v1/runs', {
+    agentId: 'quote.desk',
+    prompt: 'Quote two bushings.',
+  });
+  await settled(first.body.id);
+  const second = await call<RunSnapshot>('/api/v1/runs', {
+    agentId: 'quote.desk',
+    prompt: 'Make it three.',
+    conversationId: first.body.conversationId,
+  });
+  await settled(second.body.id);
+  // The run keeps the request without the instructions the harness read before it.
+  const read = await call<RunSnapshot>(`/api/v1/runs/${first.body.id}`);
+  expect(read.body.request).toBe('Quote two bushings.');
+  expect(seen.prompts[0]).toStartWith('Prepare quotes for callers.');
+  expect(seen.earlier).toEqual([undefined, [{ request: 'Quote two bushings.', reply: 'done' }]]);
+  expect((await call(`/api/v1/runs/unknown`)).status).toBe(404);
+  expect((await call('/api/v1/harnesses')).body).toEqual([
+    { id: 'local-stand-in', inference: 'local', available: true },
+  ]);
+});
+
+test('the CLI starts, lists, shows and answers runs through the connection file', async () => {
+  const { host, session } = await start();
+  const connection = join(directory!, 'connection.json');
+  await writeFile(connection, JSON.stringify({ endpoint: host.url + '/', token: session.token }));
+  const main = createCli(definition, { program: 'quotes' });
+  const output: string[] = [];
+  const log = console.log;
+  console.log = (line: string) => void output.push(line);
+  const last = () => JSON.parse(output.at(-1)!) as RunSnapshot;
+  try {
+    const script = JSON.stringify({ question: 'Which quote?', commands: [], text: 'done' });
+    const runs = ['runs', '--connection', connection];
+    expect(await main([...runs, 'start', '--harness', 'deterministic', '--wait', script])).toBe(75);
+    const asked = last();
+    expect(asked.state).toBe('awaiting-question');
+    expect(await main([...runs, 'answer', asked.id, 'q1'])).toBe(0);
+    expect(last().events.find((event) => event.type === 'answer')?.text).toBe('q1');
+    expect(await main([...runs, 'list'])).toBe(0);
+    expect(last()).toMatchObject({ id: asked.id, state: 'succeeded', request: script });
+    expect(await main([...runs, 'show', asked.id])).toBe(0);
+    expect(last().state).toBe('succeeded');
+    expect(await main([...runs, 'start', 'no agent'])).toBe(2);
+  } finally {
+    console.log = log;
+  }
 });

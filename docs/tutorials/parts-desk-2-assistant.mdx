@@ -126,7 +126,7 @@ The entry names the base weights by digest and admits only the assistant:
 
 **Goal:** the chat panel docked beside every screen. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
 
-The framework has no chat component. The panel is application code on the run route: each message starts a run with `POST /api/v1/runs`, the run's events stream its text, tool starts and finishes, questions and approval requests, and the panel answers a question through the run's respond route. The local harness keeps no history between runs, so a follow-up carries the earlier turns in its prompt. An approval request shows as a card that a supervisor decides; the browser has no role of its own to read, so a small query returns the caller's role. [Agents](../agents.md#runs) covers runs and their events.
+The frame has an assistant panel (step 13 of [build-screens](../../packages/frame/skills/build-screens/SKILL.md)). The parts desk builds its own on the same run route: each message starts a run with `POST /api/v1/runs`, the run's events stream its text, tool starts and finishes, questions and approval requests, and the panel answers a question through the run's respond route. The host keeps each run's request and gives a harness without history the earlier turns of the conversation, so a follow-up sends only the new message. An approval request shows as a card that a supervisor decides; the browser has no role of its own to read, so a small query returns the caller's role. [Agents](../agents.md#runs) covers runs and their events.
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, add the assistant panel as the
@@ -138,8 +138,8 @@ classes.
   in localStorage inside try/catch. On a compact viewport it opens as a full-height sheet from a
   button in the header.
 - Turns: each message starts a run with POST /api/v1/runs, the assistant's agentId, the panel's
-  UI session ID and, after the first, the conversationId of the first run. The local harness keeps
-  no history between runs, so a follow-up's prompt includes the earlier turns as text. New
+  UI session ID and, after the first, the conversationId of the first run. The host gives the
+  local harness the earlier turns, so a follow-up's prompt is the new message alone. New
   conversation clears the panel. Read the runs with useRuns.
 - Messages: the person's message right-aligned on primary, the assistant's text joined from the
   run's text events left-aligned on muted, with the time.

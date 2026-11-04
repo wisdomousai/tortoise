@@ -26,6 +26,20 @@ const tables = [
     value TEXT NOT NULL,
     PRIMARY KEY (workspace_id, cursor)
   )`,
+  `CREATE TABLE IF NOT EXISTS workspace_blobs (
+    workspace_id TEXT NOT NULL,
+    digest TEXT NOT NULL,
+    data BYTEA NOT NULL,
+    size BIGINT NOT NULL,
+    stored_at BIGINT NOT NULL,
+    PRIMARY KEY (workspace_id, digest)
+  )`,
+  `CREATE TABLE IF NOT EXISTS workspace_blob_staging (
+    workspace_id TEXT NOT NULL,
+    key TEXT NOT NULL,
+    until BIGINT NOT NULL,
+    PRIMARY KEY (workspace_id, key)
+  )`,
   `CREATE TABLE IF NOT EXISTS workspace_lease (
     workspace_id TEXT PRIMARY KEY,
     holder TEXT NOT NULL,

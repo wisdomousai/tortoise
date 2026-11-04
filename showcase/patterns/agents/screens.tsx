@@ -1,6 +1,7 @@
 import { ListChecks } from 'lucide-react';
 import { automationScreens } from '@tortoise/automation/plugin-screens';
 import { defineScreens } from '@tortoise/frame/screens';
+import { AssistantButton, AssistantPanel } from '@/components/assistant-panel';
 import {
   requestCapabilityScreens,
   requestNavigation,
@@ -10,8 +11,9 @@ import manifest from './manifest';
 import { Approvals, MethodSuggestions } from './ui/methods';
 
 /**
- * The base pattern's screens with method suggestions on the request screen, an approvals list and
- * the automation screen. `resources` is where an agent's open intent leads for each kind.
+ * The base pattern's screens with method suggestions on the request screen, an approvals list,
+ * the automation screen and the frame's assistant panel beside every screen. `resources` is where
+ * an agent's open intent leads for each kind.
  */
 export default defineScreens({
   manifest,
@@ -28,4 +30,6 @@ export default defineScreens({
     'approval-request': () => '/approvals',
   },
   plugins: [automationScreens],
+  aside: AssistantPanel,
+  asideButton: AssistantButton,
 });

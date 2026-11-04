@@ -28,7 +28,9 @@ import {
   containsValue,
   runAgentScenario,
   runAgentScenarios,
+  scenarioHarness,
   scenarioRegressions,
+  scenarioTimeout,
   type AgentScenario,
 } from '../src/agent-scenarios';
 import { gateModel, scenariosDigest } from '../src/activation';
@@ -396,4 +398,23 @@ describe('agent scenarios with the deterministic harness', () => {
       scenariosDigest([{ ...advisorScenario, task: 'Another task' }]),
     );
   });
+});
+
+test('scenarios run on the deterministic harness unless AGENT_SCENARIOS=live names a loopback model', () => {
+  expect(scenarioHarness({}).id).toBe('deterministic');
+  expect(() => scenarioHarness({ AGENT_SCENARIOS: 'live' })).toThrow('AGENT_SCENARIOS_URL');
+  expect(() =>
+    scenarioHarness({
+      AGENT_SCENARIOS: 'live',
+      AGENT_SCENARIOS_URL: 'https://models.example.invalid/',
+      AGENT_SCENARIOS_MODEL: 'gemma',
+    }),
+  ).toThrow('loopback');
+  const live = scenarioHarness({
+    AGENT_SCENARIOS: 'live',
+    AGENT_SCENARIOS_URL: 'http://127.0.0.1:8080/',
+    AGENT_SCENARIOS_MODEL: 'gemma',
+  });
+  expect([live.id, live.inference, live.model?.model]).toEqual(['local', 'local', 'gemma']);
+  expect(scenarioTimeout({})).toBeUndefined();
 });

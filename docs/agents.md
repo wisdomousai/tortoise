@@ -46,13 +46,38 @@ Harnesses decline shell and file tools by default. A harness running as your OS 
 
 ## Runs
 
-Start a run from the run panel in the app; it calls the host's run route as you. Options:
+A run starts through the host's run route (`POST /api/v1/runs`) as the caller. Options:
 
 - `agentId`: run as that definition, with its narrowed grant, instructions and budgets.
-- `harnessId`: pick a harness; otherwise the first one that meets the model requirement.
+- `harnessId`: pick a harness; otherwise the first of the host's harnesses that meets the model requirement. `GET /api/v1/harnesses` lists them with whether each can run now.
 - `conversationId`: continue an earlier conversation. Runs in one conversation run one after another.
 
-States: queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled, interrupted. Runs live in `.workspace/runs.sqlite`. After a restart, unfinished runs read `interrupted`; the host repeats nothing. The host caps output and redacts known secret formats.
+States: queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled, interrupted. Runs live in `.workspace/runs.sqlite` with what the person asked (`request`), their events and the answers to questions and approvals. The prompt a harness reads also contains the agent's instructions; the run keeps only the request. A harness that cannot resume its own session (AI SDK, local) gets the conversation's earlier requests and replies as chat messages, up to 16,000 characters, oldest left out first. After a restart, unfinished runs read `interrupted`; the host repeats nothing. The host caps output and redacts known secret formats, in the request too.
+
+### Assistant panel
+
+The frame's assistant panel talks to the application's agent definitions. Mount it as the aside in `defineScreens`:
+
+```tsx
+import { AssistantButton, AssistantPanel } from '@/components/assistant-panel';
+
+export default defineScreens({ /* … */ aside: AssistantPanel, asideButton: AssistantButton });
+```
+
+The panel docks at the right of every screen and opens as a sheet on a compact viewport. It has a picker over the agent definitions, the conversation, a card for each question, approval and approval request, the review a run asks for, and Stop. Each message starts a run from the panel's UI session, which applies `ui.open`, `ui.select` and `ui.prepare` to the current screen. A screen hands the records it shows to the panel with `useAssistantContext` from `@/lib/assistant-context`, and the person can leave them out of the next run. The panel keeps the conversation ID per agent in local storage, so a reload shows the conversation again. It runs on the host's own harness, such as a local model, when the host offers one, else on the deterministic harness, until the person picks an account. `showcase/patterns/agents` and `showcase/examples/receiving` mount it.
+
+### Runs from the command line
+
+`runs` reaches a live instance through its connection file (`--connection` or `TORTOISE_CONNECTION`) and acts as that connection's session:
+
+```sh
+bun run --silent cli runs start --agent receiving.discrepancy --wait "Classify today's short counts."
+bun run --silent cli runs answer <run> "ASN-1001-2"
+bun run --silent cli runs list --conversation <conversation>
+bun run --silent cli runs show <run>
+```
+
+`--wait` prints the run once it ends or asks, and exits 75 while it waits for an answer. `runs answer` takes the answer, or `--approve` or `--decline`, and waits again. `runs cancel <run>` stops a run.
 
 ## Application tools
 
@@ -110,16 +135,19 @@ A model entry names base weights, an optional fine-tune and its dataset, each by
 
 ## Evaluation
 
-An agent scenario gives an agent a task and starting state, then checks the receipts, approval requests and refusals, never the text. In CI it runs on the deterministic harness. On a real model:
+An agent scenario gives an agent a task and starting state, then checks the receipts, approval requests and refusals, never the text. In CI it runs on the deterministic harness, which `scenarioHarness()` from `@tortoise/testing/agent-scenarios` returns. With `AGENT_SCENARIOS=live` it returns a model on an OpenAI-compatible server on this machine, such as `llama-server`, and the model then reads the task instead of the script:
 
 ```sh
-AGENT_SCENARIOS=live bun test showcase/examples/<app>/test/<name>-agent.test.ts
+AGENT_SCENARIOS=live AGENT_SCENARIOS_URL=http://127.0.0.1:8080/ AGENT_SCENARIOS_MODEL=<id> \
+  bun test showcase/examples/receiving/test/agent-scenarios.test.ts
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
 ```
+
+The address must be loopback, and the harness sends no key. A test allows a live scenario 15 minutes (`scenarioTimeout()`).
 
 Other tests: `bun run test:harness`, `bun test plugins/automation`, `bun test plugins/model-server`.
 
 ## Limits
 
-- AI SDK and local harnesses keep no history between runs; the screen resends earlier turns as text.
-- The host stores no prompts. After a reload, a conversation shows replies and tool calls, not what the person typed.
+- A run keeps its last 256 events, so a very long run loses its beginning, and the earlier turns a harness gets lose that text too.
+- The panel shows one conversation per agent and browser. Earlier conversations stay on the host, and `runs list` shows them.

@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { ApplicationError, type CatalogRequirements } from '@tortoise/contracts';
 import { assertPolicyUsable, isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
 import type { PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
@@ -42,6 +43,7 @@ export async function openSite(context: PluginOpenContext): Promise<PluginInstan
     workforce && policy.policy.identity === 'external' && context.serving
       ? createWorkforceSignIn(workforce, {
           fetch: () => context.ports.network.client('workforce-idp').fetch,
+          sessions: join(context.workspacePath, 'workforce-sessions.sqlite'),
         })
       : undefined;
   return {
@@ -65,7 +67,11 @@ export async function openSite(context: PluginOpenContext): Promise<PluginInstan
       },
     },
     ...(signIn
-      ? { publicRoute: signIn.publicRoute, authenticateCookie: signIn.authenticateCookie }
+      ? {
+          publicRoute: signIn.publicRoute,
+          authenticateCookie: signIn.authenticateCookie,
+          close: async () => signIn.close(),
+        }
       : {}),
     // A bound workforce provider makes the policy connected, so the network port is needed.
     needs: portsNeeded(policy, file !== undefined),

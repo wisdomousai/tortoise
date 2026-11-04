@@ -22,7 +22,7 @@ The host runs on a server with its workspace in Postgres, and a site connects to
 5. In the deployment policy, set `ingress.listen` to `tls` with your certificate and key, `identity: external`, the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
 6. Back up the database with its own tools (`pg_dump`, point-in-time recovery).
 
-People sign in through workforce sign-in; nobody gets a local owner session. Sessions live in memory, so a restart signs everyone out. Reach the instance in attached mode; `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` work on local workspaces only.
+People sign in through workforce sign-in; nobody gets a local owner session. The instance keeps sessions by token digest in `workforce-sessions.sqlite` in its local directory, so a restart keeps people signed in until their sessions expire. A takeover on another machine without that directory signs everyone out. Reach the instance in attached mode; `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` work on local workspaces only.
 
 Check it:
 
@@ -47,7 +47,8 @@ Code: `packages/adapters/src/postgres-lease.ts`. Tests: `packages/testing/test/p
 ### Instance layout
 
 - One instance serves one workspace. For many workspaces, run one instance each behind a router.
-- The local `--workspace` directory still contains blobs, agent run history, the audit log and plugin files. Put it on a volume that follows the instance.
+- Blobs are stored in the database (`workspace_blobs`). If an earlier release left a blob in the local directory, the instance reads it from there and copies it into the database.
+- The local `--workspace` directory still contains agent run history, workforce sessions, the audit log and plugin files. Put it on a volume that follows the instance.
 - Don't host an app that needs a site: a site-scoped destination, a device, an exchange folder or a station process. Nothing refuses it at startup; check the requirements in the security manifest from `bun run generate`.
 
 ## Fleet

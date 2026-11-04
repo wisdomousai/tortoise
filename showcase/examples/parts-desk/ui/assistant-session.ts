@@ -4,9 +4,8 @@ import { useRuns } from '@/components/run-panel';
 import { hostJson } from '@/lib/host-client';
 import { useUiSession } from '@/lib/ui-session';
 import { assistantAgent } from '../contracts/assistant-agent';
-import { conversationPrompt } from '../conversation';
 import { useAssistantIntents } from './assistant-intents';
-import { runEnded, runText, type PanelRun } from './assistant-run';
+import { runEnded, type PanelRun } from './assistant-run';
 import { useShownRecords } from './screen-context';
 import { screenRequests, screenResources } from './screen-records';
 
@@ -44,9 +43,8 @@ function useScreen() {
  * route, from the panel's own UI session, so the run's intents reach the frame after it navigates.
  * The session selects the current screen's records, so the run's context names them, and applies
  * the run's intents to open, select and prepare (`useAssistantIntents`).
- * Runs keep no prompt, so the panel keeps what the person wrote; the first run's conversationId
- * continues the conversation, and a follow-up's prompt carries the earlier turns as text, since
- * the local harness keeps no history between runs. The host refuses a start while the model
+ * The first run's conversationId continues the conversation; the host gives the local harness the
+ * earlier turns, since it keeps no history between runs. The host refuses a start while the model
  * server is still starting, so a refused message stays in the composer to send again.
  */
 export function useAssistantConversation() {
@@ -77,14 +75,10 @@ export function useAssistantConversation() {
     setSending(true);
     setError(undefined);
     try {
-      const earlier = messages.map((message) => {
-        const run = byId.get(message.runId);
-        return { request: message.text, answer: run ? runText(run) : '' };
-      });
       const session = await ui.prepare();
       const run = await hostJson<PanelRun>('runs', {
         agentId: assistantAgent.id,
-        prompt: conversationPrompt(earlier, request),
+        prompt: request,
         uiSessionId: session.sessionId,
         uiContextVersion: session.version,
         ...(conversationId ? { conversationId } : {}),

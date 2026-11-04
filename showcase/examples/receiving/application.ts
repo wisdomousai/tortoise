@@ -23,7 +23,9 @@ import {
 } from '@tortoise/integration';
 import { createPeerLinkPlugin, peerLinkServiceOf } from '@tortoise/peer-link/plugin';
 import { queryOperations as qualityQueries } from '@tortoise/quality-inspection/contracts/queries';
+import { approvalOperations } from '@tortoise/contracts';
 import manifest from './manifest';
+import { operations } from './contracts';
 import { erpTarget, type AsnLine } from './contracts/erp-target';
 import { qualityLots, qualityPeer } from './contracts/quality-peer';
 import { createState, migrations, upgradeState, type AppState, type Role } from './domain';
@@ -86,6 +88,11 @@ export function createReceivingApplication(options: ReceivingOptions = {}) {
       ),
     ],
     plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, receivingPeerLinkPlugin],
+    // The records a screen may hand to an agent run, such as the line the assistant panel sees.
+    selectableResources: {
+      delivery: operations.deliveryGet.id,
+      'approval-request': approvalOperations.approvalGet.id,
+    },
     ...(options.services ? { services: options.services } : {}),
     connect: ({ application, workspaceId, folders, services }) => {
       const link = () => peerLinkServiceOf(services)!.link(qualityPeer.target);

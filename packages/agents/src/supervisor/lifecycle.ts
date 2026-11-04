@@ -9,6 +9,11 @@ import { observe, setState, type Active, type SupervisorKernel } from './run';
 export interface StartInput {
   harnessId: string;
   prompt: string;
+  /**
+   * What the person asked, kept on the run (`RunSnapshot.request`) and passed as an earlier turn
+   * of the conversation to a harness that cannot resume. Absent for a run no person asked for.
+   */
+  request?: string;
   conversationId?: string;
   context?: Record<string, unknown>;
   resumeData?: Record<string, string>;
@@ -53,6 +58,7 @@ export async function startRun(
     createdAt: at,
     updatedAt: at,
     context: structuredClone(input.context ?? {}),
+    ...(input.request !== undefined ? { request: kernel.redactor.scrub(input.request) } : {}),
     events: [],
     nextSequence: 1,
     resumeData: input.resumeData,

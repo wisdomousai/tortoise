@@ -600,7 +600,7 @@ The target's opaque position after the last applied feed batch, stored in the ap
 
 ### Web frame
 
-The domain-neutral browser shell around one application's screens: session, routing, palette, run panel and accounts. See [`packages/frame`](../packages/frame/README.md), [`packages/frame-native`](../packages/frame-native/README.md).
+The domain-neutral browser shell around one application's screens: session, routing, palette, run panel, assistant panel and accounts. See [`packages/frame`](../packages/frame/README.md), [`packages/frame-native`](../packages/frame-native/README.md).
 
 ### Worker claim
 

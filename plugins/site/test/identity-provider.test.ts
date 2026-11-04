@@ -20,7 +20,7 @@ const setup = async () => {
       scopes: ['openid', 'email'],
       sessionMinutes: 60,
     },
-    { fetch: () => idp.fetch },
+    { fetch: () => idp.fetch, sessions: ':memory:' },
   );
   /** The browser's part: start at the host, then pick `person` on the provider's page. */
   const authorize = async () => {
@@ -55,7 +55,7 @@ test('a person picked on the page signs in as their email', async () => {
   const cookie = signedIn.headers
     .get('set-cookie')!
     .match(new RegExp(`${sessionCookieName(origin)}=([^;]+)`))![1]!;
-  expect(await signIn.authenticateCookie(cookie)).toEqual({
+  expect(await signIn.authenticateCookie(cookie)).toMatchObject({
     workspaceId: 'local',
     principalId: 'ana@lab.example',
   });

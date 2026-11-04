@@ -5,6 +5,7 @@ import { approvalOperations } from '@tortoise/contracts';
 import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { ApprovalReview } from '@/components/approval-review';
 import { Button } from '@/components/ui/button';
+import { useAssistantContext } from '@/lib/assistant-context';
 import { live } from '@/lib/session';
 import { useUiSession } from '@/lib/ui-session';
 import { methodFor } from '../method';
@@ -111,6 +112,12 @@ export function MethodSuggestions({ id }: { id: string }) {
   const request = query.data as RequestRecord | undefined;
   const ui = useUiSession(
     request ? { id: `test-request:${request.id}`, revision: request.revision } : undefined,
+  );
+  // The assistant panel's next run sees the request this screen shows.
+  useAssistantContext(
+    request
+      ? [{ id: `test-request:${request.id}`, revision: request.revision, label: request.sample }]
+      : [],
   );
   const [error, setError] = useState<string>();
   return (
