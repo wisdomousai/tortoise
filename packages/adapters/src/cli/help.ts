@@ -30,7 +30,8 @@ export function operationHelp(operation: CatalogOperation, program: string): Cli
   lines.push(
     '',
     'Also: --json <object|-> for the whole input, --dry-run to validate without executing,',
-    '--output json|text. Commands accept --key <id> and --revisions <json>.',
+    '--output json|text|csv (csv prints every row of a list query).',
+    'Commands accept --key <id> and --revisions <json>.',
   );
   return new CliText(lines.join('\n'));
 }
@@ -48,7 +49,7 @@ export function overview(catalog: Catalog, program: string): CliText {
   const width = Math.max(...rows.map(([words]) => words!.length)) + 2;
   return new CliText(
     [
-      `Usage: ${program} <command> [--field value ...] [--json <object|->] [--dry-run] [--output json|text]`,
+      `Usage: ${program} <command> [--field value ...] [--json <object|->] [--dry-run] [--output json|text|csv]`,
       '',
       'Commands (✎ changes state):',
       ...rows.map(([words, text]) => `  ${words!.padEnd(width)}${firstSentence(text!)}`),

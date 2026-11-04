@@ -68,7 +68,7 @@ bun run cli help
 bun run cli inspection list --output text
 ```
 
-You should see the command list, ending in `Exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, ...`, then a table with the inspection you created in the browser. The screen, the CLI and MCP all call the same operations.
+You should see the command list, ending in `Exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, ...`, then a table with the inspection you created in the browser. `--output csv` prints every inspection as CSV instead. The screen, the CLI and MCP all call the same operations.
 
 Stop the app with Ctrl+C before you change code.
 

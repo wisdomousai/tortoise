@@ -144,14 +144,17 @@ export function AppShell() {
   return (
     <div
       className={cn(
-        'grid min-h-screen grid-cols-1 content-start lg:content-stretch',
+        'grid min-h-screen grid-cols-1 content-start lg:content-stretch print:block',
         Aside ? 'lg:grid-cols-[16rem_minmax(0,1fr)_auto]' : 'lg:grid-cols-[16rem_1fr]',
       )}
     >
+      {/* A printed page shows the screen alone: no sidebar, bar or aside. */}
       {compact ? (
-        <CompactBar onFind={find} />
+        <div className="contents print:hidden">
+          <CompactBar onFind={find} />
+        </div>
       ) : (
-        <div className="bg-sidebar">
+        <div className="bg-sidebar print:hidden">
           <aside className="flex flex-col gap-5 px-3 py-5 text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
             <ShellPanel onFind={find} />
           </aside>
@@ -159,7 +162,7 @@ export function AppShell() {
       )}
       {/* The size container `main`: the aside narrows it, so screens lay out with `@<size>/main:`
           variants by the width they get, not by the window's. */}
-      <main className="@container/main min-w-0 space-y-4 px-4 py-5 lg:px-10 lg:py-8">
+      <main className="@container/main min-w-0 space-y-4 px-4 py-5 lg:px-10 lg:py-8 print:p-0">
         {origin.shown ? (
           <OsProvenanceNotice provenance={origin.shown.provenance} onDismiss={origin.dismiss} />
         ) : null}
@@ -175,7 +178,11 @@ export function AppShell() {
         ) : null}
         <Outlet />
       </main>
-      {Aside ? <Aside /> : null}
+      {Aside ? (
+        <div className="contents print:hidden">
+          <Aside />
+        </div>
+      ) : null}
       <CommandPalette open={palette} onOpenChange={setPalette} />
     </div>
   );

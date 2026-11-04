@@ -22,7 +22,7 @@ Display metadata names the operation and describes the records its output holds.
 
 Who reads the metadata:
 
-- `CollectionScreen` and `RecordScreen` take their columns, headings and record title from it, render each field by its kind, show a reference by the referenced record's title, and link a record to its screen through `screens.resources`
+- `CollectionScreen` and `RecordScreen` take their columns, headings and record title from it, render each field by its kind, show a reference by the referenced record's title, and link a record to its screen through `screens.resources`. The collection screen's CSV export and the CLI's `--output csv` take their columns from it too
 - The capability form takes each field's label and kind from it: a date input, a status choice, a picker over the referenced collection's list, a file input
 - The capability form and the command palette show the label
 - The MCP adapter puts the label in the tool title and adds the resource kind and fields to the tool description

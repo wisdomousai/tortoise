@@ -1,5 +1,14 @@
 import { createHttpTransport } from '@tortoise/client';
-import { ApplicationError, errorEnvelope, type ErrorCode } from '@tortoise/contracts';
+import {
+  ApplicationError,
+  csvColumns,
+  csvText,
+  errorEnvelope,
+  readAllPages,
+  type CatalogOperation,
+  type CollectionPage,
+  type ErrorCode,
+} from '@tortoise/contracts';
 import { operationInput, resolveOperation, takeFlag, usageError } from './cli/args';
 import { readConnection } from './cli/connection';
 import { execute, validateOnly } from './cli/execute';
@@ -48,10 +57,43 @@ function workflows(catalog: Awaited<ReturnType<CliClient['catalog']>>, id: strin
  * Testable CLI dispatcher over any transport. The instance decides identity and authorization;
  * this layer only maps arguments to the catalog. JSON output is the default, one value per run.
  */
-export async function runCli(
+export function runCli(
   argv: readonly string[],
   client: CliClient,
   options: CliOptions = {},
+): Promise<unknown> {
+  return dispatch(argv, client, options, false);
+}
+
+/** Whether the query takes `offset` and `limit`, as a generated list does. */
+function pages(operation: CatalogOperation) {
+  const properties = (operation.inputSchema as { properties?: Record<string, unknown> }).properties;
+  return operation.kind === 'query' && !!properties?.offset && !!properties.limit;
+}
+
+/**
+ * Every row of a list query as CSV: the query runs page by page with the person's filters, so
+ * the instance scopes and filters each page as it does for one.
+ */
+async function listCsv(client: CliClient, operation: CatalogOperation, input: unknown) {
+  if (!pages(operation))
+    throw usageError('--output csv needs a list query, one with offset and limit');
+  const rows = await readAllPages(async (offset, limit) => {
+    const snapshot = await client.query<CollectionPage<Record<string, unknown>>>(operation.id, {
+      ...(input as object),
+      offset,
+      limit,
+    });
+    return snapshot.data;
+  });
+  return new CliText(csvText(csvColumns(operation.display, rows), rows).trimEnd());
+}
+
+async function dispatch(
+  argv: readonly string[],
+  client: CliClient,
+  options: CliOptions,
+  csv: boolean,
 ): Promise<unknown> {
   const program = options.program ?? 'cli';
   const args = [...argv];
@@ -80,12 +122,14 @@ export async function runCli(
   const revisions = operation.kind === 'command' ? takeFlag(args, 'revisions') : undefined;
   const input = await operationInput(operation, args, options);
   if (dryRun) return validateOnly(operation, input);
+  if (csv) return listCsv(client, operation, input);
   return execute(client, operation, input, key, revisions);
 }
 
 /**
- * Run, print one result to stdout and set the exit status. Errors print a JSON error envelope (or
- * `CODE: message` with --output text) and exit with the code mapped from the error.
+ * Run, print one result to stdout and set the exit status. `--output csv` prints every row of a
+ * list query as CSV. Errors print a JSON error envelope (or `CODE: message` with --output text)
+ * and exit with the code mapped from the error.
  */
 export async function runCliMain(
   argv: readonly string[],
@@ -96,11 +140,13 @@ export async function runCliMain(
   let output = 'json';
   try {
     output = takeFlag(args, 'output') ?? 'json';
-    if (output !== 'json' && output !== 'text') throw usageError('--output must be json or text');
-    const value = await runCli(
+    if (output !== 'json' && output !== 'text' && output !== 'csv')
+      throw usageError('--output must be json, text or csv');
+    const value = await dispatch(
       args,
       typeof client === 'function' ? await client() : client,
       options,
+      output === 'csv',
     );
     console.log(
       output === 'text' || value instanceof CliText ? formatText(value) : JSON.stringify(value),

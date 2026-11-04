@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { listFilters, listSearches, listSortFields } from '@tortoise/contracts';
-import type { AnyCapability, JsonObject } from '@tortoise/contracts';
+import { Download, Printer } from 'lucide-react';
+import {
+  csvText,
+  listFilters,
+  listSearches,
+  listSortFields,
+  readAllPages,
+} from '@tortoise/contracts';
+import type { AnyCapability, CollectionPage, JsonObject } from '@tortoise/contracts';
 import { useDebouncedValue } from '@tortoise/react/hooks';
 import { CapabilityForm } from '@/components/capability-form';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
@@ -142,10 +149,72 @@ function FilterControl({
   );
 }
 
+/** A file name from a screen title: lower case, words joined by hyphens. */
+const fileName = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'export';
+
+/**
+ * Download every row the list shows under the current filters, search and sort as CSV, with the
+ * screen's columns. It reads the list query page by page, so the instance scopes and filters each
+ * page as it does for the table. The byte order mark lets a spreadsheet read the file as UTF-8.
+ */
+function ExportButton({
+  title,
+  list,
+  input,
+  fields,
+}: {
+  title: string;
+  list: Query;
+  input: Record<string, unknown>;
+  fields: readonly ShownField[];
+}) {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string>();
+  const run = async () => {
+    setBusy(true);
+    setMessage(undefined);
+    try {
+      const rows = await readAllPages(
+        async (offset, limit) =>
+          (await client.query(list, { ...input, offset, limit } as never))
+            .data as CollectionPage<Row>,
+      );
+      const file = new Blob(['﻿', csvText(fields, rows)], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${fileName(title)}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The export failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => void run()}>
+        <Download aria-hidden />
+        Export CSV
+      </Button>
+      {message && (
+        <p role="alert" className="w-full text-sm text-destructive">
+          {message}
+        </p>
+      )}
+    </>
+  );
+}
+
 /**
  * A collection's list screen over its generated `list` query: the filters and sort the list
  * declares, a search box when it declares one, a server-paged table and a form for its create
- * command. Columns come from the list's display fields, else from the record schema, and render
+ * command, and Export CSV for every row the filters match. Columns come from the list's display fields, else from the record schema, and render
  * by kind: dates formatted, a status as a badge with its tone, a reference by its title. A row
  * opens through `open`, else through the screen the application registers for the collection's
  * resource kind. Replace it with a purpose-built screen one route at a time; the instance still
@@ -178,14 +247,14 @@ export function CollectionScreen({
   const sortFields = listSortFields(list);
   const settledSearch = useDebouncedValue(search.trim());
   const settledFilters = useDebouncedValue(filters);
-  const input: Record<string, unknown> = { offset, limit: PAGE };
+  const input: Record<string, unknown> = {};
   for (const filter of declaredFilters) {
     const raw = settledFilters[filter.name];
     if (raw) input[filter.name] = filterValue(filter, raw);
   }
   if (searchable && settledSearch) input.search = settledSearch;
   if (sortBy) Object.assign(input, { sortBy, sortDirection });
-  const query = useQuery(live.liveQueryOptions(list, input as never));
+  const query = useQuery(live.liveQueryOptions(list, { ...input, offset, limit: PAGE } as never));
   const data = query.data as { items: Row[]; total: number } | undefined;
   const declared = shownFields(list, true, 6);
   const fields = columns
@@ -229,19 +298,22 @@ export function CollectionScreen({
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">{title}</h1>
-        {searchable && (
-          <Input
-            type="search"
-            aria-label={`Search ${title.toLowerCase()}`}
-            placeholder="Search"
-            className="max-w-xs"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              reset();
-            }}
-          />
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {searchable && (
+            <Input
+              type="search"
+              aria-label={`Search ${title.toLowerCase()}`}
+              placeholder="Search"
+              className="max-w-xs"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                reset();
+              }}
+            />
+          )}
+          <ExportButton title={title} list={list} input={input} fields={fields} />
+        </div>
       </header>
       {(declaredFilters.length > 0 || sortFields.length > 0) && (
         <div
@@ -357,7 +429,7 @@ function RetireButton({
     }
   };
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 print:hidden">
       <Button variant="outline" size="sm" disabled={busy} onClick={() => setOpen(true)}>
         {label}
       </Button>
@@ -389,7 +461,9 @@ function RetireButton({
  * One record of a collection: its fields from the generated `get` query, in display order when
  * the query declares display fields, an edit form filled with the record's values, a form for its
  * move command, and a retire button that asks first. The heading names the record by its display
- * title field when there is one. A record the caller may not see is `NOT_FOUND` from the instance
+ * title field when there is one. `sections` adds the application's own parts after the fields.
+ * Print prints the heading, the fields and the sections, without the forms or the shell. A record
+ * the caller may not see is `NOT_FOUND` from the instance
  * and shows as unavailable; the instance refuses a change to a retired record.
  */
 export function RecordScreen({
@@ -400,6 +474,7 @@ export function RecordScreen({
   retire,
   list,
   param = 'id',
+  sections,
 }: {
   title: string;
   get: Query;
@@ -412,6 +487,8 @@ export function RecordScreen({
   list?: string;
   /** The route parameter holding the record key, `$id` by default. */
   param?: string;
+  /** The application's own parts of the record, shown and printed after its fields. */
+  sections?: ReactNode;
 }) {
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as Record<string, string | undefined>;
@@ -423,9 +500,21 @@ export function RecordScreen({
   if (query.isError) return <p className="text-muted-foreground">{title} unavailable.</p>;
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">
-        {title} {name}
-      </h1>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">
+          {title} {name}
+        </h1>
+        <Button
+          variant="outline"
+          size="sm"
+          className="print:hidden"
+          disabled={!record}
+          onClick={() => window.print()}
+        >
+          <Printer aria-hidden />
+          Print
+        </Button>
+      </header>
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
         {shownFields(get, false).map((field) => (
           <div key={field.name} className="contents">
@@ -436,8 +525,9 @@ export function RecordScreen({
           </div>
         ))}
       </dl>
+      {sections}
       {update && record && (
-        <section aria-label={update.description ?? 'Update'} className="space-y-3">
+        <section aria-label={update.description ?? 'Update'} className="space-y-3 print:hidden">
           <h2 className="text-base font-medium">Edit</h2>
           {/* A changed record remounts the form, so it edits the latest values. */}
           <CapabilityForm
@@ -450,7 +540,7 @@ export function RecordScreen({
         </section>
       )}
       {move && record && (
-        <section aria-label={move.description ?? 'Move'} className="space-y-3">
+        <section aria-label={move.description ?? 'Move'} className="space-y-3 print:hidden">
           <h2 className="text-base font-medium">Move</h2>
           <CapabilityForm capability={move} fixed={{ id } as never} submitLabel="Move" />
         </section>

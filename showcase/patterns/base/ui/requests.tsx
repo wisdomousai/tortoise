@@ -10,16 +10,14 @@ export type RequestSection = ComponentType<{ id: string }>;
 function RequestScreen({ sections }: { sections: readonly RequestSection[] }) {
   const { id } = useParams({ strict: false }) as { id: string };
   return (
-    <div className="space-y-8">
-      <RecordScreen
-        title="Test request"
-        get={requestOperations.requestGet}
-        update={requestOperations.requestUpdate}
-      />
-      {sections.map((Section, index) => (
+    <RecordScreen
+      title="Test request"
+      get={requestOperations.requestGet}
+      update={requestOperations.requestUpdate}
+      sections={sections.map((Section, index) => (
         <Section key={index} id={id} />
       ))}
-    </div>
+    />
   );
 }
 

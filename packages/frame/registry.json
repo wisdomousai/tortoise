@@ -92,7 +92,8 @@
         "@tanstack/react-query",
         "@tanstack/react-router",
         "@tortoise/contracts",
-        "@tortoise/react"
+        "@tortoise/react",
+        "lucide-react"
       ],
       "registryDependencies": [
         "badge",

@@ -92,7 +92,7 @@ A hosted instance delivers while it serves, and its fleet report counts what rem
 - Mobile builds have no build stamp and no best-before date.
 - No desktop uninstaller removes the workspace.
 - `drain` and the purge check open a workspace directory, not a hosted workspace.
-- Records that no target receives leave the application only in a workspace backup or a copy of the data directory, with no export format of their own.
+- Records that no target receives leave the application only in a workspace backup, a copy of the data directory or a CSV export of a list, which the collection screen and the CLI's `--output csv` write. CSV keeps no history and no attachments.
 
 ## References
 

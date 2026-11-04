@@ -103,6 +103,8 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Surfaces
 
 - **Proven (browser or by hand in Chrome):** field-service (live updates from an MCP process, drafts, paging), quality-inspection (keyboard capture, conflicting drafts), crm-capture (search, follow, log), review (approvals, revisions, signatures), signals (OPC UA and Sparkplug B readings from a plant stand-in).
+- **Proven (browser, 4 Nov):** `showcase/patterns/base/e2e/export-and-print.pw.ts` exports 120 test requests as one CSV over two list pages and checks the print layout with print media emulated in headless Chromium.
+- **Not yet:** No one has printed a record screen on paper or opened an export in Excel or LibreOffice. A CSV export reads the whole list into the page before the download, with no row limit. No label printing, XLSX or PDF.
 - **Not yet:** Parts desk dictation against a real microphone. The browser test plays a stub recognizer. On 3 Nov Chrome and Playwright's full Chromium reported on-device English as downloadable, and Playwright's headless shell crashed the page on `SpeechRecognition.available` ([Parts desk README](../showcase/examples/parts-desk/README.md#dictation-with-a-real-microphone)).
 
 ### Agents and providers
