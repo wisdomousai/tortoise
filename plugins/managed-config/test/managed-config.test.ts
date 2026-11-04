@@ -61,14 +61,14 @@ function field(values: ManagedValues, seen: Record<string, string>[]) {
 
 test('managed values become settings and win over the launcher outside development builds', async () => {
   const seen: Record<string, string>[] = [];
-  const managed = { 'hub-url': 'https://hub.site.example' };
+  const managed = { 'hub-url': 'https://hub.plant.example' };
   const options = { platform: platform(), settings: { 'hub-url': 'https://launcher.example' } };
   await (await openMobileInstance(field(managed, seen), options)).close();
   await (
     await openMobileInstance(field(managed, seen), { ...options, launcherSettingsWin: true })
   ).close();
   expect(seen).toEqual([
-    { 'hub-url': 'https://hub.site.example' },
+    { 'hub-url': 'https://hub.plant.example' },
     { 'hub-url': 'https://launcher.example' },
   ]);
 });
@@ -90,7 +90,7 @@ test('the Android restrictions schema declares every composed setting', () => {
   };
   const xml = restrictionsXml([
     { key: 'hub-url', description: 'Hub origin' },
-    { key: 'site-policy', description: 'Policy "A" & <B>' },
+    { key: 'deployment-policy', description: 'Policy "A" & <B>' },
   ]);
   expect(xml).toContain(
     '<restriction android:key="hub-url" android:title="hub-url" android:description="Hub origin" android:restrictionType="string" />',

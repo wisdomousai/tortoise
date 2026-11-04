@@ -9,7 +9,7 @@ import { composeTestRequestsLocalModel, type TestRequestsLocalModelOptions } fro
 export const owner = { workspaceId: 'local', principalId: 'owner' };
 export const viewer = { workspaceId: 'local', principalId: 'viewer' };
 
-/** A loopback port no listener holds, for the stand-in the site policy binds. */
+/** A loopback port no listener holds, for the stand-in the deployment policy binds. */
 function freePort() {
   const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: () => new Response() });
   const { port } = server;
@@ -27,7 +27,7 @@ export async function startLab(
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'pattern-local-model-'));
   const port = freePort();
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -57,7 +57,7 @@ export async function startLab(
     workspacePath: workspace,
     integration: false,
     pollMs: 1,
-    settings: { 'site-policy': policy },
+    settings: { 'deployment-policy': policy },
   });
   for (let tries = 0; tries < 400; tries++) {
     if (!['measuring', 'starting', 'stopped'].includes(models.status().state)) break;

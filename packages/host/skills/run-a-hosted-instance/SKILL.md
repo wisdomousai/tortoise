@@ -1,6 +1,6 @@
 ---
 name: run-a-hosted-instance
-description: Run an agent-native application's instance on a server, with its workspace in Postgres under a lease that another instance can take over. Use when deploying a hosted instance (no site requirements), choosing between local SQLite and Postgres storage, setting TORTOISE_DATABASE_URL and serve --hosted-workspace, putting public TLS ingress and workforce OIDC sign-in in front of it, or writing a new Storage adapter and proving it with the storage conformance suite. Covers hostedPlatform in packages/host, PostgresStorage and acquireWorkspaceLease in packages/adapters, and storageConformance in packages/testing.
+description: Run an agent-native application's instance on a server, with its workspace in Postgres under a lease that another instance can take over. Use when deploying a hosted instance (no local requirements), choosing between local SQLite and Postgres storage, setting TORTOISE_DATABASE_URL and serve --hosted-workspace, putting public TLS ingress and workforce OIDC sign-in in front of it, or writing a new Storage adapter and proving it with the storage conformance suite. Covers hostedPlatform in packages/host, PostgresStorage and acquireWorkspaceLease in packages/adapters, and storageConformance in packages/testing.
 ---
 
 # Run a hosted instance
@@ -9,7 +9,7 @@ A hosted instance is the same host on another host platform. `hostedPlatform` ke
 
 ## Before writing
 
-- Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a site. The generated security manifest (`bun run generate`) shows its placement.
+- Check that the application can be hosted. A `local`-scoped destination, a device, an exchange folder or a station process pins it to one location. The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
 - `showcase/patterns/hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
 - Decide where the instance's local directory (`--workspace`) lives. It still holds agent run history, workforce sessions, the audit log and the plugins' files; blobs live in the database. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
@@ -22,7 +22,7 @@ A hosted instance is the same host on another host platform. `hostedPlatform` ke
 2. Put the database URL with its credentials in `TORTOISE_DATABASE_URL`, from the deployment's secret store. Never put it in a flag or a policy file.
 3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held. A development launch takes the same flag: `bun ../../scripts/dev-example.ts --port <n> --hosted-workspace <name>` from the application's directory.
 4. Supervise the instance and restart it when it exits. An instance that loses its lease logs a `lease-lost` record on stderr and exits with code 1. A restarted instance does not wait for the lease. It is refused until the lease expires after 30 seconds without renewal, or is released.
-5. Set a `tls` listener with the public certificate in the site plugin's policy, as for a site. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
+5. Set a `tls` listener with the public certificate in the deployment plugin's policy, as for any other host. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) has the policy steps.
 6. Set `identity: external` in the same policy, with `workforce` naming the OpenID Connect provider. People sign in with the workforce account, and no local owner session exists.
 7. Back up with the database's own tools, such as `pg_dump` or point-in-time recovery. The CLI's `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` verbs open a local workspace only.
 

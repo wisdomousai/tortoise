@@ -56,12 +56,12 @@ async function startService(workspace: string): Promise<ServiceHandle> {
   const manifest = await loadRuntimeManifest(resources);
   await verifyRuntimeFiles(resources, manifest);
   // The packaged policy (digest-verified above) binds only the provider endpoints. An
-  // operator can substitute a site policy through the trusted host environment, as with
+  // operator can substitute a deployment policy through the trusted host environment, as with
   // the workspace; without either the service runs isolated.
-  const sitePolicy = process.env.TORTOISE_SITE_POLICY
-    ? resolve(process.env.TORTOISE_SITE_POLICY)
-    : manifest.sitePolicy
-      ? resourcePath(resources, manifest.sitePolicy.path)
+  const deploymentPolicy = process.env.TORTOISE_DEPLOYMENT_POLICY
+    ? resolve(process.env.TORTOISE_DEPLOYMENT_POLICY)
+    : manifest.deploymentPolicy
+      ? resourcePath(resources, manifest.deploymentPolicy.path)
       : undefined;
   return ensureService({
     workspace,
@@ -69,7 +69,7 @@ async function startService(workspace: string): Promise<ServiceHandle> {
     webRoot: resourcePath(resources, manifest.webRoot),
     runtimeManifest: resolve(resources, 'runtime-manifest.json'),
     scheme: identity.scheme,
-    ...(sitePolicy ? { sitePolicy } : {}),
+    ...(deploymentPolicy ? { deploymentPolicy } : {}),
   });
 }
 

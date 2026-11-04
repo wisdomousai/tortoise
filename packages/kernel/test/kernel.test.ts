@@ -209,7 +209,7 @@ test('a plugin is refused on a platform it does not list; no platforms means Bun
 test('requirements the platform cannot meet are refused before any plugin opens', async () => {
   const destination = {
     purpose: 'fixture',
-    scope: 'site',
+    scope: 'local',
     dataClasses: ['reading'],
     availability: 'optional',
     offline: 'degrade',
@@ -298,8 +298,8 @@ test('settings providers supply other plugins settings before any plugin opens',
   // A provided key no plugin declares is refused like a launcher one.
   calls.length = 0;
   await expect(
-    open(application([provider({ 'site-policy': 'x' }), consumer]), fakePlatform()),
-  ).rejects.toThrow('No composed plugin reads the setting "site-policy"');
+    open(application([provider({ 'deployment-policy': 'x' }), consumer]), fakePlatform()),
+  ).rejects.toThrow('No composed plugin reads the setting "deployment-policy"');
   expect(calls).toEqual(['provide android']);
 });
 

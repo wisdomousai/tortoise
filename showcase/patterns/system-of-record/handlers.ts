@@ -90,7 +90,7 @@ export function createPublishingHandlers(): HandlerContribution<
       cursor: (state) => state.publishing.sync,
       now,
       onOutcome: recordOutcome,
-      // A request registered at another site becomes a test request here once; a later copy
+      // A request registered at another plant becomes a test request here once; a later copy
       // changes nothing.
       applyBatch(batch, ctx) {
         const local = records(ctx, testRequestCollection, ctx.state.testRequests.requests);

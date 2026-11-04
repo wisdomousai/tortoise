@@ -96,10 +96,10 @@ function setup() {
   const store = createMemoryBlobStore(() => 1_000);
   const storage = createMemoryStorage<State>({
     places: {
-      site: place('site'),
-      hall: place('hall', 'site'),
+      plant: place('plant'),
+      hall: place('hall', 'plant'),
       bay: place('bay', 'hall'),
-      yard: place('yard', 'site', 'blue'),
+      yard: place('yard', 'plant', 'blue'),
       shed: place('shed', 'yard', 'blue'),
     },
   });
@@ -254,7 +254,7 @@ describe('generated collection commands', () => {
 
   test('move refuses a cycle and a retired parent, and moves to the root with null', async () => {
     const { app, snapshot } = setup();
-    expect(await run(app, 'place.move', { id: 'site', parentId: 'bay' }).catch(code)).toBe(
+    expect(await run(app, 'place.move', { id: 'plant', parentId: 'bay' }).catch(code)).toBe(
       'INVALID_INPUT',
     );
     expect(await run(app, 'place.move', { id: 'hall', parentId: 'hall' }).catch(code)).toBe(
@@ -267,8 +267,8 @@ describe('generated collection commands', () => {
     const events = await app.events(0, ann);
     expect(events.events.map((event) => event.type)).toEqual(['moved', 'moved']);
     const { state } = await snapshot();
-    expect(subtree(places, state.places, 'site').map((record) => record.id)).toEqual([
-      'site',
+    expect(subtree(places, state.places, 'plant').map((record) => record.id)).toEqual([
+      'plant',
       'yard',
       'shed',
     ]);
@@ -291,26 +291,26 @@ describe('generated collection commands', () => {
     const { app } = setup();
     const all = await app.query({ operation: 'place.tree', input: {} }, ann);
     expect(all.data.items.map((item) => [item.id, item.depth])).toEqual([
-      ['site', 0],
+      ['plant', 0],
       ['hall', 1],
       ['bay', 2],
       ['yard', 1],
       ['shed', 2],
     ]);
-    // Bob cannot see the site, so the yard starts a tree of its own.
+    // Bob cannot see the plant, so the yard starts a tree of its own.
     const blue = await app.query({ operation: 'place.tree', input: {} }, bob);
     expect(blue.data.items.map((item) => [item.id, item.depth])).toEqual([
       ['yard', 0],
       ['shed', 1],
     ]);
     const shallow = await app.query(
-      { operation: 'place.tree', input: { root: 'site', depth: 1, limit: 2 } },
+      { operation: 'place.tree', input: { root: 'plant', depth: 1, limit: 2 } },
       ann,
     );
     expect(shallow.data).toMatchObject({ total: 3 });
-    expect(shallow.data.items.map((item) => item.id)).toEqual(['site', 'hall']);
+    expect(shallow.data.items.map((item) => item.id)).toEqual(['plant', 'hall']);
     await expect(
-      app.query({ operation: 'place.tree', input: { root: 'site' } }, bob),
+      app.query({ operation: 'place.tree', input: { root: 'plant' } }, bob),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     await run(app, 'place.retire', { id: 'bay' });
     const active = await app.query({ operation: 'place.tree', input: { root: 'hall' } }, ann);

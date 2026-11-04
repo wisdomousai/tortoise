@@ -10,7 +10,7 @@ import { hubLinkPluginManifest } from '../src/plugin-manifest';
 
 const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
 const pairing = {
-  origin: 'https://hub.site.example',
+  origin: 'https://hub.plant.example',
   deviceId: 'd-1',
   label: 'Phone',
   kind: 'field-sync',

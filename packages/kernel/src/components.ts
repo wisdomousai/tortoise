@@ -14,7 +14,7 @@ export function deploymentComponents(
 
 /**
  * The catalog of one deployment: the application's modules plus the host's and the
- * application's components. The runtime, the site-policy check, the CLI and the generators all
+ * application's components. The runtime, the deployment-policy check, the CLI and the generators all
  * compose requirements through this, so they cannot disagree. Pure: opens nothing.
  */
 export function deploymentCatalog(

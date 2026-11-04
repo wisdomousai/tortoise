@@ -71,7 +71,7 @@ const module = defineModule({
         id: 'eam-api',
         purpose: 'Test asset register',
         direction: 'egress',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         targets: ['eam'],
         dataClasses: ['test-record'],

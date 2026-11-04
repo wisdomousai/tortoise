@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 /**
- * An embedded instance with a viewer member and a fake LIMS. The site policy binds the LIMS
+ * An embedded instance with a viewer member and a fake LIMS. The deployment policy binds the LIMS
  * destination to it unless `bound` is false.
  */
 export async function open({ bound = true } = {}) {
@@ -25,7 +25,7 @@ export async function open({ bound = true } = {}) {
   const lims = new FakeLims();
   const url = lims.start();
   cleanup.push(() => lims.stop());
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -40,7 +40,7 @@ export async function open({ bound = true } = {}) {
       members: { viewer: 'viewer' },
       services: { newId: () => `id-${++next}` },
     }),
-    { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+    { workspacePath: join(directory, 'workspace'), settings: { 'deployment-policy': policy } },
   );
   cleanup.push(() => instance.close());
   const { application, integrations } = instance;

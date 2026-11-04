@@ -3,7 +3,7 @@ import { fleetLinkComponent } from './contracts';
 
 /**
  * The browser-safe part of the fleet agent: no module of its own, the fleet destination and the
- * release folder, and the settings a site sets to enroll and to opt in to staging and the relay.
+ * release folder, and the settings an instance sets to enroll and to opt in to staging and the relay.
  */
 export const fleetAgentPluginManifest = definePluginManifest({
   id: 'fleet-agent',
@@ -14,7 +14,8 @@ export const fleetAgentPluginManifest = definePluginManifest({
       key: 'fleet-enrollment-code',
       env: 'TORTOISE_FLEET_ENROLLMENT_CODE',
       kind: 'string',
-      description: 'one-use code from the fleet; exchanged for the site credential on first start',
+      description:
+        'one-use code from the fleet; exchanged for the instance credential on first start',
     },
     {
       key: 'fleet-trust',

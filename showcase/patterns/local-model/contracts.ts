@@ -4,7 +4,7 @@ import { modelServer } from '@tortoise/model-server/contracts';
 /** The model entry the method suggester runs on; the deployment chooses its weights. */
 export const METHOD_MODEL = 'lab-methods';
 
-/** The model server process, which the site policy binds to llama-server and pins. */
+/** The model server process, which the deployment policy binds to llama-server and pins. */
 export const methodModelServer = modelServer({ id: 'llm', runtime: 'llama-server' });
 
 /**

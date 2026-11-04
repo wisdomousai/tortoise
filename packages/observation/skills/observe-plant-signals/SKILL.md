@@ -19,19 +19,19 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
 
 ## Steps
 
-1. Declare the source in the manifest's `components` with `mqttBroker({ id, destination, description, dataClasses })` or `opcUaServer({ ... })`. Each declares a `site`-scoped `tcp` destination with offline `degrade`.
+1. Declare the source in the manifest's `components` with `mqttBroker({ id, destination, description, dataClasses })` or `opcUaServer({ ... })`. Each declares a `local`-scoped `tcp` destination with offline `degrade`.
 2. Write the ingest command with the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). Its input is the observation, or what `toInput` maps it to. It records stable readings and raises attention for uncertain ones.
 3. Grant the ingest command, and nothing else, to the observing principal.
 4. Create the observer in `connect`'s `observe`:
    - for MQTT, `createMqttObserver({ subscriber: { network, destination, clientId, username?, password? }, fields, application, context, ingestOperation })`;
    - for OPC UA, `createOpcUaObserver({ client: { network, destination, endpointUrl }, fields, ... })`.
 5. Call `start(intervalMs, onError)` and return the observer so the host stops it.
-6. Bind the destination in the deployment policy: `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
+6. Bind the destination in the deployment policy: `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) has the policy steps.
 7. Take broker credentials from the deployment, never from code.
 
 ## Checks
 
-- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@tortoise/connector-mqtt/testing`, or `FakeOpcUaServer` from `@tortoise/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `showcase/patterns/signals/test/signals.test.ts` goes through an embedded instance's network port with a site policy that binds the fakes. Cover:
+- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@tortoise/connector-mqtt/testing`, or `FakeOpcUaServer` from `@tortoise/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `showcase/patterns/signals/test/signals.test.ts` goes through an embedded instance's network port with a deployment policy that binds the fakes. Cover:
   - a value becoming a reading;
   - a death or lost connection making it `uncertain`;
   - the ingest command's handling of both.

@@ -45,7 +45,7 @@ const rejected = (code: string, message: string): EffectOutcome => ({
 /** Refusals that will not change by trying again: the effect is completed as rejected. */
 const final: Partial<Record<string, string>> = {
   'no-handler': 'The notify action is not declared',
-  disabled: 'The site turned this notification off',
+  disabled: 'The deployment policy turned this notification off',
   invalid: 'The notification is invalid',
 };
 

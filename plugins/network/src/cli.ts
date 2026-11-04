@@ -5,15 +5,15 @@ import { takeFlag } from '@tortoise/adapters/cli';
 import { deploymentRequirements } from '@tortoise/host/components';
 import type { ApplicationManifest } from '@tortoise/host/manifest';
 import type { PluginCommand } from '@tortoise/host/plugin';
-import { POLICY_REJECTED_EXIT_CODE } from '@tortoise/site/cli';
-import { policyErrors, sitePolicyFor } from '@tortoise/site/policy-file';
+import { POLICY_REJECTED_EXIT_CODE } from '@tortoise/deployment/cli';
+import { policyErrors, deploymentPolicyFor } from '@tortoise/deployment/policy-file';
 import { exportFormats, exportRules, type ExportFormat } from './exporters';
 import { networkRules } from './rules';
 
 export const networkUsage = (
   program: string,
 ) => `Network (offline; no instance or workspace needed):
-  ${program} network export [--site file] --format ${exportFormats.join('|')}
+  ${program} network export [--policy file] --format ${exportFormats.join('|')}
       [--resolver ip]... [--user name] [--executable path] [--workspace dir] [--audit-log dir]
       [--image ref] [--out file]                  OS, orchestrator and service rules from the policy
 `;
@@ -27,7 +27,7 @@ function takeAll(args: string[], name: string) {
 }
 
 async function networkExport(manifest: ApplicationManifest, args: string[]) {
-  const site = takeFlag(args, 'site');
+  const file = takeFlag(args, 'policy');
   const format = takeFlag(args, 'format');
   const resolvers = takeAll(args, 'resolver');
   const options = {
@@ -36,17 +36,17 @@ async function networkExport(manifest: ApplicationManifest, args: string[]) {
     workspace: takeFlag(args, 'workspace'),
     auditLog: takeFlag(args, 'audit-log'),
     image: takeFlag(args, 'image'),
-    sitePolicy: site ? resolve(site) : undefined,
+    deploymentPolicy: file ? resolve(file) : undefined,
   };
   const out = takeFlag(args, 'out');
   if (args.length) throw usage(`Unexpected argument "${args[0]}"`);
   if (!format || !exportFormats.includes(format as ExportFormat))
     throw usage(`--format must be one of ${exportFormats.join(', ')}`);
-  const policy = await sitePolicyFor(manifest, site);
+  const policy = await deploymentPolicyFor(manifest, file);
   // Same refusal as startup: never export rules for a policy the service would not run.
   if (policyErrors(policy).length) {
     process.stderr.write(
-      `Site policy rejected:\n${policyErrors(policy)
+      `Deployment policy rejected:\n${policyErrors(policy)
         .map((finding) => `- ${finding.code}: ${finding.message}`)
         .join('\n')}\n`,
     );
@@ -67,7 +67,7 @@ async function networkExport(manifest: ApplicationManifest, args: string[]) {
 }
 
 /**
- * `network export` for one application's manifest: default-deny rules for a site policy, without
+ * `network export` for one application's manifest: default-deny rules for a deployment policy, without
  * opening a workspace. Returns undefined when `args` is not a `network` verb.
  */
 export async function networkCommand(

@@ -8,7 +8,7 @@ export interface ModelFiles {
 }
 
 /**
- * The arguments the plugin adds after the site binding's fixed ones (which set the listening
+ * The arguments the plugin adds after the policy binding's fixed ones (which set the listening
  * address): what to load and the name to list it under, which is always the entry ID. A merged
  * fine-tune is loaded instead of its base; a LoRA adapter is loaded on top of it.
  */

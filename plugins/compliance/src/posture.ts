@@ -1,5 +1,5 @@
 import type { AuditEvent } from '@tortoise/contracts';
-import { judgeCertificates, type ResolvedPolicy } from '@tortoise/site/policy';
+import { judgeCertificates, type ResolvedPolicy } from '@tortoise/deployment/policy';
 import type { ForwardingStats, VerificationReport } from '@tortoise/event-log';
 import { pastBestBefore } from '@tortoise/kernel/build';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
@@ -50,7 +50,7 @@ function policyCheck(policy: ResolvedPolicy): PostureCheck {
       ? `${errors.length} policy error(s): ${errors.map((finding) => finding.code).join(', ')}`
       : warnings.length
         ? `${warnings.length} warning(s): ${[...new Set(warnings.map((finding) => finding.code))].join(', ')}`
-        : `Site policy satisfies the ${policy.profile} profile`,
+        : `Deployment policy satisfies the ${policy.profile} profile`,
   };
 }
 

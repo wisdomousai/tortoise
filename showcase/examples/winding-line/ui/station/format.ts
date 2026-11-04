@@ -9,7 +9,7 @@ export type Attention = OutputOf<typeof operations.attentionList>['items'][numbe
 
 /** Matches the domain's freshness window: older observations are shown as stale. */
 export const FRESH_MS = 30_000;
-/** Used until a supervisor saves site routes in device configuration. */
+/** Used until a supervisor saves scan routes in device configuration. */
 export const defaultRoutes: readonly ScanRoute[] = [
   { intent: 'order', pattern: '^(ORD-\\d{4,})$' },
 ];

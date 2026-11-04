@@ -5,6 +5,22 @@
     "": {
       "name": "tortoise-starter",
       "dependencies": {
+        "@ai-sdk/openai": "4.0.86",
+        "@anthropic-ai/claude-agent-sdk": "0.3.292",
+        "@casl/ability": "7.0.1",
+        "@electric-sql/pglite": "0.5.8",
+        "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+        "@fontsource/ibm-plex-mono": "^5.3.0",
+        "@modelcontextprotocol/sdk": "1.32.1",
+        "@napi-rs/keyring": "2.1.0",
+        "@noble/hashes": "2.4.0",
+        "@react-navigation/bottom-tabs": "7.21.0",
+        "@react-navigation/native": "7.5.1",
+        "@react-navigation/native-stack": "7.21.0",
+        "@tanstack/react-form": "1.33.5",
+        "@tanstack/react-query": "5.104.1",
+        "@tanstack/react-router": "1.170.41",
+        "@tanstack/react-table": "9.2.6",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/agents": "workspace:*",
         "@tortoise/android-intents": "workspace:*",
@@ -23,6 +39,7 @@
         "@tortoise/connector-opcua": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/crm-capture": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/device-link": "workspace:*",
         "@tortoise/devices": "workspace:*",
         "@tortoise/event-log": "workspace:*",
@@ -50,6 +67,7 @@
         "@tortoise/pattern-agents": "workspace:*",
         "@tortoise/pattern-assignments": "workspace:*",
         "@tortoise/pattern-base": "workspace:*",
+        "@tortoise/pattern-fleet-agent": "workspace:*",
         "@tortoise/pattern-host-plugin": "workspace:*",
         "@tortoise/pattern-hosted": "workspace:*",
         "@tortoise/pattern-local-model": "workspace:*",
@@ -58,7 +76,6 @@
         "@tortoise/pattern-sandbox": "workspace:*",
         "@tortoise/pattern-sign-in": "workspace:*",
         "@tortoise/pattern-signals": "workspace:*",
-        "@tortoise/pattern-site": "workspace:*",
         "@tortoise/pattern-system-of-record": "workspace:*",
         "@tortoise/pattern-worklist": "workspace:*",
         "@tortoise/peer-link": "workspace:*",
@@ -71,7 +88,6 @@
         "@tortoise/screen-bridge": "workspace:*",
         "@tortoise/share-target": "workspace:*",
         "@tortoise/shell": "workspace:*",
-        "@tortoise/site": "workspace:*",
         "@tortoise/telemetry": "workspace:*",
         "@tortoise/testing": "workspace:*",
         "@tortoise/tool-store": "workspace:*",
@@ -79,22 +95,6 @@
         "@tortoise/winding-line": "workspace:*",
         "@tortoise/workflows": "workspace:*",
         "@tortoise/workstation-sign-in": "workspace:*",
-        "@ai-sdk/openai": "4.0.86",
-        "@anthropic-ai/claude-agent-sdk": "0.3.292",
-        "@casl/ability": "7.0.1",
-        "@electric-sql/pglite": "0.5.8",
-        "@fontsource-variable/ibm-plex-sans": "^5.3.0",
-        "@fontsource/ibm-plex-mono": "^5.3.0",
-        "@modelcontextprotocol/sdk": "1.32.1",
-        "@napi-rs/keyring": "2.1.0",
-        "@noble/hashes": "2.4.0",
-        "@react-navigation/bottom-tabs": "7.21.0",
-        "@react-navigation/native": "7.5.1",
-        "@react-navigation/native-stack": "7.21.0",
-        "@tanstack/react-form": "1.33.5",
-        "@tanstack/react-query": "5.104.1",
-        "@tanstack/react-router": "1.170.41",
-        "@tanstack/react-table": "9.2.6",
         "@ungap/structured-clone": "1.4.0",
         "ai": "7.0.130",
         "bwip-js": "4.11.4",
@@ -192,11 +192,11 @@
       "name": "@tortoise/adapters",
       "version": "0.1.0",
       "dependencies": {
+        "@casl/ability": "7.0.1",
+        "@modelcontextprotocol/sdk": "1.32.1",
         "@tortoise/client": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@casl/ability": "7.0.1",
-        "@modelcontextprotocol/sdk": "1.32.1",
         "zod": "4.6.5",
       },
     },
@@ -204,10 +204,10 @@
       "name": "@tortoise/agents",
       "version": "0.1.0",
       "dependencies": {
-        "@tortoise/contracts": "workspace:*",
         "@ai-sdk/openai": "4.0.86",
         "@anthropic-ai/claude-agent-sdk": "0.3.292",
         "@napi-rs/keyring": "2.1.0",
+        "@tortoise/contracts": "workspace:*",
         "ai": "7.0.130",
         "jose": "6.2.12",
         "zod": "4.6.5",
@@ -217,11 +217,11 @@
       "name": "@tortoise/assignments",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/hashes": "2.4.0",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/integration": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@noble/hashes": "2.4.0",
         "zod": "4.6.5",
       },
       "devDependencies": {
@@ -268,23 +268,23 @@
       "name": "@tortoise/event-log",
       "version": "0.1.0",
       "dependencies": {
-        "@tortoise/contracts": "workspace:*",
         "@noble/hashes": "2.4.0",
+        "@tortoise/contracts": "workspace:*",
       },
     },
     "packages/frame": {
       "name": "@tortoise/frame",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
+        "@tanstack/react-router": "1.170.41",
+        "@tanstack/react-table": "9.2.6",
         "@tortoise/client": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/operator-ui": "workspace:*",
         "@tortoise/react": "workspace:*",
         "@tortoise/shell": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
-        "@tanstack/react-router": "1.170.41",
-        "@tanstack/react-table": "9.2.6",
         "lucide-react": "1.52.0",
       },
       "peerDependencies": {
@@ -299,14 +299,14 @@
       "name": "@tortoise/frame-native",
       "version": "0.1.0",
       "dependencies": {
-        "@tortoise/client": "workspace:*",
-        "@tortoise/contracts": "workspace:*",
-        "@tortoise/react": "workspace:*",
-        "@tortoise/shell": "workspace:*",
         "@react-navigation/bottom-tabs": "7.21.0",
         "@react-navigation/native": "7.5.1",
         "@react-navigation/native-stack": "7.21.0",
         "@tanstack/react-query": "5.104.1",
+        "@tortoise/client": "workspace:*",
+        "@tortoise/contracts": "workspace:*",
+        "@tortoise/react": "workspace:*",
+        "@tortoise/shell": "workspace:*",
         "lucide-react-native": "1.59.0",
         "uniwind": "1.12.2",
       },
@@ -320,6 +320,8 @@
       "name": "@tortoise/host",
       "version": "0.1.0",
       "dependencies": {
+        "@ai-sdk/openai": "4.0.86",
+        "@modelcontextprotocol/sdk": "1.32.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/agents": "workspace:*",
         "@tortoise/client": "workspace:*",
@@ -327,8 +329,6 @@
         "@tortoise/kernel": "workspace:*",
         "@tortoise/react": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@ai-sdk/openai": "4.0.86",
-        "@modelcontextprotocol/sdk": "1.32.1",
       },
       "devDependencies": {
         "@tortoise/testing": "workspace:*",
@@ -338,9 +338,9 @@
       "name": "@tortoise/integration",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/hashes": "2.4.0",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@noble/hashes": "2.4.0",
       },
     },
     "packages/kernel": {
@@ -401,11 +401,11 @@
       "name": "@tortoise/react",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-form": "1.33.5",
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/client": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/devices": "workspace:*",
-        "@tanstack/react-form": "1.33.5",
-        "@tanstack/react-query": "5.104.1",
       },
       "peerDependencies": {
         "react": "19.3.0",
@@ -415,8 +415,8 @@
       "name": "@tortoise/runtime",
       "version": "0.1.0",
       "dependencies": {
-        "@tortoise/contracts": "workspace:*",
         "@noble/hashes": "2.4.0",
+        "@tortoise/contracts": "workspace:*",
       },
     },
     "packages/scaffold": {
@@ -437,12 +437,12 @@
       "name": "@tortoise/testing",
       "version": "0.1.0",
       "dependencies": {
+        "@electric-sql/pglite": "0.5.8",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/agents": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/integration": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@electric-sql/pglite": "0.5.8",
       },
     },
     "plugins/android-intents": {
@@ -459,22 +459,22 @@
       "dependencies": {
         "@tortoise/adapters": "workspace:*",
         "@tortoise/contracts": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/event-log": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/kernel": "workspace:*",
-        "@tortoise/site": "workspace:*",
       },
     },
     "plugins/automation": {
       "name": "@tortoise/automation",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/agents": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -486,16 +486,16 @@
       "name": "@tortoise/compliance",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/audit": "workspace:*",
         "@tortoise/contracts": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/event-log": "workspace:*",
         "@tortoise/frame": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tortoise/site": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -507,6 +507,7 @@
       "name": "@tortoise/connector-driver",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
@@ -516,7 +517,6 @@
         "@tortoise/process": "workspace:*",
         "@tortoise/runtime": "workspace:*",
         "@tortoise/testing": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -565,17 +565,32 @@
         "@tortoise/runtime": "workspace:*",
       },
     },
+    "plugins/deployment": {
+      "name": "@tortoise/deployment",
+      "version": "0.1.0",
+      "dependencies": {
+        "@tortoise/adapters": "workspace:*",
+        "@tortoise/agents": "workspace:*",
+        "@tortoise/bundle": "workspace:*",
+        "@tortoise/contracts": "workspace:*",
+        "@tortoise/host": "workspace:*",
+        "@tortoise/kernel": "workspace:*",
+        "@tortoise/runtime": "workspace:*",
+        "jose": "6.2.12",
+        "zod": "4.6.5",
+      },
+    },
     "plugins/device-link": {
       "name": "@tortoise/device-link",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -606,20 +621,20 @@
       },
       "devDependencies": {
         "@tortoise/audit": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/device-link": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tortoise/site": "workspace:*",
       },
     },
     "plugins/hub-link": {
       "name": "@tortoise/hub-link",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame-native": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react-native": "1.59.0",
         "zod": "4.6.5",
       },
@@ -671,20 +686,20 @@
       "dependencies": {
         "@tortoise/adapters": "workspace:*",
         "@tortoise/contracts": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/host": "workspace:*",
-        "@tortoise/site": "workspace:*",
       },
     },
     "plugins/notifications": {
       "name": "@tortoise/notifications",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/hashes": "2.4.0",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/integration": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/os": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@noble/hashes": "2.4.0",
         "zod": "4.6.5",
       },
     },
@@ -692,11 +707,11 @@
       "name": "@tortoise/os",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/hashes": "2.4.0",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
         "@tortoise/shell": "workspace:*",
-        "@noble/hashes": "2.4.0",
       },
     },
     "plugins/os-shortcuts": {
@@ -711,6 +726,7 @@
       "name": "@tortoise/peer-link",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
@@ -718,7 +734,6 @@
         "@tortoise/integration": "workspace:*",
         "@tortoise/kernel": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -731,8 +746,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@tortoise/contracts": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/host": "workspace:*",
-        "@tortoise/site": "workspace:*",
       },
     },
     "plugins/share-target": {
@@ -744,21 +759,6 @@
         "@tortoise/os": "workspace:*",
         "@tortoise/runtime": "workspace:*",
         "@tortoise/shell": "workspace:*",
-      },
-    },
-    "plugins/site": {
-      "name": "@tortoise/site",
-      "version": "0.1.0",
-      "dependencies": {
-        "@tortoise/adapters": "workspace:*",
-        "@tortoise/agents": "workspace:*",
-        "@tortoise/bundle": "workspace:*",
-        "@tortoise/contracts": "workspace:*",
-        "@tortoise/host": "workspace:*",
-        "@tortoise/kernel": "workspace:*",
-        "@tortoise/runtime": "workspace:*",
-        "jose": "6.2.12",
-        "zod": "4.6.5",
       },
     },
     "plugins/telemetry": {
@@ -773,9 +773,9 @@
       },
       "devDependencies": {
         "@tortoise/agents": "workspace:*",
+        "@tortoise/deployment": "workspace:*",
         "@tortoise/network": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tortoise/site": "workspace:*",
         "zod": "4.6.5",
       },
     },
@@ -783,11 +783,11 @@
       "name": "@tortoise/webhook",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -799,11 +799,11 @@
       "name": "@tortoise/workflows",
       "version": "0.1.0",
       "dependencies": {
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/contracts": "workspace:*",
         "@tortoise/frame": "workspace:*",
         "@tortoise/host": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -871,6 +871,10 @@
       "name": "@tortoise/pattern-base",
       "version": "0.1.0",
     },
+    "showcase/patterns/fleet-agent": {
+      "name": "@tortoise/pattern-fleet-agent",
+      "version": "0.1.0",
+    },
     "showcase/patterns/host-plugin": {
       "name": "@tortoise/pattern-host-plugin",
       "version": "0.1.0",
@@ -903,10 +907,6 @@
       "name": "@tortoise/pattern-signals",
       "version": "0.1.0",
     },
-    "showcase/patterns/site": {
-      "name": "@tortoise/pattern-site",
-      "version": "0.1.0",
-    },
     "showcase/patterns/system-of-record": {
       "name": "@tortoise/pattern-system-of-record",
       "version": "0.1.0",
@@ -930,6 +930,8 @@
       "name": "@tortoise/workstation-sign-in",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/hashes": "2.4.0",
+        "@tanstack/react-query": "5.104.1",
         "@tortoise/adapters": "workspace:*",
         "@tortoise/client": "workspace:*",
         "@tortoise/contracts": "workspace:*",
@@ -937,8 +939,6 @@
         "@tortoise/kernel": "workspace:*",
         "@tortoise/react": "workspace:*",
         "@tortoise/runtime": "workspace:*",
-        "@noble/hashes": "2.4.0",
-        "@tanstack/react-query": "5.104.1",
         "lucide-react": "1.52.0",
         "zod": "4.6.5",
       },
@@ -952,168 +952,6 @@
   ],
   "packages": {
     "2g": ["2g@1.0.1", "https://registry.yarnpkg.com/2g/-/2g-1.0.1.tgz", { "peerDependencies": { "typescript": ">=5.8.0" }, "optionalPeers": ["typescript"], "bin": { "2g": "bin/cli.js" } }, "sha512-+uViadKOS/wwR4pFu5g8TPn3QHpKqoX19JHCnp8k/3cLpImdcXozwvZA6Q/5PeW3AcU8neL8faaMidBcv7o8CA=="],
-
-    "@tortoise/adapters": ["@tortoise/adapters@workspace:packages/adapters"],
-
-    "@tortoise/agents": ["@tortoise/agents@workspace:packages/agents"],
-
-    "@tortoise/android-intents": ["@tortoise/android-intents@workspace:plugins/android-intents"],
-
-    "@tortoise/asset-survey": ["@tortoise/asset-survey@workspace:showcase/examples/asset-survey"],
-
-    "@tortoise/asset-survey-field": ["@tortoise/asset-survey-field@workspace:showcase/examples/asset-survey-field"],
-
-    "@tortoise/assignments": ["@tortoise/assignments@workspace:packages/assignments"],
-
-    "@tortoise/audit": ["@tortoise/audit@workspace:plugins/audit"],
-
-    "@tortoise/automation": ["@tortoise/automation@workspace:plugins/automation"],
-
-    "@tortoise/bundle": ["@tortoise/bundle@workspace:packages/bundle"],
-
-    "@tortoise/client": ["@tortoise/client@workspace:packages/client"],
-
-    "@tortoise/compliance": ["@tortoise/compliance@workspace:plugins/compliance"],
-
-    "@tortoise/connector-driver": ["@tortoise/connector-driver@workspace:plugins/connector-driver"],
-
-    "@tortoise/connector-files": ["@tortoise/connector-files@workspace:plugins/connector-files"],
-
-    "@tortoise/connector-http": ["@tortoise/connector-http@workspace:plugins/connector-http"],
-
-    "@tortoise/connector-mqtt": ["@tortoise/connector-mqtt@workspace:plugins/connector-mqtt"],
-
-    "@tortoise/connector-opcua": ["@tortoise/connector-opcua@workspace:plugins/connector-opcua"],
-
-    "@tortoise/contracts": ["@tortoise/contracts@workspace:packages/contracts"],
-
-    "@tortoise/crm-capture": ["@tortoise/crm-capture@workspace:showcase/examples/crm-capture"],
-
-    "@tortoise/desktop": ["@tortoise/desktop@workspace:apps/desktop"],
-
-    "@tortoise/device-link": ["@tortoise/device-link@workspace:plugins/device-link"],
-
-    "@tortoise/devices": ["@tortoise/devices@workspace:packages/devices"],
-
-    "@tortoise/docs-site": ["@tortoise/docs-site@workspace:docs/site"],
-
-    "@tortoise/driver-sdk-dotnet": ["@tortoise/driver-sdk-dotnet@workspace:sdks/driver-dotnet"],
-
-    "@tortoise/driver-sdk-python": ["@tortoise/driver-sdk-python@workspace:sdks/driver-python"],
-
-    "@tortoise/event-log": ["@tortoise/event-log@workspace:packages/event-log"],
-
-    "@tortoise/execution-host": ["@tortoise/execution-host@workspace:plugins/execution-host"],
-
-    "@tortoise/field-service": ["@tortoise/field-service@workspace:showcase/examples/field-service"],
-
-    "@tortoise/fleet": ["@tortoise/fleet@workspace:showcase/examples/fleet"],
-
-    "@tortoise/fleet-agent": ["@tortoise/fleet-agent@workspace:plugins/fleet-agent"],
-
-    "@tortoise/frame": ["@tortoise/frame@workspace:packages/frame"],
-
-    "@tortoise/frame-native": ["@tortoise/frame-native@workspace:packages/frame-native"],
-
-    "@tortoise/host": ["@tortoise/host@workspace:packages/host"],
-
-    "@tortoise/hub-link": ["@tortoise/hub-link@workspace:plugins/hub-link"],
-
-    "@tortoise/integration": ["@tortoise/integration@workspace:packages/integration"],
-
-    "@tortoise/intent-scanner": ["@tortoise/intent-scanner@workspace:plugins/intent-scanner"],
-
-    "@tortoise/kernel": ["@tortoise/kernel@workspace:packages/kernel"],
-
-    "@tortoise/managed-config": ["@tortoise/managed-config@workspace:plugins/managed-config"],
-
-    "@tortoise/mobile": ["@tortoise/mobile@workspace:packages/mobile"],
-
-    "@tortoise/mobile-shell": ["@tortoise/mobile-shell@workspace:apps/mobile"],
-
-    "@tortoise/model-server": ["@tortoise/model-server@workspace:plugins/model-server"],
-
-    "@tortoise/network": ["@tortoise/network@workspace:plugins/network"],
-
-    "@tortoise/notifications": ["@tortoise/notifications@workspace:plugins/notifications"],
-
-    "@tortoise/observation": ["@tortoise/observation@workspace:packages/observation"],
-
-    "@tortoise/operator-ui": ["@tortoise/operator-ui@workspace:packages/operator-ui"],
-
-    "@tortoise/os": ["@tortoise/os@workspace:plugins/os"],
-
-    "@tortoise/os-shortcuts": ["@tortoise/os-shortcuts@workspace:plugins/os-shortcuts"],
-
-    "@tortoise/parts-desk": ["@tortoise/parts-desk@workspace:showcase/examples/parts-desk"],
-
-    "@tortoise/pattern-agents": ["@tortoise/pattern-agents@workspace:showcase/patterns/agents"],
-
-    "@tortoise/pattern-assignments": ["@tortoise/pattern-assignments@workspace:showcase/patterns/assignments"],
-
-    "@tortoise/pattern-base": ["@tortoise/pattern-base@workspace:showcase/patterns/base"],
-
-    "@tortoise/pattern-host-plugin": ["@tortoise/pattern-host-plugin@workspace:showcase/patterns/host-plugin"],
-
-    "@tortoise/pattern-hosted": ["@tortoise/pattern-hosted@workspace:showcase/patterns/hosted"],
-
-    "@tortoise/pattern-local-model": ["@tortoise/pattern-local-model@workspace:showcase/patterns/local-model"],
-
-    "@tortoise/pattern-operations": ["@tortoise/pattern-operations@workspace:showcase/patterns/operations"],
-
-    "@tortoise/pattern-review": ["@tortoise/pattern-review@workspace:showcase/patterns/review"],
-
-    "@tortoise/pattern-sandbox": ["@tortoise/pattern-sandbox@workspace:showcase/patterns/sandbox"],
-
-    "@tortoise/pattern-sign-in": ["@tortoise/pattern-sign-in@workspace:showcase/patterns/sign-in"],
-
-    "@tortoise/pattern-signals": ["@tortoise/pattern-signals@workspace:showcase/patterns/signals"],
-
-    "@tortoise/pattern-site": ["@tortoise/pattern-site@workspace:showcase/patterns/site"],
-
-    "@tortoise/pattern-system-of-record": ["@tortoise/pattern-system-of-record@workspace:showcase/patterns/system-of-record"],
-
-    "@tortoise/pattern-worklist": ["@tortoise/pattern-worklist@workspace:showcase/patterns/worklist"],
-
-    "@tortoise/peer-link": ["@tortoise/peer-link@workspace:plugins/peer-link"],
-
-    "@tortoise/process": ["@tortoise/process@workspace:plugins/process"],
-
-    "@tortoise/quality-inspection": ["@tortoise/quality-inspection@workspace:showcase/examples/quality-inspection"],
-
-    "@tortoise/react": ["@tortoise/react@workspace:packages/react"],
-
-    "@tortoise/receiving": ["@tortoise/receiving@workspace:showcase/examples/receiving"],
-
-    "@tortoise/runtime": ["@tortoise/runtime@workspace:packages/runtime"],
-
-    "@tortoise/scaffold": ["@tortoise/scaffold@workspace:packages/scaffold"],
-
-    "@tortoise/screen-bridge": ["@tortoise/screen-bridge@workspace:workstations/screen-bridge"],
-
-    "@tortoise/service": ["@tortoise/service@workspace:apps/service"],
-
-    "@tortoise/share-target": ["@tortoise/share-target@workspace:plugins/share-target"],
-
-    "@tortoise/shell": ["@tortoise/shell@workspace:packages/shell"],
-
-    "@tortoise/site": ["@tortoise/site@workspace:plugins/site"],
-
-    "@tortoise/telemetry": ["@tortoise/telemetry@workspace:plugins/telemetry"],
-
-    "@tortoise/testing": ["@tortoise/testing@workspace:packages/testing"],
-
-    "@tortoise/tool-store": ["@tortoise/tool-store@workspace:showcase/examples/tool-store"],
-
-    "@tortoise/web": ["@tortoise/web@workspace:apps/web"],
-
-    "@tortoise/webhook": ["@tortoise/webhook@workspace:plugins/webhook"],
-
-    "@tortoise/winding-line": ["@tortoise/winding-line@workspace:showcase/examples/winding-line"],
-
-    "@tortoise/workflows": ["@tortoise/workflows@workspace:plugins/workflows"],
-
-    "@tortoise/workstation-sign-in": ["@tortoise/workstation-sign-in@workspace:workstations/sign-in"],
 
     "@ai-sdk/gateway": ["@ai-sdk/gateway@4.0.106", "https://registry.yarnpkg.com/@ai-sdk/gateway/-/gateway-4.0.106.tgz", { "dependencies": { "@ai-sdk/provider": "4.0.24", "@ai-sdk/provider-utils": "5.0.56", "@vercel/oidc": "3.2.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-NprSdFzyVnbEp2SDWtIgsCFIUHFCehOD9S6FQkF/dLrCmnke8w4SOK3KcmUUiEbwtVzlUF8prkaELp+ohcQaQw=="],
 
@@ -1952,6 +1790,168 @@
     "@tanstack/store": ["@tanstack/store@0.11.2", "https://registry.yarnpkg.com/@tanstack/store/-/store-0.11.2.tgz", {}, "sha512-sJ4mjol8uQsHV0gOJzzjwXfh2Fwm+Sz0+8deqiTm4jGbMdjzNSW+xZCFm0kUa870uhd8yi+DpKnZb5Kc4apa0Q=="],
 
     "@tanstack/table-core": ["@tanstack/table-core@9.2.6", "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-9.2.6.tgz", { "dependencies": { "@tanstack/store": "^0.11.2" } }, "sha512-t5LaLx8gDCgzjvwtZo5xtLklJP11D9zaKOW8q6jOCyuQYhkqpTK1heqMfgTQwDlhl0dU8f1X66Xurbj3jpCUSw=="],
+
+    "@tortoise/adapters": ["@tortoise/adapters@workspace:packages/adapters"],
+
+    "@tortoise/agents": ["@tortoise/agents@workspace:packages/agents"],
+
+    "@tortoise/android-intents": ["@tortoise/android-intents@workspace:plugins/android-intents"],
+
+    "@tortoise/asset-survey": ["@tortoise/asset-survey@workspace:showcase/examples/asset-survey"],
+
+    "@tortoise/asset-survey-field": ["@tortoise/asset-survey-field@workspace:showcase/examples/asset-survey-field"],
+
+    "@tortoise/assignments": ["@tortoise/assignments@workspace:packages/assignments"],
+
+    "@tortoise/audit": ["@tortoise/audit@workspace:plugins/audit"],
+
+    "@tortoise/automation": ["@tortoise/automation@workspace:plugins/automation"],
+
+    "@tortoise/bundle": ["@tortoise/bundle@workspace:packages/bundle"],
+
+    "@tortoise/client": ["@tortoise/client@workspace:packages/client"],
+
+    "@tortoise/compliance": ["@tortoise/compliance@workspace:plugins/compliance"],
+
+    "@tortoise/connector-driver": ["@tortoise/connector-driver@workspace:plugins/connector-driver"],
+
+    "@tortoise/connector-files": ["@tortoise/connector-files@workspace:plugins/connector-files"],
+
+    "@tortoise/connector-http": ["@tortoise/connector-http@workspace:plugins/connector-http"],
+
+    "@tortoise/connector-mqtt": ["@tortoise/connector-mqtt@workspace:plugins/connector-mqtt"],
+
+    "@tortoise/connector-opcua": ["@tortoise/connector-opcua@workspace:plugins/connector-opcua"],
+
+    "@tortoise/contracts": ["@tortoise/contracts@workspace:packages/contracts"],
+
+    "@tortoise/crm-capture": ["@tortoise/crm-capture@workspace:showcase/examples/crm-capture"],
+
+    "@tortoise/deployment": ["@tortoise/deployment@workspace:plugins/deployment"],
+
+    "@tortoise/desktop": ["@tortoise/desktop@workspace:apps/desktop"],
+
+    "@tortoise/device-link": ["@tortoise/device-link@workspace:plugins/device-link"],
+
+    "@tortoise/devices": ["@tortoise/devices@workspace:packages/devices"],
+
+    "@tortoise/docs-site": ["@tortoise/docs-site@workspace:docs/site"],
+
+    "@tortoise/driver-sdk-dotnet": ["@tortoise/driver-sdk-dotnet@workspace:sdks/driver-dotnet"],
+
+    "@tortoise/driver-sdk-python": ["@tortoise/driver-sdk-python@workspace:sdks/driver-python"],
+
+    "@tortoise/event-log": ["@tortoise/event-log@workspace:packages/event-log"],
+
+    "@tortoise/execution-host": ["@tortoise/execution-host@workspace:plugins/execution-host"],
+
+    "@tortoise/field-service": ["@tortoise/field-service@workspace:showcase/examples/field-service"],
+
+    "@tortoise/fleet": ["@tortoise/fleet@workspace:showcase/examples/fleet"],
+
+    "@tortoise/fleet-agent": ["@tortoise/fleet-agent@workspace:plugins/fleet-agent"],
+
+    "@tortoise/frame": ["@tortoise/frame@workspace:packages/frame"],
+
+    "@tortoise/frame-native": ["@tortoise/frame-native@workspace:packages/frame-native"],
+
+    "@tortoise/host": ["@tortoise/host@workspace:packages/host"],
+
+    "@tortoise/hub-link": ["@tortoise/hub-link@workspace:plugins/hub-link"],
+
+    "@tortoise/integration": ["@tortoise/integration@workspace:packages/integration"],
+
+    "@tortoise/intent-scanner": ["@tortoise/intent-scanner@workspace:plugins/intent-scanner"],
+
+    "@tortoise/kernel": ["@tortoise/kernel@workspace:packages/kernel"],
+
+    "@tortoise/managed-config": ["@tortoise/managed-config@workspace:plugins/managed-config"],
+
+    "@tortoise/mobile": ["@tortoise/mobile@workspace:packages/mobile"],
+
+    "@tortoise/mobile-shell": ["@tortoise/mobile-shell@workspace:apps/mobile"],
+
+    "@tortoise/model-server": ["@tortoise/model-server@workspace:plugins/model-server"],
+
+    "@tortoise/network": ["@tortoise/network@workspace:plugins/network"],
+
+    "@tortoise/notifications": ["@tortoise/notifications@workspace:plugins/notifications"],
+
+    "@tortoise/observation": ["@tortoise/observation@workspace:packages/observation"],
+
+    "@tortoise/operator-ui": ["@tortoise/operator-ui@workspace:packages/operator-ui"],
+
+    "@tortoise/os": ["@tortoise/os@workspace:plugins/os"],
+
+    "@tortoise/os-shortcuts": ["@tortoise/os-shortcuts@workspace:plugins/os-shortcuts"],
+
+    "@tortoise/parts-desk": ["@tortoise/parts-desk@workspace:showcase/examples/parts-desk"],
+
+    "@tortoise/pattern-agents": ["@tortoise/pattern-agents@workspace:showcase/patterns/agents"],
+
+    "@tortoise/pattern-assignments": ["@tortoise/pattern-assignments@workspace:showcase/patterns/assignments"],
+
+    "@tortoise/pattern-base": ["@tortoise/pattern-base@workspace:showcase/patterns/base"],
+
+    "@tortoise/pattern-fleet-agent": ["@tortoise/pattern-fleet-agent@workspace:showcase/patterns/fleet-agent"],
+
+    "@tortoise/pattern-host-plugin": ["@tortoise/pattern-host-plugin@workspace:showcase/patterns/host-plugin"],
+
+    "@tortoise/pattern-hosted": ["@tortoise/pattern-hosted@workspace:showcase/patterns/hosted"],
+
+    "@tortoise/pattern-local-model": ["@tortoise/pattern-local-model@workspace:showcase/patterns/local-model"],
+
+    "@tortoise/pattern-operations": ["@tortoise/pattern-operations@workspace:showcase/patterns/operations"],
+
+    "@tortoise/pattern-review": ["@tortoise/pattern-review@workspace:showcase/patterns/review"],
+
+    "@tortoise/pattern-sandbox": ["@tortoise/pattern-sandbox@workspace:showcase/patterns/sandbox"],
+
+    "@tortoise/pattern-sign-in": ["@tortoise/pattern-sign-in@workspace:showcase/patterns/sign-in"],
+
+    "@tortoise/pattern-signals": ["@tortoise/pattern-signals@workspace:showcase/patterns/signals"],
+
+    "@tortoise/pattern-system-of-record": ["@tortoise/pattern-system-of-record@workspace:showcase/patterns/system-of-record"],
+
+    "@tortoise/pattern-worklist": ["@tortoise/pattern-worklist@workspace:showcase/patterns/worklist"],
+
+    "@tortoise/peer-link": ["@tortoise/peer-link@workspace:plugins/peer-link"],
+
+    "@tortoise/process": ["@tortoise/process@workspace:plugins/process"],
+
+    "@tortoise/quality-inspection": ["@tortoise/quality-inspection@workspace:showcase/examples/quality-inspection"],
+
+    "@tortoise/react": ["@tortoise/react@workspace:packages/react"],
+
+    "@tortoise/receiving": ["@tortoise/receiving@workspace:showcase/examples/receiving"],
+
+    "@tortoise/runtime": ["@tortoise/runtime@workspace:packages/runtime"],
+
+    "@tortoise/scaffold": ["@tortoise/scaffold@workspace:packages/scaffold"],
+
+    "@tortoise/screen-bridge": ["@tortoise/screen-bridge@workspace:workstations/screen-bridge"],
+
+    "@tortoise/service": ["@tortoise/service@workspace:apps/service"],
+
+    "@tortoise/share-target": ["@tortoise/share-target@workspace:plugins/share-target"],
+
+    "@tortoise/shell": ["@tortoise/shell@workspace:packages/shell"],
+
+    "@tortoise/telemetry": ["@tortoise/telemetry@workspace:plugins/telemetry"],
+
+    "@tortoise/testing": ["@tortoise/testing@workspace:packages/testing"],
+
+    "@tortoise/tool-store": ["@tortoise/tool-store@workspace:showcase/examples/tool-store"],
+
+    "@tortoise/web": ["@tortoise/web@workspace:apps/web"],
+
+    "@tortoise/webhook": ["@tortoise/webhook@workspace:plugins/webhook"],
+
+    "@tortoise/winding-line": ["@tortoise/winding-line@workspace:showcase/examples/winding-line"],
+
+    "@tortoise/workflows": ["@tortoise/workflows@workspace:plugins/workflows"],
+
+    "@tortoise/workstation-sign-in": ["@tortoise/workstation-sign-in@workspace:workstations/sign-in"],
 
     "@ts-morph/common": ["@ts-morph/common@0.27.0", "https://registry.yarnpkg.com/@ts-morph/common/-/common-0.27.0.tgz", { "dependencies": { "fast-glob": "^3.3.3", "minimatch": "^10.0.1", "path-browserify": "^1.0.1" } }, "sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ=="],
 

@@ -83,8 +83,8 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   );
   // The web build of the hosted application (`bun run build:web`).
   await cp(resolve(root, 'dist/web', id), resolve(resources, 'web'), { recursive: true });
-  const sitePolicy = resolve(resources, 'site-policy.json');
-  await cp(resolve(root, 'apps/desktop/site-policy.json'), sitePolicy);
+  const deploymentPolicy = resolve(resources, 'deployment-policy.json');
+  await cp(resolve(root, 'apps/desktop/deployment-policy.json'), deploymentPolicy);
   const runtime = async (name: 'codex' | 'claude', executable: string) => ({
     executable: rel(executable),
     version: runtimeVersions[name],
@@ -99,7 +99,7 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
     target,
     service: { executable: rel(service), sha256: await sha256(service) },
     webRoot: 'web',
-    sitePolicy: { path: rel(sitePolicy), sha256: await sha256(sitePolicy) },
+    deploymentPolicy: { path: rel(deploymentPolicy), sha256: await sha256(deploymentPolicy) },
     runtimes: { codex: await runtime('codex', codex), claude: await runtime('claude', claude) },
   };
   await writeFile(

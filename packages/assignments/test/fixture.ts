@@ -70,7 +70,7 @@ export const checker = defineHostComponent({
         id: 'checker-api',
         purpose: 'Offer notes for review and read the verdicts.',
         direction: 'egress',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         targets: ['assignment-checker'],
         dataClasses: ['note'],

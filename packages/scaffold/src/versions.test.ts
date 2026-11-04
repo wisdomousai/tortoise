@@ -34,7 +34,7 @@ test('a nested copy at another version is refused, wherever the installer put it
     'node_modules/@tortoise/kernel': { version: '0.2.0' },
     'node_modules/@tortoise/host': { version: '0.1.0' },
     'node_modules/@tortoise/host/node_modules/@tortoise/kernel': { version: '0.1.0' },
-    'node_modules/.bun/@tortoise+site@0.3.0/node_modules/@tortoise/site': {
+    'node_modules/.bun/@tortoise+deployment@0.3.0/node_modules/@tortoise/deployment': {
       version: '0.3.0',
     },
   });
@@ -42,7 +42,7 @@ test('a nested copy at another version is refused, wherever the installer put it
   expect(installed.versions).toEqual({
     '0.1.0': ['@tortoise/host', '@tortoise/kernel'],
     '0.2.0': ['@tortoise/kernel'],
-    '0.3.0': ['@tortoise/site'],
+    '0.3.0': ['@tortoise/deployment'],
   });
   expect(installed.problem).toContain('Mixed framework versions installed');
 });

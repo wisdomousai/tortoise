@@ -6,13 +6,13 @@ import { AUDIT_INVALID_EXIT_CODE } from '@tortoise/audit/cli';
 import { readEvents, verifyEventLog } from '@tortoise/event-log';
 import type { ApplicationManifest } from '@tortoise/host/manifest';
 import type { PluginCommand } from '@tortoise/host/plugin';
-import { sitePolicyFor } from '@tortoise/site/policy-file';
+import { deploymentPolicyFor } from '@tortoise/deployment/policy-file';
 import { accumulateEgress, assessPosture, postureMarkdown } from './posture';
 
 export const complianceUsage = (
   program: string,
 ) => `Compliance (offline; no instance or workspace needed):
-  ${program} compliance report --log dir [--site file] [--format markdown|json] [--out file]
+  ${program} compliance report --log dir [--policy file] [--format markdown|json] [--out file]
       posture, destinations and recent denials from a log (exit ${AUDIT_INVALID_EXIT_CODE} if failing)
 `;
 
@@ -30,7 +30,7 @@ function attestedDigests(data: Readonly<Record<string, unknown>>) {
 
 async function complianceReport(manifest: ApplicationManifest, args: string[]) {
   const log = takeFlag(args, 'log');
-  const site = takeFlag(args, 'site');
+  const file = takeFlag(args, 'policy');
   const format = takeFlag(args, 'format') ?? 'markdown';
   const out = takeFlag(args, 'out');
   if (args.length) throw usage(`Unexpected argument "${args[0]}"`);
@@ -38,7 +38,7 @@ async function complianceReport(manifest: ApplicationManifest, args: string[]) {
   if (format !== 'markdown' && format !== 'json') throw usage('--format must be markdown or json');
   const directory = resolve(log);
   const [policy, verification, events] = await Promise.all([
-    sitePolicyFor(manifest, site),
+    deploymentPolicyFor(manifest, file),
     verifyEventLog(directory),
     readEvents(directory),
   ]);

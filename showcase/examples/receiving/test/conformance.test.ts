@@ -11,14 +11,14 @@ import { createReceivingApplication } from '../application';
 
 test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same delivery list', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'receiving-conformance-'));
-  // The ERP's notice export reaches the host through the inbox folder the site policy binds.
+  // The ERP's notice export reaches the host through the inbox folder the deployment policy binds.
   const inbox = join(directory, 'asn');
   await mkdir(inbox);
   await writeFile(
     join(inbox, 'asn-1.csv'),
     'id,purchaseOrder,supplier,sku,description,expected\nASN-1-1,PO-1,Acme,M8,Bolt,10\n',
   );
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -30,7 +30,7 @@ test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same 
   const host = await startHost(createReceivingApplication({ quietMs: 0 }), {
     workspacePath: join(directory, 'workspace'),
     integration: false,
-    settings: { 'site-policy': policy },
+    settings: { 'deployment-policy': policy },
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const owner = createHttpTransport({ baseUrl: host.url, token });

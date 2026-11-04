@@ -70,9 +70,17 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
     expect(report.exitCode).toBe(0);
     expect(JSON.parse(report.stdout).posture.log.verified).toBe(true);
 
-    const sample = join(import.meta.dir, '..', 'site-policy.sandbox.json');
-    expect((await cli(directory, 'site', 'check', '--site', sample)).exitCode).toBe(0);
-    const unit = await cli(directory, 'network', 'export', '--site', sample, '--format', 'systemd');
+    const sample = join(import.meta.dir, '..', 'deployment-policy.sandbox.json');
+    expect((await cli(directory, 'policy', 'check', '--policy', sample)).exitCode).toBe(0);
+    const unit = await cli(
+      directory,
+      'network',
+      'export',
+      '--policy',
+      sample,
+      '--format',
+      'systemd',
+    );
     expect(unit.stdout).toContain('IPAddressAllow=10.20.0.21/32');
     const zeroTrust = join(directory, 'zero-trust.json');
     await writeFile(zeroTrust, JSON.stringify({ profile: 'zero-trust' }));
@@ -80,7 +88,7 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
       directory,
       'network',
       'export',
-      '--site',
+      '--policy',
       zeroTrust,
       '--format',
       'json',

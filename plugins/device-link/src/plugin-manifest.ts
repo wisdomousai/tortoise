@@ -4,7 +4,7 @@ import { deviceLinkModule } from './contracts';
 /**
  * The hub side of device pairing: devices exchange a one-use enrollment code for their own
  * credential, and every request that presents it acts as that device. It runs on a serving Bun
- * host; devices reach it through the host's listener, which a site policy opens to the network
+ * host; devices reach it through the host's listener, which a deployment policy opens to the network
  * (`ingress.listen: 'tls'`) or which `adb reverse` forwards to an emulator.
  */
 export const deviceLinkPluginManifest = definePluginManifest({

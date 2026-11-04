@@ -64,7 +64,7 @@ function fixture() {
               id: 'systems',
               purpose: 'Test systems of record',
               direction: 'egress',
-              scope: 'site',
+              scope: 'local',
               protocol: 'https',
               targets: ['hmi', 'erp'],
               dataClasses: ['test-record'],

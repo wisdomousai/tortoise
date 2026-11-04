@@ -11,14 +11,14 @@ import {
   type AuditRecord,
   type ProcessRequirement,
 } from '@tortoise/contracts';
-import { resolveSitePolicy } from '@tortoise/site/policy';
+import { resolveDeploymentPolicy } from '@tortoise/deployment/policy';
 import { defineApplication } from '@tortoise/host/application';
 import { defineManifest } from '@tortoise/host/manifest';
 import { bunProcesses, defineHostPlugin } from '@tortoise/host/plugin';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { openPlugins } from '@tortoise/host/plugins/lifecycle';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { processPlugin } from '../src/plugin';
 import { processPluginManifest } from '../src/plugin-manifest';
 
@@ -64,12 +64,12 @@ const definition = defineApplication({
     title: 'Drivers',
     modules: [],
     components: [component],
-    plugins: [sitePluginManifest, processPluginManifest, recorderManifest],
+    plugins: [deploymentPluginManifest, processPluginManifest, recorderManifest],
   }),
   createState: () => ({}),
   handlers: [],
   authorization: { authorize: () => ({ allowed: false }), canReadEvent: () => false },
-  plugins: [sitePlugin, processPlugin, recorder],
+  plugins: [deploymentPlugin, processPlugin, recorder],
 });
 
 const directory = await mkdtemp(join(tmpdir(), 'process-plugin-'));
@@ -86,7 +86,7 @@ async function open(processes: Record<string, unknown>) {
     component: 'host',
     instance: 'test',
     serving: true,
-    settings: { 'site-policy': path },
+    settings: { 'deployment-policy': path },
   });
 }
 const bun = { executable: process.execPath, args: [fixture] };
@@ -97,9 +97,9 @@ async function firstLine(stream: NodeJS.ReadableStream) {
   throw new Error('The child printed nothing');
 }
 
-describe('site policy process bindings', () => {
+describe('deployment policy process bindings', () => {
   test('bindings are checked against declarations and the plugin-owned variables', () => {
-    const resolved = resolveSitePolicy(
+    const resolved = resolveDeploymentPolicy(
       {
         processes: {
           echo: { executable: 'bun', cwd: 'relative' },
@@ -162,7 +162,7 @@ describe('process plugin', () => {
     );
     expect(opened.ports.processes.availability('off')).toMatchObject({
       available: false,
-      reason: expect.stringContaining('disabled by the site policy'),
+      reason: expect.stringContaining('disabled by the deployment policy'),
     });
     expect(opened.ports.processes.availability('unbound')).toMatchObject({ available: false });
     await expect(spawn('unbound')).rejects.toMatchObject({ code: 'UNAVAILABLE' });

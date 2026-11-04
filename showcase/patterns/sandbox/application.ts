@@ -3,7 +3,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { createExecutionHostPlugin } from '@tortoise/execution-host/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { processPlugin } from '@tortoise/process/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -49,7 +49,7 @@ export function createTestRequestsSandboxApplication(options: TestRequestsSandbo
     ]),
     ...(options.services ? { services: options.services } : {}),
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       processPlugin,
       createExecutionHostPlugin({ tools: { bun: process.execPath } }),

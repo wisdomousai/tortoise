@@ -2,7 +2,7 @@
   "name": "@tortoise/fleet-agent",
   "version": "0.1.0",
   "type": "module",
-  "description": "The site side of a fleet: outbound health reports, audit forwarding, verified release staging and an optional remote-access relay that grants no access.",
+  "description": "The instance side of a fleet: outbound health reports, audit forwarding, verified release staging and an optional remote-access relay that grants no access.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
     "@tortoise/audit": "workspace:*",
     "@tortoise/device-link": "workspace:*",
     "@tortoise/runtime": "workspace:*",
-    "@tortoise/site": "workspace:*"
+    "@tortoise/deployment": "workspace:*"
   },
   "dependencies": {
     "@tortoise/bundle": "workspace:*",

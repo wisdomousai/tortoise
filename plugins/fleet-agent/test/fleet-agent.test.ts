@@ -13,10 +13,10 @@ import {
 import type { BlobRef } from '@tortoise/contracts';
 import { startHost } from '@tortoise/host/host';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
-import type { FleetRelease, RelayResponse, SiteReport } from '../src/contracts';
+import type { FleetRelease, RelayResponse, InstanceReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
 import { fleetNetworkFixture } from '../src/testing';
-import { fleetApplication, siteApplication } from './fixtures';
+import { fleetApplication, instanceApplication } from './fixtures';
 
 const cleanups: (() => Promise<void> | void)[] = [];
 afterEach(async () => {
@@ -32,10 +32,10 @@ async function temporary(prefix: string) {
 }
 
 interface FleetView {
-  sites: Record<
+  instances: Record<
     string,
     {
-      report?: SiteReport;
+      report?: InstanceReport;
       auditSeq: number;
       events: string[];
       responses: Record<string, RelayResponse>;
@@ -69,15 +69,15 @@ async function startFleet() {
 }
 
 /**
- * A site whose `fleet` destination reaches `fleetUrl` unless `link.offline` is set, as an
+ * An instance whose `fleet` destination reaches `fleetUrl` unless `link.offline` is set, as an
  * unplugged uplink would. With `link.corrupt`, blob downloads come back with one byte changed;
  * `link.drop` loses the fleet's response to the next request to that path, after the fleet handled it. `trust` and `relay` are the agent's settings; `workspace` puts the workspace where an install keeps it.
  */
-async function startSite(
+async function startInstance(
   fleetUrl: string,
   settings: { code?: string; trust?: string; relay?: boolean; workspace?: string } = {},
 ) {
-  const directory = await temporary('site-');
+  const directory = await temporary('instance-');
   const releases = join(directory, 'releases');
   await mkdir(releases);
   const policy = {
@@ -85,7 +85,7 @@ async function startSite(
     audit: { mode: 'best-effort' },
     folders: { 'fleet-releases': { path: releases } },
   };
-  await writeFile(join(directory, 'site-policy.json'), JSON.stringify(policy));
+  await writeFile(join(directory, 'deployment-policy.json'), JSON.stringify(policy));
   const link: { offline: boolean; corrupt: boolean; drop?: string } = {
     offline: false,
     corrupt: false,
@@ -102,34 +102,41 @@ async function startSite(
     bytes[0] = bytes[0]! ^ 1;
     return new Response(bytes, { status: response.status, headers: response.headers });
   });
-  const site = await startHost(siteApplication(network), {
+  const instance = await startHost(instanceApplication(network), {
     workspacePath: settings.workspace ?? join(directory, 'workspace'),
     integration: false,
     settings: {
-      'site-policy': join(directory, 'site-policy.json'),
+      'deployment-policy': join(directory, 'deployment-policy.json'),
       ...(settings.code ? { 'fleet-enrollment-code': settings.code } : {}),
       ...(settings.trust ? { 'fleet-trust': settings.trust } : {}),
       ...(settings.relay ? { 'fleet-relay': 'on' } : {}),
     },
   });
-  cleanups.push(() => site.close());
-  const agent = site.services['fleet-agent'] as FleetAgentService;
+  cleanups.push(() => instance.close());
+  const agent = instance.services['fleet-agent'] as FleetAgentService;
   const addNote = (text: string) =>
-    site.application.invokeRaw(
+    instance.application.invokeRaw(
       { operation: 'notes.add', input: { text }, idempotencyKey: crypto.randomUUID() },
       owner,
     );
-  return { site, agent, link, releases, addNote, policy: join(directory, 'site-policy.json') };
+  return {
+    instance,
+    agent,
+    link,
+    releases,
+    addNote,
+    policy: join(directory, 'deployment-policy.json'),
+  };
 }
 
-const onlySite = (view: FleetView) => {
-  const [entry] = Object.values(view.sites);
+const onlyInstance = (view: FleetView) => {
+  const [entry] = Object.values(view.instances);
   return entry!;
 };
 
-test('a site enrolls once and reports its outbox by target, never the payloads', async () => {
+test('an instance enrolls once and reports its outbox by target, never the payloads', async () => {
   const { fleet, view, code } = await startFleet();
-  const { agent, addNote } = await startSite(fleet.url, { code: await code() });
+  const { agent, addNote } = await startInstance(fleet.url, { code: await code() });
   await addNote('first');
   await addNote('second');
   await agent.sync();
@@ -137,7 +144,7 @@ test('a site enrolls once and reports its outbox by target, never the payloads',
   expect(agent.status().enrolled).toBe(true);
   expect(agent.status().lastError).toBeUndefined();
   const reports = agent.status().reports;
-  const report = onlySite(await view()).report!;
+  const report = onlyInstance(await view()).report!;
   expect(report.application).toBe('plant');
   expect(report.outbox).toEqual({
     pending: 2,
@@ -146,15 +153,15 @@ test('a site enrolls once and reports its outbox by target, never the payloads',
     targets: [{ target: 'erp', pending: 2, held: 0, acknowledged: 0 }],
   });
   expect(JSON.stringify(report)).not.toContain('first');
-  // The one-use code is spent; the stored credential keeps the site enrolled.
+  // The one-use code is spent; the stored credential keeps the instance enrolled.
   await agent.sync();
   expect(agent.status().reports).toBe(reports + 1);
-  expect(Object.keys((await view()).sites)).toHaveLength(1);
+  expect(Object.keys((await view()).instances)).toHaveLength(1);
 });
 
-test('without an enrollment code the site runs and says why it is not reporting', async () => {
+test('without an enrollment code the instance runs and says why it is not reporting', async () => {
   const { fleet } = await startFleet();
-  const { agent, addNote } = await startSite(fleet.url);
+  const { agent, addNote } = await startInstance(fleet.url);
   await addNote('local');
   await agent.sync();
   expect(agent.status()).toMatchObject({ enrolled: false, reports: 0 });
@@ -163,10 +170,10 @@ test('without an enrollment code the site runs and says why it is not reporting'
 
 test('audit events reach the fleet in order, and a lost reply is resent without gaps or repeats', async () => {
   const { fleet, view, code } = await startFleet();
-  const { site, agent, link, addNote } = await startSite(fleet.url, { code: await code() });
-  const head = () => (site.services.audit as { head(): { seq: number } }).head().seq;
+  const { instance, agent, link, addNote } = await startInstance(fleet.url, { code: await code() });
+  const head = () => (instance.services.audit as { head(): { seq: number } }).head().seq;
   const sequences = async () =>
-    onlySite(await view()).events.map((line) => (JSON.parse(line) as { seq: number }).seq);
+    onlyInstance(await view()).events.map((line) => (JSON.parse(line) as { seq: number }).seq);
   await addNote('one');
   await agent.sync();
   const first = await sequences();
@@ -192,9 +199,9 @@ test('audit events reach the fleet in order, and a lost reply is resent without 
   expect(all.length).toBeLessThanOrEqual(head());
 });
 
-test('while the fleet is unreachable the site commits, and the next report shows the backlog', async () => {
+test('while the fleet is unreachable the instance commits, and the next report shows the backlog', async () => {
   const { fleet, view, code } = await startFleet();
-  const { agent, link, addNote } = await startSite(fleet.url, { code: await code() });
+  const { agent, link, addNote } = await startInstance(fleet.url, { code: await code() });
   await agent.sync();
   const reports = agent.status().reports;
   link.offline = true;
@@ -202,12 +209,12 @@ test('while the fleet is unreachable the site commits, and the next report shows
   await agent.sync();
   expect(agent.status().lastError).toContain('unreachable');
   expect(agent.status().reports).toBe(reports);
-  expect(onlySite(await view()).report!.outbox.pending).toBe(0);
+  expect(onlyInstance(await view()).report!.outbox.pending).toBe(0);
 
   link.offline = false;
   await agent.sync();
   expect(agent.status().lastError).toBeUndefined();
-  expect(onlySite(await view()).report!.outbox).toMatchObject({ pending: 3, held: 0 });
+  expect(onlyInstance(await view()).report!.outbox).toMatchObject({ pending: 3, held: 0 });
 });
 
 async function placeholderBundle(directory: string) {
@@ -272,7 +279,7 @@ async function publishRelease(
 test('a signed release is staged verified, and a changed one never reaches the folder', async () => {
   const { fleet, command, code } = await startFleet();
   const { trust } = await publishRelease(command, fleet.application, await temporary('release-'));
-  const corrupted = await startSite(fleet.url, { code: await code(), trust });
+  const corrupted = await startInstance(fleet.url, { code: await code(), trust });
   // Changed in transit: the file does not match the signed manifest's digest.
   corrupted.link.corrupt = true;
   await corrupted.agent.sync();
@@ -304,25 +311,28 @@ test('a signed release is staged verified, and a changed one never reaches the f
       tamper: true,
     },
   );
-  const site = await startSite(other.fleet.url, {
+  const instance = await startInstance(other.fleet.url, {
     code: await other.code(),
     trust: tampered.trust,
   });
-  await site.agent.sync();
-  expect(site.agent.status().lastError).toContain('signature');
-  expect(site.agent.status().staged).toBeUndefined();
-  expect(await readdir(site.releases)).toEqual([]);
+  await instance.agent.sync();
+  expect(instance.agent.status().lastError).toContain('signature');
+  expect(instance.agent.status().staged).toBeUndefined();
+  expect(await readdir(instance.releases)).toEqual([]);
 });
 
-test('the relay reaches an operation only with a session the site issued', async () => {
+test('the relay reaches an operation only with a session the instance issued', async () => {
   const { fleet, command, view, code } = await startFleet();
-  const { site, agent, addNote } = await startSite(fleet.url, { code: await code(), relay: true });
+  const { instance, agent, addNote } = await startInstance(fleet.url, {
+    code: await code(),
+    relay: true,
+  });
   await addNote('relayed');
   await agent.sync();
-  const siteId = Object.keys((await view()).sites)[0]!;
+  const instanceId = Object.keys((await view()).instances)[0]!;
   const ask = async (id: string, headers: Record<string, string>) => {
     await command('fixture.relay.enqueue', {
-      site: siteId,
+      instance: instanceId,
       request: {
         id,
         method: 'POST',
@@ -332,15 +342,17 @@ test('the relay reaches an operation only with a session the site issued', async
       },
     });
     expect(await agent.relay()).toBe(true);
-    return onlySite(await view()).responses[id]!;
+    return onlyInstance(await view()).responses[id]!;
   };
 
   expect((await ask('anonymous', {})).status).toBe(403);
-  // The fleet holds the site's fleet credential, and it opens nothing on the site.
-  const credential = await Bun.file(join(site.workspacePath, 'fleet-agent', 'credential')).text();
+  // The fleet holds the instance's fleet credential, and it opens nothing on the instance.
+  const credential = await Bun.file(
+    join(instance.workspacePath, 'fleet-agent', 'credential'),
+  ).text();
   expect((await ask('fleet-token', { authorization: `Bearer ${credential}` })).status).toBe(403);
 
-  const session = site.sessions.create(owner, 60_000);
+  const session = instance.sessions.create(owner, 60_000);
   const response = await ask('operator', { authorization: `Bearer ${session.token}` });
   expect(response.status).toBe(200);
   expect(JSON.parse(Buffer.from(response.body!, 'base64').toString())).toMatchObject({
@@ -350,17 +362,17 @@ test('the relay reaches an operation only with a session the site issued', async
   expect(await agent.relay()).toBe(false);
 });
 
-test('the fleet stages an upgrade that the site installs, migrating its state while effects are pending', async () => {
+test('the fleet stages an upgrade that the instance installs, migrating its state while effects are pending', async () => {
   const directory = await temporary('upgrade-');
   const prefix = join(directory, 'root');
   const key = await generateSigningKey();
   const requirements = { network: [], devices: [], processes: [] };
-  // A release's binary is a script running the site CLI at its version.
+  // A release's binary is a script running the instance CLI at its version.
   const build = async (version: 1 | 2) => {
     const payload = join(directory, `payload-${version}`);
     await mkdir(join(payload, 'bin'), { recursive: true });
     const bin = join(payload, 'bin', 'plant');
-    const cli = join(import.meta.dir, 'site-cli.ts');
+    const cli = join(import.meta.dir, 'instance-cli.ts');
     await writeFile(
       bin,
       `#!/bin/sh\nFIXTURE_STATE=${version} exec "${process.execPath}" "${cli}" "$@"\n`,
@@ -397,7 +409,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
         bundle,
         '--trust',
         trust,
-        '--site-policy',
+        '--deployment-policy',
         policy,
         '--service',
         'systemd',
@@ -415,7 +427,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
     return { code, stderr, result: JSON.parse(stdout.trim().split('\n').at(-1) || '{}') };
   };
 
-  // Version 1 is installed by hand, with the site's approval of its requirements.
+  // Version 1 is installed by hand, with the instance's approval of its requirements.
   const v1 = await build(1);
   const approval = join(directory, 'approval.json');
   await writeFile(
@@ -431,12 +443,16 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
   const { trust: fleetTrust } = await publishRelease(command, fleet.application, directory, {
     bundle: await build(2),
   });
-  const running = await startSite(fleet.url, { code: await code(), trust: fleetTrust, workspace });
+  const running = await startInstance(fleet.url, {
+    code: await code(),
+    trust: fleetTrust,
+    workspace,
+  });
   await running.addNote('first');
   await running.addNote('second');
   await running.agent.sync();
   expect(running.agent.status().staged).toMatchObject({ release: 'plant-2.0.0' });
-  await running.site.close();
+  await running.instance.close();
 
   // The installed release installs the staged one: the new binary migrates, then current switches.
   const current = join(prefix, 'opt/tortoise/plant/current/files/bin/plant');
@@ -473,10 +489,10 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
   const network = fleetNetworkFixture(async () => {
     throw new TypeError('Network is unreachable');
   });
-  const upgraded = await startHost(siteApplication(network, 2), {
+  const upgraded = await startHost(instanceApplication(network, 2), {
     workspacePath: workspace,
     integration: false,
-    settings: { 'site-policy': running.policy },
+    settings: { 'deployment-policy': running.policy },
   });
   try {
     const added = await upgraded.application.invokeRaw(

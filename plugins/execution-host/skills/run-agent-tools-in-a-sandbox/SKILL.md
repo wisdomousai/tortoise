@@ -20,9 +20,9 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 
 1. Declare the sandbox in the manifest's `components` with `executionSandbox({ id, description, network: ['model-api'] })` from `@tortoise/execution-host/contracts`.
 2. Declare each destination the sandbox names.
-3. Add `executionHostPluginManifest` to the manifest's `plugins`, after the site, network and process plugins.
+3. Add `executionHostPluginManifest` to the manifest's `plugins`, after the deployment, network and process plugins.
 4. Add `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun' } })` to the definition's `plugins`, in the same order.
-5. Bind bubblewrap in the deployment policy under `processes`, with its digest pinned: `"<id>": { "executable": "/usr/bin/bwrap", "sha256": "…" }`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+5. Bind bubblewrap in the deployment policy under `processes`, with its digest pinned: `"<id>": { "executable": "/usr/bin/bwrap", "sha256": "…" }`. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) covers the policy.
 6. Run tasks from trusted host code with `services['execution-host'].run({ sandbox, command: ['bun', script, ...args], context, workdir, readOnly, limits })`. Inside, `TORTOISE_CONNECTION` points at the connection file. The application CLI (`packages/adapters/src/cli.ts`) and MCP server (`packages/adapters/src/mcp.ts`) attach with it and need no arguments.
 7. Read the task's effects from the command receipts and the host's state, never from the task's narration.
 8. Stop a task by passing a `signal`, or use `start` for a handle with `cancel()` and `revoke()`.

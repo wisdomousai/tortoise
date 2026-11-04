@@ -6,30 +6,30 @@ import { auditRoutes } from './ui/audit';
 import { HealthScreen } from './ui/health';
 import { relayRoutes } from './ui/relay';
 import { releaseRoutes } from './ui/releases';
-import { siteRoutes } from './ui/sites';
+import { instanceRoutes } from './ui/instances';
 
-/** The Fleet screens: health, sites, releases and channels, audit events and remote access. */
+/** The Fleet screens: health, instances, releases and channels, audit events and remote access. */
 export default defineScreens({
   manifest,
   title: manifest.title,
   home: '/health',
   routes: [
     { path: 'health', component: HealthScreen },
-    ...siteRoutes,
+    ...instanceRoutes,
     ...releaseRoutes,
     ...auditRoutes,
     ...relayRoutes,
   ],
   navigation: [
     { to: '/health', label: 'Health', icon: Activity },
-    { to: '/sites', label: 'Sites', icon: MonitorSmartphone },
+    { to: '/instances', label: 'Instances', icon: MonitorSmartphone },
     { to: '/releases', label: 'Releases', icon: Package },
     { to: '/channels', label: 'Channels', icon: Layers },
     { to: '/audit', label: 'Audit events', icon: ListChecks },
     { to: '/relay', label: 'Remote access', icon: Radio },
   ],
   capabilityScreens: [
-    { prefix: 'site.', to: '/sites' },
+    { prefix: 'instance.', to: '/instances' },
     { prefix: 'fleet.health', to: '/health' },
     { prefix: 'release.', to: '/releases' },
     { prefix: 'channel.', to: '/channels' },

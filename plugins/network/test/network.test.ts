@@ -10,14 +10,14 @@ import {
   type AuditRecord,
   type NetworkDestination,
 } from '@tortoise/contracts';
-import { isolatedPolicy, loadSitePolicy } from '@tortoise/site/policy';
+import { isolatedPolicy, loadDeploymentPolicy } from '@tortoise/deployment/policy';
 import { defineApplication } from '@tortoise/host/application';
 import { defineManifest } from '@tortoise/host/manifest';
 import { defineHostPlugin } from '@tortoise/host/plugin';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { openPlugins } from '@tortoise/host/plugins/lifecycle';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { exportFormats, exportRules, networkRules } from '../src/index';
 import { networkPlugin } from '../src/plugin';
 import { networkPluginManifest } from '../src/plugin-manifest';
@@ -30,14 +30,14 @@ const destination = (id: string, extra: Partial<NetworkDestination> = {}): Netwo
   id,
   purpose: `${id} for tests`,
   direction: 'egress',
-  scope: 'site',
+  scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
   availability: 'optional',
   offline: 'degrade',
   ...extra,
 });
-// A deployment shaped like the reference app: a required site system, an internet vendor, an
+// A deployment shaped like the reference app: a required local system, an internet vendor, an
 // off-host audit collector, a loopback model, an optional HMI and a child process. The host's
 // own listener comes from the host components the plugin tests compose.
 const plant = defineHostComponent({
@@ -64,14 +64,14 @@ const plant = defineHostComponent({
 });
 const requirements = collectRequirements([plant]);
 const sandboxPolicy = () =>
-  loadSitePolicy(join(fixtures, 'site-policy.sandbox.json'), requirements);
+  loadDeploymentPolicy(join(fixtures, 'deployment-policy.sandbox.json'), requirements);
 const exportOptions = {
   user: 'tortoise',
   uid: 10001,
   executable: '/opt/tortoise/service',
   workspace: '/var/lib/tortoise/workspace',
   auditLog: '/var/lib/tortoise/audit',
-  sitePolicy: '/etc/tortoise/site-policy.json',
+  deploymentPolicy: '/etc/tortoise/deployment-policy.json',
   image: 'registry.plant.local/tortoise:1.0.0',
 };
 const extensions: Record<(typeof exportFormats)[number], string> = {
@@ -157,14 +157,14 @@ describe('network plugin', () => {
       },
     }),
   });
-  const plugins = [sitePlugin, networkPlugin, recorder];
+  const plugins = [deploymentPlugin, networkPlugin, recorder];
   const definition = defineApplication({
     manifest: defineManifest({
       id: 'plant',
       title: 'Plant',
       modules: [],
       components: [plant],
-      plugins: [sitePluginManifest, networkPluginManifest, recorderManifest],
+      plugins: [deploymentPluginManifest, networkPluginManifest, recorderManifest],
     }),
     createState: () => ({}),
     handlers: [],
@@ -188,7 +188,7 @@ describe('network plugin', () => {
   });
 
   test('a policy that binds destinations refuses to start without the network plugin', async () => {
-    const policy = join(await mkdtemp(join(tmpdir(), 'network-')), 'site-policy.json');
+    const policy = join(await mkdtemp(join(tmpdir(), 'network-')), 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -205,14 +205,14 @@ describe('network plugin', () => {
         title: 'Plant',
         modules: [],
         components: [plant],
-        plugins: [sitePluginManifest],
+        plugins: [deploymentPluginManifest],
       }),
-      plugins: [sitePlugin],
+      plugins: [deploymentPlugin],
     });
-    const settings = { 'site-policy': policy };
+    const settings = { 'deployment-policy': policy };
     await expect(
       openPlugins(withoutNetwork, { ...options, serving: false, settings }),
-    ).rejects.toThrow('Plugin "site" is configured to need the network port');
+    ).rejects.toThrow('Plugin "deployment" is configured to need the network port');
     const opened = await openPlugins(definition, { ...options, serving: false, settings });
     await opened.close();
     await rm(dirname(policy), { recursive: true, force: true });

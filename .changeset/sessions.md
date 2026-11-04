@@ -1,6 +1,6 @@
 ---
 '@tortoise/adapters': minor
-'@tortoise/site': minor
+'@tortoise/deployment': minor
 '@tortoise/workstation-sign-in': minor
 ---
 

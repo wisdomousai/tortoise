@@ -2,12 +2,12 @@ import { expect, test } from 'bun:test';
 import { hubNetworkPort, hubOrigin, type Link } from '../src/network';
 
 test('a hub is reached over https, or over http only on loopback', () => {
-  expect(hubOrigin('https://hub.site.example:8443/path')).toBe('https://hub.site.example:8443');
+  expect(hubOrigin('https://hub.plant.example:8443/path')).toBe('https://hub.plant.example:8443');
   expect(hubOrigin('http://127.0.0.1:4100')).toBe('http://127.0.0.1:4100');
   expect(hubOrigin('http://localhost:4100')).toBe('http://localhost:4100');
   expect(() => hubOrigin('http://192.168.1.20:4100')).toThrow('over https');
-  expect(() => hubOrigin('ftp://hub.site.example')).toThrow('over https');
-  expect(() => hubOrigin('hub.site.example')).toThrow('not a URL');
+  expect(() => hubOrigin('ftp://hub.plant.example')).toThrow('over https');
+  expect(() => hubOrigin('hub.plant.example')).toThrow('not a URL');
 });
 
 test('the device credential goes only to the paired origin, never through a redirect', async () => {
@@ -27,11 +27,11 @@ test('the device credential goes only to the paired origin, never through a redi
   const hub = port.client('hub');
   await expect(hub.fetch('/api/v1/queries/feed')).rejects.toThrow('not paired');
 
-  link = { origin: 'https://hub.site.example', token: 'device-token' };
+  link = { origin: 'https://hub.plant.example', token: 'device-token' };
   await hub.fetch('/api/v1/queries/feed', { headers: { Authorization: 'Bearer other' } });
   expect(sent).toEqual([
     {
-      url: 'https://hub.site.example/api/v1/queries/feed',
+      url: 'https://hub.plant.example/api/v1/queries/feed',
       authorization: 'Bearer device-token',
       redirect: 'error',
     },

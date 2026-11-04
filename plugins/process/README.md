@@ -1,6 +1,6 @@
 # @tortoise/process
 
-Provides the process port. `openProcesses` starts declared child processes with exactly the executable, arguments, directory and environment the site policy binds. The executable comes only from the deployment policy, which refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process.
+Provides the process port. `openProcesses` starts declared child processes with exactly the executable, arguments, directory and environment the deployment policy binds. The executable comes only from the deployment policy, which refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process.
 
 Primitives:
 
@@ -14,5 +14,5 @@ Primitives:
 ## References
 
 - [write-hardware-driver](../connector-driver/skills/write-hardware-driver/SKILL.md)
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md)
+- [deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
 - `bun test plugins/process packages/kernel/test/processes.test.ts`

@@ -5,7 +5,7 @@ import { auditPlugin } from '@tortoise/audit/plugin';
 import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { processPlugin } from '@tortoise/process/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import { createDriverPlugin } from '@tortoise/connector-driver/plugin';
 import {
   createDriverEventIngest,
@@ -144,7 +144,7 @@ export function createQualityInspectionApplication(
     ]),
     // The workspace owner (the supervisor) is the compliance plugin's first auditor.
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       compliancePlugin,
@@ -166,7 +166,7 @@ export function createQualityInspectionApplication(
         }),
       ],
       observe: async (onError) => {
-        // Optional hardware: without a site binding for the driver there is nothing to watch.
+        // Optional hardware: without a policy binding for the driver there is nothing to watch.
         if (!processes.availability(instrumentContract.process.id).available) return [];
         const ingest = createInstrumentIngest({
           application,

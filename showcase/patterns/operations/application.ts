@@ -2,7 +2,7 @@ import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoi
 import { defineApplication } from '@tortoise/host/application';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import { createTelemetryPlugin } from '@tortoise/telemetry/plugin';
 import type { TestRequestsRoot } from '@tortoise/pattern-base/application';
 import {
@@ -24,8 +24,8 @@ export interface TestRequestsOperationsOptions {
 }
 
 /**
- * The test requests module unchanged, at state version 2, with the plugins that run it on a site:
- * the deployment policy (site), the egress guard (network), the audit log and the OpenTelemetry
+ * The test requests module unchanged, at state version 2, with the plugins that run it on a host:
+ * the deployment policy (deployment), the egress guard (network), the audit log and the OpenTelemetry
  * exporter. The plugins add no capabilities the screens need.
  */
 export function createTestRequestsOperationsApplication(
@@ -46,7 +46,7 @@ export function createTestRequestsOperationsApplication(
     ]),
     ...(options.services ? { services: options.services } : {}),
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       createTelemetryPlugin(

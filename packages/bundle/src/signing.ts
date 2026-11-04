@@ -1,6 +1,6 @@
 import { canonicalJson } from '@tortoise/contracts';
 
-/** A public key a site trusts, by the ID signatures name. */
+/** A public key an install trusts, by the ID signatures name. */
 export interface TrustedKey {
   readonly keyId: string;
   /** Raw Ed25519 public key, base64. */

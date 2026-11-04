@@ -13,7 +13,7 @@ const usage = (message: string) => new ApplicationError('INVALID_INPUT', message
 
 export const driverUsage = (program: string) => `Drivers (offline; no instance or workspace needed):
   ${program} driver list
-      each declared driver: the process ID to bind in the site policy, its contract digest,
+      each declared driver: the process ID to bind in the deployment policy, its contract digest,
       and its actions with delivery mode and risk level
   ${program} driver check <driver-id> -- <absolute executable> [args...]
       start the executable and check it against the driver's contract; never invokes an action
@@ -35,7 +35,7 @@ function list(contracts: readonly DriverContract[]) {
 }
 
 /**
- * Start an executable outside the site policy, for a developer or site administrator checking a
+ * Start an executable outside the deployment policy, for a developer or an administrator checking a
  * build before binding it. It starts through the process plugin's own spawn, with its base
  * environment: nothing the host holds (credentials, proxies, loader variables) reaches the driver.
  */

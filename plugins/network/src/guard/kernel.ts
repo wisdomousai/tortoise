@@ -7,9 +7,9 @@ import type {
   EventLogPort,
   ProcessRequirement,
 } from '@tortoise/contracts';
-import { cidrContains, isLoopbackAddress, isLoopbackHost } from '@tortoise/site/cidr';
+import { cidrContains, isLoopbackAddress, isLoopbackHost } from '@tortoise/deployment/cidr';
 import type { EgressOptions, HostLookup } from '../guard';
-import { portOf, type ResolvedBinding, type ResolvedPolicy } from '@tortoise/site/policy';
+import { portOf, type ResolvedBinding, type ResolvedPolicy } from '@tortoise/deployment/policy';
 import { EgressDenied, type DenialReason } from './denial';
 
 const defaultLookup: HostLookup = async (host) =>

@@ -36,12 +36,12 @@ export interface BundleManifest {
   readonly createdAt: string;
   /**
    * `YYYY-MM-DD`: the build date plus the application's shelf life, when it declares one. Signed
-   * with the rest, so a site shows it and cannot change it; nothing refuses a bundle past it.
+   * with the rest, so an install shows it and cannot change it; nothing refuses a bundle past it.
    */
   readonly bestBefore?: string;
-  /** Storage schema version the build writes; a site refuses one its storage cannot read. */
+  /** Storage schema version the build writes; an install refuses one its storage cannot read. */
   readonly storageSchema: number;
-  /** SHA-256 of the canonical catalog, so a site can tell builds of one contract apart. */
+  /** SHA-256 of the canonical catalog, so an install can tell builds of one contract apart. */
   readonly catalogDigest: string;
   readonly requirements: BundleRequirements;
   /** Sorted by path. */

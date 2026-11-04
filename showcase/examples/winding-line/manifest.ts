@@ -5,7 +5,7 @@ import { automationPluginManifest } from '@tortoise/automation/plugin-manifest';
 import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { processPluginManifest } from '@tortoise/process/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { driverPluginManifest } from '@tortoise/connector-driver/plugin-manifest';
 import { deviceFeatureManifest } from '@tortoise/devices/contracts';
 import { scannerDevicesComponent } from '@tortoise/devices/requirements';
@@ -43,7 +43,7 @@ export default defineManifest({
   features: [approvalFeatureManifest, deviceFeatureManifest],
   components: [stationBridgeComponent, stationBrowserComponent, scannerDevicesComponent],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     processPluginManifest,
     auditPluginManifest,

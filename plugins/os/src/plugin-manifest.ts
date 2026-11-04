@@ -26,7 +26,7 @@ export const osPluginManifest = definePluginManifest({
       key: 'os-disabled',
       env: 'TORTOISE_OS_DISABLED',
       kind: 'string',
-      description: 'comma-separated OS handler and action ids the site turns off',
+      description: 'comma-separated OS handler and action ids to turn off',
     },
   ],
 });

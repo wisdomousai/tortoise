@@ -26,12 +26,12 @@
     "@tortoise/adapters": "workspace:*",
     "@tortoise/audit": "workspace:*",
     "@tortoise/contracts": "workspace:*",
+    "@tortoise/deployment": "workspace:*",
     "@tortoise/event-log": "workspace:*",
     "@tortoise/frame": "workspace:*",
     "@tortoise/host": "workspace:*",
     "@tortoise/kernel": "workspace:*",
     "@tortoise/runtime": "workspace:*",
-    "@tortoise/site": "workspace:*",
     "lucide-react": "1.52.0",
     "zod": "4.6.5"
   },

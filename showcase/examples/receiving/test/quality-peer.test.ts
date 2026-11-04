@@ -74,7 +74,7 @@ async function pair() {
   const share = join(directory, 'share');
   for (const folder of Object.values(erpFolders))
     await mkdir(join(share, folder), { recursive: true });
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -97,7 +97,7 @@ async function pair() {
     destination: 'quality-peer',
     fetch,
     subjects: { rita: 'ina' },
-    hosts: { callee: { port: qualityPort }, caller: { settings: { 'site-policy': policy } } },
+    hosts: { callee: { port: qualityPort }, caller: { settings: { 'deployment-policy': policy } } },
   });
   cleanup.push(() => started.close());
   const { callee, caller, owner } = started;

@@ -33,7 +33,7 @@ export const hostComponents = [hostComponent, ...providerComponents] as const;
 
 /**
  * The catalog of one deployment on the Bun host: the application's modules plus the host's
- * components and the application's own (`manifest.components`). Generators, the site-policy check
+ * components and the application's own (`manifest.components`). Generators, the deployment-policy check
  * and the CLI use this; the kernel builds the same catalog from the platform's components.
  */
 export const deploymentCatalog = (manifest: ApplicationManifest) =>

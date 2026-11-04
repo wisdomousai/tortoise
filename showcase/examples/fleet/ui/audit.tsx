@@ -8,7 +8,7 @@ export const auditRoutes = [
       <CollectionScreen
         title="Audit events"
         list={operations.auditEventList}
-        columns={['site', 'seq', 'kind', 'at']}
+        columns={['instance', 'seq', 'kind', 'at']}
         open={(row) => `/audit/${encodeURIComponent(String(row.id))}`}
       />
     ),

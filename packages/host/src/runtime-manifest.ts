@@ -10,10 +10,10 @@ export interface RuntimeManifest {
   service: { executable: string; sha256: string };
   webRoot: string;
   /**
-   * Site policy shipped with this build: which declared destinations the packaged app may reach.
+   * Deployment policy shipped with this build: which declared destinations the packaged app may reach.
    * Digest-checked at launch like the service executable, so a swapped file is refused.
    */
-  sitePolicy?: { path: string; sha256: string };
+  deploymentPolicy?: { path: string; sha256: string };
   runtimes: Record<
     'codex' | 'claude',
     { executable: string; version: string; files: { path: string; sha256: string }[] }
@@ -55,9 +55,9 @@ export async function loadRuntimeManifest(root: string): Promise<RuntimeManifest
     }
   }
   resourcePath(root, manifest.webRoot);
-  if (manifest.sitePolicy) {
-    resourcePath(root, manifest.sitePolicy.path);
-    if (!/^[a-f0-9]{64}$/.test(manifest.sitePolicy.sha256))
+  if (manifest.deploymentPolicy) {
+    resourcePath(root, manifest.deploymentPolicy.path);
+    if (!/^[a-f0-9]{64}$/.test(manifest.deploymentPolicy.sha256))
       throw new Error('Invalid resource digest');
   }
   return manifest;
@@ -71,7 +71,7 @@ export async function verifyRuntimeFiles(
 ) {
   const files = [
     { path: manifest.service.executable, sha256: manifest.service.sha256 },
-    ...(manifest.sitePolicy ? [manifest.sitePolicy] : []),
+    ...(manifest.deploymentPolicy ? [manifest.deploymentPolicy] : []),
     ...Object.values(manifest.runtimes).flatMap((runtime) =>
       allFiles ? runtime.files : runtime.files.filter((file) => file.path === runtime.executable),
     ),

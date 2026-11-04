@@ -25,8 +25,8 @@ import {
   type ExecutionContext,
   type HandlerContext,
 } from '@tortoise/runtime';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { defineTrigger, type TriggerDefinition } from '../contracts';
 import type { Job } from '../jobs';
 import { passOnce, type Loop } from '../loop';
@@ -191,7 +191,7 @@ export function lotsApplication(
     intervalMs?: number;
     localModel?: AutomationOptions['localModel'];
     agentHarnesses?: readonly Harness[];
-    /** Compose the site and network plugins, so the site policy binds `local-inference`. */
+    /** Compose the deployment and network plugins, so the deployment policy binds `local-inference`. */
     network?: boolean;
   } = {},
 ) {
@@ -214,7 +214,7 @@ export function lotsApplication(
       title: 'Lots',
       modules: [lotsModule],
       plugins: options.network
-        ? [sitePluginManifest, networkPluginManifest, automationPluginManifest]
+        ? [deploymentPluginManifest, networkPluginManifest, automationPluginManifest]
         : [automationPluginManifest],
     }),
     createState: () => ({
@@ -226,7 +226,7 @@ export function lotsApplication(
     }),
     handlers: handlers as never,
     authorization: policy,
-    plugins: options.network ? [sitePlugin, networkPlugin, plugin] : [plugin],
+    plugins: options.network ? [deploymentPlugin, networkPlugin, plugin] : [plugin],
   });
   return {
     definition,

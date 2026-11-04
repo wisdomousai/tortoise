@@ -12,7 +12,7 @@ sends a line only when the inspector presses its print or data button, so each s
 measurement. In ``stream`` output it sends lines continuously, so a measurement is sent once
 each time the reading stabilizes after moving.
 
-Configuration comes from the environment the site policy binds for the ``instrument-driver``
+Configuration comes from the environment the deployment policy binds for the ``instrument-driver``
 process:
 
 - ``INSTRUMENT_PORT`` (required): the serial device, such as ``/dev/ttyUSB0`` or ``COM3``.

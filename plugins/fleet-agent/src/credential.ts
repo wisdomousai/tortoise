@@ -2,7 +2,7 @@ import { chmod, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SecretStore } from '@tortoise/kernel/platform';
 
-/** Where the site's fleet credential is kept between starts. */
+/** Where the instance's fleet credential is kept between starts. */
 export interface CredentialStore {
   read(): Promise<string | undefined>;
   write(token: string): Promise<void>;

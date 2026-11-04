@@ -175,7 +175,7 @@ An orchestrator keeps a sandbox's workspace until `drain` exits 0. `bun run test
 | ---- | ---------------------------- | -------------------------------------------------------------------------- |
 | 0    |                              | success                                                                    |
 | 1    | `INTERNAL`, `INVALID_OUTPUT` | internal failure; `app status` unverified release; `driver check` failed; lease lost |
-| 2    | `INVALID_INPUT`              | bad input or usage; `site check` / `network export` errors                 |
+| 2    | `INVALID_INPUT`              | bad input or usage; `policy check` / `network export` errors                 |
 | 3    | `NOT_FOUND`                  | not found                                                                  |
 | 4    | `FORBIDDEN`                  | forbidden                                                                  |
 | 5    | `CONFLICT`                   | conflict, including a workspace another instance holds                     |

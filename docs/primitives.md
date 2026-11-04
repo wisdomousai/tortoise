@@ -287,7 +287,7 @@ partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](.
 
 _The host port that starts declared child processes from the deployment policy's bindings. Its default refuses._
 
-partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`plugins/site`](../plugins/site/README.md) [`plugins/process`](../plugins/process/README.md)
+partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`plugins/deployment`](../plugins/deployment/README.md) [`plugins/process`](../plugins/process/README.md)
 
 ### UI registry
 
@@ -421,15 +421,15 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Deployment policy
 
-_Deployment data that binds declared destinations to addresses and exchange folders to directories, and sets a hardening floor._
+_Deployment data that binds declared destinations to addresses and exchange folders to directories, and sets a hardening floor. Do not use: site policy._
 
-implemented · [`plugins/site`](../plugins/site/README.md)
+implemented · [`plugins/deployment`](../plugins/deployment/README.md)
 
 ### Workforce sign-in
 
-_People signing in to a serving host through the site's identity provider, under `identity: external`._
+_People signing in to a serving host through the workforce identity provider, under `identity: external`._
 
-partial · [`plugins/site/src/workforce`](../plugins/site/src/workforce) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts) [`packages/adapters/src/http`](../packages/adapters/src/http)
+partial · [`plugins/deployment/src/workforce`](../plugins/deployment/src/workforce) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts) [`packages/adapters/src/http`](../packages/adapters/src/http)
 
 ### Workstation sign-in
 
@@ -457,7 +457,7 @@ partial · [`plugins/execution-host`](../plugins/execution-host/README.md) [`plu
 
 ### Station and scanner profiles
 
-_Schema-validated data about one site's equipment. A station profile has a version and describes one kind of workstation application. A scanner profile describes how one scanner at one workstation reaches the application._
+_Schema-validated data about one plant's equipment. A station profile has a version and describes one kind of workstation application. A scanner profile describes how one scanner at one workstation reaches the application._
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/devices`](../packages/devices/README.md)
 
@@ -503,21 +503,21 @@ _The framework and plugin packages published together at one version, each with 
 
 implemented · [`scripts/release.ts`](../scripts/release.ts) [`scripts/check-manifests.ts`](../scripts/check-manifests.ts) [`scripts/local-registry.ts`](../scripts/local-registry.ts) [`packages/scaffold/src/versions.ts`](../packages/scaffold/src/versions.ts) [`.changeset`](../.changeset)
 
-### Site bundle
+### Bundle
 
-_A signed, versioned directory per application and platform, with declared requirements and staged activation. A failed install step leaves the previous release current._
+_A signed, versioned directory per application and platform, with declared requirements and staged activation. A failed install step leaves the previous release current. Do not use: site bundle._
 
-partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts`](../scripts/bundle.ts) [`plugins/site/src/install`](../plugins/site/src/install)
+partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts`](../scripts/bundle.ts) [`plugins/deployment/src/install`](../plugins/deployment/src/install)
 
 ### Shelf life
 
-_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, `app status`, posture and fleet health show it. The host refuses nothing after that date._
+_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a bundle signs the date. Hosts, `app status`, posture and fleet health show it. The host refuses nothing after that date._
 
-implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/site/src/install`](../plugins/site/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
+implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/deployment/src/install`](../plugins/deployment/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
 
 ### Fleet agent
 
-_A site's outbound-only link to a fleet: health reports (outbox backlog by target, best-before date), audit forwarding, verified release staging and a remote-access relay that adds no credential._
+_An instance's outbound-only link to a fleet: health reports (outbox backlog by target, best-before date), audit forwarding, verified release staging and a remote-access relay that adds no credential._
 
 partial · [`plugins/fleet-agent`](../plugins/fleet-agent/README.md)
 

@@ -15,7 +15,7 @@ import { notificationsPlugin } from '@tortoise/notifications/plugin';
 import { osPlugin } from '@tortoise/os/plugin';
 import { osShortcutsPlugin } from '@tortoise/os-shortcuts/plugin';
 import { shareTargetPlugin } from '@tortoise/share-target/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import { webhookPlugin } from '@tortoise/webhook/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
@@ -81,7 +81,7 @@ export function createFieldServiceApplication(options: { services?: WorkOrderSer
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { 'work-order': operations.workOrderGet.id, task: operations.taskGet.id },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       compliancePlugin,

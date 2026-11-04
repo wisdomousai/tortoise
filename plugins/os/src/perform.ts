@@ -46,7 +46,7 @@ function describe(instruction: OsInstruction): JsonObject {
 }
 
 /**
- * Perform one declared action as `context`: the declaration, the site's disabled list and the
+ * Perform one declared action as `context`: the declaration, the policy's disabled list and the
  * per-action rate decide, and the instruction is built from the declaration's template, never
  * from a caller's string. An adapter attached for the same principal runs it; without one, a
  * page-runnable instruction is returned for the caller to run and anything else is refused.
@@ -105,7 +105,7 @@ export async function performOsAction(
 /**
  * Run an instruction a capability plugin built, such as a notification carrying the reply
  * nonces that plugin issued, through the adapter attached for `context`'s principal. The
- * instruction must name a declared action of the same kind that the site has not disabled; the
+ * instruction must name a declared action of the same kind that the policy has not disabled; the
  * per-action rate applies. Without an attached adapter it is refused as `unattached`, so the
  * caller can keep it queued.
  */

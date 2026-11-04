@@ -3,7 +3,7 @@ import { ApplicationError } from '@tortoise/contracts';
 /** A declared folder this deployment binds to a directory. */
 export interface BoundFolder {
   readonly id: string;
-  /** Absolute directory path, as the site policy names it. */
+  /** Absolute directory path, as the deployment policy names it. */
   readonly path: string;
   readonly access: 'read' | 'write' | 'read-write';
 }
@@ -12,7 +12,7 @@ export interface BoundFolder {
  * The kernel port for exchange folders: shares that other systems drop files into or pick them
  * up from. Without a plugin that provides it, every folder is unavailable.
  *
- * Trust boundary: callers name a folder the catalog declares, never a path. The site policy
+ * Trust boundary: callers name a folder the catalog declares, never a path. The deployment policy
  * decides which directory a folder ID means, so connector code cannot read or write anywhere
  * else, and the compliance manifest lists every folder data crosses.
  */

@@ -8,7 +8,7 @@ import {
   type ForwardingStats,
 } from '@tortoise/event-log';
 import type { PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
-import { siteServiceOf } from '@tortoise/site/open';
+import { deploymentServiceOf } from '@tortoise/deployment/open';
 import { attestationRecords } from './attestation';
 import { openAuditChannel } from './audit-channel';
 import { digestExecutable } from './executable-digest';
@@ -41,17 +41,17 @@ const recoveryKinds = [
 /**
  * Open the audit trail before anything serves or writes:
  *
- * 1. Open the log under its writer lock in the site policy's audit mode, wrapped in an off-host
+ * 1. Open the log under its writer lock in the deployment policy's audit mode, wrapped in an off-host
  *    forwarder when `audit.forwardTo` names a bound destination.
  * 2. Provide it as the event-log port; the host passes it to the runtime, and the network
  *    plugin's guard records into it through the composed ports.
  *
  * `ready` then attests what is running and resolves commands a crash left open, before the
- * first request. Throws when the site plugin is not composed or the log is locked or
+ * first request. Throws when the deployment plugin is not composed or the log is locked or
  * unwritable.
  */
 export async function openAudit(context: PluginOpenContext): Promise<PluginInstance> {
-  const { policy } = siteServiceOf(context.services);
+  const { policy } = deploymentServiceOf(context.services);
   const directory = context.settings['audit-log'] ?? join(context.workspacePath, 'audit');
   const { log, forwardTo, sink, forwarder, eventLog } = await openAuditChannel(
     policy,

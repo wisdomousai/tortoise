@@ -16,7 +16,7 @@ const env: NodeJS.ProcessEnv = {
   TORTOISE_SERVICE_ENTRY: resolve('apps/service/src/index.ts'),
   TORTOISE_WEB_ROOT: resolve('dist/web/field-service'),
   TORTOISE_DEV_ROOT: root,
-  TORTOISE_SITE_POLICY: resolve('apps/desktop/site-policy.json'),
+  TORTOISE_DEPLOYMENT_POLICY: resolve('apps/desktop/deployment-policy.json'),
   PORT: '4321',
   STATION_HMI_URL: 'http://127.0.0.1:4610',
   ELECTRON_RUN_AS_NODE: '1',
@@ -37,7 +37,7 @@ test('development launches use the source service and keep host-owned paths', ()
   expect(launch.webRoot).toBe(resolve('dist/web/field-service'));
   expect(launch.cwd).toBe(root);
   expect(launch.port).toBe('4321');
-  expect(launch.sitePolicy).toBe(resolve('apps/desktop/site-policy.json'));
+  expect(launch.deploymentPolicy).toBe(resolve('apps/desktop/deployment-policy.json'));
   expect('runtimeManifest' in launch).toBe(false);
   expect(launch.extraEnv.STATION_HMI_URL).toBe('http://127.0.0.1:4610');
   expect(launch.extraEnv.OPENAI_API_KEY).toBe('ambient');
@@ -45,7 +45,7 @@ test('development launches use the source service and keep host-owned paths', ()
   expect(launch.extraEnv.NODE_OPTIONS).toBeUndefined();
   expect(launch.extraEnv.PORT).toBeUndefined();
   expect(launch.extraEnv.WEB_ROOT).toBeUndefined();
-  expect(launch.extraEnv.TORTOISE_SITE_POLICY).toBeUndefined();
+  expect(launch.extraEnv.TORTOISE_DEPLOYMENT_POLICY).toBeUndefined();
 });
 
 test('development launch refuses relative paths and a missing flag', () => {

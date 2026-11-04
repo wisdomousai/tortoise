@@ -32,12 +32,12 @@ function startDevCollector() {
 
 /**
  * Development only (`bun run dev` here): bind the telemetry destination to `127.0.0.1:4318`
- * through `site-policy.dev.json`. A collector that already listens on 4318 receives the exports;
+ * through `deployment-policy.dev.json`. A collector that already listens on 4318 receives the exports;
  * otherwise the stand-in from `@tortoise/telemetry/testing` accepts them in this process. An
- * explicit `TORTOISE_SITE_POLICY` wins, and then no stand-in starts.
+ * explicit `TORTOISE_DEPLOYMENT_POLICY` wins, and then no stand-in starts.
  */
-if (!process.env.TORTOISE_SITE_POLICY) {
-  process.env.TORTOISE_SITE_POLICY = resolve(import.meta.dir, 'site-policy.dev.json');
+if (!process.env.TORTOISE_DEPLOYMENT_POLICY) {
+  process.env.TORTOISE_DEPLOYMENT_POLICY = resolve(import.meta.dir, 'deployment-policy.dev.json');
   const collector = startDevCollector();
   console.log(
     collector

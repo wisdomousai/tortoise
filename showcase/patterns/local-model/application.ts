@@ -6,7 +6,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { createModelServer } from '@tortoise/model-server/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { processPlugin } from '@tortoise/process/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -76,7 +76,7 @@ export function composeTestRequestsLocalModel(options: TestRequestsLocalModelOpt
       'approval-request': approvalOperations.approvalGet.id,
     },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       processPlugin,
       auditPlugin,

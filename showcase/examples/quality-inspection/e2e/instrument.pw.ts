@@ -10,8 +10,8 @@ const drivers = resolve(import.meta.dirname, '..', 'drivers', 'instrument');
 const sdk = resolve(import.meta.dirname, '../../../../sdks/driver-python/src');
 
 /**
- * A Python environment for the driver, made the way a site installs one: a venv with pyserial
- * (from uv's cache, never downloaded) and the SDK on its path. The site policy may not set
+ * A Python environment for the driver, made the way an installer makes one: a venv with pyserial
+ * (from uv's cache, never downloaded) and the SDK on its path. The deployment policy may not set
  * PYTHONPATH, so the environment itself has to provide both. Undefined where it cannot be made.
  */
 function driverPython(directory: string): string | undefined {
@@ -40,7 +40,7 @@ test('an instrument reading is offered on the capture station and recorded with 
   const device = await new Promise<string>((done) =>
     createInterface({ input: simulator.stdout }).once('line', done),
   );
-  const policy = join(workspace, 'site-policy.json');
+  const policy = join(workspace, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -55,7 +55,7 @@ test('an instrument reading is offered on the capture station and recorded with 
     }),
   );
   const host = await startService('@tortoise/quality-inspection', join(workspace, 'data'), {
-    TORTOISE_SITE_POLICY: policy,
+    TORTOISE_DEPLOYMENT_POLICY: policy,
   });
   try {
     await page.goto(host.launchUrl);

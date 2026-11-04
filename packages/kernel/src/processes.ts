@@ -5,7 +5,7 @@ export type ProcessAvailability =
   { readonly available: true } | { readonly available: false; readonly reason: string };
 
 export interface ProcessSpawnOptions {
-  /** Arguments after the site binding's fixed arguments. Passed as an argument vector, never a shell string. */
+  /** Arguments after the policy binding's fixed arguments. Passed as an argument vector, never a shell string. */
   readonly args?: readonly string[];
   /** Aborting stops the whole process tree. */
   readonly signal?: AbortSignal;
@@ -22,7 +22,7 @@ export interface ProcessSpawnOptions {
  * The kernel port for child processes: recognition workers, hardware drivers, provider CLIs.
  * Without a plugin that provides it, every start is refused with UNAVAILABLE.
  *
- * Trust boundary: callers name a process the catalog declares, never an executable. The site
+ * Trust boundary: callers name a process the catalog declares, never an executable. The deployment policy
  * policy decides which executable, arguments, working directory and pin a process ID means, and
  * the provider builds the child's whole environment, so a caller cannot widen what runs or what
  * the child inherits.
@@ -33,7 +33,7 @@ export interface ProcessPort {
   /**
    * Start one declared, bound process. The handle is the platform's own child type (on Bun, see
    * the host's `BunProcessPort`), so the kernel leaves it opaque. Rejects UNAVAILABLE when the
-   * process cannot start here and FORBIDDEN when its executable fails the site's pin.
+   * process cannot start here and FORBIDDEN when its executable fails the policy's pin.
    */
   spawn(processId: string, options?: ProcessSpawnOptions): Promise<unknown>;
 }

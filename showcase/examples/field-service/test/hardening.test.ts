@@ -5,12 +5,12 @@ import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { sessionCookieName } from '@tortoise/adapters/http';
-import type { SitePolicyInput } from '@tortoise/site/policy';
+import type { DeploymentPolicyInput } from '@tortoise/deployment/policy';
 import { startHost } from '@tortoise/host/host';
 import { writeApplicationEntry } from '../../../../scripts/application-entry';
 import fieldService from '../application';
 
-// Hardening floors as the host enforces them, not only as `site check` reports them.
+// Hardening floors as the host enforces them, not only as `policy check` reports them.
 
 const withDirectory = async (run: (directory: string) => Promise<void>) => {
   const directory = await mkdtemp(join(tmpdir(), 'hardening-'));
@@ -20,12 +20,12 @@ const withDirectory = async (run: (directory: string) => Promise<void>) => {
     await rm(directory, { recursive: true, force: true });
   }
 };
-async function writePolicy(directory: string, policy: SitePolicyInput) {
-  const path = join(directory, 'site-policy.json');
+async function writePolicy(directory: string, policy: DeploymentPolicyInput) {
+  const path = join(directory, 'deployment-policy.json');
   await writeFile(path, JSON.stringify(policy));
   return path;
 }
-const sandbox: SitePolicyInput = {
+const sandbox: DeploymentPolicyInput = {
   profile: 'sandbox',
   mode: 'isolated',
   identity: 'grant-file',
@@ -39,12 +39,12 @@ const delegated = (expiresAt?: number) => ({
 
 test('sandbox admits only the launcher grant, never the local owner', async () => {
   await withDirectory(async (directory) => {
-    const sitePolicy = await writePolicy(directory, sandbox);
+    const deploymentPolicy = await writePolicy(directory, sandbox);
     const workspacePath = join(directory, 'workspace');
     const base = {
       workspacePath,
       integration: false as const,
-      settings: { 'site-policy': sitePolicy },
+      settings: { 'deployment-policy': deploymentPolicy },
     };
     await expect(startHost(fieldService, base)).rejects.toThrow(/admits only delegated grants/);
     const agentPath = join(directory, 'agent.json');
@@ -91,11 +91,11 @@ test('sandbox admits only the launcher grant, never the local owner', async () =
 
 test('an external identity floor needs a workforce provider, then admits only signed-in people', async () => {
   await withDirectory(async (directory) => {
-    const start = async (policy: SitePolicyInput) =>
+    const start = async (policy: DeploymentPolicyInput) =>
       startHost(fieldService, {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        settings: { 'site-policy': await writePolicy(directory, policy) },
+        settings: { 'deployment-policy': await writePolicy(directory, policy) },
       });
     await expect(start({ ...sandbox, identity: 'external' })).rejects.toThrow(
       /IDENTITY_PROVIDER: external identity requires a workforce identity provider/,
@@ -134,7 +134,7 @@ test('an external identity floor needs a workforce provider, then admits only si
 
 test('embedded CLI calls under a grant-file policy refuse the local owner', async () => {
   await withDirectory(async (directory) => {
-    const sitePolicy = await writePolicy(directory, sandbox);
+    const deploymentPolicy = await writePolicy(directory, sandbox);
     const entry = await writeApplicationEntry('cli', directory, resolve(import.meta.dir, '..'));
     const child = Bun.spawn(
       [
@@ -144,8 +144,8 @@ test('embedded CLI calls under a grant-file policy refuse the local owner', asyn
         '--embedded',
         '--workspace',
         join(directory, 'workspace'),
-        '--site-policy',
-        sitePolicy,
+        '--deployment-policy',
+        deploymentPolicy,
         '--audit-log',
         join(directory, 'audit'),
       ],
@@ -161,7 +161,7 @@ test('embedded CLI calls under a grant-file policy refuse the local owner', asyn
   });
 });
 
-/** Throwaway PKI for one test run: a site CA, server and client certificates, and a rogue CA. */
+/** Throwaway PKI for one test run: a local CA, server and client certificates, and a rogue CA. */
 async function issueCertificates(directory: string) {
   const openssl = async (...args: string[]) => {
     const child = Bun.spawn(['openssl', ...args], {
@@ -220,10 +220,10 @@ async function issueCertificates(directory: string) {
       `${name}.ext`,
     );
   };
-  await instance('site-ca');
+  await instance('local-ca');
   await instance('rogue-ca');
-  await leaf('server', 'site-ca', 'subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth\n');
-  await leaf('client', 'site-ca', 'extendedKeyUsage=clientAuth\n');
+  await leaf('server', 'local-ca', 'subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth\n');
+  await leaf('client', 'local-ca', 'extendedKeyUsage=clientAuth\n');
   await leaf('intruder', 'rogue-ca', 'extendedKeyUsage=clientAuth\n');
 }
 async function freePort() {
@@ -235,12 +235,12 @@ async function freePort() {
 }
 
 test.skipIf(!Bun.which('openssl'))(
-  'an mTLS listener admits only clients with a site certificate, and still needs a session',
+  'an mTLS listener admits only clients with a certificate from the local CA, and still needs a session',
   async () => {
     await withDirectory(async (directory) => {
       await issueCertificates(directory);
       const port = await freePort();
-      const sitePolicy = await writePolicy(directory, {
+      const deploymentPolicy = await writePolicy(directory, {
         ...sandbox,
         ingress: {
           listen: 'mtls',
@@ -248,20 +248,20 @@ test.skipIf(!Bun.which('openssl'))(
           port,
           cert: 'server.pem',
           key: 'server.key',
-          clientCa: 'site-ca.pem',
+          clientCa: 'local-ca.pem',
         },
       });
       const agentPath = join(directory, 'agent.json');
       const host = await startHost(fieldService, {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        settings: { 'site-policy': sitePolicy },
+        settings: { 'deployment-policy': deploymentPolicy },
         agentConnection: { context: delegated(Date.now() + 1800_000), path: agentPath },
       });
       try {
         expect(host.url).toBe(`https://localhost:${port}`);
         const file = (name: string) => Bun.file(join(directory, name));
-        const trustServer = { ca: file('site-ca.pem') };
+        const trustServer = { ca: file('local-ca.pem') };
         const as = (name: string) => ({
           ...trustServer,
           cert: file(`${name}.pem`),

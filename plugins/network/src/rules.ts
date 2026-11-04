@@ -1,11 +1,11 @@
 import { isIP } from 'node:net';
-import { portOf, type ResolvedPolicy } from '@tortoise/site/policy';
+import { portOf, type ResolvedPolicy } from '@tortoise/deployment/policy';
 
 /** One allowed outbound flow, resolved to addresses an OS firewall can enforce. */
 export interface AllowRule {
   readonly destination: string;
   readonly owner: string;
-  readonly scope: 'site' | 'internet';
+  readonly scope: 'local' | 'internet';
   readonly transport: 'tcp' | 'udp';
   readonly port: number;
   readonly host: string;
@@ -52,7 +52,7 @@ const byDestination = <T extends { destination: string }>(a: T, b: T) =>
   a.destination < b.destination ? -1 : a.destination > b.destination ? 1 : 0;
 
 /**
- * Resolve a site policy into address rules. Loopback destinations need no rule; disabled and
+ * Resolve a deployment policy into address rules. Loopback destinations need no rule; disabled and
  * unbound ones get none, which is what default-deny means. A hostname-only binding cannot be
  * enforced by address and is reported in `unresolved` instead of being silently widened.
  */

@@ -1,0 +1,275 @@
+import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { chmod, lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { SQLiteStorage } from '@tortoise/adapters/sqlite';
+import { createBundle, generateSigningKey, type SigningKey } from '@tortoise/bundle';
+
+/**
+ * `app install` end to end on a staged prefix: the bundles' binaries are scripts running the
+ * fixture CLI, so the release's own `network export` and `migrate` run as they would on a host.
+ * Nothing here loads a service; the OS steps run only with --apply.
+ */
+const fixtures = join(import.meta.dir, 'fixtures');
+const cli = join(fixtures, 'install-cli.ts');
+const policy = join(fixtures, 'deployment-policy.json');
+const platform = `${process.platform}-${process.arch}`;
+let directory = '';
+let key: SigningKey;
+let trust = '';
+let prefix = '';
+const requirements = {
+  network: [],
+  devices: [],
+  processes: [{ id: 'helper', executable: 'helper' }],
+};
+
+async function bundle(version: string, state: number, bestBefore?: string) {
+  const payload = join(directory, `payload-${version}`);
+  await mkdir(join(payload, 'bin'), { recursive: true });
+  const bin = join(payload, 'bin', 'counter-terminal');
+  await writeFile(
+    bin,
+    `#!/bin/sh\nFIXTURE_STATE=${state} exec "${process.execPath}" "${cli}" "$@"\n`,
+  );
+  await chmod(bin, 0o755);
+  await writeFile(join(payload, 'web.html'), '<html></html>');
+  const out = join(directory, `bundle-${version}`);
+  await createBundle(
+    payload,
+    out,
+    {
+      application: 'counter-terminal',
+      version,
+      platform,
+      storageSchema: 3,
+      catalogDigest: 'a'.repeat(64),
+      requirements,
+      ...(bestBefore ? { bestBefore } : {}),
+    },
+    key,
+  );
+  return out;
+}
+
+async function runCli(args: string[]) {
+  const child = Bun.spawn([process.execPath, cli, ...args, '--prefix', prefix], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: { ...process.env, FIXTURE_STATE: '1' },
+  });
+  const [code, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ]);
+  return { code, result: JSON.parse(stdout.trim().split('\n').at(-1) || '{}'), stderr };
+}
+const install = (bundlePath: string, extra: string[] = []) =>
+  runCli([
+    'install',
+    bundlePath,
+    '--trust',
+    trust,
+    '--deployment-policy',
+    policy,
+    '--service',
+    'systemd',
+    ...extra,
+  ]);
+const app = (path: string) => join(prefix, path, 'counter-terminal');
+
+beforeAll(async () => {
+  directory = await mkdtemp(join(tmpdir(), 'deployment-install-'));
+  prefix = join(directory, 'root');
+  key = await generateSigningKey();
+  trust = join(directory, 'key.pub.json');
+  await writeFile(trust, JSON.stringify({ keyId: key.keyId, publicKey: key.publicKey }));
+});
+afterAll(async () => {
+  await rm(directory, { recursive: true, force: true });
+});
+
+test('install places a verified release, renders the unit and firewall rules, and switches current', async () => {
+  const v1 = await bundle('1.0.0', 1);
+  // A first install needs an install approval of exactly the bundle's requirements.
+  const refused = await install(v1);
+  expect(refused.code).not.toBe(0);
+  expect(refused.result.error.message).toContain('without install approval');
+  const { result: admit } = await runCli(['status', '--trust', trust]);
+  expect(admit).toMatchObject({ installed: false });
+
+  const approval = join(directory, 'approval.json');
+  const { requirementsDigest } = await import('@tortoise/bundle');
+  await writeFile(
+    approval,
+    JSON.stringify({
+      application: 'counter-terminal',
+      requirementsDigest: requirementsDigest(requirements),
+    }),
+  );
+  const first = await install(v1, ['--approval', approval]);
+  expect(first.code).toBe(0);
+  expect(first.result).toMatchObject({
+    installed: true,
+    version: '1.0.0',
+    service: 'systemd',
+    firewallTable: 'counter_terminal',
+  });
+
+  const current = join(app('opt/tortoise'), 'current');
+  expect(await readlink(current)).toBe(join(app('opt/tortoise'), 'releases', '1.0.0'));
+  const unit = await readFile(
+    join(prefix, 'etc/systemd/system/tortoise-counter-terminal.service'),
+    'utf8',
+  );
+  expect(unit).toContain(`ExecStart=${join(current, 'files/bin/counter-terminal')} serve`);
+  expect(unit).toContain(`--workspace ${join(app('var/lib/tortoise'), 'workspace')}`);
+  expect(unit).toContain('IPAddressDeny=any');
+  expect(await readFile(join(app('etc/tortoise'), 'egress.nft'), 'utf8')).toContain(
+    'table inet counter_terminal {',
+  );
+  expect((await lstat(join(app('var/lib/tortoise'), 'workspace'))).mode & 0o777).toBe(0o700);
+  expect((await lstat(join(app('etc/tortoise'), 'deployment-policy.json'))).mode & 0o777).toBe(
+    0o640,
+  );
+  expect((await runCli(['status', '--trust', trust])).result).toMatchObject({
+    installed: true,
+    version: '1.0.0',
+    verified: true,
+  });
+  // Native smoke on a Linux runner (CI sets it): systemd and the kernel parse what was written.
+  if (process.env.DEPLOYMENT_INSTALL_NATIVE === '1') {
+    const unitPath = join(prefix, 'etc/systemd/system/tortoise-counter-terminal.service');
+    const verify = Bun.spawnSync(['systemd-analyze', 'verify', unitPath], { stderr: 'pipe' });
+    if (verify.exitCode !== 0) throw new Error(verify.stderr.toString());
+    const rules = join(app('etc/tortoise'), 'egress.nft');
+    // nft resolves the `meta skuid` user name while parsing, so the service account must exist,
+    // as install creates it before loading the rules.
+    const user = /meta skuid != "([^"]+)"/.exec(await readFile(rules, 'utf8'))![1]!;
+    Bun.spawnSync([
+      'sudo',
+      'sh',
+      '-c',
+      `id -u ${user} || useradd --system --no-create-home ${user}`,
+    ]);
+    const check = Bun.spawnSync(['sudo', 'nft', '-c', '-f', rules], { stderr: 'pipe' });
+    if (check.exitCode !== 0) throw new Error(check.stderr.toString());
+  }
+}, 30_000);
+
+test('an upgrade migrates the workspace with the new release before switching, and keeps data', async () => {
+  // Version 1 commits state, as the service would.
+  const workspace = join(app('var/lib/tortoise'), 'workspace');
+  const binary = join(app('opt/tortoise'), 'current', 'files/bin/counter-terminal');
+  const bumped = Bun.spawnSync([binary, 'counter.bump', '--embedded', '--workspace', workspace]);
+  expect(bumped.exitCode).toBe(0);
+
+  const v2 = await bundle('2.0.0', 2);
+  const upgrade = await install(v2);
+  expect(upgrade.code).toBe(0);
+  expect(upgrade.result).toMatchObject({ version: '2.0.0', previous: '1.0.0' });
+  const storage = new SQLiteStorage<Record<string, unknown>>(
+    join(workspace, 'workspace.sqlite'),
+    () => ({}),
+  );
+  try {
+    await storage.read('local', async (snapshot) => {
+      expect(snapshot.state.counter).toEqual({ total: 1 });
+      expect(snapshot.stateVersions?.application?.version).toBe(2);
+    });
+  } finally {
+    await storage.close();
+  }
+  // Both releases stay on disk; current names the new one.
+  expect(await readlink(join(app('opt/tortoise'), 'current'))).toEndWith('releases/2.0.0');
+}, 30_000);
+
+test('a tampered release or bundle is refused, and uninstall keeps data unless purged', async () => {
+  const release = join(app('opt/tortoise'), 'releases', '2.0.0');
+  await writeFile(join(release, 'files', 'web.html'), '<html>changed</html>');
+  const status = await runCli(['status', '--trust', trust]);
+  expect(status.code).toBe(1);
+  expect(status.result).toMatchObject({ verified: false });
+
+  const v3 = await bundle('3.0.0', 2);
+  await writeFile(join(v3, 'files', 'web.html'), 'tampered');
+  expect((await install(v3)).code).not.toBe(0);
+  expect(await readlink(join(app('opt/tortoise'), 'current'))).toEndWith('releases/2.0.0');
+
+  expect((await runCli(['uninstall'])).result).toMatchObject({ removed: true, purged: false });
+  expect((await runCli(['status', '--trust', trust])).result).toMatchObject({ installed: false });
+  expect(
+    await Bun.file(join(prefix, 'etc/systemd/system/tortoise-counter-terminal.service')).exists(),
+  ).toBe(false);
+  expect(
+    await Bun.file(join(app('var/lib/tortoise'), 'workspace', 'workspace.sqlite')).exists(),
+  ).toBe(true);
+}, 30_000);
+
+/** Run the installed release's binary in-process against the installed workspace. */
+function operate(args: string[]) {
+  const binary = join(app('opt/tortoise'), 'current', 'files/bin/counter-terminal');
+  const workspace = join(app('var/lib/tortoise'), 'workspace');
+  const run = Bun.spawnSync([binary, ...args, '--embedded', '--workspace', workspace]);
+  expect(run.exitCode).toBe(0);
+  return JSON.parse(run.stdout.toString().trim().split('\n').at(-1)!);
+}
+
+test('status shows the signed best-before date, and a purge refuses while the outbox holds effects', async () => {
+  const approval = join(directory, 'approval.json');
+  // Installed again over the data the last uninstall kept; a past date installs and runs.
+  expect(
+    (await install(await bundle('4.0.0', 2, '2000-01-01'), ['--approval', approval])).code,
+  ).toBe(0);
+  expect((await runCli(['status', '--trust', trust])).result).toMatchObject({
+    verified: true,
+    bestBefore: '2000-01-01',
+    pastBestBefore: true,
+  });
+
+  const { result } = operate(['counter.send']);
+  const missingTrust = await runCli(['uninstall', '--purge']);
+  expect(missingTrust.code).not.toBe(0);
+  expect(missingTrust.result.error.message).toContain('--trust is required');
+
+  const refused = await runCli(['uninstall', '--purge', '--trust', trust]);
+  expect(refused.code).not.toBe(0);
+  expect(refused.result.error).toMatchObject({
+    code: 'CONFLICT',
+    details: { remaining: [{ target: 'ledger', pending: 1, held: 0, acknowledged: 0 }] },
+  });
+  expect(refused.result.error.message).toContain('ledger: 1 pending');
+  // A refusal removes nothing.
+  expect((await runCli(['status', '--trust', trust])).result).toMatchObject({ installed: true });
+
+  // Once the target completes the effect, nothing would be lost.
+  operate(['counter.complete', '--effect-id', result.effectId]);
+  expect((await runCli(['uninstall', '--purge', '--trust', trust])).result).toEqual({
+    removed: true,
+    application: 'counter-terminal',
+    purged: true,
+  });
+  expect(await Bun.file(join(app('var/lib/tortoise'), 'install.json')).exists()).toBe(false);
+  expect(
+    await Bun.file(join(app('var/lib/tortoise'), 'workspace', 'workspace.sqlite')).exists(),
+  ).toBe(false);
+}, 30_000);
+
+test('--discard-undelivered purges anyway and lists what it deleted', async () => {
+  const approval = join(directory, 'approval.json');
+  expect((await install(await bundle('5.0.0', 1), ['--approval', approval])).code).toBe(0);
+  expect((await runCli(['status', '--trust', trust])).result).not.toHaveProperty('bestBefore');
+  operate(['counter.send']);
+  operate(['counter.send']);
+  expect(
+    (await runCli(['uninstall', '--purge', '--trust', trust, '--discard-undelivered'])).result,
+  ).toEqual({
+    removed: true,
+    application: 'counter-terminal',
+    purged: true,
+    discarded: [{ target: 'ledger', pending: 2, held: 0, acknowledged: 0 }],
+  });
+  for (const left of ['opt/tortoise', 'etc/tortoise', 'var/lib/tortoise'])
+    await expect(lstat(app(left))).rejects.toThrow();
+}, 30_000);

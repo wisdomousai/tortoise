@@ -101,7 +101,7 @@ export const filingModule = defineModule({
         purpose:
           'Search assets in the enterprise asset management system, file surveyed nodes with their attributes and photos, and read back the assets filed.',
         direction: 'egress',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         targets: ['eam'],
         reads: ['eam'],
@@ -115,7 +115,7 @@ export const filingModule = defineModule({
         id: 'filing-export',
         executable: 'filing-export',
         purpose:
-          'Write each exported filing as a folder of JSON and evidence photos into the directory the site binds as its argument.',
+          'Write each exported filing as a folder of JSON and evidence photos into the directory the deployment policy binds as its argument.',
         availability: 'optional',
         targets: ['export'],
       },

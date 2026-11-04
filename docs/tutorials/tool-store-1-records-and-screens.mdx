@@ -38,7 +38,7 @@ export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connect
 
 **Goal:** a new repository with a `tool` collection, default screens and tests. **Skill:** [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
 
-`scaffold new` writes one application with three entrypoints: the browser-safe `manifest`, the server `application` and the browser `screens`. The first collection comes with generated list, get, create and update operations, a policy with an editor and a viewer role, behavioral tests and a Playwright spec, and the application composes the site, network, audit and compliance host plugins. The CLI and the MCP bridge call the running instance through its connection file, so both lists in the report come from the same records. [Architecture](../architecture.md) describes the parts the export contains.
+`scaffold new` writes one application with three entrypoints: the browser-safe `manifest`, the server `application` and the browser `screens`. The first collection comes with generated list, get, create and update operations, a policy with an editor and a viewer role, behavioral tests and a Playwright spec, and the application composes the deployment, network, audit and compliance host plugins. The CLI and the MCP bridge call the running instance through its connection file, so both lists in the report come from the same records. [Architecture](../architecture.md) describes the parts the export contains.
 
 ```text prompt
 Use the create-agent-native-app skill. Create the application for the tool store of a power

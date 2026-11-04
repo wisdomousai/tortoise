@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { validateProfile } from './profile/validate';
 
 /**
- * A station profile is everything site-specific about one kind of station software, as versioned
+ * A station profile is everything specific to one plant about one kind of station software, as versioned
  * data: how to recognize its screens, where each value is shown and how to read it, which parts
  * of the screen must never be touched, and the declared procedures the bridge may run. A vendor
  * update or a new station type is a new profile version gated by golden frames, not new code.

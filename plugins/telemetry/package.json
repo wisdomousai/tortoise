@@ -24,7 +24,7 @@
     "@tortoise/agents": "workspace:*",
     "@tortoise/network": "workspace:*",
     "@tortoise/runtime": "workspace:*",
-    "@tortoise/site": "workspace:*",
+    "@tortoise/deployment": "workspace:*",
     "zod": "4.6.5"
   },
   "dependencies": {

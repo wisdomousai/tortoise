@@ -57,7 +57,7 @@ async function claim(holders: readonly OsHolder[], context: ExecutionContext, co
 }
 
 /**
- * Receive one OS request: check its syntax, match it to a handler, apply the site's disabled
+ * Receive one OS request: check its syntax, match it to a handler, apply the policy's disabled
  * list and the per-handler rate, and resolve its target. Every outcome is audited with the
  * request's digest and a reason code. An unsolicited request only becomes a delivery (open,
  * navigate, prepare); a consumer decides itself what a request it receives may do.

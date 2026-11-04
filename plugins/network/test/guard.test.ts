@@ -7,15 +7,18 @@ import {
   type NetworkDestination,
 } from '@tortoise/contracts';
 import { createMemoryEventLog } from '@tortoise/event-log';
-import { resolveSitePolicy, type SitePolicyInput } from '@tortoise/site/policy';
+import { resolveDeploymentPolicy, type DeploymentPolicyInput } from '@tortoise/deployment/policy';
 import { createEgress, EgressDenied } from '../src/guard';
 import { startEgressProxy } from '../src/proxy';
 
-const site = (id: string, extra: Partial<NetworkDestination> = {}): NetworkDestination => ({
+const localDestination = (
+  id: string,
+  extra: Partial<NetworkDestination> = {},
+): NetworkDestination => ({
   id,
   purpose: 'test',
   direction: 'egress',
-  scope: 'site',
+  scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
   availability: 'optional',
@@ -27,13 +30,17 @@ const requirements = collectRequirements([
     id: 'app',
     requirements: {
       network: [
-        site('mes-api', { availability: 'required', targets: ['mes'], offline: 'queue' }),
-        site('station-screen'),
-        site('vendor-api', { scope: 'internet', host: 'api.vendor.example' }),
-        site('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
-        site('legacy-tcp', { protocol: 'tcp' }),
-        site('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
-        site('workforce-idp', { scope: 'internet', dataClasses: ['identity'] }),
+        localDestination('mes-api', {
+          availability: 'required',
+          targets: ['mes'],
+          offline: 'queue',
+        }),
+        localDestination('station-screen'),
+        localDestination('vendor-api', { scope: 'internet', host: 'api.vendor.example' }),
+        localDestination('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
+        localDestination('legacy-tcp', { protocol: 'tcp' }),
+        localDestination('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
+        localDestination('workforce-idp', { scope: 'internet', dataClasses: ['identity'] }),
       ],
       processes: [
         {
@@ -47,8 +54,8 @@ const requirements = collectRequirements([
     },
   },
 ]);
-const policy = (input: SitePolicyInput) => resolveSitePolicy(input, requirements);
-const codes = (input: SitePolicyInput) =>
+const policy = (input: DeploymentPolicyInput) => resolveDeploymentPolicy(input, requirements);
+const codes = (input: DeploymentPolicyInput) =>
   policy(input)
     .findings.filter((finding) => finding.level === 'error')
     .map((finding) => finding.code);

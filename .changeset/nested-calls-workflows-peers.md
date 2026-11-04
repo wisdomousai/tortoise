@@ -6,7 +6,7 @@
 '@tortoise/host': minor
 '@tortoise/adapters': minor
 '@tortoise/testing': minor
-'@tortoise/site': minor
+'@tortoise/deployment': minor
 '@tortoise/device-link': minor
 '@tortoise/fleet-agent': minor
 '@tortoise/workflows': minor

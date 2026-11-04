@@ -2,7 +2,7 @@ import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
 /**
  * Declare one sandbox as a host component, for an application manifest's `components`.
- * Browser-safe data. The sandbox is a child process (`bubblewrap`), so the site policy binds its
+ * Browser-safe data. The sandbox is a child process (`bubblewrap`), so the deployment policy binds its
  * ID to the bwrap executable and can pin its digest, and `network` lists the only destinations
  * the sandbox may reach, through the egress proxy.
  */

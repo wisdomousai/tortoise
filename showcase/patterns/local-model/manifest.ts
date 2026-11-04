@@ -4,7 +4,7 @@ import { automationPluginManifest } from '@tortoise/automation/plugin-manifest';
 import { modelServerPluginManifest } from '@tortoise/model-server/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { processPluginManifest } from '@tortoise/process/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { methodModelServer, methodSuggestionsModule } from './contracts';
 
@@ -18,7 +18,7 @@ export default defineManifest({
   modules: [testRequestsModule, methodSuggestionsModule],
   components: [methodModelServer],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     processPluginManifest,
     auditPluginManifest,

@@ -27,7 +27,7 @@ An application declares what the OS may send it and what it may ask of the OS as
 2. Name only the request's own fields in a template, such as `{taskId}` or `{file.stem}`.
    - An `open` target's kind must be listed in the application's `selectableResources`, with a read query that takes `{ id }`. The host and the mobile shell run that query as the caller before the frame sees the delivery, and drop it when the read fails.
    - The screens map the kind to a screen in `resources` of `defineScreens` or `defineNativeScreens`.
-3. List the serving plugin and `plugins/os` in the application's manifest and application entrypoints. A site turns individual IDs off with the `os-disabled` setting.
+3. List the serving plugin and `plugins/os` in the application's manifest and application entrypoints. A deployment policy turns individual IDs off with the `os-disabled` setting.
 4. For `notify`, write these ([notifications README](../../../../plugins/notifications/README.md)):
    - a notify action over outbox targets with `offline: 'queue'`;
    - a `<target>.effect.complete` command per target. It calls `ctx.completeEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;

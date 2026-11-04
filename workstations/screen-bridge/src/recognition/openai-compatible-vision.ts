@@ -3,7 +3,7 @@ import { parseDisplayed } from './accessibility';
 
 /**
  * Local vision model behind an OpenAI-compatible chat completions endpoint (Ollama, llama.cpp
- * server, vLLM, LM Studio). Screens of the shop floor stay on site: the base URL must be a
+ * server, vLLM, LM Studio). Screens of the shop floor stay on the local network: the base URL must be a
  * loopback address or a host the deployment allowlists explicitly; nothing is discovered.
  *
  * Model output is untrusted: it is constrained by a JSON schema where the server supports it and

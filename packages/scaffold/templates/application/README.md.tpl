@@ -3,7 +3,7 @@
 {{displayName}} is a generated application that starts with one {{one.words}} collection and default list and record screens. `scaffold new` wrote it as the only application of the project, and `app.config.json` selects it.
 
 <!--
-Replace the paragraph above with what the application is for, in the words of the domain: the job at its process step, the documents and systems that the site already has, how the application fits that step and is easy to use there, and why the site builds its own application for the step instead of changing the central system. Then replace the generated fields, access rules and screens with what that work needs. docs/styleguide.md has the rules for this README.
+Replace the paragraph above with what the application is for, in the words of the domain: the job at its process step, the documents and systems that the plant already has, how the application fits that step and is easy to use there, and why the plant builds its own application for the step instead of changing the central system. Then replace the generated fields, access rules and screens with what that work needs. docs/styleguide.md has the rules for this README.
 -->
 
 ## Running the application
@@ -51,7 +51,7 @@ The conformance test reads a list through the instance, HTTP, the CLI and MCP, a
 
 Only workspace members pass the policy's caller check. Editors run commands and viewers read, and the list handlers scope rows before filtering, counting and paging. Configure the members and the policy for the people who do the work.
 
-The application composes the site, network, audit and compliance host plugins. An added target gives its integration principal no role and limits it to that target's operations. The target's generated connector is an in-memory fake, so implement and configure a real connector before treating another system's decision as known.
+The application composes the deployment, network, audit and compliance host plugins. An added target gives its integration principal no role and limits it to that target's operations. The target's generated connector is an in-memory fake, so implement and configure a real connector before treating another system's decision as known.
 
 ## References
 

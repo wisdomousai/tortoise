@@ -1,6 +1,6 @@
 import type { AuditEvent, JsonValue } from '@tortoise/contracts';
 import { hashEvent } from '@tortoise/event-log/chain';
-import { fleetSiteOperations } from '@tortoise/fleet-agent/contracts';
+import { fleetInstanceOperations } from '@tortoise/fleet-agent/contracts';
 import {
   collectionGetHandler,
   collectionListHandler,
@@ -8,11 +8,11 @@ import {
   type HandlerContribution,
 } from '@tortoise/runtime';
 import { operations } from '../contracts';
-import { AUDIT_EVENTS_PER_SITE, auditEvents, type AuditEventRecord } from '../contracts/audit';
-import { sites } from '../contracts/sites';
+import { AUDIT_EVENTS_PER_INSTANCE, auditEvents, type AuditEventRecord } from '../contracts/audit';
+import { instances } from '../contracts/instances';
 import type { AppState } from '../domain';
 import { handler, type Context, type Services } from './context';
-import { reportedSite } from './sites';
+import { reportedInstance } from './instances';
 
 type List = typeof operations.auditEventList;
 type Get = typeof operations.auditEventGet;
@@ -30,7 +30,7 @@ const parse = (line: string): Partial<AuditEvent> | undefined => {
   }
 };
 
-/** Why `event` cannot follow `previous` in the site's chain, or undefined when it can. */
+/** Why `event` cannot follow `previous` in the instance's chain, or undefined when it can. */
 function breakIn(event: Partial<AuditEvent> | undefined, previous: { seq: number; hash: string }) {
   if (!event) return { at: previous.seq + 1, reason: 'is not a JSON object' };
   if (!Number.isSafeInteger(event.seq))
@@ -45,21 +45,21 @@ function breakIn(event: Partial<AuditEvent> | undefined, previous: { seq: number
   return undefined;
 }
 
-/** Keep the newest events per site; older ones leave the fleet's copy, not the site's log. */
-function prune(ctx: Context, site: string, newest: number) {
+/** Keep the newest events per instance; older ones leave the fleet's copy, not the instance's log. */
+function prune(ctx: Context, instance: string, newest: number) {
   const events = records(ctx, auditEvents, ctx.state.auditEvents);
-  for (let seq = newest - AUDIT_EVENTS_PER_SITE; seq > 0; seq--) {
-    if (!events.has(`${site}:${seq}`)) break;
-    events.remove(`${site}:${seq}`);
+  for (let seq = newest - AUDIT_EVENTS_PER_INSTANCE; seq > 0; seq--) {
+    if (!events.has(`${instance}:${seq}`)) break;
+    events.remove(`${instance}:${seq}`);
   }
 }
 
 /**
- * Forwarded audit events. Each must follow the last one the fleet holds for that site: the next
+ * Forwarded audit events. Each must follow the last one the fleet holds for that instance: the next
  * sequence number, a `prev` equal to that event's hash, and its own hash over the event. The
- * first event that fails stops collection for the site, records why on the site, and commits,
+ * first event that fails stops collection for the instance, records why on the instance, and commits,
  * so the break is visible instead of retried away. Events the fleet already holds are skipped:
- * a site reads the fleet's cursor before each batch, so a batch is repeated only when the reply to
+ * an instance reads the fleet's cursor before each batch, so a batch is repeated only when the reply to
  * a batch was lost after the fleet committed it.
  */
 export function auditHandlers(): HandlerContribution<AppState, Services>[] {
@@ -71,7 +71,7 @@ export function auditHandlers(): HandlerContribution<AppState, Services>[] {
         store,
         visible,
         order: (a, b) => b.at - a.at || b.seq - a.seq,
-        searchText: (event) => `${event.site} ${event.kind}`,
+        searchText: (event) => `${event.instance} ${event.kind}`,
       },
     ),
     collectionGetHandler<AppState, Services, Get, AuditEventRecord>(
@@ -79,14 +79,14 @@ export function auditHandlers(): HandlerContribution<AppState, Services>[] {
       operations.auditEventGet,
       { store, visible },
     ),
-    handler(fleetSiteOperations.auditCursor, (_input, ctx) => ({
-      afterSeq: reportedSite(ctx).auditSeq,
+    handler(fleetInstanceOperations.auditCursor, (_input, ctx) => ({
+      afterSeq: reportedInstance(ctx).auditSeq,
     })),
-    handler(fleetSiteOperations.auditIngest, (input, ctx) => {
-      const site = reportedSite(ctx);
-      if (site.auditBroken) return { afterSeq: site.auditSeq };
+    handler(fleetInstanceOperations.auditIngest, (input, ctx) => {
+      const instance = reportedInstance(ctx);
+      if (instance.auditBroken) return { afterSeq: instance.auditSeq };
       const events = records(ctx, auditEvents, ctx.state.auditEvents);
-      let head = { seq: site.auditSeq, hash: site.auditHash };
+      let head = { seq: instance.auditSeq, hash: instance.auditHash };
       let broken: string | undefined;
       for (const line of input.events) {
         const parsed = parse(line);
@@ -97,9 +97,9 @@ export function auditHandlers(): HandlerContribution<AppState, Services>[] {
           break;
         }
         const event = parsed as AuditEvent;
-        events.insert(`${site.id}:${event.seq}`, {
-          id: `${site.id}:${event.seq}`,
-          site: site.id,
+        events.insert(`${instance.id}:${event.seq}`, {
+          id: `${instance.id}:${event.seq}`,
+          instance: instance.id,
           seq: event.seq,
           kind: event.kind,
           at: event.at,
@@ -108,12 +108,12 @@ export function auditHandlers(): HandlerContribution<AppState, Services>[] {
         });
         head = { seq: event.seq, hash: event.hash };
       }
-      records(ctx, sites, ctx.state.sites).update(site.id, (record) => {
+      records(ctx, instances, ctx.state.instances).update(instance.id, (record) => {
         record.auditSeq = head.seq;
         record.auditHash = head.hash;
         if (broken) record.auditBroken = broken;
       });
-      prune(ctx, site.id, head.seq);
+      prune(ctx, instance.id, head.seq);
       return { afterSeq: head.seq };
     }),
   ];

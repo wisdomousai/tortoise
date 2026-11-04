@@ -1,10 +1,10 @@
 import { Aside, Code, FileTree } from '@astrojs/starlight/components';
 import { region } from '@site/region';
-import sitePolicy from '@repo/showcase/examples/tool-store/site-policy.store-terminal.json?raw';
+import deploymentPolicy from '@repo/showcase/examples/tool-store/deployment-policy.store-terminal.json?raw';
 
 # Tool store 4: deployment
 
-The store terminal runs the application on site, with the EAM as its only destination. This part writes the site's deployment policy for the application from [part 3](tool-store-3-connections-and-agents.mdx), builds a signed bundle, installs it under a temporary prefix and removes it again.
+The store terminal runs the application at the counter, with the EAM as its only destination. This part writes the deployment policy for the application from [part 3](tool-store-3-connections-and-agents.mdx), builds a signed bundle, installs it under a temporary prefix and removes it again.
 
 ## Setup
 
@@ -15,32 +15,32 @@ bun run format && bun run generate && bun run typecheck
 bun test showcase/examples/tool-store
 ```
 
-## Site deployment
+## Deployment
 
-**Goal:** a signed install bundle, installed under a temporary prefix and removed again. **Skills:** [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md), [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md).
+**Goal:** a signed install bundle, installed under a temporary prefix and removed again. **Skills:** [deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md), [decommission-an-application](../../plugins/deployment/skills/decommission-an-application/SKILL.md).
 
-The application declares what it needs outside the process: the EAM destination, the audit log, the ingress. A deployment policy binds those declarations to one site's addresses and certificates, and the site plugin resolves the policy against the composed catalog, so a destination the policy leaves out is blocked by the egress guard rather than reached. A release is a signed bundle; the site admits it by signature before the install writes the service and firewall files under the prefix. Removal drains the outbox first and refuses the purge while effects remain unresolved, because records waiting for the EAM would be lost. [Security and compliance](../security-and-compliance.md) covers policies, egress and the audit log; [Application lifecycle](../application-lifecycle.md) the shelf life and decommissioning.
+The application declares what it needs outside the process: the EAM destination, the audit log, the ingress. A deployment policy binds those declarations to one host's addresses and certificates, and the deployment plugin resolves the policy against the composed catalog, so a destination the policy leaves out is blocked by the egress guard rather than reached. A release is a signed bundle; the install admits it by signature before the install writes the service and firewall files under the prefix. Removal drains the outbox first and refuses the purge while effects remain unresolved, because records waiting for the EAM would be lost. [Security and compliance](../security-and-compliance.md) covers policies, egress and the audit log; [Application lifecycle](../application-lifecycle.md) the shelf life and decommissioning.
 
 ```text prompt
-Use the deploy-to-site skill and the decommission-an-application skill. In the tool-store
+Use the deploy-an-application skill and the decommission-an-application skill. In the tool-store
 repository, write a deployment policy for the store terminal that binds the EAM destination to
-https://eam.plant.example, and disables every other destination. Check it with the site check,
+https://eam.plant.example, and disables every other destination. Check it with the policy check,
 export the network rules, build the CLI, and create, verify and admit a signed bundle with a
 throwaway key. Install the bundle under a temporary prefix with no service, show its status,
 drain it and uninstall it with purge. Do not apply anything outside the prefix. Report each
 command and what it printed, and say which steps only stage on this operating system. Run the
-checks the deploy-to-site skill names and report what passed.
+checks the deploy-an-application skill names and report what passed.
 ```
 
 The counter terminal's policy binds the EAM and disables every other destination:
 
-<Code code={sitePolicy} lang="json" title="site-policy.store-terminal.json" />
+<Code code={deploymentPolicy} lang="json" title="deployment-policy.store-terminal.json" />
 
 **Check:** the report lists each command and its output, ending with the uninstall. Nothing outside the prefix changed. On macOS the install writes the service and firewall files but does not load them.
 
 ## Limits
 
-Everything in the four parts runs on fakes: no real EAM, scanner, badge reader or model, except Claude Code in the calibration step. These skills need hardware or services a laptop lacks and have no step here: `run-agent-tools-in-a-sandbox` (Linux with bubblewrap), `run-a-hosted-instance` (Postgres and a TLS certificate), `extend-mobile-host` (a phone or emulator), `bridge-station-screen`, `connect-a-site-to-a-fleet` and `write-host-plugin`. [AGENTS.md](../../AGENTS.md#skills) lists the skills.
+Everything in the four parts runs on fakes: no real EAM, scanner, badge reader or model, except Claude Code in the calibration step. These skills need hardware or services a laptop lacks and have no step here: `run-agent-tools-in-a-sandbox` (Linux with bubblewrap), `run-a-hosted-instance` (Postgres and a TLS certificate), `extend-mobile-host` (a phone or emulator), `bridge-station-screen`, `connect-an-instance-to-a-fleet` and `write-host-plugin`. [AGENTS.md](../../AGENTS.md#skills) lists the skills.
 
 ## References
 
@@ -48,5 +48,5 @@ Everything in the four parts runs on fakes: no real EAM, scanner, badge reader o
 - [Security and compliance](../security-and-compliance.md)
 - [Application lifecycle](../application-lifecycle.md)
 - [Hosting](../hosting.md)
-- [showcase/patterns/site](../../showcase/patterns/site/README.md)
+- [showcase/patterns/fleet-agent](../../showcase/patterns/fleet-agent/README.md)
 - [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)

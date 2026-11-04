@@ -13,7 +13,7 @@ bun run dev:web
 - Add a tool on the counter, lend it, then return it as damaged. The tool shows the repair order number from the fake EAM.
 - Start with `DEMO_EAM_UNKNOWN_TAGS=TC-00601` and return that tool as damaged. The EAM screen counts the refused repair order.
 - Enroll a badge for `sam@plant`, a viewer, and sign in with it. The counter refuses the check-out.
-- From the repository root, `bun run cli site check --site showcase/examples/tool-store/site-policy.store-terminal.json` checks the counter terminal's deployment policy.
+- From the repository root, `bun run cli policy check --policy showcase/examples/tool-store/deployment-policy.store-terminal.json` checks the counter terminal's deployment policy.
 
 ## References
 

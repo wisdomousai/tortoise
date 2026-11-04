@@ -17,7 +17,7 @@ import { bunProcesses, noProcesses, type ProcessPort } from '@tortoise/host/plug
  * reference HMI, so they need a screen recognizer:
  * - `simulator`: ground truth from the simulated HMI (demo and tests only);
  * - `vision`: a local OpenAI-compatible vision model, loopback or allowlisted;
- * - `worker`: the JSON-lines `recognition-worker` process the site policy binds, started through the
+ * - `worker`: the JSON-lines `recognition-worker` process the deployment policy binds, started through the
  *   process port;
  * - `none`: counters stay unread.
  */

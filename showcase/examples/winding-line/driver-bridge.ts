@@ -22,7 +22,7 @@ const fields: Readonly<Record<string, DriverStateField>> = contract.state;
 /**
  * A station reached through the station automation driver instead of its screen. The driver runs
  * on this host (the station PC) and serves one station, so a host has at most one. It starts only
- * with a site-policy binding for the `station-automation-driver` process.
+ * with a deployment-policy binding for the `station-automation-driver` process.
  */
 export interface StationAutomationConfig {
   readonly station: string;

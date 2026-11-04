@@ -7,7 +7,7 @@ import { sessionCookieName } from '@tortoise/adapters/http';
 import { startHost } from '@tortoise/host/host';
 import { hostedPlatform } from '@tortoise/host/platform/hosted';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
-import { startIdentityProvider } from '@tortoise/site/testing';
+import { startIdentityProvider } from '@tortoise/deployment/testing';
 import { pgliteDriver } from '@tortoise/testing/postgres';
 import { createTestRequestsHostedApplication } from '../application';
 
@@ -116,7 +116,7 @@ test.skipIf(!Bun.which('openssl'))(
       tls,
     });
     cleanups.push(async () => provider.stop());
-    const policy = join(root, 'site-policy.json');
+    const policy = join(root, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -132,7 +132,7 @@ test.skipIf(!Bun.which('openssl'))(
       workspacePath: join(root, 'instance'),
       integration: false,
       platform: sharedDatabase()(),
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     cleanups.push(() => host.close());
     // No owner session, launch link or connection file: the only way in is to sign in.

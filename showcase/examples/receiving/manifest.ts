@@ -3,7 +3,7 @@ import { defineManifest } from '@tortoise/host/manifest';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { peerLinkPluginManifest } from '@tortoise/peer-link/plugin-manifest';
 import { receivingModule } from './contracts';
 import { erpExchange } from './contracts/erp-target';
@@ -17,7 +17,7 @@ export default defineManifest({
   components: [erpExchange, qualityPeer.component],
   features: [approvalFeatureManifest, reconciliationFeatureManifest],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     auditPluginManifest,
     compliancePluginManifest,

@@ -12,7 +12,7 @@ import {
   verifyBundle,
   type BundleRequirements,
   type SigningKey,
-  type SiteApproval,
+  type InstallApproval,
   type TrustedKey,
 } from '@tortoise/bundle';
 import { cycloneDx, type SecurityManifest } from '@tortoise/compliance';
@@ -139,18 +139,18 @@ async function check(args: string[], admit: boolean) {
   const installedPath = flag(args, 'installed');
   const installed = installedPath ? await verifyBundle(resolve(installedPath), keys) : undefined;
   const approvalPath = flag(args, 'approval');
-  const approval = approvalPath ? await readJson<SiteApproval>(approvalPath) : undefined;
-  const site = {
+  const approval = approvalPath ? await readJson<InstallApproval>(approvalPath) : undefined;
+  const target = {
     platform: flag(args, 'platform') ?? platformOf(),
     storageSchemas: [ROW_SCHEMA_VERSION],
   };
-  const refusals = admissionRefusals(manifest, site, installed, approval);
+  const refusals = admissionRefusals(manifest, target, installed, approval);
   console.log(
     JSON.stringify({
       admitted: refusals.length === 0,
       refusals,
       changes: requirementChanges(installed?.requirements, manifest.requirements),
-      // What a site approval names to admit exactly these requirements.
+      // What an install approval names to admit exactly these requirements.
       approval: {
         application: manifest.application,
         requirementsDigest: requirementsDigest(manifest.requirements),

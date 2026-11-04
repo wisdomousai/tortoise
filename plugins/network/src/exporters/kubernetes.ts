@@ -86,9 +86,9 @@ export function pod(rules: RuleSet, options: ExportOptions): string {
             { name: 'workspace', mountPath: d.workspace },
             { name: 'audit', mountPath: d.auditLog },
             {
-              name: 'site-policy',
-              mountPath: d.sitePolicy,
-              subPath: 'site-policy.json',
+              name: 'deployment-policy',
+              mountPath: d.deploymentPolicy,
+              subPath: 'deployment-policy.json',
               readOnly: true,
             },
             { name: 'tmp', mountPath: '/tmp' },
@@ -98,7 +98,7 @@ export function pod(rules: RuleSet, options: ExportOptions): string {
       volumes: [
         { name: 'workspace', persistentVolumeClaim: { claimName: `${d.name}-workspace` } },
         { name: 'audit', persistentVolumeClaim: { claimName: `${d.name}-audit` } },
-        { name: 'site-policy', configMap: { name: `${d.name}-site-policy` } },
+        { name: 'deployment-policy', configMap: { name: `${d.name}-deployment-policy` } },
         { name: 'tmp', emptyDir: { medium: 'Memory', sizeLimit: '64Mi' } },
       ],
     },

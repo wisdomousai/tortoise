@@ -41,7 +41,7 @@ async function workspace(stored?: Record<string, unknown>) {
   const folders = Object.fromEntries(
     Object.values(erpFolders).map((folder) => [folder, { path: join(directory, folder) }]),
   );
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
@@ -54,7 +54,7 @@ async function workspace(stored?: Record<string, unknown>) {
   const open = async () => {
     const instance = await openEmbeddedInstance(
       createReceivingApplication({ members: { viewer: 'viewer' } }),
-      { workspacePath, settings: { 'site-policy': policy } },
+      { workspacePath, settings: { 'deployment-policy': policy } },
     );
     cleanup.push(() => instance.close());
     return instance;

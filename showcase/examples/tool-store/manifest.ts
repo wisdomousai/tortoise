@@ -2,7 +2,7 @@ import { defineManifest } from '@tortoise/host/manifest';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { stationSignInPluginManifest } from '@tortoise/workstation-sign-in/plugin-manifest';
 import { toolStoreModule } from './contracts';
 import { handoverFeatureManifest } from './features/handover/contracts';
@@ -29,7 +29,7 @@ export default defineManifest({
     // scaffold:features
   ],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     auditPluginManifest,
     compliancePluginManifest,

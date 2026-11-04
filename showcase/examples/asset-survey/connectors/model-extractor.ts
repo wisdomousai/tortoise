@@ -132,7 +132,7 @@ export function createModelExtractor(options: {
   };
 }
 
-// Requests name this origin; the network port sends their path to the site's `model-api` URL.
+// Requests name this origin; the network port sends their path to the `model-api` URL the deployment policy binds.
 const PLACEHOLDER = 'http://model-api.invalid';
 
 /** A `fetch` for the provider SDK that reaches only the `model-api` destination. */
@@ -155,7 +155,7 @@ function modelApiFetch(network: NetworkPort): typeof fetch {
 
 /**
  * Opt-in live extraction through an OpenAI-compatible chat completions API. Configured only by
- * `ASSET_SURVEY_MODEL` (the model ID) and `ASSET_SURVEY_MODEL_API_KEY`; the address is the site
+ * `ASSET_SURVEY_MODEL` (the model ID) and `ASSET_SURVEY_MODEL_API_KEY`; the address is the deployment
  * policy's `model-api` binding, for example `https://api.openai.com/v1` or a local server's
  * `http://127.0.0.1:11434/v1`. No other variable, key store or provider login is read. Without
  * `ASSET_SURVEY_MODEL` it returns undefined and the demo extractor stays.

@@ -4,7 +4,7 @@ import { compliancePluginManifest } from '@tortoise/compliance/plugin-manifest';
 import { modelServerPluginManifest } from '@tortoise/model-server/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { processPluginManifest } from '@tortoise/process/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { partsDeskModule } from './contracts';
 import { assistantModelServer } from './contracts/assistant-agent';
 import { approvalFeatureManifest } from '@tortoise/contracts';
@@ -26,7 +26,7 @@ export default defineManifest({
     // scaffold:features
   ],
   plugins: [
-    sitePluginManifest,
+    deploymentPluginManifest,
     networkPluginManifest,
     processPluginManifest,
     auditPluginManifest,

@@ -29,7 +29,7 @@ async function pair() {
   const directory = await mkdtemp(join(tmpdir(), 'pattern-worklist-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));
   const port = await freePort();
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({
@@ -49,7 +49,7 @@ async function pair() {
     target: 'lab',
     destination: 'lab-peer',
     fetch,
-    hosts: { callee: { port }, caller: { settings: { 'site-policy': policy } } },
+    hosts: { callee: { port }, caller: { settings: { 'deployment-policy': policy } } },
   });
   cleanup.push(() => started.close());
   const { callee, caller, owner, peerId } = started;

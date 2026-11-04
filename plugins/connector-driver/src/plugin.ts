@@ -6,7 +6,7 @@ import { createDriverHandlers, createDriverState, driverPolicy, type DriverState
 
 /**
  * The driver plugin for one application's drivers. It needs the process plugin, which starts
- * each driver from the executable the site policy binds. Its service (`driverServiceOf`) holds
+ * each driver from the executable the deployment policy binds. Its service (`driverServiceOf`) holds
  * one supervisor per driver; its query `driver.status.get` reports them to the workspace owner.
  *
  * Pass the same contracts as to `driverPluginManifest`, so the manifest declares exactly the

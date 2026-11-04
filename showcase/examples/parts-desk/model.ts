@@ -63,7 +63,7 @@ export function standInModel(): AssistantModel {
 /**
  * The model that the JSON file `PARTS_DESK_MODEL` names, with `entry`, `files` and an optional
  * `activation`, as `dev.ts` writes it for `LOCAL_MODEL_GGUF`. Without it, the stand-in model. A
- * deploying site writes its own file with the digests it approved. The plugin measures the files
+ * deployment writes its own file with the digests it approved. The plugin measures the files
  * against the entry before every start and refuses a mismatch.
  */
 export function assistantModelFrom(

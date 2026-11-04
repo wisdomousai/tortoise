@@ -63,14 +63,14 @@ const revoke = defineCapability({
   permission: { action: 'manage', resourceType: 'Role' },
   ...fixture,
 });
-const site = () => 'site';
+const plant = () => 'plant';
 /** Pair a capability with its handler, keeping the capability's input and output types. */
 const handler = <C extends AnyCapability>(
   capability: C,
   handle: (input: InputOf<C>, ctx: HandlerContext<State, {}>) => OutputOf<C>,
 ): HandlerContribution<State, {}> =>
   ({ capability, handle }) as unknown as HandlerContribution<State, {}>;
-const operatorOnly = { container: site, roles: ['operator'] as Role[] };
+const operatorOnly = { container: plant, roles: ['operator'] as Role[] };
 
 function setup() {
   let ids = 0;
@@ -99,7 +99,7 @@ function setup() {
         'approval.request': 'open',
         // Any member at a screen may approve; the requested command's own rule decides the rest.
         // A delegated run never approves, even its own approval request.
-        'approval.approve': { container: site, person: true },
+        'approval.approve': { container: plant, person: true },
         'approval.reject': { ...operatorOnly, person: true },
         'approval.expire': 'open',
         'approval.list': 'open',

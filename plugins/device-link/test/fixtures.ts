@@ -25,8 +25,8 @@ import { auditPlugin } from '@tortoise/audit/plugin';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { createDeviceLinkPlugin } from '../src/plugin';
 import { deviceLinkPluginManifest } from '../src/plugin-manifest';
 
@@ -93,13 +93,13 @@ const deviceOperations = new Set<string>([ingest.id, feed.id]);
 
 /**
  * The hub application with the device-link plugin; field devices may ingest and read the feed.
- * With `site`, the site, network and audit plugins listen and record as the site policy says.
+ * With `deployed`, the deployment, network and audit plugins listen and record as the deployment policy says.
  */
-export function hubApplication(options: { now?: () => number; site?: boolean } = {}) {
+export function hubApplication(options: { now?: () => number; deployed?: boolean } = {}) {
   const { now } = options;
-  const site = options.site
+  const deployment = options.deployed
     ? [
-        { manifest: sitePluginManifest, plugin: sitePlugin },
+        { manifest: deploymentPluginManifest, plugin: deploymentPlugin },
         { manifest: networkPluginManifest, plugin: networkPlugin },
         { manifest: auditPluginManifest, plugin: auditPlugin },
       ]
@@ -111,7 +111,7 @@ export function hubApplication(options: { now?: () => number; site?: boolean } =
       modules: [
         defineModule({ id: 'survey', capabilities: [ingest, captureList, assignmentAdd, feed] }),
       ],
-      plugins: [...site.map((entry) => entry.manifest), deviceLinkPluginManifest],
+      plugins: [...deployment.map((entry) => entry.manifest), deviceLinkPluginManifest],
     }),
     createState: () => ({ captures: [], assignments: [] }),
     handlers: [
@@ -153,7 +153,10 @@ export function hubApplication(options: { now?: () => number; site?: boolean } =
       }),
       canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
     },
-    plugins: [...site.map((entry) => entry.plugin), createDeviceLinkPlugin(now ? { now } : {})],
+    plugins: [
+      ...deployment.map((entry) => entry.plugin),
+      createDeviceLinkPlugin(now ? { now } : {}),
+    ],
   });
 }
 

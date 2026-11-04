@@ -8,7 +8,7 @@ export const relayRoutes = [
       <CollectionScreen
         title="Remote access"
         list={operations.relayList}
-        columns={['site', 'method', 'path', 'status', 'response', 'requestedAt']}
+        columns={['instance', 'method', 'path', 'status', 'response', 'requestedAt']}
         open={(row) => `/relay/${String(row.id)}`}
       />
     ),

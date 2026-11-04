@@ -7,12 +7,12 @@ import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { methodSuggester, METHOD_MODEL } from './contracts';
 
 /**
- * Run by `bun run dev:web` before the launch. It writes a site policy that binds the model
+ * Run by `bun run dev:web` before the launch. It writes a deployment policy that binds the model
  * server process and `local-inference` on port 4375, into a temporary directory because it names
  * absolute paths. By default the process is the llama-server stand-in with `responder.ts` as the model.
  * With `LOCAL_MODEL_GGUF` set, it is the real llama-server (`LLAMA_SERVER`, or the one on
  * `PATH`) on those weights, measured here into the `lab-methods` entry that `LAB_METHOD_MODEL`
- * names. An explicit `TORTOISE_SITE_POLICY` wins.
+ * names. An explicit `TORTOISE_DEPLOYMENT_POLICY` wins.
  */
 const directory = mkdtempSync(join(tmpdir(), 'test-requests-local-model-'));
 const port = 4375;
@@ -40,7 +40,7 @@ if (weights) {
     env: { FIXTURE_RESPONDER: resolve(import.meta.dir, 'responder.ts') },
   };
 }
-const policy = join(directory, 'site-policy.json');
+const policy = join(directory, 'deployment-policy.json');
 writeFileSync(
   policy,
   JSON.stringify(
@@ -56,7 +56,7 @@ writeFileSync(
     2,
   ),
 );
-process.env.TORTOISE_SITE_POLICY ??= policy;
+process.env.TORTOISE_DEPLOYMENT_POLICY ??= policy;
 console.log(
   weights
     ? `Model: llama-server on ${weights}, port ${port}`

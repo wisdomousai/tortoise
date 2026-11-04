@@ -5,12 +5,12 @@
  *
  *   bun showcase/examples/parts-desk/e2e/prepare.ts <directory>
  *
- * In `<directory>` it writes the site policy that `dev.ts` writes for the llama-server stand-in,
+ * In `<directory>` it writes the deployment policy that `dev.ts` writes for the llama-server stand-in,
  * on a free loopback port, with `responder.ts` as the model's `FIXTURE_RESPONDER`. It creates the
  * workspace `<directory>/workspace` with the trial records, mara as a supervisor and the draft
  * quote Q-00001 for TR-40417, through the commands as the owner. The model server writes the
  * stand-in weights itself (`model.ts`). The last line it prints is the service's environment as
- * JSON: `WORKSPACE_PATH` and `TORTOISE_SITE_POLICY`.
+ * JSON: `WORKSPACE_PATH` and `TORTOISE_DEPLOYMENT_POLICY`.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -24,12 +24,12 @@ const directory = process.argv[2];
 if (!directory) throw new Error('Usage: bun e2e/prepare.ts <directory>');
 mkdirSync(directory, { recursive: true });
 
-/** A loopback port no listener holds, for the stand-in the site policy binds. */
+/** A loopback port no listener holds, for the stand-in the deployment policy binds. */
 const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: () => new Response() });
 const { port } = server;
 server.stop(true);
 
-const policy = join(directory, 'site-policy.json');
+const policy = join(directory, 'deployment-policy.json');
 writeFileSync(
   policy,
   JSON.stringify({
@@ -80,4 +80,4 @@ try {
 } finally {
   await instance.close();
 }
-console.log(JSON.stringify({ WORKSPACE_PATH: workspacePath, TORTOISE_SITE_POLICY: policy }));
+console.log(JSON.stringify({ WORKSPACE_PATH: workspacePath, TORTOISE_DEPLOYMENT_POLICY: policy }));

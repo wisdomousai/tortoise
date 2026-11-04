@@ -8,7 +8,7 @@ import { plateTruth, samplePhoto, samplePlates } from '../fixtures/nameplates';
 /**
  * Live, opt-in: reads the six sample plates with a real model and prints how its reading compares
  * with the ground truth. Runs only when `ASSET_SURVEY_MODEL` and `ASSET_SURVEY_MODEL_URL` (the base
- * URL a site would bind `model-api` to) are set, with `ASSET_SURVEY_MODEL_API_KEY` for a hosted
+ * URL a deployment policy would bind `model-api` to) are set, with `ASSET_SURVEY_MODEL_API_KEY` for a hosted
  * provider; nothing else is read. The photos go out without their text comment, so the model
  * sees pixels only. The comparison is printed, not asserted: record it in the implementation
  * status with the model and date.

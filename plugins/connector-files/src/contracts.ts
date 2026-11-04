@@ -1,6 +1,6 @@
 import { defineHostComponent, type Availability } from '@tortoise/contracts';
 
-/** The folders one file exchange uses; each is a folder ID the site policy binds. */
+/** The folders one file exchange uses; each is a folder ID the deployment policy binds. */
 export interface FileExchangeFolders {
   /** Where effects are written as files for the other system to pick up. */
   readonly drop?: string;

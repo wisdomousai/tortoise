@@ -80,6 +80,10 @@ How far a screen bridge or a driver bridge may act. See [`workstations/screen-br
 
 What an assignee receives with an assignment: the kind's brief schema, computed from the scope when the caller sends the assignment, unchanged after. See [`packages/assignments`](../packages/assignments/README.md).
 
+### Bundle
+
+One signed, versioned directory per application and platform, which an install checks before it places the release. Do not use: site bundle. See [`packages/bundle`](../packages/bundle/README.md), [`plugins/deployment`](../plugins/deployment/README.md).
+
 ### Caller
 
 The source of a command or query: a person at a screen, an agent run, a script, a trigger, a device or the dispatcher.
@@ -150,7 +154,7 @@ One declaration of a kind of record that lives in a system of record and that ca
 
 ### Decommissioning
 
-Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. See [`plugins/site`](../plugins/site/README.md), [application lifecycle](application-lifecycle.md#decommissioning-procedure).
+Removing an application from a host after its [systems of record](#system-of-record) hold every record it captured. See [`plugins/deployment`](../plugins/deployment/README.md), [application lifecycle](application-lifecycle.md#decommissioning-procedure).
 
 ### Delivery mode
 
@@ -162,7 +166,7 @@ What one delivery attempt returns to the dispatcher. See [`packages/integration`
 
 ### Deployment policy
 
-The policy one host runs under. See [`plugins/site`](../plugins/site/README.md), [security and compliance](security-and-compliance.md#deployment-policy).
+The policy one host runs under. Do not use: site policy. See [`plugins/deployment`](../plugins/deployment/README.md), [security and compliance](security-and-compliance.md#deployment-policy).
 
 ### Destination
 
@@ -246,7 +250,7 @@ A number that grows with each new holder of a worker claim or a workspace lease.
 
 ### Fleet
 
-An application that sites report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. See [`showcase/examples/fleet`](../showcase/examples/fleet/README.md), [`plugins/fleet-agent`](../plugins/fleet-agent/README.md).
+An application that enrolled instances report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. See [`showcase/examples/fleet`](../showcase/examples/fleet/README.md), [`plugins/fleet-agent`](../plugins/fleet-agent/README.md).
 
 ### Framework
 
@@ -278,7 +282,7 @@ The server function that implements one capability.
 
 ### Hardening profile
 
-The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. See [security and compliance](security-and-compliance.md#deployment-policy).
+The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `hub`, `sandbox` or `zero-trust`. Do not use: site-hub. See [security and compliance](security-and-compliance.md#deployment-policy).
 
 ### Harness
 
@@ -306,7 +310,7 @@ The Bun host on the hosted platform: the workspace in a shared Postgres database
 
 ### Hub
 
-The instance that phones and tablets pair with and deliver to, usually the site's host under the `site-hub` hardening profile. See [mobile](mobile.md).
+The instance that phones and tablets pair with and deliver to, usually the host on the local network under the `hub` hardening profile. See [mobile](mobile.md).
 
 ### Idempotency key
 
@@ -422,7 +426,7 @@ The object a host plugin exposes to later plugins and to handlers as `services[<
 
 ### Point of work
 
-The place where an operator, a device or station software produces the input an application captures: a station PC, a site server or a phone next to the equipment.
+The place where an operator, a device or station software produces the input an application captures: a station PC, a plant server or a phone next to the equipment.
 
 ### Policy
 
@@ -503,14 +507,6 @@ How many days each build of an application stays within its [best-before date](#
 ### Shell port
 
 The host port that receives OS requests under declared OS handlers and performs declared OS actions. See [`packages/kernel`](../packages/kernel/README.md).
-
-### Site
-
-A plant, office or customer location where a host runs under one deployment policy.
-
-### Site bundle
-
-One signed, versioned directory per application and platform, which a site checks before it installs it. See [`packages/bundle`](../packages/bundle/README.md), [`plugins/site`](../plugins/site/README.md).
 
 ### Snapshot
 
@@ -614,7 +610,7 @@ One run of a declared workflow, which `workflow.start` starts and the workflows 
 
 ### Workforce sign-in
 
-People signing in to a serving host through the site's identity provider under `identity: external`. See [`plugins/site`](../plugins/site/README.md).
+People signing in to a serving host through the workforce identity provider under `identity: external`. See [`plugins/deployment`](../plugins/deployment/README.md).
 
 ### Worklist
 

@@ -23,9 +23,9 @@
   "dependencies": {
     "@tortoise/adapters": "workspace:*",
     "@tortoise/contracts": "workspace:*",
+    "@tortoise/deployment": "workspace:*",
     "@tortoise/event-log": "workspace:*",
     "@tortoise/host": "workspace:*",
-    "@tortoise/kernel": "workspace:*",
-    "@tortoise/site": "workspace:*"
+    "@tortoise/kernel": "workspace:*"
   }
 }

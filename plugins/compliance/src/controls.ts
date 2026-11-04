@@ -27,7 +27,7 @@ export interface Control {
     readonly tests: readonly string[];
     /**
      * Generated or exported artifacts: a file `bun run generate` writes for each application under
-     * `dist/reference/<id>/`, a file in a signed site bundle, or a CLI export.
+     * `dist/reference/<id>/`, a file in a signed bundle, or a CLI export.
      */
     readonly artifacts: readonly string[];
     /** Audit event kinds that show the control operating at runtime. */
@@ -58,7 +58,7 @@ export const controls: readonly Control[] = [
     id: 'AN-NET-02',
     title: 'Deny-by-default egress with origin and address checks',
     implementation:
-      'Outbound requests go through the egress guard: only declared destinations bound by the site policy, only at their bound origin, redirects revalidated per hop, resolved addresses checked against the bound networks, with timeouts and response-size caps.',
+      'Outbound requests go through the egress guard: only declared destinations bound by the deployment policy, only at their bound origin, redirects revalidated per hop, resolved addresses checked against the bound networks, with timeouts and response-size caps.',
     limits:
       'In-process enforcement; a resolver that returns different addresses between check and connect can race the address check. The exported OS rules close that gap.',
     status: 'implemented',
@@ -81,7 +81,7 @@ export const controls: readonly Control[] = [
     id: 'AN-NET-03',
     title: 'Operating-system rules generated from the same policy',
     implementation:
-      'The site policy exports to nftables, Windows Firewall, Kubernetes NetworkPolicy and a systemd unit with IPAddressDeny=any. Bound destinations without addresses are listed as not enforced instead of being widened.',
+      'The deployment policy exports to nftables, Windows Firewall, Kubernetes NetworkPolicy and a systemd unit with IPAddressDeny=any. Bound destinations without addresses are listed as not enforced instead of being widened.',
     limits:
       'Rules are exported, not applied; applying and keeping them current is a deployment step.',
     status: 'partial',
@@ -101,7 +101,7 @@ export const controls: readonly Control[] = [
     id: 'AN-NET-04',
     title: 'Offline-first, isolated by default',
     implementation:
-      'Without a site policy the application binds nothing off-host. Outbox targets queue, optional features report themselves unavailable, and the consequence list is recorded at startup.',
+      'Without a deployment policy the application binds nothing off-host. Outbox targets queue, optional features report themselves unavailable, and the consequence list is recorded at startup.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.5.30', 'A.8.22'],
@@ -112,7 +112,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'showcase/examples/field-service/test/security.test.ts',
-        'plugins/site/test/policy.test.ts',
+        'plugins/deployment/test/policy.test.ts',
         'plugins/network/test/guard.test.ts',
       ],
       artifacts: ['data-flows.md'],
@@ -142,7 +142,7 @@ export const controls: readonly Control[] = [
     id: 'AN-CRY-01',
     title: 'Encrypted transport floor and certificate pinning',
     implementation:
-      'Sandbox and zero-trust profiles refuse plain-text bindings to site or internet destinations; bindings can replace the CA bundle and pin server certificates by SHA-256 fingerprint.',
+      'Sandbox and zero-trust profiles refuse plain-text bindings to local or internet destinations; bindings can replace the CA bundle and pin server certificates by SHA-256 fingerprint.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.5.14', 'A.8.24'],
@@ -151,7 +151,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 3.1', 'CR 4.1', 'CR 4.3', 'CR 1.8'],
     },
     evidence: {
-      tests: ['plugins/site/test/policy.test.ts', 'plugins/network/test/guard.test.ts'],
+      tests: ['plugins/deployment/test/policy.test.ts', 'plugins/network/test/guard.test.ts'],
       artifacts: [],
       events: ['policy.loaded'],
     },
@@ -328,7 +328,7 @@ export const controls: readonly Control[] = [
     id: 'AN-IAC-02',
     title: 'Identity and ingress floors for sandbox and zero-trust profiles',
     implementation:
-      'Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-owner session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the site client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.',
+      'Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-owner session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the local client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.',
     limits:
       'Workforce sign-in is OpenID Connect only and has not been run against a real provider; SAML, LDAP and certificate issuance are not part of this framework. External identity refuses to start without a bound provider instead of falling back.',
     status: 'partial',
@@ -340,7 +340,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: [
-        'plugins/site/test/policy.test.ts',
+        'plugins/deployment/test/policy.test.ts',
         'showcase/examples/field-service/test/security.test.ts',
         'showcase/examples/field-service/test/hardening.test.ts',
       ],
@@ -352,7 +352,7 @@ export const controls: readonly Control[] = [
     id: 'AN-CFG-01',
     title: 'Configuration validation and runtime attestation',
     implementation:
-      'The site policy is schema-validated against the composed declarations before anything opens; startup records the executable, catalog and policy digests and the profile, so a running instance can be matched to its SBOM and manifest.',
+      'The deployment policy is schema-validated against the composed declarations before anything opens; startup records the executable, catalog and policy digests and the profile, so a running instance can be matched to its SBOM and manifest.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.9', 'A.8.32'],
@@ -364,9 +364,9 @@ export const controls: readonly Control[] = [
       tests: [
         'showcase/examples/field-service/test/security.test.ts',
         'showcase/examples/quality-inspection/test/security.test.ts',
-        'plugins/site/test/policy.test.ts',
+        'plugins/deployment/test/policy.test.ts',
       ],
-      artifacts: ['site check --site <file>'],
+      artifacts: ['policy check --policy <file>'],
       events: ['config.loaded', 'policy.loaded'],
     },
   },
@@ -374,7 +374,7 @@ export const controls: readonly Control[] = [
     id: 'AN-SUP-01',
     title: 'Software bill of materials',
     implementation:
-      'A CycloneDX 1.6 SBOM is generated from the lockfile when a site bundle is built, with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows. It is signed with the bundle it describes.',
+      'A CycloneDX 1.6 SBOM is generated from the lockfile when a bundle is built, with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows. It is signed with the bundle it describes.',
     limits:
       'Licenses are not recorded in the lockfile and are omitted; vulnerability matching is a separate process.',
     status: 'implemented',
@@ -386,7 +386,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['plugins/compliance/test/compliance.test.ts'],
-      artifacts: ['sbom.cdx.json in each signed site bundle (scripts/bundle.ts)'],
+      artifacts: ['sbom.cdx.json in each signed bundle (scripts/bundle.ts)'],
       events: [],
     },
   },
@@ -394,7 +394,7 @@ export const controls: readonly Control[] = [
     id: 'AN-SUP-02',
     title: 'Packaged resource integrity',
     implementation:
-      'The desktop build verifies the service executable, the shipped site policy and provider runtimes against digests in its runtime manifest before launching them.',
+      'The desktop build verifies the service executable, the shipped deployment policy and provider runtimes against digests in its runtime manifest before launching them.',
     limits: 'Detects damaged or swapped files; it does not replace platform code signing.',
     status: 'implemented',
     mappings: {

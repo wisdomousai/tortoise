@@ -1,6 +1,6 @@
 import type { RelayResponse, RelayRequest } from './contracts';
 
-/** Request headers passed to the site's API. Cookies, origin and forwarding headers never are. */
+/** Request headers passed to the instance's API. Cookies, origin and forwarding headers never are. */
 const requestHeaders = new Set([
   'accept',
   'accept-language',
@@ -24,14 +24,17 @@ const pick = (headers: Iterable<[string, string]>, allowed: ReadonlySet<string>)
 
 /**
  * Forward one remote-access request to this host's own API and describe the response. The relay
- * adds no credential: a request reaches an operation only with a session the site itself issued,
+ * adds no credential: a request reaches an operation only with a session the instance itself issued,
  * which its own identity port and policy check like any other caller's. The fleet credential is
- * never attached, so whoever controls the fleet gains no access to the site through it.
+ * never attached, so whoever controls the fleet gains no access to the instance through it.
  *
  * Trust boundary: `origin` is the host's own listener from `PluginStartContext.origin`, and the
  * path is confined to `/api/v1/` by the protocol schema, so the relay reaches nothing else.
  */
-export async function forwardToSite(origin: string, request: RelayRequest): Promise<RelayResponse> {
+export async function forwardToInstance(
+  origin: string,
+  request: RelayRequest,
+): Promise<RelayResponse> {
   const url = new URL(request.path, origin);
   if (url.origin !== new URL(origin).origin || !url.pathname.startsWith('/api/v1/'))
     return { id: request.id, status: 400, headers: {} };

@@ -182,7 +182,7 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
     },
     /**
      * A URL the window asked to open. Only one a declared open action builds is opened, and then
-     * as the action, so the shell port audits it, applies the site's disabled list and its rate.
+     * as the action, so the shell port audits it, applies the policy's disabled list and its rate.
      * An instance without the shell port leaves the check here; the URL is rebuilt from the
      * declaration either way.
      */

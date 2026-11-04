@@ -20,7 +20,7 @@ export const destinationPostureSchema = z.strictObject({
   id: z.string(),
   owner: z.string(),
   direction: z.enum(['egress', 'ingress']),
-  scope: z.enum(['loopback', 'site', 'internet']),
+  scope: z.enum(['loopback', 'local', 'internet']),
   availability: z.enum(['required', 'optional']),
   state: z.enum(['bound', 'disabled', 'unbound', 'isolated', 'local']),
   /** Bound origin, without credentials or path. */
@@ -33,7 +33,7 @@ export const destinationPostureSchema = z.strictObject({
 export const postureSchema = z.strictObject({
   checkedAt: z.number().int(),
   status: z.enum(['ok', 'attention', 'failing']),
-  profile: z.enum(['desktop-local', 'site-hub', 'sandbox', 'zero-trust']),
+  profile: z.enum(['desktop-local', 'hub', 'sandbox', 'zero-trust']),
   networkMode: z.enum(['isolated', 'connected']),
   auditMode: z.enum(['fail-closed', 'best-effort']),
   policyDigest: digest,

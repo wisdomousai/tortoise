@@ -14,7 +14,7 @@ import {
 
 export interface MqttSubscriberOptions {
   readonly network: NetworkPort;
-  /** A declared `tcp` destination; the site policy binds the broker's address and TLS. */
+  /** A declared `tcp` destination; the deployment policy binds the broker's address and TLS. */
   readonly destination: string;
   readonly clientId: string;
   readonly filters: readonly string[];

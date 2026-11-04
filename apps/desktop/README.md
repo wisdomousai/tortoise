@@ -6,6 +6,6 @@ The Electron window for the application named in `app.config.json`. It attaches 
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md), [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md), [deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md)
 - [Desktop](../../docs/desktop.md)
 - Test: `bun run test:package`

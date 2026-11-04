@@ -21,7 +21,7 @@ import {
 
 export interface OpcUaClientOptions {
   readonly network: NetworkPort;
-  /** A declared `tcp` destination; the site policy binds the server's address. */
+  /** A declared `tcp` destination; the deployment policy binds the server's address. */
   readonly destination: string;
   /** The endpoint URL the server expects to be told, `opc.tcp://host:4840/path`. */
   readonly endpointUrl: string;

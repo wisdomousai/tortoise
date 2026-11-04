@@ -4,7 +4,7 @@ import { defineApplication } from '@tortoise/host/application';
 import type { NetworkPort } from '@tortoise/host/plugin';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -29,7 +29,7 @@ export interface TestRequestsSystemOfRecordOptions {
 
 /**
  * The test requests module unchanged, with publishing to an enterprise LIMS. The LIMS's
- * destination is declared in the manifest and bound by the site policy; until it is bound,
+ * destination is declared in the manifest and bound by the deployment policy; until it is bound,
  * publications wait in the outbox.
  */
 export function createTestRequestsSystemOfRecordApplication(
@@ -53,7 +53,7 @@ export function createTestRequestsSystemOfRecordApplication(
       publishingRoute,
     ]),
     ...(options.services ? { services: options.services } : {}),
-    plugins: [sitePlugin, networkPlugin, auditPlugin],
+    plugins: [deploymentPlugin, networkPlugin, auditPlugin],
     connect: ({ application, workspaceId, network }) => ({
       integrations: [
         connectTarget<RegisteredRequest>({

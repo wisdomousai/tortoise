@@ -2,7 +2,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { compliancePlugin } from '@tortoise/compliance/plugin';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import { createStationSignInPlugin } from '@tortoise/workstation-sign-in/plugin';
 import manifest from './manifest';
 import { createState, upgradeState, type AppState, type Role } from './domain';
@@ -69,7 +69,7 @@ export const counterMembers: Record<string, Role> = {
 // #endregion members
 
 /**
- * The Tool Store application with the site, network, audit, compliance and station sign-in
+ * The Tool Store application with the deployment, network, audit, compliance and station sign-in
  * plugins. The sign-in plugin uses the instance clock from `services.now`, so a test can expire an
  * operator session.
  */
@@ -132,7 +132,7 @@ export function createToolStoreApplication(options: ToolStoreOptions = {}) {
     // #endregion selectable
     // #region plugins
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       networkPlugin,
       auditPlugin,
       compliancePlugin,

@@ -2,7 +2,7 @@ import { ApplicationError, type AuditMode, type EventLogPort } from '@tortoise/c
 import { createEgress, type Egress } from './guard';
 import { startEgressProxy, type EgressProxy } from './proxy';
 import type { HostPorts, PluginInstance, PluginOpenContext } from '@tortoise/host/plugin';
-import { siteServiceOf } from '@tortoise/site/open';
+import { deploymentServiceOf } from '@tortoise/deployment/open';
 import { policyIngress } from './ingress';
 
 /** What the network plugin exposes to later plugins as `services.network`. */
@@ -47,18 +47,18 @@ function networkPort(egress: Egress, proxy: EgressProxy | undefined): HostPorts[
 }
 
 /**
- * Enforce the site policy's bindings:
+ * Enforce the deployment policy's bindings:
  *
- * 1. Create the egress guard over the policy the site plugin resolved, recording into the
+ * 1. Create the egress guard over the policy the deployment plugin resolved, recording into the
  *    composed event log in that log's egress mode.
  * 2. In a serving host, start the loopback CONNECT proxy that declared child processes (provider
  *    CLIs) must use.
  * 3. Provide the network port, and the ingress port when the policy selects a TLS or mutual TLS listener.
  *
- * Throws when the site plugin is not composed or the proxy cannot start.
+ * Throws when the deployment plugin is not composed or the proxy cannot start.
  */
 export async function openNetwork(context: PluginOpenContext): Promise<PluginInstance> {
-  const { policy, requirements } = siteServiceOf(context.services);
+  const { policy, requirements } = deploymentServiceOf(context.services);
   const egress = createEgress({ policy, requirements, eventLog: composedEventLog(context.ports) });
   const proxy = context.serving ? await startEgressProxy(egress) : undefined;
   const ingress = policyIngress(policy);

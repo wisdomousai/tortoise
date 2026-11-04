@@ -31,7 +31,7 @@ interface OsHandlerBase {
   readonly id: string;
   readonly description: string;
 }
-/** `<scheme>://<path>`; with `verified`, also `https://<site link host><path>` (App/Universal Links). */
+/** `<scheme>://<path>`; with `verified`, also `https://<link host><path>` (App/Universal Links). */
 export interface OsLinkHandler extends OsHandlerBase {
   readonly kind: 'link';
   /** Absolute path; `:name` segments are parameters, e.g. `/tasks/:taskId`. */

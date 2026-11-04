@@ -9,7 +9,7 @@ import { lotsApplication, person, reviewOnReceive } from './fixture';
 /**
  * The live form of `local-approval.test.ts`, skipped unless LOCAL_MODEL_GGUF names a GGUF file:
  * the test starts llama.cpp `llama-server` (LLAMA_SERVER, or the one on PATH) on those weights,
- * the site policy binds `local-inference` to it, and a received lot starts a run on the real
+ * the deployment policy binds `local-inference` to it, and a received lot starts a run on the real
  * model. The person approving is the only path to the command.
  */
 const weights = process.env.LOCAL_MODEL_GGUF;
@@ -59,7 +59,7 @@ live(
 
     const directory = await mkdtemp(join(tmpdir(), 'automation-live-'));
     cleanup.push(() => rm(directory, { recursive: true, force: true }));
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -82,7 +82,7 @@ live(
       {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        settings: { 'site-policy': policy },
+        settings: { 'deployment-policy': policy },
       },
     );
     cleanup.push(() => host.close());

@@ -3,7 +3,7 @@ import { defineHostPlugin, type NetworkPort } from '@tortoise/kernel/plugin';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 
 /**
- * For tests of a site or a fleet: a plugin whose network port reaches the `fleet` destination
+ * For tests of an instance or a fleet: a plugin whose network port reaches the `fleet` destination
  * through `reach`, and refuses every other destination as the kernel default does. `reach` gets
  * the URL resolved against a placeholder origin; map its path onto the fleet under test, and
  * fail, drop or change responses there to stand in for an unreliable uplink. Compose it where the

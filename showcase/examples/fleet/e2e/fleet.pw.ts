@@ -5,18 +5,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../../tests/e2e/service';
 
-test('an operator enrolls a site, assigns it a channel and sees it drift from that channel', async ({
+test('an operator enrolls an instance, assigns it a channel and sees it drift from that channel', async ({
   page,
 }) => {
   test.setTimeout(60_000);
   const directory = await mkdtemp(join(tmpdir(), 'fleet-e2e-'));
-  const policy = join(directory, 'site-policy.json');
+  const policy = join(directory, 'deployment-policy.json');
   await writeFile(
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' } }),
   );
   const host = await startService('@tortoise/fleet', join(directory, 'workspace'), {
-    TORTOISE_SITE_POLICY: policy,
+    TORTOISE_DEPLOYMENT_POLICY: policy,
   });
   const { token } = JSON.parse(await readFile(host.connectionFile, 'utf8')) as { token: string };
   const api = (credential: string, path: string, body: unknown, type = 'application/json') =>
@@ -28,9 +28,9 @@ test('an operator enrolls a site, assigns it a channel and sees it drift from th
   try {
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Health', level: 1 })).toBeVisible();
-    await expect(page.getByText('No site needs a look.')).toBeVisible();
+    await expect(page.getByText('No instance needs a look.')).toBeVisible();
 
-    // Enroll: the operator creates the code; the test plays the site that redeems it.
+    // Enroll: the operator creates the code; the test plays the instance that redeems it.
     await page
       .getByRole('navigation', { name: 'Sections' })
       .getByRole('link', { name: 'Devices' })
@@ -43,8 +43,8 @@ test('an operator enrolls a site, assigns it a channel and sees it drift from th
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
     });
-    const { token: site } = (await enrolled.json()) as { token: string };
-    const report = await api(site, '/api/v1/commands/fleet.site.report', {
+    const { token: instance } = (await enrolled.json()) as { token: string };
+    const report = await api(instance, '/api/v1/commands/fleet.instance.report', {
       input: {
         application: 'plant',
         instance: 'e2e',
@@ -106,7 +106,7 @@ test('an operator enrolls a site, assigns it a channel and sees it drift from th
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByRole('row').filter({ hasText: 'stable' })).toBeVisible();
 
-    await sections.getByRole('link', { name: 'Sites' }).click();
+    await sections.getByRole('link', { name: 'Instances' }).click();
     const row = page.getByRole('row').filter({ hasText: 'plant' });
     await expect(row).toBeVisible();
     await row.click();

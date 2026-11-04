@@ -60,7 +60,7 @@ live(
       agents: ['note.suggester'],
     });
     const port = await freePort();
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -90,7 +90,7 @@ live(
     const host = await startHost(application, {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     cleanup.push(() => host.close());
     for (let tries = 0; tries < 600; tries++) {

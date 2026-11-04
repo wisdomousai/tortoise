@@ -12,7 +12,7 @@ import {
   recordKeySchema,
 } from '@tortoise/contracts';
 
-/** The network destination that carries the LIMS; the site policy binds its URL. */
+/** The network destination that carries the LIMS; the deployment policy binds its URL. */
 export const LIMS_DESTINATION = 'lims-api';
 
 /**
@@ -41,7 +41,7 @@ export const publications = defineCollection({
   ],
 });
 
-/** A test request registered at another site's LIMS front desk, as the LIMS feed reports it. */
+/** A test request registered at another plant's LIMS front desk, as the LIMS feed reports it. */
 export const registeredRequestSchema = z.strictObject({
   id: recordKeySchema,
   sample: z.string().min(1).max(64),
@@ -53,7 +53,7 @@ export type RegisteredRequest = z.output<typeof registeredRequestSchema>;
 
 /**
  * The enterprise LIMS as a system of record: test requests are registered there, and its feed
- * delivers requests registered at other sites, which become test requests here.
+ * delivers requests registered at other plants, which become test requests here.
  */
 export const limsTarget = defineTarget({
   target: 'lims',
@@ -63,7 +63,7 @@ export const limsTarget = defineTarget({
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
     complete: 'Integration principal only: record the LIMS outcome for a published test request.',
-    sync: 'Integration principal only: add test requests registered at other sites and advance the watermark. A stale from watermark conflicts.',
+    sync: 'Integration principal only: add test requests registered at other plants and advance the watermark. A stale from watermark conflicts.',
     status:
       'Summarize publications: waiting for the LIMS, accepted and rejected, and the last import of requests registered elsewhere.',
   },
@@ -107,9 +107,9 @@ export const publishingModule = defineModule({
       {
         id: LIMS_DESTINATION,
         purpose:
-          'Register test requests in the LIMS, ask it about earlier deliveries and read requests registered at other sites.',
+          'Register test requests in the LIMS, ask it about earlier deliveries and read requests registered at other plants.',
         direction: 'egress',
-        // The pattern's LIMS is a fake on this machine; a real one is `site` or `internet` over
+        // The pattern's LIMS is a fake on this machine; a real one is `local` or `internet` over
         // `https`.
         scope: 'loopback',
         protocol: 'http',

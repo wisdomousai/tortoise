@@ -19,31 +19,31 @@ import { defineManifest } from '@tortoise/kernel/manifest';
 import type { HostPlugin } from '@tortoise/kernel/plugin';
 import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
 import { createHandlerFactory } from '@tortoise/runtime';
-import { sitePlugin } from '@tortoise/site/plugin';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import {
-  fleetSiteModule,
-  fleetSiteOperations,
+  fleetInstanceModule,
+  fleetInstanceOperations,
   relayRequestSchema,
   releaseSchema,
   type FleetRelease,
   type RelayResponse,
   type RelayRequest,
-  type SiteReport,
+  type InstanceReport,
 } from '../src/contracts';
 import { createFleetAgentPlugin } from '../src/plugin';
 import { fleetAgentPluginManifest } from '../src/plugin-manifest';
 
-// The fleet: one channel, sites enrolled with device-link, each site seeing only its own record.
-interface FleetSite {
-  report?: SiteReport;
+// The fleet: one channel, instances enrolled with device-link, each instance seeing only its own record.
+interface FleetInstance {
+  report?: InstanceReport;
   auditSeq: number;
   events: string[];
   relay: RelayRequest[];
   responses: Record<string, RelayResponse>;
 }
 interface FleetState {
-  sites: Record<string, FleetSite>;
+  instances: Record<string, FleetInstance>;
   release?: FleetRelease;
 }
 
@@ -59,9 +59,9 @@ const releaseSet = defineCapability({
 const relayEnqueue = defineCapability({
   id: 'fixture.relay.enqueue',
   kind: 'command',
-  input: jsonSchema(z.strictObject({ site: z.string(), request: relayRequestSchema })),
+  input: jsonSchema(z.strictObject({ instance: z.string(), request: relayRequestSchema })),
   output: jsonSchema(z.strictObject({})),
-  permission: { action: 'write', resourceType: 'Site' },
+  permission: { action: 'write', resourceType: 'Instance' },
   ui: { exception: 'test fixture' },
 });
 const fleetRead = defineCapability({
@@ -69,20 +69,20 @@ const fleetRead = defineCapability({
   kind: 'query',
   input: jsonSchema(z.strictObject({})),
   output: jsonSchema(z.record(z.string(), jsonValueSchema)),
-  permission: { action: 'read', resourceType: 'Site' },
+  permission: { action: 'read', resourceType: 'Instance' },
   ui: { exception: 'test fixture' },
 });
 
-const siteOf = (state: FleetState, principalId: string): FleetSite => {
+const instanceOf = (state: FleetState, principalId: string): FleetInstance => {
   if (!principalId.startsWith('device:'))
-    throw new ApplicationError('FORBIDDEN', 'Only an enrolled site calls the fleet protocol');
+    throw new ApplicationError('FORBIDDEN', 'Only an enrolled instance calls the fleet protocol');
   const id = principalId.slice('device:'.length);
-  if (!Object.hasOwn(state.sites, id))
-    state.sites[id] = { auditSeq: 0, events: [], relay: [], responses: {} };
-  return state.sites[id]!;
+  if (!Object.hasOwn(state.instances, id))
+    state.instances[id] = { auditSeq: 0, events: [], relay: [], responses: {} };
+  return state.instances[id]!;
 };
 const protocol = new Set<string>(
-  Object.values(fleetSiteOperations).map((operation) => operation.id),
+  Object.values(fleetInstanceOperations).map((operation) => operation.id),
 );
 
 const fleetBind = createHandlerFactory<FleetState, unknown>();
@@ -93,45 +93,45 @@ export function fleetApplication() {
       id: 'fleet',
       title: 'Fleet',
       modules: [
-        fleetSiteModule,
+        fleetInstanceModule,
         defineModule({ id: 'fixture', capabilities: [releaseSet, relayEnqueue, fleetRead] }),
       ],
       plugins: [deviceLinkPluginManifest],
     }),
-    createState: () => ({ sites: {} }),
+    createState: () => ({ instances: {} }),
     handlers: [
-      fleetBind(fleetSiteOperations.report, async (input, ctx) => {
-        siteOf(ctx.state, ctx.context.principalId).report = input;
-        ctx.change(`site:${ctx.context.principalId}`);
+      fleetBind(fleetInstanceOperations.report, async (input, ctx) => {
+        instanceOf(ctx.state, ctx.context.principalId).report = input;
+        ctx.change(`instance:${ctx.context.principalId}`);
         return {};
       }),
-      fleetBind(fleetSiteOperations.desired, async (_input, ctx) =>
+      fleetBind(fleetInstanceOperations.desired, async (_input, ctx) =>
         ctx.state.release ? { release: ctx.state.release } : {},
       ),
-      fleetBind(fleetSiteOperations.auditCursor, async (_input, ctx) => ({
-        afterSeq: siteOf(ctx.state, ctx.context.principalId).auditSeq,
+      fleetBind(fleetInstanceOperations.auditCursor, async (_input, ctx) => ({
+        afterSeq: instanceOf(ctx.state, ctx.context.principalId).auditSeq,
       })),
-      fleetBind(fleetSiteOperations.auditIngest, async (input, ctx) => {
-        const site = siteOf(ctx.state, ctx.context.principalId);
+      fleetBind(fleetInstanceOperations.auditIngest, async (input, ctx) => {
+        const instance = instanceOf(ctx.state, ctx.context.principalId);
         for (const line of input.events) {
           const { seq } = JSON.parse(line) as { seq: number };
-          if (seq <= site.auditSeq) continue;
-          if (seq !== site.auditSeq + 1)
-            throw new ApplicationError('CONFLICT', `Expected audit event ${site.auditSeq + 1}`);
-          site.events.push(line);
-          site.auditSeq = seq;
+          if (seq <= instance.auditSeq) continue;
+          if (seq !== instance.auditSeq + 1)
+            throw new ApplicationError('CONFLICT', `Expected audit event ${instance.auditSeq + 1}`);
+          instance.events.push(line);
+          instance.auditSeq = seq;
         }
-        ctx.change(`site:${ctx.context.principalId}`);
-        return { afterSeq: site.auditSeq };
+        ctx.change(`instance:${ctx.context.principalId}`);
+        return { afterSeq: instance.auditSeq };
       }),
-      fleetBind(fleetSiteOperations.relayClaim, async (_input, ctx) => {
-        const request = siteOf(ctx.state, ctx.context.principalId).relay.shift();
-        ctx.change(`site:${ctx.context.principalId}`);
+      fleetBind(fleetInstanceOperations.relayClaim, async (_input, ctx) => {
+        const request = instanceOf(ctx.state, ctx.context.principalId).relay.shift();
+        ctx.change(`instance:${ctx.context.principalId}`);
         return request ? { request } : {};
       }),
-      fleetBind(fleetSiteOperations.relayRespond, async (input, ctx) => {
-        siteOf(ctx.state, ctx.context.principalId).responses[input.id] = input;
-        ctx.change(`site:${ctx.context.principalId}`);
+      fleetBind(fleetInstanceOperations.relayRespond, async (input, ctx) => {
+        instanceOf(ctx.state, ctx.context.principalId).responses[input.id] = input;
+        ctx.change(`instance:${ctx.context.principalId}`);
         return {};
       }),
       fleetBind(releaseSet, async (input, ctx) => {
@@ -141,8 +141,8 @@ export function fleetApplication() {
         return {};
       }),
       fleetBind(relayEnqueue, async (input, ctx) => {
-        siteOf(ctx.state, `device:${input.site}`).relay.push(input.request);
-        ctx.change(`site:device:${input.site}`);
+        instanceOf(ctx.state, `device:${input.instance}`).relay.push(input.request);
+        ctx.change(`instance:device:${input.instance}`);
         return {};
       }),
       fleetBind(fleetRead, async (_input, ctx) => JSON.parse(JSON.stringify(ctx.state))),
@@ -154,7 +154,7 @@ export function fleetApplication() {
           (context.principalId.startsWith('device:') && protocol.has(capability.id)),
         reason: 'RESOURCE_DENIED',
       }),
-      // A site reads the release blobs; nothing else of the fleet.
+      // An instance reads the release blobs; nothing else of the fleet.
       canReadEvent: ({ context, event }) =>
         context.principalId === LOCAL_OWNER ||
         (context.principalId.startsWith('device:') && event.resource.startsWith('release:')),
@@ -163,7 +163,7 @@ export function fleetApplication() {
   });
 }
 
-// The site: notes that also queue an effect for an ERP no dispatcher here delivers.
+// The instance: notes that also queue an effect for an ERP no dispatcher here delivers.
 const noteAdd = defineCapability({
   id: 'notes.add',
   kind: 'command',
@@ -189,7 +189,7 @@ const erp = defineHostComponent({
         id: 'erp-api',
         purpose: 'Fixture destination.',
         direction: 'egress',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         dataClasses: ['note'],
         availability: 'optional',
@@ -201,20 +201,20 @@ const erp = defineHostComponent({
 });
 
 type Notes = { notes: Record<string, number> };
-const siteBind = createHandlerFactory<Notes, unknown>();
+const instanceBind = createHandlerFactory<Notes, unknown>();
 
-/** The site's network plugin: `fleetNetworkFixture` in process, the real one in a release. */
-export interface SiteNetwork {
+/** The instance's network plugin: `fleetNetworkFixture` in process, the real one in a release. */
+export interface InstanceNetwork {
   readonly manifest: PluginManifest;
   readonly plugin: HostPlugin;
 }
 
 /**
- * The site application at `version`. Version 1 keeps `notes.count`; version 2 renames it to
+ * The instance application at `version`. Version 1 keeps `notes.count`; version 2 renames it to
  * `notes.total` through a migration, so an upgrade has state to migrate. Its contract version
  * follows, so each queued effect records the release that queued it.
  */
-export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
+export function instanceApplication(network: InstanceNetwork, version: 1 | 2 = 1) {
   const field = version === 1 ? 'count' : 'total';
   return defineApplication<Notes>({
     manifest: defineManifest({
@@ -223,7 +223,7 @@ export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
       modules: [defineModule({ id: 'notes', capabilities: [noteAdd, noteCount] })],
       components: [erp],
       plugins: [
-        sitePluginManifest,
+        deploymentPluginManifest,
         network.manifest,
         auditPluginManifest,
         fleetAgentPluginManifest,
@@ -248,7 +248,7 @@ export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
         }
       : {}),
     handlers: [
-      siteBind(noteAdd, async (input, ctx) => {
+      instanceBind(noteAdd, async (input, ctx) => {
         const count = (ctx.state.notes[field] ?? 0) + 1;
         ctx.state.notes[field] = count;
         ctx.change(`note:${count}`);
@@ -260,7 +260,7 @@ export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
         });
         return { count };
       }),
-      siteBind(noteCount, async (_input, ctx) => ({ count: ctx.state.notes[field] ?? 0 })),
+      instanceBind(noteCount, async (_input, ctx) => ({ count: ctx.state.notes[field] ?? 0 })),
     ],
     authorization: {
       authorize: ({ context }) => ({
@@ -270,7 +270,7 @@ export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
       canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
     },
     plugins: [
-      sitePlugin,
+      deploymentPlugin,
       network.plugin,
       auditPlugin,
       createFleetAgentPlugin({ intervalMs: 3_600_000, relayMs: 3_600_000 }),

@@ -36,7 +36,7 @@ afterEach(async () => {
 });
 
 /**
- * A hub workspace with three members; `settings` are the plugins' (a site policy, say), and `now`
+ * A hub workspace with three members; `settings` are the plugins' (a deployment policy, say), and `now`
  * the workflows plugin's clock.
  */
 export async function open(settings?: PluginSettings, options: { now?: () => number } = {}) {

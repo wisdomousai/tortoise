@@ -6,7 +6,7 @@
 //   dotnet run --project sdks/driver-dotnet/src/Tortoise.Driver.Stubgen -- station-automation.json \
 //     --namespace StationAutomation -o showcase/examples/winding-line/drivers/automation/StationAutomationContract.cs
 //
-// Configuration comes from the environment the site policy binds for the
+// Configuration comes from the environment the deployment policy binds for the
 // `station-automation-driver` process:
 // - STATION_AUTOMATION_PROGID: the station software's COM automation server (Windows).
 // - STATION_AUTOMATION_SIM_DIR: a simulated station kept in that directory instead (demo and tests).

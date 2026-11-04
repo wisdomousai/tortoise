@@ -8,7 +8,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 | [Hosted instance](#hosted-instance)                             | Postgres lease and fencing, by hand                        | Public TLS, real orchestrator, Linux                       |
 | [Fleet agent](#fleet-agent)                                     | Enroll, report, stage a release, browser and by hand       | Real network, activated release                            |
 | [Telemetry](#telemetry)                                         | OTLP JSON against a fixture collector                      | A real collector                                           |
-| [Site bundles](#site-bundles)                                   | Create, verify, admit, by hand                             | Verify at launch, cross-platform builds                    |
+| [Bundles](#bundles)                                   | Create, verify, admit, by hand                             | Verify at launch, cross-platform builds                    |
 | [Install](#install)                                             | Install to a staged prefix, by hand                        | `--apply` on a real host, Windows                          |
 | [Application lifecycle](#application-lifecycle)                 | Best-before warning, by hand                               | Browser test                                               |
 | [Workforce sign-in](#workforce-sign-in)                         | Fake and stand-in providers in tests                       | A real identity provider                                   |
@@ -46,9 +46,9 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Fleet agent
 
-- **Proven:** `showcase/examples/fleet/e2e/fleet.pw.ts` covers enrollment, a site report, channels and drift. By hand, the site pattern (port 4359) and the fleet (port 4340) ran side by side: enroll, report, forward the audit log, publish a signed 46-file release to `lab-stable` and stage it.
-- **Not yet:** a site reporting to a fleet across a real network through an outbound-only firewall; a staged release activated by `app install` with a loaded service.
-- **Limits:** the relay polls every 2 s and forwards one request at a time, bodies up to 1 MiB, no event streams. Nothing rotates site credentials. No resumed downloads. A failed cycle leaves no log or report. Staged files keep mode 0644. The fleet screens show raw millisecond times.
+- **Proven:** `showcase/examples/fleet/e2e/fleet.pw.ts` covers enrollment, an instance report, channels and drift. By hand, the fleet agent pattern (port 4359) and the fleet (port 4340) ran side by side: enroll, report, forward the audit log, publish a signed 46-file release to `lab-stable` and stage it.
+- **Not yet:** an instance reporting to a fleet across a real network through an outbound-only firewall; a staged release activated by `app install` with a loaded service.
+- **Limits:** the relay polls every 2 s and forwards one request at a time, bodies up to 1 MiB, no event streams. Nothing rotates instance credentials. No resumed downloads. A failed cycle leaves no log or report. Staged files keep mode 0644. The fleet screens show raw millisecond times.
 
 ### Telemetry
 
@@ -56,15 +56,15 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Not yet:** a real OpenTelemetry Collector or backend.
 - **Limits:** each export rereads the audit log, so exports slow as it grows. Counters reset on restart. Metrics and traces only, no logs.
 
-### Site bundles
+### Bundles
 
-- **Proven (by hand):** `bun run bundle create` built 46-file site bundles (69 MB and 92 MB) with contract, security manifest, SBOM and best-before date. `verify` accepted them; `admit` refused them until approved.
+- **Proven (by hand):** `bun run bundle create` built 46-file bundles (69 MB and 92 MB) with contract, security manifest, SBOM and best-before date. `verify` accepted them; `admit` refused them until approved.
 - **Not yet:** verification at launch; archives (bundles are directories); signed approvals; cross-platform builds on their targets.
 
 ### Install
 
-- **Proven (by hand, 27 Oct):** `app install` from the fleet agent's staging folder with `--prefix --service systemd` and no `--apply` rendered the unit and `egress.nft`. `app status` verified the release. `app uninstall --purge --trust` drained and removed it. A CI job (`site-install`, Ubuntu) runs `systemd-analyze verify` and `nft -c -f` but has not run yet.
-- **Proven (by hand, 3 Nov, macOS arm64):** `showcase/examples/tool-store` with `site-policy.store-terminal.json`. `bundle create` built a 48-file `darwin-arm64` bundle. `verify` accepted it, and `admit` refused it until approved. The bundled binary's `install --prefix --service none` placed the release and the policy, migrated an empty workspace, and rendered no service or firewall file. `status` verified the release. `drain` exited 0 with nothing pending for `eam`. `uninstall --purge --trust` without `--apply` removed the release and the data.
+- **Proven (by hand, 27 Oct):** `app install` from the fleet agent's staging folder with `--prefix --service systemd` and no `--apply` rendered the unit and `egress.nft`. `app status` verified the release. `app uninstall --purge --trust` drained and removed it. A CI job (`deployment-install`, Ubuntu) runs `systemd-analyze verify` and `nft -c -f` but has not run yet.
+- **Proven (by hand, 3 Nov, macOS arm64):** `showcase/examples/tool-store` with `deployment-policy.store-terminal.json`. `bundle create` built a 48-file `darwin-arm64` bundle. `verify` accepted it, and `admit` refused it until approved. The bundled binary's `install --prefix --service none` placed the release and the policy, migrated an empty workspace, and rendered no service or firewall file. `status` verified the release. `drain` exited 0 with nothing pending for `eam`. `uninstall --purge --trust` without `--apply` removed the release and the data.
 - **Not yet:** `--apply` loading a service or firewall on Linux or Windows; the Windows path beyond rendering; kiosk mode; purge with undelivered effects.
 
 ### Application lifecycle

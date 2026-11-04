@@ -1,6 +1,6 @@
 import { auditServiceOf } from '@tortoise/audit/open';
 import { defineHostPlugin } from '@tortoise/host/plugin';
-import { siteServiceOf } from '@tortoise/site/open';
+import { deploymentServiceOf } from '@tortoise/deployment/open';
 import { complianceCliCommand } from './cli';
 import { createPostureMonitor } from './monitor';
 import { compliancePluginManifest } from './plugin-manifest';
@@ -14,7 +14,7 @@ import {
 
 /**
  * The compliance plugin. Its slice names who may read the audit trail (the workspace owner at
- * creation); its queries read the site policy and the audit log through a posture monitor,
+ * creation); its queries read the deployment policy and the audit log through a posture monitor,
  * which a serving host re-checks on an interval. It adds `compliance report`.
  *
  * Each query needs `read` on `Audit` from this plugin's policy and is itself audited, because it
@@ -22,13 +22,13 @@ import {
  */
 export const compliancePlugin = defineHostPlugin<ComplianceState, ComplianceServices>({
   manifest: compliancePluginManifest,
-  requires: ['site', 'audit'],
+  requires: ['deployment', 'audit'],
   state: { create: (ownerId) => createComplianceState([ownerId]) },
   handlers: createComplianceHandlers(),
   authorization: { resourceTypes: ['audit'], port: compliancePolicy },
   commands: [complianceCliCommand],
   async open({ services, build }) {
-    const { policy } = siteServiceOf(services);
+    const { policy } = deploymentServiceOf(services);
     const audit = auditServiceOf(services);
     const monitor = createPostureMonitor({
       policy,

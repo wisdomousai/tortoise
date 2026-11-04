@@ -85,7 +85,7 @@ test('two hosts on one machine each set and read only their own session cookie',
     return { origin, sessions, send };
   };
   const fleet = host(4340);
-  const site = host(4359);
+  const agent = host(4359);
   const signIn = async (at: ReturnType<typeof host>) => {
     const launch = at.sessions.launch(
       at.sessions.create({ workspaceId: 'w', principalId: at.origin }),
@@ -95,16 +95,16 @@ test('two hosts on one machine each set and read only their own session cookie',
     return response.headers.get('set-cookie')!.split(';')[0]!;
   };
   const fleetCookie = await signIn(fleet);
-  const siteCookie = await signIn(site);
+  const agentCookie = await signIn(agent);
   expect(fleetCookie).toStartWith('agent_session_4340=');
-  expect(siteCookie).toStartWith('agent_session_4359=');
+  expect(agentCookie).toStartWith('agent_session_4359=');
   // The browser sends both cookies to both ports; each host reads its own.
-  const both = { cookie: `${fleetCookie}; ${siteCookie}` };
+  const both = { cookie: `${fleetCookie}; ${agentCookie}` };
   expect((await fleet.send('/api/v1/contract', both)).status).toBe(200);
-  expect((await site.send('/api/v1/contract', both)).status).toBe(200);
-  expect((await site.send('/api/v1/contract', { cookie: fleetCookie })).status).toBe(403);
-  expect(sessionCookieName('https://site.example')).toBe('agent_session');
-  expect(sessionCookieName('https://site.example:8443')).toBe('agent_session_8443');
+  expect((await agent.send('/api/v1/contract', both)).status).toBe(200);
+  expect((await agent.send('/api/v1/contract', { cookie: fleetCookie })).status).toBe(403);
+  expect(sessionCookieName('https://plant.example')).toBe('agent_session');
+  expect(sessionCookieName('https://plant.example:8443')).toBe('agent_session_8443');
 });
 
 /** A peer acting for a person reaches operations only, and its resolver sees the signed request. */

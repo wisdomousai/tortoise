@@ -28,7 +28,7 @@
 '@tortoise/fleet-agent': minor
 '@tortoise/peer-link': minor
 '@tortoise/telemetry': minor
-'@tortoise/site': minor
+'@tortoise/deployment': minor
 '@tortoise/notifications': minor
 '@tortoise/os': minor
 '@tortoise/share-target': minor
@@ -54,4 +54,4 @@ Breaking changes:
 - Trigger grants: `standingGrantSchema`, `StandingGrant` and the resource type `standing-grant` are `triggerGrantSchema`, `TriggerGrant` and `trigger-grant`.
 - Fleet relay: `fleet.relay.answer` and `fleet.relay.take` are `fleet.relay.respond` and `fleet.relay.claim`. Relay requests are `queued`, `claimed` or `responded`.
 - OS requests: the browser landing page is the launch page (`serveOsLaunchPage`), and the desktop and phone relays reply through `respond`.
-- The identity provider from `@tortoise/site/testing` (`createIdentityProvider`, `startIdentityProvider`) returns `respond` in place of `answer`.
+- The identity provider from `@tortoise/deployment/testing` (`createIdentityProvider`, `startIdentityProvider`) returns `respond` in place of `answer`.

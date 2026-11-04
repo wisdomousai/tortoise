@@ -1,7 +1,7 @@
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@tortoise/runtime';
 import { defineApplication } from '@tortoise/host/application';
 import { networkPlugin } from '@tortoise/network/plugin';
-import { sitePlugin } from '@tortoise/site/plugin';
+import { deploymentPlugin } from '@tortoise/deployment/plugin';
 import {
   createTestRequestsHandlers,
   createTestRequestsState,
@@ -46,7 +46,7 @@ export function createTestRequestsHostedApplication(
     authorization: composeAuthorization<TestRequestsHostedRoot>([
       authorizationRoute('testRequests', testRequestsModule, ['test-request'], testRequestsPolicy),
     ]),
-    plugins: [sitePlugin, networkPlugin],
+    plugins: [deploymentPlugin, networkPlugin],
   });
 }
 

@@ -17,7 +17,7 @@ Each other pattern imports those parts unchanged and adds one concern. Start wit
 | [Signals](../showcase/patterns/signals/README.md) | Watch fake OPC UA and MQTT readings change a chamber's condition. | 4356 |
 | [Local model](../showcase/patterns/local-model/README.md) | Run the method suggester through a measured model server or its stand-in. | 4357 |
 | [Sign-in](../showcase/patterns/sign-in/README.md) | Sign in at a shared bench with a badge and PIN, then act as that operator. | 4358 |
-| [Site](../showcase/patterns/site/README.md) | Connect the lab to a fleet, stage a signed release and inspect a staged install. | 4359 |
+| [Fleet agent](../showcase/patterns/fleet-agent/README.md) | Connect the lab to a fleet, stage a signed release and inspect a staged install. | 4359 |
 | [Sandbox](../showcase/patterns/sandbox/README.md) | Analyze lab readings with a tool confined to a Linux bubblewrap sandbox. | 4360 |
 | [Hosted](../showcase/patterns/hosted/README.md) | Run the desk with a Postgres lease and a stand-in workforce identity provider. | 4361 |
 | [Assignments](../showcase/patterns/assignments/README.md) | Send a sampling round and accept a report into a test request. | 4362 |

@@ -29,7 +29,7 @@ export type HttpRequestFor =
 export interface HttpTargetOptions<Item> {
   readonly target: string;
   readonly network: NetworkPort;
-  /** The declared egress destination that carries this target; the site policy binds its URL. */
+  /** The declared egress destination that carries this target; the deployment policy binds its URL. */
   readonly destination: string;
   readonly request: (effect: Readonly<Effect>) => HttpRequestFor;
   /**
@@ -88,7 +88,7 @@ const textAt = (body: unknown, pointer: string | undefined, limit: number) => {
 
 /**
  * A REST system of record through the network port. Every request goes to the declared
- * destination, so the egress guard sees it and the site policy decides its address.
+ * destination, so the egress guard sees it and the deployment policy decides its address.
  *
  * Outcomes are data: a 2xx is accepted (or pending for `pendingStatus`), a status a rejection
  * rule lists is rejected with the code and message it names, and everything else, including a

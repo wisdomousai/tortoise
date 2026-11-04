@@ -58,7 +58,7 @@ const counterComponent = defineHostComponent({
         id: 'counter-sink',
         purpose: 'Fixture destination.',
         direction: 'egress',
-        scope: 'site',
+        scope: 'local',
         protocol: 'https',
         dataClasses: ['counter-value'],
         availability: 'optional',
@@ -372,17 +372,20 @@ test('settings reach only the plugin that declares them; unclaimed settings refu
   });
   expect(seen).toEqual({ 'counter-file': '/a' });
   await expect(
-    openPlugins(definition, { ...openOptions('/tmp/unused'), settings: { 'site-policy': '/p' } }),
-  ).rejects.toThrow('No composed plugin reads the setting "site-policy"');
+    openPlugins(definition, {
+      ...openOptions('/tmp/unused'),
+      settings: { 'deployment-policy': '/p' },
+    }),
+  ).rejects.toThrow('No composed plugin reads the setting "deployment-policy"');
 });
 
 test('settings come from flags before env; undeclared flags stay for the command to refuse', () => {
   const manifest = application().manifest;
-  const args = ['--counter-file', 'rel/file', '--site-policy', 'x'];
+  const args = ['--counter-file', 'rel/file', '--deployment-policy', 'x'];
   expect(readPluginSettings(manifest, { COUNTER_FILE: '/env' }, args)).toEqual({
     'counter-file': resolve('rel/file'),
   });
-  expect(args).toEqual(['--site-policy', 'x']);
+  expect(args).toEqual(['--deployment-policy', 'x']);
   expect(readPluginSettings(manifest, { COUNTER_FILE: '/env' })).toEqual({
     'counter-file': '/env',
   });

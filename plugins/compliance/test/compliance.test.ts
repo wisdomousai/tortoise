@@ -14,7 +14,7 @@ import {
   type NetworkDestination,
 } from '@tortoise/contracts';
 import { z } from 'zod';
-import { loadSitePolicy } from '@tortoise/site/policy';
+import { loadDeploymentPolicy } from '@tortoise/deployment/policy';
 import { openJsonlEventLog, verifyEventLog } from '@tortoise/event-log';
 import { createApplication, createMemoryStorage } from '@tortoise/runtime';
 import {
@@ -55,14 +55,14 @@ const destination = (id: string, extra: Partial<NetworkDestination> = {}): Netwo
   id,
   purpose: `${id} for tests`,
   direction: 'egress',
-  scope: 'site',
+  scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
   availability: 'optional',
   offline: 'degrade',
   ...extra,
 });
-// A deployment shaped like the reference app: a required site system, an internet vendor, an
+// A deployment shaped like the reference app: a required local system, an internet vendor, an
 // off-host audit collector, a loopback model, an optional HMI and a child process.
 const plant = defineHostComponent({
   id: 'plant',
@@ -97,7 +97,7 @@ const plant = defineHostComponent({
 });
 const requirements = collectRequirements([plant]);
 const sandboxPolicy = () =>
-  loadSitePolicy(join(fixtures, 'site-policy.sandbox.json'), requirements);
+  loadDeploymentPolicy(join(fixtures, 'deployment-policy.sandbox.json'), requirements);
 describe('generated compliance artifacts', () => {
   const catalog = buildCatalog([complianceModule], { components: [plant] });
 
@@ -116,7 +116,7 @@ describe('generated compliance artifacts', () => {
       egress: 5,
       ingress: 1,
       internet: ['vendor-api'],
-      site: ['audit-collector', 'mes-api', 'scanner', 'station-screen'],
+      local: ['audit-collector', 'mes-api', 'scanner', 'station-screen'],
       required: ['host-http', 'mes-api'],
       dataClasses: ['audit-event', 'record', 'screen-frame'],
     });

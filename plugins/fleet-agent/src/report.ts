@@ -1,13 +1,13 @@
 import { hostContext, type HostedApplication } from '@tortoise/kernel/application';
-import type { SiteReport } from './contracts';
+import type { InstanceReport } from './contracts';
 
 /**
- * This site's health as the fleet records it: the outbox counted by target the way `drain`
+ * This instance's health as the fleet records it: the outbox counted by target the way `drain`
  * counts it (pending, held for reconciliation, acknowledged), read with the host's own
  * trusted identity, which needs no business grant. Payloads never leave: only counts do, with the
  * running build's best-before date when it has one.
  */
-export async function siteReport(
+export async function instanceReport(
   application: Pick<HostedApplication, 'pendingEffects'>,
   options: {
     readonly workspaceId: string;
@@ -15,10 +15,10 @@ export async function siteReport(
     readonly instance: string;
     readonly at: number;
     readonly auditHead?: number;
-    readonly staged?: SiteReport['staged'];
+    readonly staged?: InstanceReport['staged'];
     readonly bestBefore?: string;
   },
-): Promise<SiteReport> {
+): Promise<InstanceReport> {
   const effects = await application.pendingEffects(hostContext(options.workspaceId), {
     limit: 10_000,
     includeHeld: true,

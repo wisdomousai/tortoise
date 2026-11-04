@@ -2,7 +2,7 @@ import { defineManifest } from '@tortoise/host/manifest';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { peerLinkPluginManifest } from '@tortoise/peer-link/plugin-manifest';
-import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
+import { deploymentPluginManifest } from '@tortoise/deployment/plugin-manifest';
 import { testRequestsModule } from '@tortoise/pattern-base/contracts';
 import { worklist } from './contracts';
 
@@ -15,5 +15,10 @@ export default defineManifest({
   title: 'Field sampling worklist',
   modules: [testRequestsModule, worklist.module],
   components: [worklist.target.component],
-  plugins: [sitePluginManifest, networkPluginManifest, auditPluginManifest, peerLinkPluginManifest],
+  plugins: [
+    deploymentPluginManifest,
+    networkPluginManifest,
+    auditPluginManifest,
+    peerLinkPluginManifest,
+  ],
 });

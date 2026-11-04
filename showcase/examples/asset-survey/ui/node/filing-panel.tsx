@@ -9,7 +9,7 @@ import { eamAssets, operations } from '../../contracts';
 import { ErrorText, filingLabel, quietly, when } from '../shared';
 
 /**
- * File a node into the EAM or export it to the site's export directory. The EAM search is live:
+ * File a node into the EAM or export it to the export directory. The EAM search is live:
  * a match is updated with its asset ID, and a new asset is created only when nothing matches. A
  * node already filed updates its own asset. The export is independent of the EAM.
  */

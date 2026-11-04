@@ -2,7 +2,7 @@ import type { OsDeclarations } from './os';
 /**
  * Declared environment requirements: what a module or host component needs from the network,
  * shared folders, attached devices and child processes. Declarations are browser-safe data. They grant nothing by
- * themselves. A deployment binds network destinations in a site policy, the egress guard enforces
+ * themselves. A deployment binds network destinations in a deployment policy, the egress guard enforces
  * only bound declarations, and firewall/hardening exports are generated from the same data, so the
  * reviewed manifest, the in-process guard and the OS rules cannot drift apart.
  *
@@ -10,8 +10,8 @@ import type { OsDeclarations } from './os';
  * destinations that would send data without naming its classes are rejected when the catalog is built.
  */
 
-/** Where a destination lives. `site` is a customer network (plant LAN, MES host); never the internet. */
-export type NetworkScope = 'loopback' | 'site' | 'internet';
+/** Where a destination lives. `local` is a customer network (plant LAN, MES host); never the internet. */
+export type NetworkScope = 'loopback' | 'local' | 'internet';
 export type NetworkProtocol = 'https' | 'http' | 'wss' | 'ws' | 'tcp' | 'udp';
 export type Availability = 'required' | 'optional';
 /**
@@ -22,7 +22,7 @@ export type Availability = 'required' | 'optional';
 export type OfflineBehavior = 'queue' | 'degrade' | 'unavailable';
 
 export interface NetworkDestination {
-  /** Stable identifier the site policy binds, e.g. `mes-api`. */
+  /** Stable identifier the deployment policy binds, e.g. `mes-api`. */
   readonly id: string;
   readonly purpose: string;
   readonly direction: 'egress' | 'ingress';
@@ -31,8 +31,8 @@ export interface NetworkDestination {
   /** Fixed port, when the protocol does not imply one or the vendor mandates it. */
   readonly port?: number;
   /**
-   * Fixed host name for vendor endpoints (`auth.openai.com`). Site destinations leave it out: the
-   * site policy supplies the address, so code never embeds customer network names.
+   * Fixed host name for vendor endpoints (`auth.openai.com`). Local destinations leave it out: the
+   * deployment policy supplies the address, so code never embeds customer network names.
    */
   readonly host?: string;
   /** Outbox targets whose effects are sent over this destination. */
@@ -41,7 +41,7 @@ export interface NetworkDestination {
   readonly reads?: readonly string[];
   /**
    * The caller presents a credential there, such as a bearer token or a signed assertion. The
-   * site check then refuses an unencrypted binding off loopback in every profile.
+   * policy check then refuses an unencrypted binding off loopback in every profile.
    */
   readonly authenticated?: boolean;
   /** Classes of data sent to this destination, for the data-flow inventory. */
@@ -83,7 +83,7 @@ export interface ProcessRequirement {
 /**
  * A directory the application exchanges files through, such as a share another system drops
  * result exports into or picks import files up from. Code names the folder, never its path,
- * which only the site policy knows.
+ * which only the deployment policy knows.
  */
 export interface FolderRequirement {
   readonly id: string;

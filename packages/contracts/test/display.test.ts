@@ -167,28 +167,28 @@ test('a data provider shows found records with its display fields and no resourc
 });
 
 test('the inputs a collection generates are described for a model that reads the schema', () => {
-  const sites = defineCollection({
-    type: 'site',
-    resourceType: 'Site',
+  const plants = defineCollection({
+    type: 'plant',
+    resourceType: 'Plant',
     item: z.strictObject({
       id: z.string(),
-      name: z.string().describe('The site name.'),
+      name: z.string().describe('The plant name.'),
       parentId: z.string().nullable(),
       retired: z.boolean(),
     }),
-    label: { one: 'site', many: 'sites' },
+    label: { one: 'plant', many: 'plants' },
     parent: 'parentId',
     retiredField: 'retired',
   });
-  const spec = { id: 'site', description: 'Sites.' } as const;
+  const spec = { id: 'plant', description: 'Plants.' } as const;
   const capabilities = [
-    collectionGet(sites, spec),
-    collectionList(sites, { ...spec, search: true, filters: ['name'] }),
-    collectionCreate(sites, { ...spec, fields: ['name'], clientKey: true }),
-    collectionUpdate(sites, { ...spec, fields: ['name'] }),
-    collectionRetire(sites, spec),
-    collectionMove(sites, spec),
-    collectionTree(sites, spec),
+    collectionGet(plants, spec),
+    collectionList(plants, { ...spec, search: true, filters: ['name'] }),
+    collectionCreate(plants, { ...spec, fields: ['name'], clientKey: true }),
+    collectionUpdate(plants, { ...spec, fields: ['name'] }),
+    collectionRetire(plants, spec),
+    collectionMove(plants, spec),
+    collectionTree(plants, spec),
   ];
   for (const capability of capabilities) {
     const properties = capability.input.jsonSchema.properties as Record<

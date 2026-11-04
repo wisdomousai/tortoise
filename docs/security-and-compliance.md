@@ -1,14 +1,14 @@
 # Security and compliance
 
-Your app declares what it needs outside the process. A site's deployment policy allows some of it. The egress guard blocks the rest, and the audit log records everything in a hash chain.
+Your app declares what it needs outside the process. A deployment policy allows some of it. The egress guard blocks the rest, and the audit log records everything in a hash chain.
 
 Try it on the default app (field-service), from the repo root, after `bun run dev:web` has run once:
 
 ```sh
-bun run cli site check --site apps/desktop/site-policy.json
-bun run cli network export --site apps/desktop/site-policy.json --format json
+bun run cli policy check --policy apps/desktop/deployment-policy.json
+bun run cli network export --policy apps/desktop/deployment-policy.json --format json
 bun run cli audit verify --log .workspace/audit
-bun run cli compliance report --log .workspace/audit --site apps/desktop/site-policy.json --format markdown
+bun run cli compliance report --log .workspace/audit --policy apps/desktop/deployment-policy.json --format markdown
 ```
 
 You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultEgress": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Security posture: field-service" report with a checks table.
@@ -16,13 +16,13 @@ You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` 
 ## Controls and plugins
 
 1. **Declare** what you need (destinations, folders, devices, processes).
-2. **Bind** it in the site's deployment policy. Unbound means unreachable.
+2. **Bind** it in the deployment policy. Unbound means unreachable.
 3. **Enforce** with the egress guard, plus exported firewall rules.
 4. **Record** in the audit log.
 
 | Plugin       | Does                                                       | CLI verb            |
 | ------------ | ---------------------------------------------------------- | ------------------- |
-| `site`       | Loads the deployment policy; enforces profile floors and identity | `site check`  |
+| `deployment` | Loads the deployment policy; enforces profile floors and identity | `policy check`  |
 | `network`    | Egress guard, proxy for child processes, TLS/mTLS ingress  | `network export`    |
 | `audit`      | Hash-chained audit log, forwarding, crash recovery         | `audit verify`      |
 | `compliance` | Auditor queries, posture monitor, Compliance screen        | `compliance report` |
@@ -43,7 +43,7 @@ export const auditCollectorComponent = defineHostComponent({
         id: 'audit-collector',
         purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
         direction: 'egress',
-        scope: 'site', // loopback | site | internet
+        scope: 'local', // loopback | local | internet
         protocol: 'tcp',
         dataClasses: ['audit-event'],
         availability: 'optional', // or required
@@ -56,14 +56,14 @@ export const auditCollectorComponent = defineHostComponent({
 
 Rules (`packages/contracts/src/requirements.ts`):
 
-- Name a host only for a fixed vendor endpoint. The policy names site systems.
+- Name a host only for a fixed vendor endpoint. The policy names the customer's own systems.
 - Every target needs a declared destination, folder or process. A destination that delivers outbox effects must use `offline: 'queue'`.
 - Code reaches a folder by ID through the folder port, never by path.
 - A capability lists the input fields safe to log in plain text; the audit log stores the rest as a digest.
 
 ## Deployment policy
 
-The policy is one JSON file per site. Pass it with `--site-policy` or `TORTOISE_SITE_POLICY`. Check it with `app site check --site <file>` (exit 2 on errors).
+The policy is one JSON file per host. Pass it with `--deployment-policy` or `TORTOISE_DEPLOYMENT_POLICY`. Check it with `app policy check --policy <file>` (exit 2 on errors).
 
 ```json
 {
@@ -89,22 +89,22 @@ The policy is one JSON file per site. Pass it with `--site-policy` or `TORTOISE_
 | `folders`            | Folder ID → absolute directory, or disabled with a reason.            |
 | `mode: connected`    | You must bind or disable every required destination.                 |
 
-A real file: [`showcase/examples/quality-inspection/site-policy.sandbox.json`](../showcase/examples/quality-inspection/site-policy.sandbox.json).
+A real file: [`showcase/examples/quality-inspection/deployment-policy.sandbox.json`](../showcase/examples/quality-inspection/deployment-policy.sandbox.json).
 
 ### Hardening profiles
 
-Each profile is a floor; startup refuses a weaker policy (`plugins/site/src/policy/floors.ts`).
+Each profile is a floor; startup refuses a weaker policy (`plugins/deployment/src/policy/floors.ts`).
 
-| Floor                   | desktop-local      | site-hub, sandbox                        | zero-trust                   |
+| Floor                   | desktop-local      | hub, sandbox                        | zero-trust                   |
 | ----------------------- | ------------------ | ---------------------------------------- | ---------------------------- |
 | Plain HTTP off the host | if declared        | refused                                  | refused; TLS with CA or pins |
 | Credentials off host    | TLS                | TLS                                      | TLS with CA or pins          |
 | Ingress                 | loopback           | loopback, TLS, mTLS                      | loopback, mTLS               |
-| Identity                | any                | site-hub: any; sandbox: grant or external | external                    |
+| Identity                | any                | hub: any; sandbox: grant or external | external                    |
 | Audit log               | fail-closed or best-effort | fail-closed                      | fail-closed and forwarded    |
 | Delegated grants        | `maxTtlSeconds` if set | `maxTtlSeconds` required             | ≤ 1 hour                     |
 
-Use `site-hub` for a hub that paired phones reach (see [device-link](../plugins/device-link/README.md)).
+Use `hub` for a hub that paired phones reach (see [device-link](../plugins/device-link/README.md)).
 
 ### Identity
 
@@ -116,7 +116,7 @@ Use `site-hub` for a hub that paired phones reach (see [device-link](../plugins/
 
 ### Ingress and certificates
 
-`tls` serves the site's certificate to anyone; `mtls` also requires a client certificate from `clientCa`. Every API call still needs a session or device credential. The host reads certificates but never issues or renews them. Expired certificates refuse startup; within 30 days of expiry you get a warning.
+`tls` serves the host's certificate to anyone; `mtls` also requires a client certificate from `clientCa`. Every API call still needs a session or device credential. The host reads certificates but never issues or renews them. Expired certificates refuse startup; within 30 days of expiry you get a warning.
 
 ## Egress
 
@@ -189,16 +189,16 @@ At startup the log records the executable, catalog and policy digests. `audit.fo
 | `data-flows.md`                | The same as a diagram and tables.                              |
 | `controls.json`, `controls.md` | Controls mapped to ISO 27001, NIST 800-53, NIST CSF, IEC 62443-4-2 (indicative), with test evidence. |
 
-`bun run bundle create` adds `sbom.cdx.json` (CycloneDX 1.6) to each site bundle.
+`bun run bundle create` adds `sbom.cdx.json` (CycloneDX 1.6) to each bundle.
 
 ## Checks
 
 | Command                                                         | Fails with                      |
 | --------------------------------------------------------------- | ------------------------------- |
-| `app site check --site <file>`                                  | exit 2 on any error finding     |
-| `app network export --site <file> --format nftables --resolver 10.20.0.53` | exit 2 on policy errors |
+| `app policy check --policy <file>`                                  | exit 2 on any error finding     |
+| `app network export --policy <file> --format nftables --resolver 10.20.0.53` | exit 2 on policy errors |
 | `app audit verify --log <dir>`                                  | exit 10 if the chain is damaged |
-| `app compliance report --log <dir> --site <file> --format markdown` | exit 10 if posture fails    |
+| `app compliance report --log <dir> --policy <file> --format markdown` | exit 10 if posture fails    |
 
 From the repo, `app` is `bun run cli`. While running, the posture monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the owner) may read the log.
 

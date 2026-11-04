@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * The reference `filing-export` process. The site policy binds it with the export directory as
+ * The reference `filing-export` process. The deployment policy binds it with the export directory as
  * its last argument, for example `{ "executable": "/usr/local/bin/bun", "args":
  * ["/opt/survey/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`.
  *

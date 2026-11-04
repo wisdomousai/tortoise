@@ -73,10 +73,10 @@ Skills are task guides for Claude Code and Codex, in `<workspace>/skills/<name>/
 | Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |
-| Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
-| Decommission an application: shelf life, drain, purge, fleet removal | [decommission-an-application](plugins/site/skills/decommission-an-application/SKILL.md) |
+| Deploy an application: policy, signed bundles, install | [deploy-an-application](plugins/deployment/skills/deploy-an-application/SKILL.md) |
+| Decommission an application: shelf life, drain, purge, fleet removal | [decommission-an-application](plugins/deployment/skills/decommission-an-application/SKILL.md) |
 | Run a hosted instance: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-instance](packages/host/skills/run-a-hosted-instance/SKILL.md) |
-| Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
+| Connect an instance to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-an-instance-to-a-fleet](plugins/fleet-agent/skills/connect-an-instance-to-a-fleet/SKILL.md) |
 | Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |
 
 Keeping skills current:

@@ -52,7 +52,7 @@ describe.skipIf(!supported)('bubblewrap sandbox', () => {
     upstream = createServer((socket) => socket.end('hello\n'));
     await new Promise<void>((done) => upstream.listen(0, '127.0.0.1', done));
     upstreamPort = (upstream.address() as { port: number }).port;
-    const policy = join(directory, 'site-policy.json');
+    const policy = join(directory, 'deployment-policy.json');
     await writeFile(
       policy,
       JSON.stringify({
@@ -66,7 +66,7 @@ describe.skipIf(!supported)('bubblewrap sandbox', () => {
     host = await startHost(notesApplication({ tools: { bun: process.execPath } }), {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      settings: { 'site-policy': policy },
+      settings: { 'deployment-policy': policy },
     });
     sandboxes = host.services['execution-host'] as ExecutionHost;
   });
