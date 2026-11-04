@@ -25,7 +25,7 @@ Two kits support operator screens at a workstation:
   - screen control
 
   The layout stays fixed during a press.
-- **Hold to confirm.** Starting an order, confirming counts or reporting a held procedure takes a hold instead of a tap. The hold cancels when the finger slides off.
+- **`hold-to-confirm`.** Starting an order, confirming counts or reporting a held procedure takes a long press instead of a tap. The press cancels when the finger slides off.
 - **Tap guard.** A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
 - **Icon plus text.** State readable from 1–2 m. Color is never the only signal. Observed values show age and confidence.
 - **Feedback by sound.** Distinct tones mark scanned, accepted, rejected and attention, with vibration where available. Each device mutes independently.
@@ -46,7 +46,7 @@ The `operator` registry uses stock shadcn primitives and adds glove sizing throu
 | Kind | Items |
 | --- | --- |
 | Theme | Target, gap and text tokens; glove density and high-contrast scopes; ok, pending, attention and fault states. |
-| Hooks | Hold to confirm, tap guard, feedback tones, idle return, scan-safe keypad and pedal bindings, scanner. |
+| Hooks | `hold-to-confirm`, tap guard, feedback tones, idle return, scan-safe keypad and pedal bindings, scanner. |
 | Library | Decimal entry with comma or period, decimals and tolerance verdicts. |
 | Components | Operator surface, big action, tile picker, numeric pad, scan prompt, status strip, attention queue, takeover button. |
 | Blocks | Scanner setup with calibration, profile and live test; the station layout. |
@@ -93,10 +93,10 @@ The setup block offers a connect button for each. Every source except wedge and 
 An intent profile names:
 
 - the broadcast action
-- the string extra that holds the data
+- the string extra that contains the data
 - an optional sender permission
 
-Any app on the device can send the action unless the profile sets a sender permission that only the scanner app holds.
+Any app on the device can send the action unless the profile sets a sender permission that only the scanner app has.
 
 ## Decoding
 
@@ -111,7 +111,7 @@ A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, s
 
 ## Calibration
 
-The setup block shows a calibration barcode holding the characters most likely to break. From one scan, calibration infers:
+The setup block shows a calibration barcode containing the characters most likely to break. From one scan, calibration infers:
 
 - the terminator and the key timing
 - any prefix or suffix

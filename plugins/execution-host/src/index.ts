@@ -1,6 +1,6 @@
 /**
  * Execution host plugin: bubblewrap sandboxes for tools an agent runs, with a seccomp filter,
- * no network but relays to the host API and the egress proxy, and a run-bound token as the only
+ * no network but relays to the host API and the network proxy, and a run-bound token as the only
  * credential.
  */
 export * from './broker';

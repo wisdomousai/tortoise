@@ -29,7 +29,7 @@ const update = process.env.UPDATE_GOLDEN === '1';
 const destination = (id: string, extra: Partial<NetworkDestination> = {}): NetworkDestination => ({
   id,
   purpose: `${id} for tests`,
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
@@ -99,7 +99,7 @@ describe('network rules', () => {
       resolvers: ['10.20.0.53'],
       processes: requirements.processes,
     });
-    expect(rules.defaultEgress).toBe('deny');
+    expect(rules.defaultNetwork).toBe('deny');
     expect(rules.allow.map((rule) => [rule.destination, rule.transport, rule.port])).toEqual([
       ['audit-collector', 'tcp', 6514],
       ['mes-api', 'tcp', 8443],
@@ -179,7 +179,7 @@ describe('network plugin', () => {
       code: 'UNAVAILABLE',
     });
     expect(recorded).toContainEqual(
-      expect.objectContaining({ kind: 'egress.denied', data: { destination: 'mes-api' } }),
+      expect.objectContaining({ kind: 'network.denied', data: { destination: 'mes-api' } }),
     );
     // Not serving: no proxy, so declared children are refused rather than left unconfined.
     expect(() => opened.ports.network.childEnvironment!('agent-cli')).toThrow('serving host');

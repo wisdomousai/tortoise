@@ -27,7 +27,7 @@ A file in `apps/web/src` replaces the frame file at the same path.
 
 Every application has three files the starter loads:
 
-| File             | Holds                                                                    | Runs in       |
+| File             | Contains                                                                 | Runs in       |
 | ---------------- | ------------------------------------------------------------------------ | ------------- |
 | `manifest.ts`    | ID, title, modules (contracts), features, plugins. Browser-safe.         | browser, host |
 | `application.ts` | `defineApplication`: state, handlers, policy, plugins, integrations.     | host          |
@@ -100,7 +100,7 @@ A host plugin adds a cross-cutting concern. It provides ports; without it, the s
 
 | Port      | Default                     | Plugin                              |
 | --------- | --------------------------- | ----------------------------------- |
-| Network   | refuse every destination    | `plugins/network` (egress guard) |
+| Network   | refuse every destination    | `plugins/network` (network guard) |
 | Ingress   | loopback only               | `plugins/network` (TLS, mTLS)       |
 | Identity  | trust the local owner       | `plugins/deployment`                      |
 | Audit log | none                        | `plugins/audit`                     |

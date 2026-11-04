@@ -107,7 +107,7 @@ export function assertPlatformSupports(
   for (const destination of requirements.network) {
     if (destination.protocol === 'tcp' || destination.protocol === 'udp')
       need('sockets', `${destination.owner} destination ${destination.id}`);
-    if (destination.direction === 'ingress')
+    if (destination.direction === 'inbound')
       need('ingress', `${destination.owner} destination ${destination.id}`);
   }
   for (const child of requirements.processes)

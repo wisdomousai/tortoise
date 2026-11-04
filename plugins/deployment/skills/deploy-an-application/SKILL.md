@@ -34,7 +34,7 @@ A deployment policy binds what the application declares to one host's addresses,
 5. Bind a peer application's destination, which `definePeerTarget` declares `authenticated`, to the peer's `https` origin, with `ca` when its certificate chains to the local CA. The check refuses plain text off loopback. An `mtls` listener on the called application refuses the peer, because the peer link presents no client certificate.
 6. Bind each declared process ID under `processes` to an absolute `executable`, fixed `args`, an absolute `cwd`, `env`, and a `sha256` pin. A driver's ID and contract digest come from `app driver list`, as the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`) describes.
 7. Check the policy offline with `app policy check --policy <file>`. It exits 2 on any error finding. In a checkout, the application CLI is `bun run cli`.
-8. Export rules for the paths the in-process egress guard cannot see: `app network export --policy <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
+8. Export rules for the paths the in-process network guard cannot see: `app network export --policy <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
 9. Create a signing key with `bun run bundle keygen --out <dir>/key.json`, in a directory outside the repository, so the private key is never committed.
 10. Run `bun run build:web`, then build and sign a bundle with `bun run bundle create --key key.json --out <dir>`. `create` compiles the application CLI into `<dir>/files/bin/<app>` and writes the contract, security manifest and SBOM from the catalog into the bundle.
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.

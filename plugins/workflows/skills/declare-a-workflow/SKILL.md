@@ -19,7 +19,7 @@ A workflow is a sequence of steps over existing capabilities. Each workflow inst
 1. Declare the workflow in the browser-safe module with `defineWorkflow` from `@tortoise/contracts`: a stable `id`, a `version`, `text`, an `input` schema, `maxDurationMs` and `start`, the command that starts it.
 2. Write the steps in order:
    - `step.run(id, command, { input, when?, await?, retry?, compensate? })` runs a command; `await: 'effects'` completes it once every effect it enqueued was accepted;
-   - `step.wait(id, query, { input, until, watch?, recheckMs?, timeoutMs })` checks a query until its condition holds, after a change to a `watch` resource type or every `recheckMs`;
+   - `step.wait(id, query, { input, until, watch?, recheckMs?, timeoutMs })` checks a query until its condition is true, after a change to a `watch` resource type or every `recheckMs`;
    - bind inputs with `from.input`, `from.step`, `from.effect` and, in `until`, `from.result`; conditions use `equals`, `in`, `exists`, `all`, `any` and `not`;
    - `retry: { attempts, backoffMs, on }` lists the codes worth retrying beyond `UNAVAILABLE` and `CONFLICT`.
 3. List the workflow in the module's `workflows`. The catalog refuses an unknown operation, a binding that reads ahead, an unbound required input, a step that reaches a `workflow.*` operation and durations out of range.

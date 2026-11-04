@@ -63,7 +63,7 @@ function fixture() {
             {
               id: 'systems',
               purpose: 'Test systems of record',
-              direction: 'egress',
+              direction: 'outbound',
               scope: 'local',
               protocol: 'https',
               targets: ['hmi', 'erp'],

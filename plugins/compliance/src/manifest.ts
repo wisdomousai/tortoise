@@ -46,11 +46,11 @@ export interface SecurityManifest {
   readonly processes: readonly (ProcessRequirement & { readonly owner: string })[];
   readonly folders: readonly (FolderRequirement & { readonly owner: string })[];
   readonly flows: readonly DataFlow[];
-  /** OS handlers (local ingress) and OS actions (local egress). See `OsManifest`. */
+  /** OS handlers (local inbound) and OS actions (local outbound). See `OsManifest`. */
   readonly os: OsManifest;
   readonly summary: {
-    readonly egress: number;
-    readonly ingress: number;
+    readonly outbound: number;
+    readonly inbound: number;
     readonly internet: readonly string[];
     /**
      * Local-scoped destinations, folders and devices: what only a host on the local network can reach. An
@@ -128,8 +128,8 @@ export function securityManifest(options: {
     flows,
     os,
     summary: {
-      egress: network.filter((item) => item.direction === 'egress').length,
-      ingress: network.filter((item) => item.direction === 'ingress').length,
+      outbound: network.filter((item) => item.direction === 'outbound').length,
+      inbound: network.filter((item) => item.direction === 'inbound').length,
       internet: sorted(network.filter((item) => item.scope === 'internet').map((item) => item.id)),
       local: sorted([
         ...network.filter((item) => item.scope === 'local').map((item) => item.id),
@@ -174,7 +174,7 @@ function flowDiagram(manifest: SecurityManifest): string[] {
   for (const item of manifest.network) {
     const label = item.dataClasses.length ? item.dataClasses.join(', ') : item.protocol;
     lines.push(
-      item.direction === 'egress'
+      item.direction === 'outbound'
         ? `  app -- "${label}" --> ${node(item.id)}`
         : `  ${node(item.id)} -- "${label}" --> app`,
     );

@@ -4,7 +4,7 @@ import { connect, createServer, type Server, type Socket } from 'node:net';
 /**
  * The host side of a sandbox's only network path: a unix socket in the run's socket directory
  * that forwards each connection to one fixed loopback port, either the host's own API listener
- * or the egress CONNECT proxy. The sandbox cannot choose the port, so it reaches the API (where
+ * or the network CONNECT proxy. The sandbox cannot choose the port, so it reaches the API (where
  * its token is checked on every call) and the proxy (where its process ID's destinations are
  * checked and audited), and nothing else on the host.
  */

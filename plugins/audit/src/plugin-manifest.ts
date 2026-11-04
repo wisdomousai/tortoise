@@ -10,7 +10,7 @@ export const auditCollectorComponent = defineHostComponent({
       {
         id: 'audit-collector',
         purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'local',
         protocol: 'tcp',
         dataClasses: ['audit-event'],

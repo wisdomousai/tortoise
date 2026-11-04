@@ -21,7 +21,7 @@ A driver is an executable in any language. The host starts it as a child process
 
 ## Steps
 
-1. Write the driver contract in the application with `defineDriverContract`. It holds:
+1. Write the driver contract in the application with `defineDriverContract`. It contains:
    - state fields with units and stable reads;
    - actions with input schema, mode, risk level, timeout, preconditions and readback;
    - events with a maximum rate;

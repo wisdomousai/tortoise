@@ -213,10 +213,10 @@ describe('forwarding', () => {
 
   test('RFC 5424 output carries priority, sequence and hash', async () => {
     const [event] = await createMemoryEventLog({ now }).append([
-      { kind: 'egress.denied', outcome: 'denied', reason: 'UNDECLARED' },
+      { kind: 'network.denied', outcome: 'denied', reason: 'UNDECLARED' },
     ]);
     const line = rfc5424(event!, { appName: 'workspace', hostname: 'station-1' });
     expect(line.startsWith('<108>1 ')).toBe(true);
-    expect(line).toContain(`seq="1" kind="egress.denied" hash="${event!.hash}"`);
+    expect(line).toContain(`seq="1" kind="network.denied" hash="${event!.hash}"`);
   });
 });

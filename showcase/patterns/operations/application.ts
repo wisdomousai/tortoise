@@ -24,8 +24,8 @@ export interface TestRequestsOperationsOptions {
 }
 
 /**
- * The test requests module unchanged, at state version 2, with the plugins that run it on a host:
- * the deployment policy (deployment), the egress guard (network), the audit log and the OpenTelemetry
+ * The test requests module unchanged, at state version 2, with the plugins that run it on a plant machine:
+ * the deployment policy (deployment), the network guard (network), the audit log and the OpenTelemetry
  * exporter. The plugins add no capabilities the screens need.
  */
 export function createTestRequestsOperationsApplication(

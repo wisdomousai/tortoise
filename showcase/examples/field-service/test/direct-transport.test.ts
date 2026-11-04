@@ -117,7 +117,7 @@ test('direct receipts carry committed outbox effects like HTTP receipts', async 
             {
               id: 'sor-api',
               purpose: 'Test system of record.',
-              direction: 'egress',
+              direction: 'outbound',
               scope: 'local',
               protocol: 'https',
               targets: ['sor'],

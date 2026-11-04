@@ -10,7 +10,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
 ## Before writing
 
 - Keep code that runs on the device portable: no `node:*` or `bun:*` imports and no Node or Bun globals. `bun run test:portable` runs the suites with the Web globals Hermes lacks removed, and `bun run check:boundaries` enforces the imports.
-- The device has no egress guard, no listener and no child processes. The network port of the plugin that provides it is the only network path, and `plugins/hub-link` reaches only the paired origin.
+- The device has no network guard, no listener and no child processes. The network port of the plugin that provides it is the only network path, and `plugins/hub-link` reaches only the paired origin.
 - Each side owns its workspace. A phone hands records to the hub through the outbox, and the hub decides on each one again as `device:<id>`. There is no multi-master synchronization.
 
 ## Steps

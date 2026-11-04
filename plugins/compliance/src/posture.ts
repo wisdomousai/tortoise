@@ -4,26 +4,26 @@ import type { ForwardingStats, VerificationReport } from '@tortoise/event-log';
 import { pastBestBefore } from '@tortoise/kernel/build';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
 
-/** Per-destination egress use, accumulated from `egress.*` audit events. */
-export interface EgressUsage {
+/** Per-destination network use, accumulated from `network.*` audit events. */
+export interface NetworkUsage {
   readonly allowed: number;
   readonly denied: number;
   readonly lastUsedAt?: number;
 }
 
 /** Fold audit events into per-destination usage; unknown or malformed events are ignored. */
-export function accumulateEgress(
-  usage: ReadonlyMap<string, EgressUsage>,
+export function accumulateNetworkUsage(
+  usage: ReadonlyMap<string, NetworkUsage>,
   events: readonly AuditEvent[],
-): Map<string, EgressUsage> {
+): Map<string, NetworkUsage> {
   const next = new Map(usage);
   for (const event of events) {
     const destination = event.data?.destination;
     if (typeof destination !== 'string') continue;
     const current = next.get(destination) ?? { allowed: 0, denied: 0 };
-    if (event.kind === 'egress.allowed')
+    if (event.kind === 'network.allowed')
       next.set(destination, { ...current, allowed: current.allowed + 1, lastUsedAt: event.at });
-    else if (event.kind === 'egress.denied')
+    else if (event.kind === 'network.denied')
       next.set(destination, { ...current, denied: current.denied + 1 });
   }
   return next;
@@ -33,7 +33,7 @@ export interface PostureInput {
   readonly policy: ResolvedPolicy;
   readonly verification?: VerificationReport;
   readonly forwarding?: ForwardingStats;
-  readonly usage?: ReadonlyMap<string, EgressUsage>;
+  readonly usage?: ReadonlyMap<string, NetworkUsage>;
   readonly attestation?: { readonly catalogDigest?: string; readonly executableDigest?: string };
   /** The running build's best-before date, `YYYY-MM-DD`, when it carries one. */
   readonly bestBefore?: string;
@@ -152,10 +152,10 @@ function forwardingCheck(
           };
 }
 
-/** Denied egress, required destinations that are off, and bindings never used. */
-function egressChecks(
+/** Denied connections, required destinations that are off, and bindings never used. */
+function networkChecks(
   policy: ResolvedPolicy,
-  usage: ReadonlyMap<string, EgressUsage>,
+  usage: ReadonlyMap<string, NetworkUsage>,
 ): PostureCheck[] {
   const denied = [...usage].filter(([, item]) => item.denied > 0);
   const requiredOff = policy.consequences.filter((item) => item.availability === 'required');
@@ -163,11 +163,11 @@ function egressChecks(
   return [
     denied.length
       ? {
-          id: 'egress-denials',
+          id: 'network-denials',
           status: 'warn',
-          summary: `Denied egress to ${denied.map(([id, item]) => `${id} (${item.denied})`).join(', ')}`,
+          summary: `Denied connections to ${denied.map(([id, item]) => `${id} (${item.denied})`).join(', ')}`,
         }
-      : { id: 'egress-denials', status: 'pass', summary: 'No egress was denied' },
+      : { id: 'network-denials', status: 'pass', summary: 'No connection was denied' },
     requiredOff.length
       ? {
           id: 'required-destinations',
@@ -192,7 +192,7 @@ function egressChecks(
 /** Every declared destination, sorted by ID, with its state and usage. */
 function destinationPostures(
   policy: ResolvedPolicy,
-  usage: ReadonlyMap<string, EgressUsage>,
+  usage: ReadonlyMap<string, NetworkUsage>,
 ): DestinationPosture[] {
   const consequence = new Map(policy.consequences.map((item) => [item.destination, item]));
   return [...policy.declared.values()]
@@ -213,7 +213,7 @@ function destinationPostures(
             ? 'disabled'
             : reason === 'isolated'
               ? 'isolated'
-              : declared.direction === 'ingress' || declared.scope === 'loopback'
+              : declared.direction === 'inbound' || declared.scope === 'loopback'
                 ? 'local'
                 : 'unbound',
         ...(binding ? { origin: `${binding.url.protocol}//${binding.url.host}` } : {}),
@@ -227,13 +227,13 @@ function destinationPostures(
 
 /**
  * Judge the running posture from facts the host already has: the resolved policy, a chain
- * verification, forwarding statistics and egress usage. Never probes the network. `failing`
+ * verification, forwarding statistics and network usage. Never probes the network. `failing`
  * means the audit trail or policy cannot be trusted; `attention` means something a reviewer
  * should look at (denials, unforwarded events, required features switched off).
  */
 export function assessPosture(input: PostureInput): Posture {
   const { policy, verification, forwarding } = input;
-  const usage = input.usage ?? new Map<string, EgressUsage>();
+  const usage = input.usage ?? new Map<string, NetworkUsage>();
   const forwardTo = policy.policy.audit.forwardTo;
   const checks: PostureCheck[] = [
     policyCheck(policy),
@@ -241,7 +241,7 @@ export function assessPosture(input: PostureInput): Posture {
     bestBeforeCheck(input.bestBefore, input.now),
     auditChainCheck(verification),
     forwardingCheck(forwardTo, forwarding),
-    ...egressChecks(policy, usage),
+    ...networkChecks(policy, usage),
   ];
   const status = checks.some((check) => check.status === 'fail')
     ? 'failing'

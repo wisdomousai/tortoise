@@ -22,7 +22,7 @@ function destination(entry: Destination) {
       'span',
       { class: 'ov-declared-head' },
       h('code', {}, entry.id),
-      h('span', { class: 'ov-badge' }, entry.direction === 'ingress' ? 'Ingress' : 'Egress'),
+      h('span', { class: 'ov-badge' }, entry.direction === 'inbound' ? 'Inbound' : 'Outbound'),
       h('span', { class: 'ov-badge' }, entry.availability === 'required' ? 'Required' : 'Optional'),
       entry.offline && h('span', { class: 'ov-badge' }, `Offline: ${entry.offline}`),
     ),

@@ -8,9 +8,9 @@ import type {
   ProcessRequirement,
 } from '@tortoise/contracts';
 import { cidrContains, isLoopbackAddress, isLoopbackHost } from '@tortoise/deployment/cidr';
-import type { EgressOptions, HostLookup } from '../guard';
+import type { NetworkGuardOptions, HostLookup } from '../guard';
 import { portOf, type ResolvedBinding, type ResolvedPolicy } from '@tortoise/deployment/policy';
-import { EgressDenied, type DenialReason } from './denial';
+import { NetworkDenied, type DenialReason } from './denial';
 
 const defaultLookup: HostLookup = async (host) =>
   (await dnsLookup(host, { all: true, verbatim: true })).map((entry) => entry.address);
@@ -19,7 +19,7 @@ const defaultLookup: HostLookup = async (host) =>
 export const originOf = (url: URL) =>
   `${url.protocol}//${url.hostname.toLowerCase()}:${portOf(url)}`;
 
-/** The guard's options with defaults applied, shared by every egress path. */
+/** The guard's options with defaults applied, shared by every network path. */
 export interface GuardKernel {
   readonly policy: ResolvedPolicy;
   readonly eventLog?: EventLogPort;
@@ -32,7 +32,10 @@ export interface GuardKernel {
   readonly processes: ReadonlyMap<string, ProcessRequirement>;
 }
 
-export function createGuardKernel(options: EgressOptions, fetcher: typeof fetch): GuardKernel {
+export function createGuardKernel(
+  options: NetworkGuardOptions,
+  fetcher: typeof fetch,
+): GuardKernel {
   return {
     policy: options.policy,
     eventLog: options.eventLog,
@@ -58,21 +61,21 @@ export async function audit(
   } catch {
     const destination = records[0]?.data?.destination;
     if (requirement === 'required')
-      throw new EgressDenied(
+      throw new NetworkDenied(
         'AUDIT_UNAVAILABLE',
         typeof destination === 'string' ? destination : 'unknown',
       );
   }
 }
 
-/** Audit an allowed connection in the log's egress mode, before it opens. */
+/** Audit an allowed connection in the log's network mode, before it opens. */
 export const auditAllowed = (
   kernel: GuardKernel,
   destination: string,
   data: Record<string, string | number | boolean>,
 ) =>
-  audit(kernel, kernel.eventLog?.mode.egress ?? 'best-effort', [
-    event('egress.allowed', 'allowed', destination, data),
+  audit(kernel, kernel.eventLog?.mode.network ?? 'best-effort', [
+    event('network.allowed', 'allowed', destination, data),
   ]);
 
 export const event = (
@@ -95,11 +98,13 @@ export async function deny(
   destination: string,
   data: Record<string, string | number | boolean> = {},
 ): Promise<never> {
-  await audit(kernel, 'best-effort', [event('egress.denied', 'denied', destination, data, reason)]);
-  throw new EgressDenied(reason, destination);
+  await audit(kernel, 'best-effort', [
+    event('network.denied', 'denied', destination, data, reason),
+  ]);
+  throw new NetworkDenied(reason, destination);
 }
 
-/** The binding for a declared, bound egress destination, or a recorded denial. */
+/** The binding for a declared, bound outbound destination, or a recorded denial. */
 export async function bindingFor(
   kernel: GuardKernel,
   destinationId: string,
@@ -107,7 +112,7 @@ export async function bindingFor(
   const { policy } = kernel;
   const declared = policy.declared.get(destinationId);
   if (!declared) return deny(kernel, 'UNDECLARED', destinationId);
-  if (declared.direction !== 'egress') return deny(kernel, 'NOT_EGRESS', destinationId);
+  if (declared.direction !== 'outbound') return deny(kernel, 'NOT_OUTBOUND', destinationId);
   if (policy.disabled.has(destinationId)) return deny(kernel, 'DISABLED', destinationId);
   const binding = policy.bindings.get(destinationId);
   if (!binding) return deny(kernel, 'UNBOUND', destinationId);

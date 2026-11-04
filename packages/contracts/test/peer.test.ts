@@ -90,7 +90,7 @@ describe('peer target', () => {
   test('declares an authenticated https destination for its target and reads', () => {
     expect(target.destination).toMatchObject({
       id: 'quality-peer',
-      direction: 'egress',
+      direction: 'outbound',
       scope: 'local',
       protocol: 'https',
       authenticated: true,

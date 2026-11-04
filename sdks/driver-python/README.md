@@ -11,7 +11,7 @@ app driver contract chamber --out chamber.json
 python -m tortoise_driver.stubgen chamber.json -o chamber_contract.py
 ```
 
-The stub holds `DIGEST`, `CONTRACT` and a `TypedDict` per action input, result and event payload. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then register handlers and run:
+The stub contains `DIGEST`, `CONTRACT` and a `TypedDict` per action input, result and event payload. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then register handlers and run:
 
 ```python
 from tortoise_driver import ActionResult, Device, Driver, Refusal

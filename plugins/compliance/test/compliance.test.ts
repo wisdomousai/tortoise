@@ -24,7 +24,7 @@ import {
   type ScenarioDriver,
 } from '@tortoise/testing';
 import {
-  accumulateEgress,
+  accumulateNetworkUsage,
   assessPosture,
   controls,
   controlsMarkdown,
@@ -54,7 +54,7 @@ async function tempDir() {
 const destination = (id: string, extra: Partial<NetworkDestination> = {}): NetworkDestination => ({
   id,
   purpose: `${id} for tests`,
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
@@ -75,7 +75,7 @@ const plant = defineHostComponent({
       destination('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
       destination('station-screen', { dataClasses: ['screen-frame'] }),
       destination('host-http', {
-        direction: 'ingress',
+        direction: 'inbound',
         scope: 'loopback',
         protocol: 'http',
         dataClasses: [],
@@ -113,8 +113,8 @@ describe('generated compliance artifacts', () => {
       description: 'Test host component',
     });
     expect(manifest.summary).toEqual({
-      egress: 5,
-      ingress: 1,
+      outbound: 5,
+      inbound: 1,
       internet: ['vendor-api'],
       local: ['audit-collector', 'mes-api', 'scanner', 'station-screen'],
       required: ['host-http', 'mes-api'],
@@ -340,14 +340,14 @@ describe('generated compliance artifacts', () => {
 describe('posture', () => {
   test('denials ask for attention; a broken chain fails', async () => {
     const policy = await sandboxPolicy();
-    const usage = accumulateEgress(new Map(), [
-      { kind: 'egress.allowed', outcome: 'allowed', at: 5, data: { destination: 'mes-api' } },
-      { kind: 'egress.denied', outcome: 'denied', at: 6, data: { destination: 'vendor-api' } },
+    const usage = accumulateNetworkUsage(new Map(), [
+      { kind: 'network.allowed', outcome: 'allowed', at: 5, data: { destination: 'mes-api' } },
+      { kind: 'network.denied', outcome: 'denied', at: 6, data: { destination: 'vendor-api' } },
     ] as any);
     const posture = assessPosture({ policy, usage, now: 10 });
     expect(posture.status).toBe('attention');
-    expect(posture.checks.find((check) => check.id === 'egress-denials')!.summary).toBe(
-      'Denied egress to vendor-api (1)',
+    expect(posture.checks.find((check) => check.id === 'network-denials')!.summary).toBe(
+      'Denied connections to vendor-api (1)',
     );
     const state = Object.fromEntries(posture.destinations.map((item) => [item.id, item.state]));
     expect(state).toEqual({
@@ -441,8 +441,8 @@ async function monitoredLog() {
     source: { component: 'test', instance: 'one' },
   });
   await log.append([
-    { kind: 'egress.allowed', outcome: 'allowed', data: { destination: 'mes-api' } },
-    { kind: 'egress.denied', outcome: 'denied', reason: 'UNBOUND', data: { destination: 'x' } },
+    { kind: 'network.allowed', outcome: 'allowed', data: { destination: 'mes-api' } },
+    { kind: 'network.denied', outcome: 'denied', reason: 'UNBOUND', data: { destination: 'x' } },
     {
       kind: 'command.denied',
       outcome: 'denied',
@@ -463,7 +463,7 @@ async function monitoredLog() {
 }
 
 describe('posture monitor', () => {
-  test('checks verify the live chain, fold egress and record posture.checked', async () => {
+  test('checks verify the live chain, fold network events and record posture.checked', async () => {
     const { directory, log, monitor } = await monitoredLog();
     const posture = await monitor.check();
     expect(posture.log).toMatchObject({ verified: true, problems: 0 });
@@ -482,7 +482,7 @@ describe('posture monitor', () => {
   test('event pages filter by outcome, read newest first and bound nested data', async () => {
     const { log, monitor } = await monitoredLog();
     const denied = await monitor.events({ outcome: 'denied', limit: 1 });
-    expect(denied.items.map((event) => event.kind)).toEqual(['egress.denied']);
+    expect(denied.items.map((event) => event.kind)).toEqual(['network.denied']);
     const next = await monitor.events({
       outcome: 'denied',
       limit: 1,
@@ -495,7 +495,7 @@ describe('posture monitor', () => {
       deep: { level: '{"too":{"far":1}}' },
     });
     const newest = await monitor.events({
-      kinds: ['egress.denied', 'command.denied'],
+      kinds: ['network.denied', 'command.denied'],
       newest: true,
       limit: 1,
     });
@@ -526,7 +526,7 @@ const complianceScenarios: BehavioralScenario[] = [
           auditor,
         )
       ).data as { items: { kind: string }[] };
-      expect(events.items.map((event) => event.kind)).toEqual(['egress.denied', 'command.denied']);
+      expect(events.items.map((event) => event.kind)).toEqual(['network.denied', 'command.denied']);
       const verification = (
         await driver.query({ operation: 'compliance.log.verify', input: {} }, auditor)
       ).data as { ok: boolean };

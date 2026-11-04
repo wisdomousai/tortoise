@@ -24,7 +24,7 @@ async function record(ports: HostPorts, record: AuditRecord) {
   try {
     await log.append([record]);
   } catch (error) {
-    if (log.mode.egress === 'required' && record.kind === 'child.started') throw error;
+    if (log.mode.network === 'required' && record.kind === 'child.started') throw error;
   }
 }
 

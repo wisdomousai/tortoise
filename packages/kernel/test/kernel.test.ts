@@ -216,11 +216,11 @@ test('requirements the platform cannot meet are refused before any plugin opens'
   } as const;
   const cases: [Requirements, string][] = [
     [
-      { network: [{ ...destination, id: 'plc', direction: 'egress', protocol: 'tcp' }] },
+      { network: [{ ...destination, id: 'plc', direction: 'outbound', protocol: 'tcp' }] },
       'plc needs sockets',
     ],
     [
-      { network: [{ ...destination, id: 'listener', direction: 'ingress', protocol: 'https' }] },
+      { network: [{ ...destination, id: 'listener', direction: 'inbound', protocol: 'https' }] },
       'listener needs ingress',
     ],
     [

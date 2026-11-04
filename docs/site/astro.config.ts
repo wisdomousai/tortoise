@@ -36,7 +36,7 @@ export default defineConfig({
     starlight({
       title: 'Tortoise',
       description:
-        'A TypeScript reference architecture for applications at the point of work that deliver to systems of record.',
+        'A TypeScript framework for small applications at the edge that serve a specialized process change.',
       favicon: '/tortoise.svg',
       social: [{ icon: 'github', label: 'GitHub', href: repository }],
       editLink: { baseUrl: `${repository}/edit/main/` },

@@ -18,7 +18,7 @@ The host runs on a server with its workspace in Postgres, and an instance connec
 
    For development, from an app directory: `bun ../../scripts/dev-example.ts --port 4317 --hosted-workspace <name>`.
 
-4. Supervise it. Restart on exit code 1 (lease lost). Exit code 5 means another instance holds the lease ([exit codes](systems-of-record.md#exit-codes)).
+4. Supervise it. Restart on exit code 1 (lease lost). Exit code 5 means another instance has the lease ([exit codes](systems-of-record.md#exit-codes)).
 5. In the deployment policy, set `ingress.listen` to `tls` with your certificate and key, `identity: external`, the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
 6. Back up the database with its own tools (`pg_dump`, point-in-time recovery).
 
@@ -47,8 +47,8 @@ Code: `packages/adapters/src/postgres-lease.ts`. Tests: `packages/testing/test/p
 ### Instance layout
 
 - One instance serves one workspace. For many workspaces, run one instance each behind a router.
-- Blobs live in the database (`workspace_blobs`). An instance reads a blob an earlier release kept in the local directory from there and copies it in.
-- The local `--workspace` directory still holds agent run history, workforce sessions, the audit log and plugin files. Put it on a volume that follows the instance.
+- Blobs are stored in the database (`workspace_blobs`). If an earlier release left a blob in the local directory, the instance reads it from there and copies it into the database.
+- The local `--workspace` directory still contains agent run history, workforce sessions, the audit log and plugin files. Put it on a volume that follows the instance.
 - Don't host an app that is tied to one location: a local-scoped destination, a device, an exchange folder or a station process. Nothing refuses it at startup; check the requirements in the security manifest from `bun run generate`.
 
 ## Fleet

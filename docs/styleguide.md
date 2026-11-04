@@ -20,7 +20,7 @@ Agents read this file, not personal settings, so every rule that matters is here
 
 ## Examples in a page
 
-- The root README says what this repository is for: small applications that do a dedicated job at the edge. A central system holds the official record, and the application delivers its result to that system. Leave each sample application in its own README.
+- The root README says what this repository is for: small applications at the edge that serve a specialized process change, and why building that change as a custom application costs less than putting it into a standard application. Leave each sample application in its own README.
 - On any other page, an example shows that page's mechanism only.
 - An example's README names the job in the domain's words, then what the application adds beyond the framework. Framework terms come after, where the README says how the application is built. Policy role names such as editor and viewer are not job titles.
 
@@ -28,7 +28,7 @@ Agents read this file, not personal settings, so every rule that matters is here
 
 - Name the actor and use an active verb: "the host writes the record", never "the record is written". When the actor is unknown, make the thing the subject or cut the sentence.
 - Do not write "a coding agent writes…" or make an unnamed agent the actor for the reader's work. Name the tool (Claude Code, Codex) once, then use imperatives: paste, run, check.
-- Do not write a version number for Bun or any other tool. `package.json` and the lockfile hold versions; prose says "Bun".
+- Do not write a version number for Bun or any other tool. `package.json` and the lockfile record versions; prose says "Bun".
 - Keep a cause and its effect in one sentence when they belong together. Do not split every fact into its own sentence, and do not join clauses with semicolons.
 - Keep a sentence when the reader would lose a fact, a step, a reason or needed context without it. Cut maxims, pitch, contrast slogans and sentences that repeat another one.
 - Write headings as plain descriptive nouns, such as "Setup", "Failure behavior" or "Running the example". Do not write "From notice to decision", "Try the plant stand-in", a number-led heading or a contrast slogan.
@@ -40,7 +40,8 @@ Names, capability IDs, UI copy and prose use the word the industry or plain engi
 
 ```text
 settle, settlement, land, lands, landed, landing, arrive, arrives, arrived, arrival,
-lane, seat, travels, rides, mint, mints, minted, on the same footing
+lane, seat, travels, rides, mint, mints, minted, on the same footing,
+hold, holds, holding, carry, carries, carrying, carried
 ```
 
 Do not use these filler words:
@@ -51,7 +52,6 @@ out of the box, under the hood, at its core, simply, of course, note that, impor
 ```
 
 - A person answers a question. A system returns, responds, handles or implements.
-- Write has, includes, contains or records for a field, a date or a payload, not "carries".
 - The glossary's `Do not use:` lines list retired terms, such as working set, gated actuator and peer surface.
 
 ## Claims and evidence

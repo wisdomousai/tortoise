@@ -3,7 +3,7 @@ import { ApplicationError } from '@tortoise/contracts';
 /** Why a connection was refused. Codes are stable and safe to log and display. */
 export type DenialReason =
   | 'UNDECLARED'
-  | 'NOT_EGRESS'
+  | 'NOT_OUTBOUND'
   | 'DISABLED'
   | 'UNBOUND'
   | 'ORIGIN_MISMATCH'
@@ -19,12 +19,15 @@ export type DenialReason =
  * missing dependency (HTTP 503, CLI exit 8), never as a server fault. The message carries only
  * the destination ID and reason code, which are declared, non-secret names.
  */
-export class EgressDenied extends ApplicationError {
+export class NetworkDenied extends ApplicationError {
   constructor(
     readonly reason: DenialReason,
     readonly destination: string,
   ) {
-    super('UNAVAILABLE', `Egress to ${destination} denied: ${reason}`, { destination, reason });
-    this.name = 'EgressDenied';
+    super('UNAVAILABLE', `Network access to ${destination} denied: ${reason}`, {
+      destination,
+      reason,
+    });
+    this.name = 'NetworkDenied';
   }
 }

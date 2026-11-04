@@ -14,7 +14,7 @@ export const hubDestinationComponent = defineHostComponent({
       {
         id: 'hub',
         purpose: 'Deliver field records and their photos to the hub, and read assignments.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'local',
         protocol: 'https',
         authenticated: true,

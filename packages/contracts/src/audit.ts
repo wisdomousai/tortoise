@@ -5,7 +5,7 @@ import type { JsonObject } from './json';
  * browser-safe data so a posture screen can render events without loading the log adapter.
  *
  * Events carry references and digests, never business payloads: input values appear only for
- * fields a capability lists in `audit.fields`, and egress events never contain bodies. A log is
+ * fields a capability lists in `audit.fields`, and network events never contain bodies. A log is
  * evidence about the instance; it does not replace the committed journal or receipts.
  */
 
@@ -36,7 +36,7 @@ export interface AuditActor {
 
 /** What an emitter supplies. The log assigns `seq`, `at` (if absent), `source`, `prev` and `hash`. */
 export interface AuditRecord {
-  /** Dotted, lower-case kind, e.g. `command.committed`, `egress.denied`. */
+  /** Dotted, lower-case kind, e.g. `command.committed`, `network.denied`. */
   readonly kind: string;
   readonly outcome: AuditOutcome;
   readonly at?: number;
@@ -88,9 +88,9 @@ export const auditEventKinds = {
   'effect.held': 'An uncertain delivery is held for operator reconciliation.',
   'effect.released': 'A held effect was released for redelivery.',
   'effect.completed': 'The target accepted or rejected an effect.',
-  'egress.allowed': 'The egress guard opened a declared, bound connection.',
-  'egress.denied': 'The egress guard refused an undeclared, unbound or disallowed connection.',
-  'egress.completed': 'A guarded request finished; carries status, size and duration.',
+  'network.allowed': 'The network guard opened a declared, bound connection.',
+  'network.denied': 'The network guard refused an undeclared, unbound or disallowed connection.',
+  'network.completed': 'A guarded request finished; carries status, size and duration.',
   'session.created': 'The host issued a browser or process session.',
   'session.revoked': 'A session ended or was revoked.',
   'grant.issued': 'A delegated grant was bound to a run or connection.',
@@ -124,16 +124,16 @@ export type AuditRequirement = 'required' | 'best-effort';
 export interface AuditMode {
   readonly commands: AuditRequirement;
   readonly queries: AuditRequirement;
-  readonly egress: AuditRequirement;
+  readonly network: AuditRequirement;
 }
 export const failClosedAuditMode: AuditMode = Object.freeze({
   commands: 'required',
   queries: 'required',
-  egress: 'required',
+  network: 'required',
 });
 
 /**
- * Append-only audit sink injected into the runtime, egress guard, dispatcher and host. Appends
+ * Append-only audit sink injected into the runtime, network guard, dispatcher and host. Appends
  * are ordered: resolved events carry consecutive `seq` values and one hash chain. A rejected
  * promise means none of the records is durable. Implementations must not block on the network
  * while the caller holds a storage transaction; forward to remote sinks after the local append.

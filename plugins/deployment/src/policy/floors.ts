@@ -3,7 +3,7 @@ import type { OfflineConsequence, ResolvedBinding } from '../policy';
 import type { Findings } from './findings';
 import type { DeploymentPolicy } from './schema';
 
-/** Every unbound egress destination and why; a connected deployment must decide on required ones. */
+/** Every unbound outbound destination and why; a connected deployment must decide on required ones. */
 export function offlineConsequences(
   policy: DeploymentPolicy,
   requirements: CatalogRequirements,
@@ -13,7 +13,7 @@ export function offlineConsequences(
 ): OfflineConsequence[] {
   const consequences: OfflineConsequence[] = [];
   for (const destination of requirements.network) {
-    if (destination.direction !== 'egress' || bindings.has(destination.id)) continue;
+    if (destination.direction !== 'outbound' || bindings.has(destination.id)) continue;
     const reason = disabled.has(destination.id)
       ? 'disabled'
       : policy.mode === 'isolated'

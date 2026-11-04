@@ -14,7 +14,7 @@ export const workforceIdentityComponent = defineHostComponent({
       {
         id: 'workforce-idp',
         purpose: 'Sign people in with the workforce identity provider (OpenID Connect).',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         dataClasses: ['identity'],

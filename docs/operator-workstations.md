@@ -62,7 +62,7 @@ A screen action can break off midway and is not idempotent, so procedures use co
 5. runs each step through the [interlock](#interlock);
 6. accepts when the readback matches, with a readback digest as the external reference.
 
-An alarm popup, local input, a timeout or an exhausted step budget stops the procedure. If it stopped after its first action, the dispatcher redelivers a `rerunnable` procedure and [holds](systems-of-record.md#held-effects) any other effect until the operator says, with the reconcile command, whether the change took effect. No procedure for the type: `UNSUPPORTED`. Test: `workstations/screen-bridge/test/controller.test.ts`.
+An alarm popup, local input, a timeout or an exhausted step budget stops the procedure. If it stopped after its first action, the dispatcher redelivers a `rerunnable` procedure and puts any other effect in [`held`](systems-of-record.md#held-effects) until the operator says, with the reconcile command, whether the change took effect. No procedure for the type: `UNSUPPORTED`. Test: `workstations/screen-bridge/test/controller.test.ts`.
 
 ## Bridge modes and risk levels
 
@@ -80,7 +80,7 @@ An alarm popup, local input, a timeout or an exhausted step budget stops the pro
 
 Drivers use the same modes and levels. In `winding-line` only a supervisor at the station changes the mode, and can pause actuation at any time.
 
-Roll out in three stages: **observe** (state, counters, alarms, stops), **annotate** (people and agents add stop reasons and confirmations, sent to the MES), **actuate** (e.g. load the recipe for a scanned order). In `winding-line` the stop explainer agent proposes a stop reason and the operator approves it with one tap; loading a recipe is `operator-present` and needs a hold-to-confirm.
+Roll out in three stages: **observe** (state, counters, alarms, stops), **annotate** (people and agents add stop reasons and confirmations, sent to the MES), **actuate** (e.g. load the recipe for a scanned order). In `winding-line` the stop explainer agent proposes a stop reason and the operator approves it with one tap; loading a recipe is `operator-present` and needs a long press (`hold-to-confirm`).
 
 ## Interlock
 
@@ -92,7 +92,7 @@ The reference transport drives a Playwright page; the reference driver follows a
 
 ## Control holder
 
-The control holder is `operator`, `agent` (the bridge) or `idle`. The bridge does not act while the operator holds control, and only a person can request it. Control never expires: a holder that disappears keeps it until someone changes it. The operator's takeover command changes it, and local input stops a procedure at once where the transport detects it.
+The control holder is `operator`, `agent` (the bridge) or `idle`. The bridge does not act while the control holder is `operator`, and only a person can request it. Control never expires: a holder that disappears keeps it until someone changes it. The operator's takeover command changes it, and local input stops a procedure at once where the transport detects it.
 
 ## Observation
 

@@ -168,7 +168,7 @@ describe.skipIf(!supported)('bubblewrap sandbox', () => {
     });
   });
 
-  test('egress goes only through the proxy, to declared destinations', async () => {
+  test('network access goes only through the proxy, to declared destinations', async () => {
     const result = await sandboxes.run(task('proxy', [`127.0.0.1:${upstreamPort}`]));
     const { declared, undeclared } = output(result.stdout);
     expect(declared).toEqual({ status: 'HTTP/1.1 200 Connection Established', body: 'hello\n' });

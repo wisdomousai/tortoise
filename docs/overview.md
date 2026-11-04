@@ -1,12 +1,12 @@
 # Overview
 
-An application does a dedicated job at the edge, on the computer or phone where the work is done. The host is the process that runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
+An application serves one specialized business process change and runs at the edge, on a computer or phone. The host runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
 
-The instance holds a workspace — by default a SQLite database in a directory. Every change to a record is a command. The host validates input, checks access and commits. No other process writes the workspace while the instance is open.
+Each instance has one workspace, by default a SQLite database in a directory. Every change to a record is a command. The host validates input, checks access and commits. No other process writes the workspace while the instance is open.
 
 ## How a change reaches the central system
 
-1. Inbound sync imports what the job needs from the central system, such as orders or master data, as ordinary commands.
+1. Inbound sync imports what the application needs from the central system, such as orders or master data, as ordinary commands.
 2. A person on a screen, an agent over MCP or the CLI, a scanner or a device runs a command. The host validates the input, checks access to the operation, the record and its fields, and commits.
 3. When an agent runs a command that needs a person, the command waits as an approval request until a person approves or rejects it.
 4. A command whose result belongs in the central system commits its change and an effect in the outbox in one transaction.
@@ -59,7 +59,7 @@ A deployment policy binds destinations, processes, devices and exchange folders.
 - A driver acts only through declared actions, under its bridge mode and risk level.
 - MQTT and OPC UA connectors only read. Only the `signals` pattern composes them.
 - The execution host sandbox runs only on Linux with bubblewrap. No harness uses it yet.
-- The egress guard runs in the host process and does not contain other processes.
+- The network guard runs in the host process and does not contain other processes.
 - One instance hosts one application.
 - Each storage transaction loads the whole workspace state.
 

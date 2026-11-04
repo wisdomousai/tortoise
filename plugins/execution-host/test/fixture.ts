@@ -69,7 +69,7 @@ const policy: AuthorizationPort<{ notes: Notes }> = {
   canReadEvent: () => true,
 };
 
-/** The vendor API a sandboxed tool may reach through the egress proxy. */
+/** The vendor API a sandboxed tool may reach through the network proxy. */
 const modelApi = defineHostComponent({
   id: 'model-api',
   description: 'The model API sandboxed tools call',
@@ -78,7 +78,7 @@ const modelApi = defineHostComponent({
       {
         id: 'model-api',
         purpose: 'Model calls from sandboxed tools',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'loopback',
         protocol: 'tcp',
         dataClasses: ['prompts'],

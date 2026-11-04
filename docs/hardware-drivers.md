@@ -51,7 +51,7 @@ In a checkout, `app driver` is `bun run --silent cli driver` with `TORTOISE_APPL
 
 ## Why a separate process
 
-Vendor code never runs in the host: no FFI, native addons or in-process COM. A vendor crash would kill the process holding the workspace, COM needs its own apartment, a 32-bit COM server can't load into a 64-bit host, and devices often need another OS user.
+Vendor code never runs in the host: no FFI, native addons or in-process COM. A vendor crash would kill the process that has the workspace open, COM needs its own apartment, a 32-bit COM server can't load into a 64-bit host, and devices often need another OS user.
 
 ## Process binding
 
@@ -79,8 +79,8 @@ The digest is the SHA-256 of the contract's canonical JSON. Stub generators writ
 | Mode | Safe resend because | After a lost reply |
 | --- | --- | --- |
 | `idempotent` | The driver deduplicates by effect ID. | Resend. |
-| `convergent` | The host checks the readback first and skips the action if it already holds. Needs a readback. | Read back: accept if it holds, otherwise [hold](systems-of-record.md#held-effects) unless the action surely never ran. |
-| `once` | The driver journals each effect before acting. Needs lookup. | Ask with `action.lookup`; a started effect with no outcome returns `uncertain`, and the dispatcher holds it. |
+| `convergent` | The host checks the readback first and skips the action if it already matches the intended state. Needs a readback. | Read back: accept if it matches, otherwise put the effect in [`held`](systems-of-record.md#held-effects) unless the action surely never ran. |
+| `once` | The driver journals each effect before acting. Needs lookup. | Ask with `action.lookup`; a started effect with no outcome returns `uncertain`, and the dispatcher puts the effect in `held`. |
 
 Reconciling a held convergent effect as not applied lets the next delivery act again.
 
@@ -106,7 +106,7 @@ JSON-RPC 2.0, one message per line on stdin and stdout. The host drops lines ove
 | `rejected` | Equipment refused for good. | Business rejection with the driver's code. |
 | `precondition` | Not in a state to do it now. | Business rejection. |
 | `transient` (default) | Nothing done. | The dispatcher retries with backoff. |
-| `uncertain` | May have acted. | The dispatcher holds it for a person. |
+| `uncertain` | May have acted. | The dispatcher puts the effect in `held` for a person. |
 | `refused` | Bridge mode or driver rules forbid it. | Waits until the mode allows it. |
 
 A crash, timeout, cancel or malformed reply mid-action is transient; the delivery mode decides what happens before the resend.
@@ -117,11 +117,11 @@ Driver actions pass the same interlock as [screen procedures](operator-workstati
 
 1. rejects an unknown action, invalid input, or an `operator-present` action without presence confirmation;
 2. waits unless the bridge mode allows the risk level (`monitor-only` none, `assist` only `none`, `actuate` all);
-3. accepts without acting if the readback already holds;
+3. accepts without acting if the readback already matches the intended state;
 4. waits while `control` shows local operation;
 5. rejects on unmet preconditions and waits on unreadable ones.
 
-The application's control query supplies the mode and may refuse for its own reasons; `winding-line` refuses while the operator holds control. Drivers start in `monitor-only`, and the SDKs re-check mode, presence, deadline and once-per-effect inside the driver. A handler exception other than a refusal reads as `uncertain`.
+The application's control query supplies the mode and may refuse for its own reasons; `winding-line` refuses while the operator has control. Drivers start in `monitor-only`, and the SDKs re-check mode, presence, deadline and once-per-effect inside the driver. A handler exception other than a refusal reads as `uncertain`.
 
 ## Timing
 

@@ -52,7 +52,7 @@ A run starts through the host's run route (`POST /api/v1/runs`) as the caller. O
 - `harnessId`: pick a harness; otherwise the first of the host's harnesses that meets the model requirement. `GET /api/v1/harnesses` lists them with whether each can run now.
 - `conversationId`: continue an earlier conversation. Runs in one conversation run one after another.
 
-States: queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled, interrupted. Runs live in `.workspace/runs.sqlite` with what the person asked (`request`), their events and the answers to questions and approvals. The prompt a harness reads also holds the agent's instructions; the run keeps only the request. A harness that cannot resume its own session (AI SDK, local) gets the conversation's earlier requests and replies as chat messages, up to 16,000 characters, oldest left out first. After a restart, unfinished runs read `interrupted`; the host repeats nothing. The host caps output and redacts known secret formats, in the request too.
+States: queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled, interrupted. Runs live in `.workspace/runs.sqlite` with what the person asked (`request`), their events and the answers to questions and approvals. The prompt a harness reads also contains the agent's instructions; the run keeps only the request. A harness that cannot resume its own session (AI SDK, local) gets the conversation's earlier requests and replies as chat messages, up to 16,000 characters, oldest left out first. After a restart, unfinished runs read `interrupted`; the host repeats nothing. The host caps output and redacts known secret formats, in the request too.
 
 ### Assistant panel
 

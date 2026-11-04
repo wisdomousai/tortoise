@@ -42,7 +42,7 @@ export async function startAgents(
     store: instance.runStore,
     tools: createAgentTools(application, (id) => supervisor.get(id), host.uiSessions),
     // Run starts and ends go to the audit log after the fact. A log that cannot write never
-    // stops a run: the audit mode's fail-closed settings cover commands, queries and egress.
+    // stops a run: the audit mode's fail-closed settings cover commands, queries and network connections.
     ...(ports.eventLog
       ? {
           onRun: (run, change) =>

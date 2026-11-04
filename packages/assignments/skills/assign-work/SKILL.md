@@ -11,7 +11,7 @@ An assignment sends a brief to an assignee, and the assignee sends reports back.
 
 - A change that a system of record decides is an outbox effect; follow the `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`).
 - A command an agent asks a person to approve before it runs is an approval request; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) to mount `approvalFeature`.
-- Decide per kind what the planner fills in, what the assignee needs to work offline, what one report holds and which record it is about, and what the reviewer may change on accepting.
+- Decide per kind what the planner fills in, what the assignee needs to work offline, what one report contains and which record it is about, and what the reviewer may change on accepting.
 - Decide the assignee types. A brief for a device or a peer includes no blobs.
 
 ## Steps

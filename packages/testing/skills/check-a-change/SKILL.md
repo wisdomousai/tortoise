@@ -56,4 +56,4 @@ description: Choose and run the checks for a change in this repository and repor
 | A framework package's imports, dependencies or packed files | `bun run check:manifests`; `bun scripts/check-manifests.ts --write` rewrites the manifests |
 | A change that should reach the next framework release | `bun run changeset` to record it; the release scripts are in [development and testing](../../../../docs/development-and-testing.md#framework-packages) |
 | The scaffold or what it exports | `bun run test:scaffold`; `SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold/src/generate.test.ts -t "from a registry"` for an export that installs the framework |
-| A README, doc link or skill | `bun run check:skills`, `bun run docs:build`; review prose and links against `docs/styleguide.md` |
+| A README, doc link or skill | `bun run check:skills`, `bun run check:words`, `bun run docs:build`; review prose and links against `docs/styleguide.md` |

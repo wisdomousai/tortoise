@@ -149,7 +149,7 @@ A list's `filters` are equality filters on item fields; each becomes an optional
 
 `collectionUpdate` makes every listed field optional, so a call changes only the fields it names. A field the item may leave out also accepts `null`, which removes it from the record; a required item field does not.
 
-The collection's `fields` carry display metadata for generated screens and tools: a `label`, a `kind` (`text`, `date`, `date-time`, `status`, `reference`, `file`), `tones` for a status field's values (`neutral`, `positive`, `warning`, `negative`) and, for a reference, the resource kind of the collection it names. Without a kind, the screens infer one from the field's name and schema: a field named like a timestamp shows as a date, a `status` enum as a badge, a blob reference as a file.
+The collection's `fields` declare display metadata for generated screens and tools: a `label`, a `kind` (`text`, `date`, `date-time`, `status`, `reference`, `file`), `tones` for a status field's values (`neutral`, `positive`, `warning`, `negative`) and, for a reference, the resource kind of the collection it names. Without a kind, the screens infer one from the field's name and schema: a field named like a timestamp shows as a date, a `status` enum as a badge, a blob reference as a file.
 
 ## Wire it up
 

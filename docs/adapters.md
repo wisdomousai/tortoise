@@ -12,7 +12,7 @@ The framework reaches storage and serves the HTTP, MCP and CLI surfaces through 
 | Surfaces | Loopback HTTP and SSE; MCP over stdio; the CLI | Calls go through the instance with the error envelope, and events follow current access. |
 | Agent harness | Deterministic fixture; Codex, Claude, AI SDK and local model adapters | Provider types stay private, progress is not a commit, and cancellation and recovery stay explicit. |
 | Audit log | Memory; hash-chained JSONL with one locked writer | Each append goes in order, chained and synced; in required mode a failed append rolls back the command. |
-| Egress | In-process guard, scoped socket, CONNECT proxy | Only declared, bound destinations; the guard checks redirects and DNS responses and records every decision. |
+| Network guard | In-process guard, scoped socket, CONNECT proxy | Only declared, bound destinations; the guard checks redirects and DNS responses and records every decision. |
 
 ## Storage
 

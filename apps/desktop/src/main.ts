@@ -87,7 +87,7 @@ function restrictedSession(origin: string) {
   const uiSession = session.fromPartition('application-window');
   uiSession.setPermissionCheckHandler(() => false);
   uiSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
-  // Renderer egress: network requests may reach only the local instance. CSP says the same
+  // Renderer network access: requests may reach only the local instance. CSP says the same
   // for page content; this also covers requests CSP does not govern. Provider sign-in runs in
   // the user's browser (below), so the window itself never contacts the internet.
   uiSession.webRequest.onBeforeRequest((details, callback) => {

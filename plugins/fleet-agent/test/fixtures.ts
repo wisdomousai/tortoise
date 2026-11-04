@@ -188,7 +188,7 @@ const erp = defineHostComponent({
       {
         id: 'erp-api',
         purpose: 'Fixture destination.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'local',
         protocol: 'https',
         dataClasses: ['note'],

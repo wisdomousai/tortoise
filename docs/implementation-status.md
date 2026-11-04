@@ -25,7 +25,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 | [Connector plugins](#connector-plugins)                         | OPC UA, MQTT, file exchange against local servers          | Real equipment, network shares                             |
 | [Operator workstation bridge](#operator-workstation-bridge)     | Fake HMI in the browser                                    | Real scanner, OCR or vision model                          |
 | [Hardware drivers](#hardware-drivers)                           | Python driver on a simulated instrument                    | Real equipment, Windows, Linux                             |
-| [Security and compliance](#security-and-compliance)             | Live denials on the Compliance screen                      | Loaded firewall rules, live egress                         |
+| [Security and compliance](#security-and-compliance)             | Live denials on the Compliance screen                      | Loaded firewall rules, live network guard traffic                         |
 | [Desktop](#desktop)                                             | An older unsigned macOS package                            | Current package, other platforms, signing                  |
 | [Mobile](#mobile)                                               | Expo prebuild and export, tablet web frame                 | Any device, emulator or native build                       |
 | [OS integration](#os-integration)                               | Web manifest, launch URLs, share target in the browser     | Anything through a real OS                                 |
@@ -63,7 +63,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Install
 
-- **Proven (by hand, 27 Oct):** `app install` from the fleet agent's staging folder with `--prefix --service systemd` and no `--apply` rendered the unit and `egress.nft`. `app status` verified the release. `app uninstall --purge --trust` drained and removed it. A CI job (`deployment-install`, Ubuntu) runs `systemd-analyze verify` and `nft -c -f` but has not run yet.
+- **Proven (by hand, 27 Oct):** `app install` from the fleet agent's staging folder with `--prefix --service systemd` and no `--apply` rendered the unit and `network.nft`. `app status` verified the release. `app uninstall --purge --trust` drained and removed it. A CI job (`deployment-install`, Ubuntu) runs `systemd-analyze verify` and `nft -c -f` but has not run yet.
 - **Proven (by hand, 3 Nov, macOS arm64):** `showcase/examples/tool-store` with `deployment-policy.store-terminal.json`. `bundle create` built a 48-file `darwin-arm64` bundle. `verify` accepted it, and `admit` refused it until approved. The bundled binary's `install --prefix --service none` placed the release and the policy, migrated an empty workspace, and rendered no service or firewall file. `status` verified the release. `drain` exited 0 with nothing pending for `eam`. `uninstall --purge --trust` without `--apply` removed the release and the data.
 - **Not yet:** `--apply` loading a service or firewall on Linux or Windows; the Windows path beyond rendering; kiosk mode; purge with undelivered effects.
 
@@ -112,25 +112,25 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Agents and providers
 
 - **Proven (live, 18 Oct):** Gemma 4 E4B-it Q4_0 on llama.cpp `llama-server`, Apple M3. `plugins/model-server/test/live.test.ts` passed 5 of 5 (22–31 s each): the model requested approval for `note.add` and the run recorded the measured digest. `plugins/automation/test/live.test.ts` passed 3 of 3 (41–68 s): a trigger started `lot.reviewer`, a viewer's approval failed and an inspector's committed.
-- **Partly proven (browser, live, 3 Nov):** the parts desk assistant panel on Gemma 4 E4B-it Q4_0 (`sha256:a555b900…f2097f2`) through `llama-server`, Apple M3, a base model with no adapter and no gate. Five turns took 65–199 s each. The model found the parts and filled the quote builder. It asked in text instead of through the question tool, named a quote that does not exist, and requested a discount that a supervisor cannot approve, because its base revisions named the record `<|"|>quote`. `showcase/examples/parts-desk/test/assistant-live.test.ts` failed both turns it holds. [Parts desk 4](tutorials/parts-desk-4-live-model-and-voice.mdx#live-run) records each turn.
+- **Partly proven (browser, live, 3 Nov):** the parts desk assistant panel on Gemma 4 E4B-it Q4_0 (`sha256:a555b900…f2097f2`) through `llama-server`, Apple M3, a base model with no adapter and no gate. Five turns took 65–199 s each. The model found the parts and filled the quote builder. It asked in text instead of through the question tool, named a quote that does not exist, and requested a discount that a supervisor cannot approve, because its base revisions named the record `<|"|>quote`. `showcase/examples/parts-desk/test/assistant-live.test.ts` failed both turns it covers. [Parts desk 4](tutorials/parts-desk-4-live-model-and-voice.mdx#live-run) records each turn.
 - **Partly proven (27 Oct):** `showcase/patterns/local-model/test/live.test.ts` passed once, but the model's revision key was malformed. Two later runs timed out under heavy load.
 - **Proven (browser, by hand):** `showcase/patterns/agents` and `showcase/patterns/local-model` showed approval requests and UI review on screen.
 - **Proven (browser):** on the Approvals screen of `showcase/examples/tool-store`, an attendant approved one request to retire a tool, which retired it, and rejected another, which left the tool in repair. The requests came over HTTP from the owner, not from an agent run.
 - **Not yet:** ChatGPT sign-in, Claude or AI SDK inference, vLLM, fine-tunes, weights as bundle artifacts. Agent scenarios have passed with the deterministic harness only.
 - **Not yet:** a model following the `calibration-pull` workflow of `showcase/examples/tool-store` over MCP. Its test reads the workflow resource and calls the tools it names through the MCP adapter, with no model.
 - **Proven (browser):** at the counter terminal of `showcase/examples/tool-store`, a run on the deterministic harness, started from the ticked tools, opened a tool on the Counter tab and asked for a review above its edit form. The attendant saved the bin and acknowledged the review. The run acts as the terminal's session, the owner.
-- **Not yet:** a provider model at that terminal. Without an agent definition such a run holds the owner's whole grant, and only its instruction keeps it from `tool.update`.
+- **Not yet:** a provider model at that terminal. Without an agent definition such a run has the owner's whole grant, and only its instruction keeps it from `tool.update`.
 - **Proven (browser, 4 Nov):** the frame's assistant panel in `showcase/patterns/agents` ran two turns with the method suggester on the deterministic harness, from the request screen's record. The person answered its question in the panel, and after a reload the panel showed the request, the answer and the reply again (`e2e/assistant.pw.ts`).
-- **Not yet:** the frame's panel on a model, and the discrepancy classifier started from the receiving panel on a model. The work order planner starts from the field-service agent panel only with a provider account. The parts desk keeps its own panel, with dictation and record links; the assistant tutorial still has each application write its panel.
+- **Not yet:** the frame's panel on a model, and the discrepancy classifier started from the receiving panel on a model. The work order planner starts from the field-service agent panel only with a provider account. The parts desk still has its own panel, with dictation and record links; the assistant tutorial still has each application write its panel.
 
 ### Execution host
 
 - **Proven (17 Oct):** `bun run test:execution-host:linux` passed 18 of 18 in an arm64 Alpine container with bubblewrap and the plugin's seccomp filter. On macOS the sandbox pattern shows "darwin has no backend".
-- **Not yet:** x86-64, glibc, a bare host kernel, macOS or Windows backends, a harness launching its tools through the sandbox, real TLS egress, distributions that restrict user namespaces.
+- **Not yet:** x86-64, glibc, a bare host kernel, macOS or Windows backends, a harness launching its tools through the sandbox, real TLS outbound connections, distributions that restrict user namespaces.
 
 ### Systems of record
 
-- **Proven (by hand):** `showcase/patterns/system-of-record` against its fake LIMS: register, hold after six attempts, resolve as applied, reject with the LIMS's reason, import through the feed.
+- **Proven (by hand):** `showcase/patterns/system-of-record` against its fake LIMS: register, held after six attempts, resolve as applied, reject with the LIMS's reason, import through the feed.
 - **Proven (browser):** `showcase/examples/tool-store` against its fake EAM: a damaged return shows the repair order number on the tool, and with `DEMO_EAM_UNKNOWN_TAGS` the refused repair order (`ASSET_UNKNOWN`) shows as needing attention and is counted on the EAM screen. Its held repair orders are tested through the instance only.
 - **Not yet:** any real ERP, CRM, EAM or LIMS; extraction on a model provider; asset-survey's live comparison.
 - **Limits:** two dispatcher processes cannot share a local workspace. Capture timings are synthetic.
@@ -166,7 +166,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Security and compliance
 
 - **Proven:** the Compliance screen shows a new denial without a reload.
-- **Not yet:** exported firewall rules loaded into nftables, Windows Firewall, systemd or a cluster; an off-host syslog collector; live traffic through the egress guard; a real workforce provider. Agent harnesses still spawn directly. The Bun platform has no secret store.
+- **Not yet:** exported firewall rules loaded into nftables, Windows Firewall, systemd or a cluster; an off-host syslog collector; live traffic through the network guard; a real workforce provider. Agent harnesses still spawn directly. The Bun platform has no secret store.
 
 ### Desktop
 

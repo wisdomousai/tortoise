@@ -7,7 +7,7 @@ import type {
 } from '@tortoise/contracts';
 import { portOf, type ResolvedPolicy } from '@tortoise/deployment/policy';
 import { destinationClient } from './guard/client';
-import { EgressDenied } from './guard/denial';
+import { NetworkDenied } from './guard/denial';
 import {
   audit,
   auditAllowed,
@@ -19,11 +19,11 @@ import {
 } from './guard/kernel';
 import { authorizeProcessTarget, routedFetch } from './guard/routing';
 
-export { EgressDenied, type DenialReason } from './guard/denial';
+export { NetworkDenied, type DenialReason } from './guard/denial';
 
 export type HostLookup = (host: string) => Promise<readonly string[]>;
 
-export interface EgressOptions {
+export interface NetworkGuardOptions {
   readonly policy: ResolvedPolicy;
   readonly requirements: CatalogRequirements;
   readonly eventLog?: EventLogPort;
@@ -44,7 +44,7 @@ export interface DestinationClient {
   fetch(input: string | URL, init?: RequestInit): Promise<Response>;
 }
 
-export interface Egress {
+export interface NetworkGuard {
   client(destinationId: string): DestinationClient;
   /**
    * A drop-in `fetch` for SDKs that call several origins (an OAuth issuer and an API). Each
@@ -85,7 +85,7 @@ async function socket<Data>(
 /**
  * Deny-by-default outbound access. Only destinations that are both declared (by a module or host
  * component) and bound (by the deployment policy) are reachable, and only at their bound origin.
- * Every decision is audited; with a required egress log, a connection that cannot be logged is
+ * Every decision is audited; with a required network log, a connection that cannot be logged is
  * not opened.
  *
  * Limits: the address check resolves the host and then connects by name, so a resolver that
@@ -93,7 +93,7 @@ async function socket<Data>(
  * (`network export`) close that gap. Child processes that ignore proxy settings are likewise
  * contained only by those rules.
  */
-export function createEgress(options: EgressOptions): Egress {
+export function createNetworkGuard(options: NetworkGuardOptions): NetworkGuard {
   const kernel = createGuardKernel(options, options.fetch ?? fetch);
   return {
     client: (destinationId) => destinationClient(kernel, destinationId),
@@ -103,7 +103,7 @@ export function createEgress(options: EgressOptions): Egress {
       authorizeProcessTarget(kernel, processId, host, port),
     process(processId) {
       const declared = kernel.processes.get(processId);
-      if (!declared) throw new EgressDenied('PROCESS_NOT_DECLARED', `process:${processId}`);
+      if (!declared) throw new NetworkDenied('PROCESS_NOT_DECLARED', `process:${processId}`);
       return declared;
     },
     audit: (requirement, records) => audit(kernel, requirement, records),

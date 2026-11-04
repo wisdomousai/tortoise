@@ -24,7 +24,7 @@ const accounts = defineDataProvider({
 const reads: NetworkDestination = {
   id: 'crm-api',
   purpose: 'Search the CRM',
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'internet',
   protocol: 'https',
   reads: ['crm'],
@@ -120,9 +120,9 @@ describe('data provider', () => {
         defineModule({
           id: 'crm',
           capabilities: accounts.capabilities,
-          requirements: { network: [{ ...reads, direction: 'ingress' }] },
+          requirements: { network: [{ ...reads, direction: 'inbound' }] },
         }),
       ]),
-    ).toThrow('Remote reads require an egress destination');
+    ).toThrow('Remote reads require an outbound destination');
   });
 });

@@ -34,7 +34,7 @@ const module = defineModule({
       {
         id: 'sor-api',
         purpose: 'Test system of record',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'local',
         protocol: 'https',
         reads: ['sor'],

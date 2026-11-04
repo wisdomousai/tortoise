@@ -128,7 +128,7 @@ describe('portable application catalog', () => {
         }),
       ]),
     ).toThrow('Integration requires a command');
-    // An outbox target that uses no declared destination is undeclared egress.
+    // An outbox target that uses no declared destination is an undeclared outbound connection.
     expect(() => buildCatalog([defineModule({ id: 'a', capabilities: [command] })])).toThrow(
       'no declared network destination',
     );
@@ -158,7 +158,7 @@ describe('portable application catalog', () => {
 const qualityApi: NetworkDestination = {
   id: 'quality-api',
   purpose: 'Forward results',
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'local',
   protocol: 'https',
   targets: ['quality-system'],
@@ -179,7 +179,7 @@ describe('declared requirements', () => {
           {
             id: 'provider-api',
             purpose: 'Inference',
-            direction: 'egress',
+            direction: 'outbound',
             scope: 'internet',
             protocol: 'https',
             host: 'api.example.com',

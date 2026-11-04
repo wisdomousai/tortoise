@@ -47,7 +47,7 @@ Codex and Claude executables come from the bundled runtime manifest, checked by 
 The `local` harness talks to an OpenAI-compatible server on the same machine, such as Ollama, llama.cpp `llama-server` or vLLM.
 
 1. Start the server and note the model ID it lists at `/v1/models`.
-2. Bind the `local-inference` destination in the deployment policy, e.g. `http://127.0.0.1:11434` for Ollama. The egress guard refuses any address off this host.
+2. Bind the `local-inference` destination in the deployment policy, e.g. `http://127.0.0.1:11434` for Ollama. The network guard refuses any address off this host.
 3. Configure the model ID, and optionally the weights digest. The harness is available only while the server lists that model.
 
 Each run record keeps the model ID and digest. For a server you run yourself, the run record marks the digest unverified. The [model server plugin](../plugins/model-server/README.md) starts `llama-server` or vLLM for you, hashes the weights before each start, and records the digest as verified.

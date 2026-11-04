@@ -68,7 +68,7 @@ function fixture() {
             {
               id: 'legacy-hmi-api',
               purpose: 'Test system of record',
-              direction: 'egress',
+              direction: 'outbound',
               scope: 'local',
               protocol: 'https',
               targets: ['legacy-hmi'],

@@ -18,7 +18,7 @@ export const hostComponent = defineHostComponent({
       {
         id: 'host-http',
         purpose: 'Serve the frontend, API, events and attach connections.',
-        direction: 'ingress',
+        direction: 'inbound',
         scope: 'loopback',
         protocol: 'http',
         dataClasses: [],

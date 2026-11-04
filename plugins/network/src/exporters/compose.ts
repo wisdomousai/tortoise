@@ -22,16 +22,16 @@ export function compose(rules: RuleSet, options: ExportOptions): string {
             `${d.name}-audit:${d.auditLog}`,
             `./deployment-policy.json:${d.deploymentPolicy}:ro`,
           ],
-          networks: [`${d.name}-egress`],
+          networks: [`${d.name}-network`],
         },
       },
       networks: {
-        [`${d.name}-egress`]: { driver: 'bridge' },
+        [`${d.name}-network`]: { driver: 'bridge' },
       },
       volumes: { [`${d.name}-workspace`]: {}, [`${d.name}-audit`]: {} },
     },
     [
-      'NOT ENFORCED: Compose cannot filter egress by destination. Apply the nftables export on the',
+      'NOT ENFORCED: Compose cannot filter outbound connections by destination. Apply the nftables export on the',
       'host (or k8s-networkpolicy in a cluster); this file only hardens the container.',
     ],
   );

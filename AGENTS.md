@@ -1,6 +1,6 @@
 # Working on this starter
 
-Tortoise is a framework for small applications that do a dedicated job at the edge, on the computer or phone where the work is done. Such an application pays off only while it is simple to build, needs little maintenance and stays limited to its job; the framework handles storage, access policy, delivery to central systems and the hosts. Judge a change by whether it keeps the next application that cheap.
+Tortoise is a framework for small applications that run at the edge and serve a process change so specialized that no standard application fits it. Building that change into a standard application costs as much as custom software without its benefits, so Tortoise exists to make the custom application cheap to build and keep running. Judge a change by whether it keeps the next application that cheap.
 
 Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
 
@@ -42,7 +42,7 @@ Advice. Depart from it when the code is better for it, and say why in the commit
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts. Use an outbox effect when another system decides.
-- An application does one dedicated job. Keep its code to that job.
+- An application serves one process change. Keep its code to that change.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
 - Do not add an owner, a term or a renewal record.
 - Document what a workspace is for, what it trusts and how to test it. Comment the non-obvious: transaction and authorization order, trust boundaries, failure behavior.
@@ -71,7 +71,7 @@ Skills are task guides for Claude Code and Codex, in `<workspace>/skills/<name>/
 | Declare a durable workflow: steps, waits, compensations, the runner | [declare-a-workflow](plugins/workflows/skills/declare-a-workflow/SKILL.md) |
 | Connect two agent-native applications: peer API, peer target, enrollment, subject mapping | [connect-two-applications](plugins/peer-link/skills/connect-two-applications/SKILL.md) |
 | Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
-| Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
+| Run agent tools in a sandbox: bubblewrap, grants, network guard | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |
 | Deploy an application: policy, signed bundles, install | [deploy-an-application](plugins/deployment/skills/deploy-an-application/SKILL.md) |
 | Decommission an application: shelf life, drain, purge, fleet removal | [decommission-an-application](plugins/deployment/skills/decommission-an-application/SKILL.md) |

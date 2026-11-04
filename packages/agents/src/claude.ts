@@ -14,7 +14,7 @@ type ClaudeOptions = {
   model?: string;
   maxTurns?: number;
   query?: QueryFactory;
-  /** Host-supplied variables, e.g. the egress proxy for this declared process. */
+  /** Host-supplied variables, e.g. the network proxy for this declared process. */
   environment?: Record<string, string>;
 };
 

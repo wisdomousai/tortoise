@@ -2,7 +2,7 @@
   "name": "@tortoise/network",
   "version": "0.1.0",
   "type": "module",
-  "description": "Network host plugin: the egress guard and child proxy over the deployment policy's bindings, mutual TLS ingress, and default-deny OS and orchestrator rule exports.",
+  "description": "Network host plugin: the network guard and child proxy over the deployment policy's bindings, mutual TLS ingress, and default-deny OS and orchestrator rule exports.",
   "license": "MIT",
   "repository": {
     "type": "git",

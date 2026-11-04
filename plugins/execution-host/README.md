@@ -1,13 +1,13 @@
 # @tortoise/execution-host
 
-Runs agent tools (shell commands, provider CLIs, scripts that call the app CLI) in Linux bubblewrap sandboxes. Compose `createExecutionHostPlugin`. A sandbox sees only the paths its task names and reaches the network only through the egress proxy. The host trusts the caller of `run`, which decides the task and its context, and trusts nothing the sandbox does.
+Runs agent tools (shell commands, provider CLIs, scripts that call the app CLI) in Linux bubblewrap sandboxes. Compose `createExecutionHostPlugin`. A sandbox sees only the paths its task names and reaches the network only through the network proxy. The host trusts the caller of `run`, which decides the task and its context, and trusts nothing the sandbox does.
 
 Primitives:
 
 - [Execution host](../../docs/primitives.md#execution-host)
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration)
 - [Process port](../../docs/primitives.md#process-port)
-- [Egress guard](../../docs/primitives.md#egress-guard)
+- [Network guard](../../docs/primitives.md#network-guard)
 - [Execution context](../../docs/primitives.md#execution-context)
 - [Host plugin](../../docs/primitives.md#host-plugin)
 - [Audit log](../../docs/primitives.md#audit-log)

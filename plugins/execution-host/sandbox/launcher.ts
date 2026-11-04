@@ -2,7 +2,7 @@
  * The first process inside every sandbox. Bubblewrap starts it with the run's launch file; it
  *
  * 1. opens a TCP listener on 127.0.0.1 for each relay, forwarding every connection to the unix
- *    socket the host relays to its own API or to the egress proxy (the sandbox has no other
+ *    socket the host relays to its own API or to the network proxy (the sandbox has no other
  *    network);
  * 2. lowers its resource limits, which the task inherits;
  * 3. starts the task with the sandbox's stdio and exits with its status.

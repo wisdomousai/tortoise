@@ -19,7 +19,7 @@ const localDestination = (
 ): NetworkDestination => ({
   id,
   purpose: 'test',
-  direction: 'egress',
+  direction: 'outbound',
   scope: 'local',
   protocol: 'https',
   dataClasses: ['record'],
@@ -194,7 +194,7 @@ describe('deployment policy', () => {
         audit: { mode: 'best-effort' },
         destinations: { 'mes-api': mes, 'station-screen': { url: 'http://hmi.plant:80' } },
       }),
-    ).toEqual(['PROTOCOL_MISMATCH', 'PLAINTEXT_EGRESS', 'AUDIT_NOT_REQUIRED']);
+    ).toEqual(['PROTOCOL_MISMATCH', 'PLAINTEXT_OUTBOUND', 'AUDIT_NOT_REQUIRED']);
     const zeroTrust = codes({
       profile: 'zero-trust',
       mode: 'connected',
@@ -204,7 +204,7 @@ describe('deployment policy', () => {
     });
     expect(zeroTrust).toEqual([
       'UNPINNED_TLS',
-      'PLAINTEXT_EGRESS',
+      'PLAINTEXT_OUTBOUND',
       'UNPINNED_TLS',
       'AUDIT_NOT_FORWARDED',
       'IDENTITY_FLOOR',
@@ -252,7 +252,7 @@ describe('deployment policy', () => {
       grants: { maxTtlSeconds: 600 },
       ingress: { listen: 'tls', host: 'hub.plant', port: 8443, cert: 'hub.pem', key: 'hub.key' },
     } as DeploymentPolicyInput;
-    // The local owner still runs a hub; its audit and egress floors are the sandbox's.
+    // The local owner still runs a hub; its audit and network floors are the sandbox's.
     expect(codes(hub)).toEqual([]);
     expect(codes({ ...hub, audit: { mode: 'best-effort' } })).toEqual(['AUDIT_NOT_REQUIRED']);
     expect(codes({ ...hub, profile: 'desktop-local' })).toEqual(['INGRESS_FLOOR']);
@@ -267,7 +267,7 @@ describe('deployment policy', () => {
     expect(
       codes({ ...hub, ingress: { ...hub.ingress, clientCa: 'ca.pem' } } as DeploymentPolicyInput),
     ).toEqual(['INGRESS_FLOOR']);
-    const directory = await mkdtemp(join(tmpdir(), 'egress-tls-'));
+    const directory = await mkdtemp(join(tmpdir(), 'network-tls-'));
     try {
       await writeFile(join(directory, 'hub.pem'), certificate);
       await writeFile(join(directory, 'hub.key'), 'key');
@@ -297,7 +297,7 @@ describe('deployment policy', () => {
       policy({ ingress: { listen: 'unix' } } as unknown as DeploymentPolicyInput),
     ).toThrow();
     // Listener files are resolved next to the policy and must be readable; contents stay on disk.
-    const directory = await mkdtemp(join(tmpdir(), 'egress-ingress-'));
+    const directory = await mkdtemp(join(tmpdir(), 'network-ingress-'));
     try {
       await writeFile(join(directory, 'server.pem'), certificate);
       const path = join(directory, 'policy.json');
@@ -362,7 +362,7 @@ describe('certificates', () => {
     expect(valid.findings).toEqual([]);
     expect(valid.certificates).toHaveLength(1);
     const [leaf] = valid.certificates;
-    expect(leaf).toMatchObject({ source: 'ingress-cert', subject: 'CN=egress-test' });
+    expect(leaf).toMatchObject({ source: 'ingress-cert', subject: 'CN=network-test' });
     expect(JSON.stringify(valid.certificates)).not.toContain('never read');
 
     expect(findings(await loadAt(files, hub, leaf!.notAfter - 10 * day))).toEqual([

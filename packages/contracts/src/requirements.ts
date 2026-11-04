@@ -2,7 +2,7 @@ import type { OsDeclarations } from './os';
 /**
  * Declared environment requirements: what a module or host component needs from the network,
  * shared folders, attached devices and child processes. Declarations are browser-safe data. They grant nothing by
- * themselves. A deployment binds network destinations in a deployment policy, the egress guard enforces
+ * themselves. A deployment binds network destinations in a deployment policy, the network guard enforces
  * only bound declarations, and firewall/hardening exports are generated from the same data, so the
  * reviewed manifest, the in-process guard and the OS rules cannot drift apart.
  *
@@ -25,7 +25,7 @@ export interface NetworkDestination {
   /** Stable identifier the deployment policy binds, e.g. `mes-api`. */
   readonly id: string;
   readonly purpose: string;
-  readonly direction: 'egress' | 'ingress';
+  readonly direction: 'outbound' | 'inbound';
   readonly scope: NetworkScope;
   readonly protocol: NetworkProtocol;
   /** Fixed port, when the protocol does not imply one or the vendor mandates it. */
@@ -47,7 +47,7 @@ export interface NetworkDestination {
   /** Classes of data sent to this destination, for the data-flow inventory. */
   readonly dataClasses: readonly string[];
   readonly availability: Availability;
-  /** Required for egress destinations. */
+  /** Required for outbound destinations. */
   readonly offline?: OfflineBehavior;
 }
 
@@ -65,7 +65,7 @@ export interface ProcessRequirement {
   readonly executable: string;
   readonly purpose: string;
   readonly availability: Availability;
-  /** Network destinations the child process may reach. Anything else is undeclared egress. */
+  /** Network destinations the child process may reach. Anything else is an undeclared outbound connection. */
   readonly network?: readonly string[];
   /**
    * Environment variables the deployment supplies from its secret store (a vendor licence, a
@@ -173,20 +173,20 @@ export function collectRequirements(
         if (destination.scope === 'loopback' && !loopbackHosts.has(destination.host))
           throw new Error(`Loopback ${where} names a non-loopback host`);
       }
-      if (destination.direction === 'egress') {
+      if (destination.direction === 'outbound') {
         if (!destination.offline) throw new Error(`Missing offline behavior for ${where}`);
         // Anything leaving the machine must say what it carries, for the data-flow inventory.
         if (destination.scope !== 'loopback' && destination.dataClasses.length === 0)
           throw new Error(`Missing data classes for ${where}`);
       }
       if (destination.targets?.length) {
-        if (destination.direction !== 'egress')
-          throw new Error(`Outbox targets require an egress destination: ${where}`);
+        if (destination.direction !== 'outbound')
+          throw new Error(`Outbox targets require an outbound destination: ${where}`);
         if (destination.offline !== 'queue')
           throw new Error(`Outbox destination must queue while offline: ${where}`);
       }
-      if (destination.reads?.length && destination.direction !== 'egress')
-        throw new Error(`Remote reads require an egress destination: ${where}`);
+      if (destination.reads?.length && destination.direction !== 'outbound')
+        throw new Error(`Remote reads require an outbound destination: ${where}`);
       network.push({ ...destination, owner });
     }
     for (const folder of requirements?.folders ?? []) {

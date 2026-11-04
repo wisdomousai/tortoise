@@ -142,7 +142,7 @@ function checkTask(task: SandboxTask, options: ExecutionHostOptions) {
 }
 
 /** The proxy variables and port for a sandbox that declares destinations. */
-function egressOf(host: HostSide, sandbox: string) {
+function networkOf(host: HostSide, sandbox: string) {
   if (!host.sandboxes.get(sandbox)?.network) return undefined;
   // Loopback inside the sandbox reaches only the relays, so the API is never sent to the proxy.
   const env: Record<string, string> = {
@@ -158,7 +158,7 @@ async function record(ports: HostPorts, entry: AuditRecord, required: boolean) {
   try {
     await ports.eventLog?.append([entry]);
   } catch (error) {
-    if (required && ports.eventLog?.mode.egress === 'required') throw error;
+    if (required && ports.eventLog?.mode.network === 'required') throw error;
   }
 }
 
@@ -181,7 +181,7 @@ function collect(stream: NodeJS.ReadableStream, limit: number, over: () => void)
  *
  * 1. Check the task: a declared tool, absolute paths, no reserved variables.
  * 2. Issue the run's token (the broker) and start the relays to the host API and, for a sandbox
- *    that declares destinations, the egress proxy.
+ *    that declares destinations, the network proxy.
  * 3. Record `sandbox.started`; a required audit log that cannot record it refuses the run.
  * 4. Start the declared sandbox process with the layout, the seccomp filter, the launcher, its
  *    launch file and the connection file on inherited descriptors.
@@ -219,9 +219,9 @@ export function createExecutionHost(
     try {
       const sockets = join(directory, 'sock');
       await mkdir(sockets, { mode: 0o700 });
-      const egress = egressOf(host, task.sandbox);
+      const network = networkOf(host, task.sandbox);
       relays.push(await startRelay(join(sockets, 'api.sock'), port));
-      if (egress) relays.push(await startRelay(join(sockets, 'egress.sock'), egress.port));
+      if (network) relays.push(await startRelay(join(sockets, 'network.sock'), network.port));
       const tools = Object.values(options.tools);
       const system = new Map(
         await Promise.all(systemPaths.map(async (path) => [path, await hostEntry(path)] as const)),
@@ -233,7 +233,7 @@ export function createExecutionHost(
         TMPDIR: '/tmp',
         LANG: 'C.UTF-8',
         TORTOISE_CONNECTION: sandboxPaths.connection,
-        ...egress?.env,
+        ...network?.env,
       };
       const args = bwrapArguments({
         runtime,
@@ -247,7 +247,9 @@ export function createExecutionHost(
       const launch = {
         relays: [
           { port, socket: `${sandboxPaths.sockets}/api.sock` },
-          ...(egress ? [{ port: egress.port, socket: `${sandboxPaths.sockets}/egress.sock` }] : []),
+          ...(network
+            ? [{ port: network.port, socket: `${sandboxPaths.sockets}/network.sock` }]
+            : []),
         ],
         limits: kernelLimits(limits),
         command: [tool, ...task.command.slice(1)],
@@ -260,7 +262,7 @@ export function createExecutionHost(
           kind: 'sandbox.started',
           outcome: 'allowed',
           actor,
-          data: { sandbox: task.sandbox, tool: task.command[0], network: !!egress },
+          data: { sandbox: task.sandbox, tool: task.command[0], network: !!network },
         },
         true,
       );

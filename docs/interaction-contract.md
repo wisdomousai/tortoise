@@ -8,7 +8,7 @@ Schemas are Zod 4; the catalog exports them as JSON Schema 2020-12. Wire values 
 
 ## Catalog
 
-Building the catalog loads no handlers, storage or providers — the result is deterministic, serializable JSON. It holds each capability's schemas, permission, dependencies, MCP name and UI binding, plus the workflows. Handlers and policy are separate server contributions.
+Building the catalog loads no handlers, storage or providers — the result is deterministic, serializable JSON. It contains each capability's schemas, permission, dependencies, MCP name and UI binding, plus the workflows. Handlers and policy are separate server contributions.
 
 The build rejects:
 
@@ -18,7 +18,7 @@ The build rejects:
 - Unknown workflow references
 - Colliding MCP names
 
-Display metadata names the operation and describes the records its output holds. A list's metadata describes the items of its `items` array. Each shown field has a name, an optional label and an optional kind: `text`, `date`, `date-time`, `status` with the tones of its values, `reference` with the resource kind it names, or `file`. The build rejects a title field, key or shown field that the output record does not have, a repeated field, a label longer than one line, an unknown kind or tone, tones on a field that is not a status, and a reference without a resource kind. A generated collection read takes its display metadata from the collection's label, type, title field and fields.
+Display metadata names the operation and describes the records its output contains. A list's metadata describes the items of its `items` array. Each shown field has a name, an optional label and an optional kind: `text`, `date`, `date-time`, `status` with the tones of its values, `reference` with the resource kind it names, or `file`. The build rejects a title field, key or shown field that the output record does not have, a repeated field, a label longer than one line, an unknown kind or tone, tones on a field that is not a status, and a reference without a resource kind. A generated collection read takes its display metadata from the collection's label, type, title field and fields.
 
 Who reads the metadata:
 
@@ -67,7 +67,7 @@ The UI session store accepts an intent from a run only for the session it captur
 
 A review's operations must be in the catalog. A prepared form must belong to a command with a UI binding; its values are untrusted, and the command validates them when the person submits. A failed check refuses the intent, and the run sees the error.
 
-Intents change no records and leave no journal entry. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired. An intent a run sent carries the run's ID, so a review can name the run that asked for it. By default the screen holds a prepared form for the form that binds the command, as it holds an OS request's prefill, and `CapabilityForm` shows it with a notice. A screen whose form has a route of its own passes a `prepare` handler. The handler gets the intent's ID, holds the prefill with `holdRunPrefill` and opens that route.
+Intents change no records and leave no journal entry. The screen polls for them through `useUiSession`, and each ends as accepted, rejected or expired. An intent a run sent includes the run's ID, so a review can name the run that asked for it. By default the screen stores a prepared form for the form that binds the command, as it stores an OS request's prefill, and `CapabilityForm` shows it with a notice. A screen whose form has a route of its own passes a `prepare` handler. The handler gets the intent's ID, stores the prefill with `holdRunPrefill` and opens that route.
 
 ## Results
 

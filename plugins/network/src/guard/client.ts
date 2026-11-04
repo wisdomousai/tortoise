@@ -1,6 +1,6 @@
 import type { DestinationClient } from '../guard';
 import type { ResolvedBinding } from '@tortoise/deployment/policy';
-import { EgressDenied } from './denial';
+import { NetworkDenied } from './denial';
 import {
   audit,
   auditAllowed,
@@ -21,7 +21,7 @@ function capped(response: Response, destination: string, maxResponseBytes: numbe
     transform(chunk, controller) {
       total += chunk.byteLength;
       if (total > maxResponseBytes)
-        controller.error(new EgressDenied('RESPONSE_TOO_LARGE', destination));
+        controller.error(new NetworkDenied('RESPONSE_TOO_LARGE', destination));
       else controller.enqueue(chunk);
     },
   });
@@ -70,7 +70,7 @@ async function guardedFetch(
       });
     await checkAddresses(kernel, binding, url.hostname);
     const started = kernel.now();
-    // Logged before the connection opens: with a required log, no unrecorded egress.
+    // Logged before the connection opens: with a required log, no unrecorded connection.
     await auditAllowed(kernel, destinationId, { method, path: url.pathname, hop });
     const response = await kernel.fetcher(url, {
       ...init,
@@ -81,7 +81,7 @@ async function guardedFetch(
       ...(tls ? { tls } : {}),
     } as RequestInit);
     await audit(kernel, 'best-effort', [
-      event('egress.completed', 'completed', destinationId, {
+      event('network.completed', 'completed', destinationId, {
         status: response.status,
         durationMs: kernel.now() - started,
         ...(response.headers.get('content-length')

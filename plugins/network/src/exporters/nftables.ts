@@ -2,7 +2,7 @@ import type { ExportOptions } from '../exporters';
 import type { RuleSet } from '../rules';
 import { defaults, familyOf, header, identifier } from './common';
 
-/** An nftables table that drops the service user's egress except loopback, DNS and the rules. */
+/** An nftables table that drops the service user's outbound connections except loopback, DNS and the rules. */
 export function nftables(rules: RuleSet, options: ExportOptions): string {
   const d = defaults(rules, options);
   const match = (address: string) => (familyOf(address) === 4 ? 'ip daddr' : 'ip6 daddr');
@@ -28,7 +28,7 @@ export function nftables(rules: RuleSet, options: ExportOptions): string {
       );
   }
   lines.push(
-    `    counter log prefix "${d.name}-egress-deny " drop`,
+    `    counter log prefix "${d.name}-network-deny " drop`,
     '  }',
     '}',
     ...(rules.ingress.listen === 'loopback'

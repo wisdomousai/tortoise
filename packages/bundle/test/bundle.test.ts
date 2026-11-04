@@ -21,7 +21,7 @@ let key: SigningKey;
 
 const requirements: BundleRequirements = {
   network: [
-    { id: 'erp', direction: 'egress', scope: 'local', host: 'erp.local', protocol: 'https' },
+    { id: 'erp', direction: 'outbound', scope: 'local', host: 'erp.local', protocol: 'https' },
   ],
   devices: [],
   processes: [{ id: 'helper', executable: 'helper' }],

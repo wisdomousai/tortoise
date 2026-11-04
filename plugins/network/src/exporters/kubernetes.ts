@@ -37,7 +37,7 @@ export function networkPolicy(rules: RuleSet, options: ExportOptions): string {
   return document(rules, 'k8s-networkpolicy', {
     apiVersion: 'networking.k8s.io/v1',
     kind: 'NetworkPolicy',
-    metadata: { name: `${d.name}-egress`, labels: { 'app.kubernetes.io/name': d.name } },
+    metadata: { name: `${d.name}-network`, labels: { 'app.kubernetes.io/name': d.name } },
     spec: {
       podSelector: { matchLabels: { 'app.kubernetes.io/name': d.name } },
       policyTypes: ['Ingress', 'Egress'],

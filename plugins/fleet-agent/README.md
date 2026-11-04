@@ -4,7 +4,7 @@ The instance side of a fleet. Compose `createFleetAgentPlugin` after the deploym
 
 ## Trust boundary
 
-- The plugin writes nothing to the workspace. Health reports hold effect counts per target and the build's best-before date, no payloads.
+- The plugin writes nothing to the workspace. Health reports contain effect counts per target and the build's best-before date, no payloads.
 - It forwards audit events unchanged, so the fleet checks the hash chain itself.
 - It verifies every release file against the signed manifest before it moves the release into `fleet-releases/<release id>`. Installing stays a manual `app install`.
 - The fleet credential lives in the OS secret store or `<workspace>/fleet-agent/credential` (mode 0600) and never rotates.

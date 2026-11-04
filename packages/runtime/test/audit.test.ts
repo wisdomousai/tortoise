@@ -56,7 +56,7 @@ const module = defineModule({
       {
         id: 'sor-api',
         purpose: 'Test system of record',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'local',
         protocol: 'https',
         targets: ['sor'],
@@ -73,7 +73,7 @@ const input = { id: 'r1', value: 10.5, note: 'operator remark' };
 const mode = (queries: 'required' | 'best-effort' = 'required'): AuditMode => ({
   commands: 'required',
   queries,
-  egress: 'required',
+  network: 'required',
 });
 
 /** A memory log that refuses records of the given kinds, like a full disk at a bad moment. */

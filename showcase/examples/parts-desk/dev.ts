@@ -6,7 +6,7 @@
  * First it chooses the model server. It writes a deployment policy into a temporary directory,
  * because the policy names absolute paths, and sets `TORTOISE_DEPLOYMENT_POLICY` to it unless that
  * is already set. The policy binds `local-inference` to http://127.0.0.1:4389 with a timeout of
- * 300 seconds, since a model that reasons before it responds outlasts the egress guard's default
+ * 300 seconds, since a model that reasons before it responds outlasts the network guard's default
  * of 30 seconds, and binds the `llm` process, pinned by its digest, to listen on that port. By
  * default the process is the llama-server stand-in, which plays the model with `responder.ts` on
  * the stand-in weights (`model.ts`). With `LOCAL_MODEL_GGUF` set, it is llama-server

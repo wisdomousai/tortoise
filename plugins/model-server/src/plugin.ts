@@ -66,7 +66,7 @@ async function record(ports: HostPorts, entry: AuditRecord, required: boolean) {
   try {
     await ports.eventLog?.append([entry]);
   } catch (error) {
-    if (required && ports.eventLog?.mode.egress === 'required') throw error;
+    if (required && ports.eventLog?.mode.network === 'required') throw error;
   }
 }
 

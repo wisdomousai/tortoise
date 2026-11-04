@@ -2,7 +2,7 @@ import type { Catalog, CatalogOsAction, CatalogOsHandler } from '@tortoise/contr
 
 /**
  * What other applications on the device can hand to this one (handlers: local ingress from an
- * unauthenticated sender) and what this one hands to them (actions: local egress with the data
+ * unauthenticated sender) and what this one hands to them (actions: local outbound with the data
  * classes it carries). Platform registrations are generated from the same declarations.
  */
 export interface OsManifest {

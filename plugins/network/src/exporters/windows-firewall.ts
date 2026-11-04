@@ -60,7 +60,7 @@ export function windowsFirewall(rules: RuleSet, options: ExportOptions): string 
     '# Run in an elevated PowerShell. Every rule is scoped to the service executable.',
     "$ErrorActionPreference = 'Stop'",
     `$Program = '${executable.replace(/'/g, "''")}'`,
-    `$Group = '${rules.application} egress (generated)'`,
+    `$Group = '${rules.application} network (generated)'`,
     'Get-NetFirewallRule -Group $Group -ErrorAction SilentlyContinue | Remove-NetFirewallRule',
     '# Block every destination that no rule allows (loopback is never filtered by Windows Firewall).',
   ];

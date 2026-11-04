@@ -20,7 +20,7 @@ export function mqttBroker(options: {
         {
           id: options.destination,
           purpose: options.description,
-          direction: 'egress',
+          direction: 'outbound',
           scope: 'local',
           protocol: 'tcp',
           dataClasses: options.dataClasses,

@@ -155,7 +155,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
       '{',
       `  id: '${t.kebab}-api',`,
       `  purpose: 'Send ${many.words} to ${t.words} and pull the ${many.words} it holds.',`,
-      "  direction: 'egress',",
+      "  direction: 'outbound',",
       "  scope: 'local',",
       "  protocol: 'https',",
       `  targets: ['${t.kebab}'],`,

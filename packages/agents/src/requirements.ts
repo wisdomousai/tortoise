@@ -40,7 +40,7 @@ export const openAiComponent = defineHostComponent({
       {
         id: 'openai-auth',
         purpose: 'ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         host: 'auth.openai.com',
@@ -51,7 +51,7 @@ export const openAiComponent = defineHostComponent({
       {
         id: 'openai-api',
         purpose: 'Model catalog and inference for Codex and AI SDK runs.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         host: 'api.openai.com',
@@ -92,7 +92,7 @@ export const anthropicComponent = defineHostComponent({
       {
         id: 'anthropic-api',
         purpose: 'Inference for Claude runs.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'internet',
         protocol: 'https',
         host: 'api.anthropic.com',
@@ -124,7 +124,7 @@ export const localInferenceComponent = defineHostComponent({
       {
         id: LOCAL_INFERENCE_DESTINATION,
         purpose: 'Inference for agents that require a local model. Prompts stay on this host.',
-        direction: 'egress',
+        direction: 'outbound',
         scope: 'loopback',
         protocol: 'http',
         dataClasses: ['prompt', 'application-context', 'tool-results'],

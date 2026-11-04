@@ -59,7 +59,7 @@ export function defaultPorts(ingress: IngressPort = noIngress): HostPorts {
 /**
  * Each port from the one plugin that provides it, else the default. Two providers are a
  * composition error, not something to resolve by order: silently picking one would let a later
- * plugin replace the audit log or the egress guard.
+ * plugin replace the audit log or the network guard.
  */
 export function resolvePorts(
   instances: readonly { id: string; instance: PluginInstance }[],

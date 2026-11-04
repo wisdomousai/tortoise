@@ -1,6 +1,6 @@
 # Publish a lab request to a LIMS
 
-The company's LIMS, its laboratory information management system, keeps the authoritative record of every test request. This pattern adds publication to the [base lab desk](../base/README.md): `publication.publish` commits the pending publication and an outbox effect together, and the HTTP connector then sends the effect ID as the LIMS idempotency key. A `201` accepts, a `422` rejects with a business reason such as `NO_METHOD`, and a `202` leaves the publication pending while the dispatcher looks up the decision; a pending request the LIMS later cannot find goes on hold for a technician to reconcile. Without a bound destination, publications stay queued.
+The company's LIMS, its laboratory information management system, keeps the authoritative record of every test request. This pattern adds publication to the [base lab desk](../base/README.md): `publication.publish` commits the pending publication and an outbox effect together, and the HTTP connector then sends the effect ID as the LIMS idempotency key. A `201` accepts, a `422` rejects with a business reason such as `NO_METHOD`, and a `202` leaves the publication pending while the dispatcher looks up the decision; a pending request the LIMS later cannot find is put in `held` for a technician to reconcile. Without a bound destination, publications stay queued.
 
 ```sh
 cd showcase/patterns/system-of-record

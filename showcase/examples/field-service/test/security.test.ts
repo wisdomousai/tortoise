@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { EgressDenied } from '@tortoise/network/guard';
+import { NetworkDenied } from '@tortoise/network/guard';
 import { openJsonlEventLog, readEvents, segmentName, verifyEventLog } from '@tortoise/event-log';
 import { startHost } from '@tortoise/host/host';
 import { auditServiceOf } from '@tortoise/audit';
@@ -47,7 +47,7 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
     const loaded = events.find((event) => event.kind === 'config.loaded')!;
     expect(loaded.data).toMatchObject({ profile: 'desktop-local', networkMode: 'isolated' });
     expect(String(loaded.data!.catalogDigest)).toMatch(/^[0-9a-f]{64}$/);
-    // Isolation is explicit: every egress destination is listed with what it disables.
+    // Isolation is explicit: every outbound destination is listed with what it disables.
     const consequences = events.find((event) => event.kind === 'policy.loaded')!.data!
       .consequences as { destination: string }[];
     expect(consequences.map((item) => item.destination)).toContain('openai-api');
@@ -121,7 +121,7 @@ test('startup resolves a command accepted before a crash', async () => {
   });
 });
 
-test('provider egress is denied unless the deployment policy binds it', async () => {
+test('provider network access is denied unless the deployment policy binds it', async () => {
   await withWorkspace(async (directory) => {
     const policy = join(directory, 'deployment-policy.json');
     await writeFile(
@@ -139,7 +139,7 @@ test('provider egress is denied unless the deployment policy binds it', async ()
       settings: { 'deployment-policy': policy },
     });
     try {
-      const providerFetch = networkServiceOf(host.services).egress.routedFetch([
+      const providerFetch = networkServiceOf(host.services).guard.routedFetch([
         'openai-auth',
         'openai-api',
       ]);
@@ -149,7 +149,7 @@ test('provider egress is denied unless the deployment policy binds it', async ()
           (error: unknown) => error,
         );
       const disabled = await denial('https://auth.openai.com/oauth/token');
-      expect(disabled).toBeInstanceOf(EgressDenied);
+      expect(disabled).toBeInstanceOf(NetworkDenied);
       expect(disabled).toMatchObject({ code: 'UNAVAILABLE', reason: 'DISABLED' });
       expect(await denial('https://api.openai.com/v1/models')).toMatchObject({
         reason: 'UNBOUND',
