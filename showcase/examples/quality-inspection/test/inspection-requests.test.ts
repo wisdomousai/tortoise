@@ -63,7 +63,7 @@ describe('inspection requests', () => {
     for (const id of [second.id, other.id, first.id])
       await command('inspection.request.close', { id, outcome: 'accepted' }, as('ina'));
 
-    const page = await query('inspection.request.feed', {}, peer('a'));
+    const page = await query('inspection.request.outcomes', {}, peer('a'));
     expect(page).toEqual({
       items: [
         { id: second.id, delivery: 'L2', outcome: 'accepted', closedAt: 1_000 },
@@ -71,11 +71,11 @@ describe('inspection requests', () => {
       ],
       cursor: '3',
     });
-    expect(await query('inspection.request.feed', { cursor: page.cursor }, peer('a'))).toEqual({
+    expect(await query('inspection.request.outcomes', { cursor: page.cursor }, peer('a'))).toEqual({
       items: [],
       cursor: '3',
     });
-    expect((await query('inspection.request.feed', {}, peer('b'))).items).toEqual([
+    expect((await query('inspection.request.outcomes', {}, peer('b'))).items).toEqual([
       { id: other.id, delivery: 'L1', outcome: 'accepted', closedAt: 1_000 },
     ]);
   });
@@ -102,7 +102,7 @@ describe('inspection requests', () => {
     await expect(command('inspection.request.create', line('L2'), as('ina'))).rejects.toMatchObject(
       { code: 'FORBIDDEN' },
     );
-    await expect(query('inspection.request.feed', {}, as('ina'))).rejects.toMatchObject({
+    await expect(query('inspection.request.outcomes', {}, as('ina'))).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     expect((await query('inspection.request.list', {}, as('vic'))).items).toEqual([]);

@@ -10,13 +10,13 @@ import { client, live } from '@/lib/session';
 type Query = AnyCapability & { kind: 'query' };
 type Command = AnyCapability & { kind: 'command' };
 
-/** An assignment sent to the signed-in person, as the feed lists it. */
-export interface FeedItem {
+/** An assignment sent to the signed-in person, as inbound sync lists it. */
+export interface InboundItem {
   id: string;
   kind: string;
   title: string;
   note?: string;
-  brief: Record<string, unknown>;
+  instructions: Record<string, unknown>;
   sentAt: number;
 }
 /** Records one report on the item; resolves false and shows the refusal when the instance refuses. */
@@ -27,10 +27,10 @@ export interface MyKind {
   /** The kind as `defineAssignmentKind` returns it. */
   kind: { id: string; title: string; subject?: string };
   report: Command;
-  /** How the brief reads; its JSON when omitted. */
-  brief?: (item: FeedItem) => ReactNode;
+  /** How the instructions read; its JSON when omitted. */
+  instructions?: (item: InboundItem) => ReactNode;
   /** The application's own report form; fields generated from the report body when omitted. */
-  form?: (item: FeedItem, submit: SubmitReport) => ReactNode;
+  form?: (item: InboundItem, submit: SubmitReport) => ReactNode;
 }
 
 const refusal = (error: unknown) => {
@@ -121,7 +121,7 @@ function Item({
   kind,
   complete,
 }: {
-  item: FeedItem;
+  item: InboundItem;
   kind: MyKind | undefined;
   complete: Command;
 }) {
@@ -162,11 +162,11 @@ function Item({
           {kind?.kind.title ?? item.kind}, sent {new Date(item.sentAt).toLocaleString()}
         </p>
       </div>
-      {kind?.brief ? (
-        kind.brief(item)
+      {kind?.instructions ? (
+        kind.instructions(item)
       ) : (
         <pre className="overflow-x-auto rounded bg-muted p-2 text-xs">
-          {JSON.stringify(item.brief, null, 2)}
+          {JSON.stringify(item.instructions, null, 2)}
         </pre>
       )}
       {kind &&
@@ -194,24 +194,24 @@ function Item({
 }
 
 /**
- * The assignments sent to the signed-in person, live, each with its brief, a report form and
+ * The assignments sent to the signed-in person, live, each with its instructions, a report form and
  * Done. A report is recorded under an ID the screen chose, so a retry keeps one copy; after Done
  * the assignment leaves the list. The instance matches the assignee itself, so a person sees and
  * reports on their own work only.
  */
 export function MyAssignments({
   title = 'My assignments',
-  feed,
+  inbound,
   complete,
   kinds,
 }: {
   title?: string;
-  feed: Query;
+  inbound: Query;
   complete: Command;
   kinds: readonly MyKind[];
 }) {
-  const query = useQuery(live.liveQueryOptions(feed, {} as never));
-  const items = (query.data as { items: FeedItem[] } | undefined)?.items ?? [];
+  const query = useQuery(live.liveQueryOptions(inbound, {} as never));
+  const items = (query.data as { items: InboundItem[] } | undefined)?.items ?? [];
   return (
     <section aria-label={title} className="space-y-3">
       <h2 className="text-base font-medium">{title}</h2>

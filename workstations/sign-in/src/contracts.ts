@@ -3,7 +3,7 @@ import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts'
 
 /**
  * The plugin's authenticated routes. They take the badge and PIN so that neither ever becomes a
- * command input, which the runtime stores with the command's receipt.
+ * command input, which the runtime stores with the command's command result.
  */
 export const stationPaths = {
   /** `{ badge, pin, terminal }` from a terminal's session: `201 { token, session }`. */

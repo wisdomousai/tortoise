@@ -415,11 +415,11 @@ test('a serving host starts plugins as a delegated caller and stops their observ
       async start(context) {
         const caller = context.delegate({ operations: ['counter.bump'] });
         principal = caller.principalId;
-        const receipt = await context.application.invokeRaw(
+        const commandResult = await context.application.invokeRaw(
           { operation: 'counter.bump', input: {} },
           caller,
         );
-        calls.push(`bumped ${(receipt.result as { count: number }).count}`);
+        calls.push(`bumped ${(commandResult.result as { count: number }).count}`);
         await expect(
           context.application.queryRaw({ operation: 'notes.get', input: {} }, caller),
         ).rejects.toMatchObject({ code: 'FORBIDDEN' });

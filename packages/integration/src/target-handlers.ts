@@ -41,7 +41,7 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
    * effects of this target only. Override when one principal completes several targets.
    */
   readonly mayComplete?: (effect: Effect, context: HandlerContext<State, Services>) => boolean;
-  /** Apply one feed batch after the watermark check; return how many items changed something. */
+  /** Apply one inbound batch after the watermark check; return how many items changed something. */
   readonly applyBatch?: (
     batch: SyncBatch<Item, Extra>,
     context: HandlerContext<State, Services>,
@@ -49,7 +49,7 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
   /** The application's own status fields, scoped to what the caller may see. */
   readonly status: (context: HandlerContext<State, Services>) => Status;
   /**
-   * Source versions, for feeds whose items can come out of order across batches (several
+   * Source versions, for inbound syncs whose items can come out of order across batches (several
    * partitions, a replayed export). Each item names its record and the target's version of it;
    * an item whose version is not newer than the last applied one is dropped before `applyBatch`.
    */
@@ -145,14 +145,15 @@ function syncHandler<State, Services>(
   target: Target,
   options: TargetHandlerOptions<State, Services, unknown, unknown, unknown>,
 ): HandlerContribution<State, Services> {
-  if (!options.applyBatch) throw new Error(`Target ${target.target} has a feed but no applyBatch`);
+  if (!options.applyBatch)
+    throw new Error(`Target ${target.target} has inbound sync but no applyBatch`);
   const apply = options.applyBatch;
   return {
     capability: target.sync as never,
     handle(input, ctx) {
       const batch = input as SyncBatch<unknown, unknown>;
       const cursor = options.cursor(ctx.state);
-      // Watermarks order feed batches; a stale or replayed range cannot reapply old data.
+      // Watermarks order inbound batches; a stale or replayed range cannot reapply old data.
       if (batch.from !== cursor.watermark)
         throw new ApplicationError('CONFLICT', 'Watermark changed', {
           watermark: cursor.watermark ?? null,
@@ -170,7 +171,7 @@ function syncHandler<State, Services>(
 }
 
 /**
- * The handlers of a declared target: complete, the feed's sync when it has one, and status. Only
+ * The handlers of a declared target: complete, the sync handler when the target has an inbound side, and status. Only
  * the domain parts are supplied: how an outcome changes the forwarded record, how a batch item
  * changes local state, and the scoped status counts.
  */

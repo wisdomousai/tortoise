@@ -110,7 +110,7 @@ Approving runs the command under the approver's policy. If the record changed si
 
 ## Assignments to agents
 
-An [assignment](assignments.md) can name an agent definition as assignee. A trigger on the assignment event starts the run. The run reads the brief, records reports and marks the assignment done. Only a person can accept a report.
+An [assignment](assignments.md) can name an agent definition as assignee. A trigger on the assignment event starts the run. The run reads the instructions, records reports and marks the assignment done. Only a person can accept a report.
 
 ## Triggers and their grants
 
@@ -135,7 +135,7 @@ A model entry names base weights, an optional fine-tune and its dataset, each by
 
 ## Evaluation
 
-An agent scenario gives an agent a task and starting state, then checks the receipts, approval requests and refusals, never the text. In CI it runs on the deterministic harness, which `scenarioHarness()` from `@tortoise/testing/agent-scenarios` returns. With `AGENT_SCENARIOS=live` it returns a model on an OpenAI-compatible server on this machine, such as `llama-server`, and the model then reads the task instead of the script:
+An agent scenario gives an agent a task and starting state, then checks the command results, approval requests and refusals, never the text. In CI it runs on the deterministic harness, which `scenarioHarness()` from `@tortoise/testing/agent-scenarios` returns. With `AGENT_SCENARIOS=live` it returns a model on an OpenAI-compatible server on this machine, such as `llama-server`, and the model then reads the task instead of the script:
 
 ```sh
 AGENT_SCENARIOS=live AGENT_SCENARIOS_URL=http://127.0.0.1:8080/ AGENT_SCENARIOS_MODEL=<id> \

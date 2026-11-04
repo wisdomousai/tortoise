@@ -3,7 +3,7 @@ import { defineCapability, jsonSchema } from '@tortoise/contracts';
 
 const descriptions: Readonly<Record<string, string>> = {
   'inspection.lot.get':
-    'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. A command receipt that changed the lot carries its revision as lot:<id> for the expectedRevisions of a decision.',
+    'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. A command result that changed the lot carries its revision as lot:<id> for the expectedRevisions of a decision.',
   'inspection.worklist':
     'Return the next characteristic and sample to measure for an open lot, and how many samples remain. Call it after each recorded result to get the next one.',
   'inspection.code.list':
@@ -13,7 +13,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'inspection.metrics.summary':
     'Summarize capture economics for your plants: datapoints captured by humans and by agents with median and 90th-percentile milliseconds from ready to commit, corrections, out-of-tolerance results, and how long the quality system took to accept forwarded records.',
   'inspection.result.record':
-    'Record one measured value (quantitative) or code (qualitative) for a characteristic sample of an open lot as inspector or supervisor. occurredAt is when the measurement happened (epoch ms, at most 24 h old). Omit sample to use the next open one. To confirm an instrument reading, pass its id as instrumentReading with its value and observedAt as value and occurredAt; only do so when the user confirms that reading belongs to this sample. The receipt proves the local commit; the quality system accepts or rejects it later.',
+    'Record one measured value (quantitative) or code (qualitative) for a characteristic sample of an open lot as inspector or supervisor. occurredAt is when the measurement happened (epoch ms, at most 24 h old). Omit sample to use the next open one. To confirm an instrument reading, pass its id as instrumentReading with its value and observedAt as value and occurredAt; only do so when the user confirms that reading belongs to this sample. The command result proves the local commit; the quality system accepts or rejects it later.',
   'inspection.instrument.readings':
     'List the newest unconfirmed readings from the capture station instrument, at most 5, each with the instrument serial. A reading is not a result: the instrument does not know which part or characteristic it measured. Readings older than 10 minutes are left out.',
   'inspection.instrument.ingest':

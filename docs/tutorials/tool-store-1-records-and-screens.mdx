@@ -78,7 +78,7 @@ The export holds the framework packages, the starter under `apps/` and the appli
 
 **Goal:** replace the generated title and status with the store's real tool fields, and rename `editor` to `attendant`. **Skills:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md), [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
 
-A collection declares its record as a strict Zod schema and display metadata: a label, the title field and the fields a list shows. The generated operations take their input and output from that schema, and the default screens, forms and the command palette read the metadata, so changing the record changes every surface at once. The policy lists each operation with a rule and denies everything it does not list; a read is `open` where the handler scopes the rows itself. The workspace holds trial records only, so deleting it replaces a state migration. [Capability authoring](../capability-authoring.md) covers collections and [Authorization](../authorization.md) the policy.
+A collection declares its record as a strict Zod schema and display metadata: a label, the title field and the fields a list shows. The generated operations take their input and output from that schema, and the default screens, forms and the command palette read the metadata, so changing the record changes every channel at once. The policy lists each operation with a rule and denies everything it does not list; a read is `open` where the handler scopes the rows itself. The workspace holds trial records only, so deleting it replaces a state migration. [Capability authoring](../capability-authoring.md) covers collections and [Authorization](../authorization.md) the policy.
 
 ```text prompt
 Use the add-capability skill and the build-screens skill. In showcase/examples/tool-store,
@@ -140,7 +140,7 @@ The first command prints the tool with `"status":"available"`; the second prints
 
 **Goal:** check a tool out and back in. Only these two commands write loans. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
 
-A command runs inside one workspace transaction: the instance validates the input, checks the policy and any expected revisions, runs the handler, then assigns a new revision to each changed resource and commits. A check-out therefore opens the loan and sets the tool to checked out as one change, and a second check-out of the same tool finds it already checked out. The receipt names the revisions of `tool:<id>` and `loan:<id>`, a caller that passes a stale revision gets `CONFLICT`, and a repeated idempotency key returns the stored receipt instead of running again. [State and reactivity](../state-and-reactivity.md) lists the steps of a command.
+A command runs inside one workspace transaction: the instance validates the input, checks the policy and any expected revisions, runs the handler, then assigns a new revision to each changed resource and commits. A check-out therefore opens the loan and sets the tool to checked out as one change, and a second check-out of the same tool finds it already checked out. The command result names the revisions of `tool:<id>` and `loan:<id>`, a caller that passes a stale revision gets `CONFLICT`, and a repeated idempotency key returns the stored command result instead of running again. [State and reactivity](../state-and-reactivity.md) lists the steps of a command.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -160,7 +160,7 @@ available with CONFLICT, creates the open loan and sets the tool to checked-out 
 transaction. tool.return takes toolId, condition and an optional note, closes the tool's open
 loan and sets the tool to available when the condition is ok or in-repair when it is damaged.
 Bind both commands to the tool screen. Write behavioral tests for a viewer refused, a stale
-revision refused, a repeated idempotency key returning the same receipt, and a second check-out
+revision refused, a repeated idempotency key returning the same command result, and a second check-out
 refused. Run the checks the add-capability skill names and report what passed.
 ```
 

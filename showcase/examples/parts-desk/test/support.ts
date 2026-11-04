@@ -48,13 +48,13 @@ export async function utilityIds(app: Application): Promise<Record<string, strin
 }
 
 /**
- * The receipt of a draft quote by the local user for TR-40417, a PTX-40 at Stadtwerke Nordhafen, in a workspace
+ * The command result of a draft quote by the local user for TR-40417, a PTX-40 at Stadtwerke Nordhafen, in a workspace
  * with the trial records: one HV bushing at 14,800.00 and two tank cover gaskets at 690.00, so
  * 1,618,000 cents before a discount.
  */
 export async function draftQuote(app: Application, key = 'draft') {
   const ids = await utilityIds(app);
-  const receipt = await app.invokeRaw(
+  const commandResult = await app.invokeRaw(
     {
       operation: 'quote.create',
       input: {
@@ -69,5 +69,8 @@ export async function draftQuote(app: Application, key = 'draft') {
     },
     localUser,
   );
-  return { ...receipt, result: receipt.result as { id: string; number: string; total: number } };
+  return {
+    ...commandResult,
+    result: commandResult.result as { id: string; number: string; total: number },
+  };
 }

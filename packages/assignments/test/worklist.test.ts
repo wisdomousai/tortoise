@@ -152,7 +152,7 @@ describe('worklist', () => {
         id: 'a1',
         kind: 'field-survey',
         title: 'Hall 2',
-        brief: { nodes: [{ id: 'n1', designation: '=A1' }] },
+        instructions: { nodes: [{ id: 'n1', designation: '=A1' }] },
         sentAt: 1_000,
         open: true,
         done: false,

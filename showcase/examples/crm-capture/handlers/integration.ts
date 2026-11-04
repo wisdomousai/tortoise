@@ -14,7 +14,7 @@ import {
   type CrmServices,
 } from './context';
 
-/** A follow request completes its account; accepted keeps it requested until the feed delivers it. */
+/** A follow request completes its account; accepted keeps it requested until inbound sync delivers it. */
 function completeFollow(ctx: Context, id: string, effectId: string, outcome: EffectOutcome) {
   const account = accountRecords(ctx).get(id);
   if (!account || account.effectId !== effectId)
@@ -25,7 +25,7 @@ function completeFollow(ctx: Context, id: string, effectId: string, outcome: Eff
   }
 }
 
-/** The CRM feed, outbox completion and synchronization status. */
+/** The CRM inbound sync, outbox completion and synchronization status. */
 export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices>[] =>
   targetHandlers<CrmState, CrmServices, z.output<typeof accountSnapshotSchema>>(crmTarget, {
     cursor: (state) => state,
@@ -48,7 +48,7 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
       const accounts = accountRecords(ctx);
       let applied = 0;
       for (const { externalId, ...details } of items) {
-        // The feed only carries accounts this workspace follows; anything else is ignored.
+        // The inbound sync only carries accounts this workspace follows; anything else is ignored.
         const account = accounts.get(externalId);
         if (!account || account.status === 'rejected') continue;
         accounts.update(

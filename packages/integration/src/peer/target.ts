@@ -9,7 +9,7 @@ export interface PeerTargetOptions<Item> {
   readonly target: PeerTarget;
   readonly application: TargetIntegrationOptions<Item>['application'];
   readonly workspaceId: string;
-  /** The target's integration principal, which completes outcomes and applies the feed. */
+  /** The target's integration principal, which completes outcomes and applies inbound sync. */
   readonly principalId: string;
   /** The connection; throws while the peer is not connected, which keeps effects pending. */
   readonly link: () => PeerLink;
@@ -26,7 +26,7 @@ export interface PeerTargetOptions<Item> {
  * Wire a peer target (`definePeerTarget`) to the peer link. A command on the API's service
  * list is delivered as this application's service principal; one on its `onBehalfOf` list is
  * delivered on behalf of the person who enqueued it (`effect.principalId`), so the peer applies
- * that person's policy. The feed is read as the service principal.
+ * that person's policy. The inbound sync is read as the service principal.
  */
 export function connectPeerTarget<Item>(options: PeerTargetOptions<Item>): TargetIntegration<Item> {
   const { target } = options;
@@ -43,7 +43,7 @@ export function connectPeerTarget<Item>(options: PeerTargetOptions<Item>): Targe
           ? options.link().onBehalfOf(effect.principalId, { run: effect.runId !== undefined })
           : options.link().client(),
       readBlob: options.readBlob,
-      ...(target.feedQuery ? { feed: target.feedQuery } : {}),
+      ...(target.inboundQuery ? { inbound: target.inboundQuery } : {}),
       ...(options.reference ? { reference: options.reference } : {}),
       ...(options.drift ? { drift: options.drift } : {}),
       reconnect: {

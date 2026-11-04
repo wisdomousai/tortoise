@@ -31,25 +31,25 @@ const comment = command(
   'inspection.lot.comment',
   z.strictObject({ lot: z.string(), text: z.string() }),
 );
-const feed = query('inspection.request.feed');
+const inbound = query('inspection.request.outcomes');
 const lots = query('inspection.lot.list');
 
 const api = definePeerApi({
   application: 'quality-inspection',
   commands: [requestInspection],
-  queries: [feed],
+  queries: [inbound],
   onBehalfOf: { commands: [comment], queries: [lots] },
 });
 
 describe('peer API', () => {
   test('lists what the service principal and a person may call', () => {
-    expect(api.serviceOperations).toEqual([requestInspection.id, feed.id]);
+    expect(api.serviceOperations).toEqual([requestInspection.id, inbound.id]);
     expect(api.onBehalfOfOperations).toEqual([comment.id, lots.id]);
   });
 
   test('refuses a wrong kind, a command on both lists and blobs on behalf of a person', () => {
-    expect(() => definePeerApi({ application: 'q', commands: [feed as never] })).toThrow(
-      'Peer API of q lists inspection.request.feed as a command',
+    expect(() => definePeerApi({ application: 'q', commands: [inbound as never] })).toThrow(
+      'Peer API of q lists inspection.request.outcomes as a command',
     );
     expect(() =>
       definePeerApi({
@@ -74,7 +74,7 @@ describe('peer target', () => {
     resourceType: 'QualitySync',
     api,
     changes: ['line'],
-    feed: { query: feed, item: z.string(), max: 50, changes: ['line'] },
+    inbound: { query: inbound, item: z.string(), max: 50, changes: ['line'] },
     status: {},
     descriptions: { complete: 'Complete.', sync: 'Sync.', status: 'Status.' },
     destination: {
@@ -101,7 +101,7 @@ describe('peer target', () => {
       id: 'quality-peer',
       requirements: { network: [target.destination] },
     });
-    expect(target.feedQuery).toBe(feed.id);
+    expect(target.inboundQuery).toBe(inbound.id);
     expect(target.sync?.id).toBe('quality.sync');
   });
 
@@ -127,14 +127,14 @@ describe('peer target', () => {
     expect(target.onBehalfOf(requestInspection.id)).toBe(false);
   });
 
-  test('feeds only from a service query of the API', () => {
+  test('pulls inbound items only from a service query of the API', () => {
     expect(() =>
       definePeerTarget({
         target: 'quality',
         resourceType: 'QualitySync',
         api,
         changes: ['line'],
-        feed: { query: lots as never, item: z.string(), max: 50, changes: ['line'] },
+        inbound: { query: lots as never, item: z.string(), max: 50, changes: ['line'] },
         status: {},
         descriptions: { complete: 'Complete.', status: 'Status.' },
         destination: {
@@ -145,6 +145,6 @@ describe('peer target', () => {
           offline: 'queue',
         },
       }),
-    ).toThrow('feeds from inspection.lot.list, not a service query');
+    ).toThrow('pulls inbound items from inspection.lot.list, not a service query');
   });
 });

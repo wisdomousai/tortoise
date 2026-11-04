@@ -68,7 +68,7 @@ test('a commit writes the changed record and its bookkeeping, not the whole work
     expect(storage.lastWrite.rows).toBe(1_000);
     const app = application(storage);
     await putItem(app, 'i500', 'changed');
-    // The record, its revision and the receipt; the journal entry is counted apart.
+    // The record, its revision and the command result; the journal entry is counted apart.
     expect(storage.lastWrite).toEqual({ rows: 3, deletes: 0, journal: 1 });
     await storage.transact('w', async (snapshot) => {
       delete snapshot.state.items.byId.i1;
@@ -129,7 +129,7 @@ test('a stored __proto__ key stays an ordinary record', async () => {
 
 test('journal retention drops old entries, and a cursor behind them gets a reset', async () => {
   const storage = new SQLiteStorage(':memory:', initial, {
-    retention: { journal: 3, receipts: 2 },
+    retention: { journal: 3, commandResults: 2 },
   });
   try {
     const app = application(storage);
@@ -137,14 +137,14 @@ test('journal retention drops old entries, and a cursor behind them gets a reset
     await storage.read('w', async (snapshot) => {
       expect(snapshot.journal.map((entry) => entry.cursor)).toEqual([4, 5, 6]);
       expect(snapshot.journalFloor).toBe(3);
-      expect(Object.keys(snapshot.receipts)).toHaveLength(2);
+      expect(Object.keys(snapshot.commandResults)).toHaveLength(2);
     });
     const behind = await app.events(1, localUser);
     expect(behind).toMatchObject({ events: [], cursor: 6, reset: true });
     const current = await app.events(3, localUser);
     expect(current.reset).toBeUndefined();
     expect(current.events.map((event) => event.cursor)).toEqual([4, 5, 6]);
-    // The oldest receipt is gone, so that retry runs again; a kept one replays.
+    // The oldest command result is gone, so that retry runs again; a kept one replays.
     const replay = await putItem(app, 'i6');
     expect(replay.cursor).toBe(6);
     expect((await putItem(app, 'i1')).cursor).toBe(7);

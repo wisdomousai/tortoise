@@ -1,14 +1,14 @@
 /**
- * The public surface of a workspace: each entrypoint in its `package.json` `exports`, with the
- * names that entrypoint exports, values and types alike. Skills describe how to use that surface,
- * so `check-skills` compares it with the surface they were last reviewed against
- * (`scripts/reviewed-surface.json`). The scan reads TypeScript source as text and follows
+ * The public API of a workspace: each entrypoint in its `package.json` `exports`, with the
+ * names that entrypoint exports, values and types alike. Skills describe how to use that API,
+ * so `check-skills` compares it with the public API they were last reviewed against
+ * (`scripts/reviewed-api.json`). The scan reads TypeScript source as text and follows
  * `export * from` into local files; it never imports or runs workspace code. It is a reviewer's
  * signal, not a type checker, so the stamp and the check only need to agree with each other.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import { rootScripts, surfaceWorkspaces } from './skills';
+import { rootScripts, apiWorkspaces } from './skills';
 
 const sourceExtensions = ['.ts', '.tsx', '.js', '.mjs'];
 
@@ -83,9 +83,9 @@ const leaves = (value: unknown): string[] =>
 
 /**
  * `<entrypoint> <name>` lines for one workspace, sorted. A workspace without TypeScript
- * entrypoints (a driver SDK in another language) has an empty surface.
+ * entrypoints (a driver SDK in another language) has an empty public API.
  */
-export function surfaceOf(root: string, workspace: string): string[] {
+export function apiOf(root: string, workspace: string): string[] {
   const directory = join(root, workspace);
   const manifest = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')) as {
     exports?: unknown;
@@ -107,13 +107,13 @@ export function surfaceOf(root: string, workspace: string): string[] {
   return [...lines].sort();
 }
 
-/** The surface of every tracked workspace, plus the root package scripts. */
-export function currentSurface(root: string): Record<string, string[]> {
-  const surface: Record<string, string[]> = {};
-  for (const workspace of surfaceWorkspaces()) surface[workspace] = surfaceOf(root, workspace);
+/** The public API of every tracked workspace, plus the root package scripts. */
+export function currentApi(root: string): Record<string, string[]> {
+  const api: Record<string, string[]> = {};
+  for (const workspace of apiWorkspaces()) api[workspace] = apiOf(root, workspace);
   const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
     scripts?: Record<string, string>;
   };
-  surface[rootScripts] = Object.keys(manifest.scripts ?? {}).sort();
-  return surface;
+  api[rootScripts] = Object.keys(manifest.scripts ?? {}).sort();
+  return api;
 }

@@ -7,7 +7,7 @@ export const toolCheckOut = defineCapability({
   id: 'tool.check-out',
   kind: 'command',
   description:
-    'Lend an available tool to an employee for a work order. A tool that is not available is refused with CONFLICT. Opens a loan and sets the tool to checked-out in one step; the receipt carries the revisions of tool:<id> and loan:<id>. Pass the revision tool.get returned as expectedRevisions {"tool:<toolId>": revision}. A stale revision is refused with CONFLICT and nothing changes. Attendants only. A viewer is refused with FORBIDDEN.',
+    'Lend an available tool to an employee for a work order. A tool that is not available is refused with CONFLICT. Opens a loan and sets the tool to checked-out in one step; the command result carries the revisions of tool:<id> and loan:<id>. Pass the revision tool.get returned as expectedRevisions {"tool:<toolId>": revision}. A stale revision is refused with CONFLICT and nothing changes. Attendants only. A viewer is refused with FORBIDDEN.',
   input: jsonSchema(
     z.strictObject({
       toolId: recordKeySchema.describe('The key of the tool to lend.'),

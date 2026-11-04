@@ -3,7 +3,7 @@ import { createWorklistSlice, type WorklistSlice } from '@tortoise/assignments/s
 
 /**
  * The field device's workspace: its one person, the principal that talks to the hub, and the
- * worklist. The hub owns the surveys and their structure; the device keeps the copy its feed last
+ * worklist. The hub owns the surveys and their structure; the device keeps the copy its inbound sync last
  * delivered. It keeps every capture it recorded, with whether the hub took it.
  */
 export interface FieldState {
@@ -31,7 +31,7 @@ type Delivery = { sync: 'pending' | 'accepted' | 'rejected' };
 
 /**
  * Version 1 kept assignments, captures and returns in records of its own. Version 2 starts the
- * worklist empty: the next feed brings back the surveys still open for this device, and the
+ * worklist empty: the next inbound sync brings back the surveys still open for this device, and the
  * captures the hub took are at the hub. A workspace with a capture or return still waiting for
  * the hub is refused, so nothing is lost; the previous version delivers it first. The pairing is
  * hub-link's and is kept.

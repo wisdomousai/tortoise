@@ -94,7 +94,7 @@ export const transformerOperations = {
   transformerGet: collectionGet(transformers, {
     id: 'transformer',
     description:
-      'Read one transformer by its ID, as transformer.list or transformer.find returns it. Call it for the rating plate data of a transformer whose ID you have. Returns the record. An unknown ID is NOT_FOUND. A command receipt that changed it includes its revision as transformer:<id>, for expectedRevisions. Any member may call it.',
+      'Read one transformer by its ID, as transformer.list or transformer.find returns it. Call it for the rating plate data of a transformer whose ID you have. Returns the record. An unknown ID is NOT_FOUND. A command result that changed it includes its revision as transformer:<id>, for expectedRevisions. Any member may call it.',
   }),
   transformerCreate: collectionCreate(transformers, {
     id: 'transformer',

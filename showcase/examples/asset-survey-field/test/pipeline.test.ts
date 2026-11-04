@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'bun:test';
 import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { nameplatePhoto } from '@tortoise/asset-survey/connectors/nameplate-photo';
-import { matches, tree, type BriefNode } from '../ui-native/brief';
+import { matches, tree, type InstructionsNode } from '../ui-native/instructions';
 import { cleanUp, openPhone, localUser, startHub, type Rows } from './fixtures';
 
 afterEach(cleanUp);
@@ -14,21 +14,21 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   const field = await openPhone(survey.hub.url, await survey.enrollment('Phone 1'));
   const assignment = await survey.send('Nameplates of =G1', g1.id, field.deviceId);
 
-  // The survey and its structure are received through the hub's feed.
+  // The survey and its structure are received through the hub's inbound sync.
   await field.sync();
   const [held] = (await field.query<Rows>('field.assignment.list')).items;
   expect(held).toMatchObject({
     id: assignment.id,
     kind: 'survey',
     title: 'Nameplates of =G1',
-    brief: { kinds: ['nameplate'] },
+    instructions: { kinds: ['nameplate'] },
     open: true,
     done: false,
     reports: 0,
   });
-  // The phone draws the tree from the brief, and a scanned or typed tag finds its node with
+  // The phone draws the tree from the instructions, and a scanned or typed tag finds its node with
   // spaces and case ignored.
-  const nodes = held!.brief.nodes as BriefNode[];
+  const nodes = held!.instructions.nodes as InstructionsNode[];
   expect(tree(nodes).map((node) => [node.designation, node.depth])).toEqual([
     ['=G1', 0],
     ['=G1-Q1', 1],
@@ -88,7 +88,7 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   await field.deliver();
   expect((await survey.query<Rows>('capture.list', {})).items).toHaveLength(2);
 
-  // The hub's next feed no longer lists the survey, so the phone closes it as well.
+  // The hub's next inbound sync no longer lists the survey, so the phone closes it as well.
   await field.sync();
   expect((await field.query<Rows>('field.assignment.list')).items[0]).toMatchObject({
     open: false,

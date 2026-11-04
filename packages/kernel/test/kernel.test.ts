@@ -134,11 +134,11 @@ test('an instance opens on a platform without Node or Bun and keeps state across
   const calls: string[] = [];
   const definition = application([plugin('field', { platforms: ['android', 'ios'], calls })]);
   const first = await open(definition, fake);
-  const receipt = await first.instance.application.invokeRaw(
+  const commandResult = await first.instance.application.invokeRaw(
     { operation: 'score.increment', input: {}, idempotencyKey: 'bump-1' },
     localUser,
   );
-  expect(receipt.result).toEqual({ count: 1 });
+  expect(commandResult.result).toEqual({ count: 1 });
   // One writer: the workspace cannot be owned twice while open.
   await expect(fake.platform.acquireOwnership('/workspace')).rejects.toThrow('owned');
   await first.instance.close();

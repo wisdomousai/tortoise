@@ -30,7 +30,7 @@ describe('defineAssignments', () => {
         'assignment.close',
         'assignment.list',
         'assignment.get',
-        'assignment.feed',
+        'assignment.inbound',
         'assignment.report.list',
         'assignment.report.get',
         'assignment.report.link',
@@ -91,24 +91,31 @@ describe('defineAssignments', () => {
     ).toMatchObject({ subject: 'n1' });
     const sent = { id: 'a1', title: 'Week 3', sentAt: 1 };
     expect(
-      operations.feed.output.parse({
+      operations.inbound.output.parse({
         items: [
-          { ...sent, kind: 'review', brief: { notes: [{ id: 'n1', title: 'T', body: 'B' }] } },
-          { ...sent, id: 'a2', kind: 'field-survey', brief: { nodes: [] } },
+          {
+            ...sent,
+            kind: 'review',
+            instructions: { notes: [{ id: 'n1', title: 'T', body: 'B' }] },
+          },
+          { ...sent, id: 'a2', kind: 'field-survey', instructions: { nodes: [] } },
         ],
         cursor: 'c',
       }).items,
     ).toHaveLength(2);
     expect(() =>
-      operations.feed.output.parse({ items: [{ ...sent, kind: 'other', brief: {} }], cursor: 'c' }),
+      operations.inbound.output.parse({
+        items: [{ ...sent, kind: 'other', instructions: {} }],
+        cursor: 'c',
+      }),
     ).toThrow();
   });
 
-  test('gives a device and a peer the report commands of their kinds, completion and the feed', () => {
+  test('gives a device and a peer the report commands of their kinds, completion and inbound sync', () => {
     expect(assignments.assignees.device.operations).toEqual([
       'assignment.field-survey.report',
       'assignment.complete',
-      'assignment.feed',
+      'assignment.inbound',
     ]);
     expect(assignments.assignees.peer.operations).toEqual(assignments.assignees.device.operations);
   });
@@ -128,7 +135,7 @@ describe('defineWorklist', () => {
     destination,
   });
 
-  test('declares the assignee’s operations and a target fed by the issuer’s feed', () => {
+  test('declares the assignee’s operations and a target fed by the issuer’s inbound sync', () => {
     const ids = buildCatalog([worklist.module], {
       components: [worklist.target.component],
     }).operations.map((operation) => operation.id);
@@ -142,7 +149,7 @@ describe('defineWorklist', () => {
       'field.hub.sync',
       'field.report.list',
     ]);
-    expect(worklist.target.feedQuery).toBe('assignment.feed');
+    expect(worklist.target.inboundQuery).toBe('assignment.inbound');
     expect(worklist.operations.fieldSurveyReport.integration?.target).toBe('hub');
     expect(worklist.operations.fieldSurveyReport.blobs).toEqual(survey.blobs!.report!);
     expect(worklist.types).toEqual({ assignment: 'field-assignment', report: 'field-report' });

@@ -194,14 +194,12 @@ describe('survey state version 2', () => {
       'extraction-cap-3': 'extraction sent rejected',
     });
 
-    // The phone keeps its open survey, with the brief computed from the structure.
-    const feed = await hub.query('assignment.feed', {}, phone);
-    expect(feed.items.map((item: { id: string }) => item.id)).toEqual(['a1']);
-    expect(feed.items[0].brief.nodes.map((n: { designation: string }) => n.designation)).toEqual([
-      '=G1',
-      '=G1-Q1',
-      '=G1-Q2',
-    ]);
+    // The phone keeps its open survey, with the instructions computed from the structure.
+    const inbound = await hub.query('assignment.inbound', {}, phone);
+    expect(inbound.items.map((item: { id: string }) => item.id)).toEqual(['a1']);
+    expect(
+      inbound.items[0].instructions.nodes.map((n: { designation: string }) => n.designation),
+    ).toEqual(['=G1', '=G1-Q1', '=G1-Q2']);
 
     // Captures read as before: reviewed, discarded, refused by the model, proposed.
     expect(await hub.query('capture.get', { id: 'cap-1' })).toMatchObject({

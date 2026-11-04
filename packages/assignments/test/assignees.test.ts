@@ -46,11 +46,11 @@ const attach = (fixture: Fixture, text: string): Promise<BlobRef> =>
   fixture.application.putBlob(new TextEncoder().encode(text), 'text/plain', planner);
 
 describe('assignment target', () => {
-  test('the checker reads the brief and its attachment, and its reports come back for review', async () => {
+  test('the checker reads the instructions and its attachment, and its reports come back for review', async () => {
     const offers: Row[] = [];
     const { fixture, checker, run, read } = withChecker(async (offer, tools) => {
       offers.push(offer as Row);
-      const [ref] = offer.brief.attachments as BlobRef[];
+      const [ref] = offer.instructions.attachments as BlobRef[];
       const text = new TextDecoder().decode((await tools.readBlob(ref!.digest))!.data);
       return [
         { subject: 'n1', body: { verdict: 'revise', comment: text } },
@@ -73,7 +73,7 @@ describe('assignment target', () => {
         assignmentId: 'a1',
         kind: 'review',
         title: 'Week 3',
-        brief: (sent as { brief: Row }).brief,
+        instructions: (sent as { instructions: Row }).instructions,
       },
     ]);
     expect(await read('assignment.get', { id: 'a1' })).toMatchObject({ delivery: 'accepted' });

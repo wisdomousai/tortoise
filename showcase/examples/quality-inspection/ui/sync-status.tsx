@@ -13,7 +13,7 @@ const clock = (at: number) =>
   new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 /**
- * Outbox state at a glance, in the sidebar footer. A commit receipt proves the local write only;
+ * Outbox state at a glance, in the sidebar footer. A commit command result proves the local write only;
  * this is where people see whether the quality system has accepted it yet.
  */
 export function SyncBadge({ className }: { className?: string }) {

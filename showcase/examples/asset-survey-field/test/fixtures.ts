@@ -23,7 +23,7 @@ export async function cleanUp() {
 export const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 export type Rows<T = Record<string, any>> = { items: T[] };
 
-/** The hub on loopback, as the desktop runs it, with the outbox and feed passes driven here. */
+/** The hub on loopback, as the desktop runs it, with the outbox and inbound sync passes driven here. */
 export async function startHub() {
   const directory = await mkdtemp(join(tmpdir(), 'survey-hub-'));
   let eam!: FakeEam;
@@ -55,7 +55,7 @@ export async function startHub() {
       designation,
       name,
     });
-  /** One outbox pass per target and one feed pass: what the hub's background loops do. */
+  /** One outbox pass per target and one inbound pass: what the hub's background loops do. */
   const complete = async () => {
     await hub.integrations!.target('assignment-model').dispatcher.runOnce();
     await hub.integrations!.target('eam').dispatcher.runOnce();

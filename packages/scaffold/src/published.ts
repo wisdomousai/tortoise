@@ -29,7 +29,7 @@ const frameworkScripts = new Set([
   'scripts/local-registry.ts',
   // Framework coverage and reviewed exports belong to the source checkout. An installed-framework
   // application can create its own registry and stamp if it adds a local workspace.
-  'scripts/reviewed-surface.json',
+  'scripts/reviewed-api.json',
   'scripts/skill-coverage.json',
   'scripts/check-skills.test.ts',
 ]);

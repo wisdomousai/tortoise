@@ -61,7 +61,7 @@ test('the desk drafts a quote with the prices of the parts and sets its inquiry 
     createdBy: 'local-user',
     createdAt: 1_000,
   });
-  // The inquiry changed in the same command: its revision is on the quote's receipt.
+  // The inquiry changed in the same command: its revision is on the quote's command result.
   expect(Object.keys(created.revisions).sort()).toEqual([
     `inquiry:${inquiryId}`,
     `quote:${quote.id}`,
@@ -174,7 +174,7 @@ test('quote.update replaces the lines of a draft and keeps the discount', async 
   ).rejects.toMatchObject({ code: 'CONFLICT' });
 });
 
-test('a repeated key returns the first receipt and a stale revision is refused', async () => {
+test('a repeated key returns the first command result and a stale revision is refused', async () => {
   const app = await open({ trialRecords: true });
   const first = await draftQuote(app, 'once');
   expect((await draftQuote(app, 'once')).result).toEqual(first.result);

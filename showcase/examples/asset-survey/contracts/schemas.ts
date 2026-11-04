@@ -48,7 +48,7 @@ export const nodeSchema = z.strictObject({
   retired: z.boolean(),
   /** The EAM asset this node was filed as. */
   assetId: z.string().optional(),
-  /** The asset's status in the EAM, from its feed. */
+  /** The asset's status in the EAM, from its inbound sync. */
   assetStatus: z.enum(['active', 'retired']).optional(),
 });
 
@@ -64,7 +64,7 @@ export const documentSchema = z.strictObject({
   addedAt: timestamp,
 });
 
-/** The slice of the structure a survey's brief carries to the field. */
+/** The slice of the structure a survey's instructions carries to the field. */
 export const fieldNodeSchema = z.strictObject({
   id: recordId,
   parentId: recordId.optional(),
@@ -138,7 +138,7 @@ export const assetFoundSchema = z.strictObject({
   /** The survey node already filed as this asset. */
   nodeId: z.string().optional(),
 });
-/** What the EAM feed reports about an asset a filing created or updated. */
+/** What the EAM inbound sync reports about an asset a filing created or updated. */
 export const assetSnapshotSchema = z.strictObject({
   externalId: z.string().max(64),
   designation: z.string().max(64),

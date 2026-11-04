@@ -65,7 +65,7 @@ export const fieldOs: OsDeclarations = {
       description: 'Announce an assignment the hub sent to this device.',
       dataClasses: ['assignment-title'],
       categories: [{ id: 'assignment-new', actions: [] }],
-      // The hub's feed queues these; one waits until the app comes to the foreground.
+      // The hub's inbound sync queues these; one waits until the app comes to the foreground.
       targets: ['assignment-notices'],
       offline: 'queue',
     },

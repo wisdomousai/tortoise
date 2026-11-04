@@ -5,19 +5,19 @@ import { requestOperations, testRequestSchema } from '@tortoise/pattern-base/con
 
 /**
  * A sampling round: a field technician goes to a substation, draws an oil sample from each
- * transformer in the brief and reports its sample number with a description of what to test.
+ * transformer in the instructions and reports its sample number with a description of what to test.
  * Accepting a report submits a test request for that sample.
  */
 export const sampling = defineAssignmentKind({
   id: 'sampling',
   title: 'Sampling round',
   description:
-    'Draw an oil sample from each transformer in the brief. Report each sample number with what to test and what you saw at the transformer.',
+    'Draw an oil sample from each transformer in the instructions. Report each sample number with what to test and what you saw at the transformer.',
   scope: z.strictObject({
     substation: z.string().min(1).max(64),
     transformers: z.array(testRequestSchema.shape.transformer).min(1).max(20),
   }),
-  brief: z.strictObject({
+  instructions: z.strictObject({
     substation: z.string(),
     transformers: z.array(
       z.strictObject({

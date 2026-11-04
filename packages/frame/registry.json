@@ -214,7 +214,7 @@
       "name": "my-assignments",
       "type": "registry:component",
       "title": "My assignments",
-      "description": "The assignments sent to the signed-in person, live, each with its brief, a report form and Done. Slots per kind: the brief view and the report form, generated from the kind's report when omitted.",
+      "description": "The assignments sent to the signed-in person, live, each with its instructions, a report form and Done. Slots per kind: the instructions view and the report form, generated from the kind's report when omitted.",
       "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "button",
@@ -236,7 +236,7 @@
       "name": "worklist",
       "type": "registry:component",
       "title": "Worklist",
-      "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last feed from the worklist target's status. Slots per kind: the brief view, the report form, the body view and the subject's name.",
+      "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last inbound sync from the worklist target's status. Slots per kind: the instructions view, the report form, the body view and the subject's name.",
       "dependencies": ["@tanstack/react-query", "@tortoise/contracts"],
       "registryDependencies": [
         "badge",

@@ -1,7 +1,7 @@
 import {
   createApplication,
   createMemoryStorage,
-  type CommandReceipt,
+  type CommandResult,
   type ExecutionContext,
 } from '@tortoise/runtime';
 import { createInboundSync } from '@tortoise/integration';
@@ -89,7 +89,7 @@ export async function automationRoute(options: {
     operation: string,
     input: unknown,
     context = operator,
-  ): Promise<CommandReceipt<any>> => app.invokeRaw({ operation, input }, context);
+  ): Promise<CommandResult<any>> => app.invokeRaw({ operation, input }, context);
   const query = async (operation: string, input: unknown, context = operator): Promise<any> =>
     (await app.queryRaw({ operation, input }, context)).data;
   /** Observe until state-field stability (two agreeing reads) is reached. */

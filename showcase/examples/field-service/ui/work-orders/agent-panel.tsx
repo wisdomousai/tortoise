@@ -14,14 +14,19 @@ type UiSession = ReturnType<typeof useUiSession>;
 const planner = workOrderPlannerModule.agents![0]!.id;
 
 /**
- * Start a run over this work order. The offline demo gets the brief as explicit task commands; a
+ * Start a run over this work order. The offline demo gets the instructions as explicit task commands; a
  * provider run executes under the work order planner, with its instructions and narrowed grant,
  * and requests approval for the tasks. Either way the run carries the captured UI session, so it
  * sees this work order and acts only through the catalog.
  */
-async function startRun(workOrder: WorkOrder, brief: string, agent: AgentSelection, ui: UiSession) {
+async function startRun(
+  workOrder: WorkOrder,
+  instructions: string,
+  agent: AgentSelection,
+  ui: UiSession,
+) {
   const demo = agent.harnessId === 'deterministic';
-  const commands = brief
+  const commands = instructions
     .split('\n')
     .map((title) => title.trim())
     .filter(Boolean)
@@ -33,7 +38,7 @@ async function startRun(workOrder: WorkOrder, brief: string, agent: AgentSelecti
   const capturedUi = await ui.prepare();
   const prompt = demo
     ? JSON.stringify({ commands, text: 'Creating the work order tasks.' })
-    : `Work in work order ${workOrder.id}. Use application tools for changes; query current revisions before editing. ${brief}`;
+    : `Work in work order ${workOrder.id}. Use application tools for changes; query current revisions before editing. ${instructions}`;
   const response = await fetch('/api/v1/runs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -116,7 +121,7 @@ export function AgentPanel({
   action: (work: () => Promise<unknown>) => Promise<void>;
   onError: (message: string) => void;
 }) {
-  const [brief, setBrief] = useState(
+  const [instructions, setInstructions] = useState(
     'Outline the work\nBuild the first version\nReview the result',
   );
   const [agent, setAgent] = useState<AgentSelection>({ harnessId: 'deterministic' });
@@ -133,24 +138,24 @@ export function AgentPanel({
         </span>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="brief">Work order brief</Label>
+        <Label htmlFor="instructions">Work order instructions</Label>
         <p className="text-sm text-muted-foreground">
           {demo
             ? 'Each line becomes a task, through the same commands you use.'
             : 'The planner sees this work order and asks for approval of each task it proposes.'}
         </p>
         <Textarea
-          id="brief"
-          value={brief}
-          onChange={(event) => setBrief(event.target.value)}
+          id="instructions"
+          value={instructions}
+          onChange={(event) => setInstructions(event.target.value)}
           rows={5}
         />
         <Button
           className="w-full"
-          disabled={workOrder.closed || busy || !brief.trim()}
-          onClick={() => void action(() => startRun(workOrder, brief, agent, ui))}
+          disabled={workOrder.closed || busy || !instructions.trim()}
+          onClick={() => void action(() => startRun(workOrder, instructions, agent, ui))}
         >
-          {demo ? 'Create tasks from brief' : 'Ask the agent'}
+          {demo ? 'Create tasks from instructions' : 'Ask the agent'}
         </Button>
       </div>
       {ui.review && <ReviewRequest review={ui.review} ui={ui} />}

@@ -20,22 +20,22 @@ import {
   type HandlerContribution,
 } from '@tortoise/runtime';
 import { camel } from '../operations';
-import type { AnyFeedItemOf, StoredBody } from '../schemas';
+import type { AnyInboundItemOf, StoredBody } from '../schemas';
 import type { Worklist } from '../worklist';
 import { blobRefsOf } from './slice';
 
 type Delivery = 'pending' | 'accepted' | 'rejected';
 type Rejection = { code: string; message: string };
 
-/** An assignment as the assignee keeps it: the issuer's feed item and what was done here. */
+/** An assignment as the assignee keeps it: the issuer's inbound item and what was done here. */
 export interface WorklistAssignment {
   readonly id: string;
   readonly kind: string;
   title: string;
   note?: string;
-  brief: StoredBody;
+  instructions: StoredBody;
   sentAt: number;
-  /** The issuer's last feed listed it. */
+  /** The issuer's last inbound sync listed it. */
   listed: boolean;
   /** Marked done here; a refused done mark clears it again. */
   done: boolean;
@@ -78,7 +78,7 @@ export interface WorklistHandlerOptions<State, Services> {
   /** The current time in milliseconds; `Date.now()` when omitted. */
   readonly now?: (context: HandlerContext<State, Services>) => number;
   /**
-   * Called in the feed's transaction for each assignment the feed brings here for the first
+   * Called in inbound sync's transaction for each assignment the sync brings here for the first
    * time, after it is stored, for example to enqueue a notice to the assignee.
    */
   readonly onReceived?: (
@@ -103,7 +103,7 @@ const presentReport = ({ effectId: _effect, ...shown }: WorklistReport) => compa
  * The handlers of a worklist, over its slice in the application's state. A report and a done mark
  * are recorded here and enqueued for the issuer in the same transaction, so they wait out a lost
  * connection. The issuer takes a report after the done mark too, so a report whose delivery was
- * retried is not lost. The feed applies as the issuer's whole open set: an assignment it no
+ * retried is not lost. The inbound sync applies as the issuer's whole open set: an assignment it no
  * longer lists stops taking reports here. A refused done mark reopens the assignment.
  *
  * The issuer authorizes every delivery again as this application's principal there, so nothing
@@ -224,7 +224,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
       ctx.change(resource, 'done');
       return presentAssignment(slice, assignment);
     }),
-    ...(targetHandlers<State, Services, AnyFeedItemOf<K>, unknown, object>(target, {
+    ...(targetHandlers<State, Services, AnyInboundItemOf<K>, unknown, object>(target, {
       cursor: (state) => options.slice(state).cursor,
       now,
       onOutcome(effect, outcome, ctx) {
@@ -248,7 +248,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
         if (outcome.status === 'rejected') assignment.done = false;
         ctx.change(effect.resource, assignment.doneSync!);
       },
-      applyBatch({ items }: SyncBatch<AnyFeedItemOf<K>, unknown>, ctx) {
+      applyBatch({ items }: SyncBatch<AnyInboundItemOf<K>, unknown>, ctx) {
         const slice = options.slice(ctx.state);
         const listed = new Set(items.map((item) => item.id));
         for (const item of items) {
@@ -272,7 +272,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
           ctx.change(assignmentResource(item.id), 'synced');
           if (!held) options.onReceived?.(own(slice.assignments, item.id)!, ctx);
         }
-        // The feed is the issuer's whole open set: what it left out takes no more reports.
+        // The inbound sync is the issuer's whole open set: what it left out takes no more reports.
         for (const assignment of Object.values(slice.assignments))
           if (assignment.listed && !listed.has(assignment.id)) {
             assignment.listed = false;
@@ -313,7 +313,7 @@ export function worklistRules(worklist: Worklist): Record<string, 'open' | 'inte
 
 /**
  * The worklist's integration: the outbox delivers reports and done marks to the issuer's own API,
- * and inbound sync pulls the issuer's `assignment.feed`, both through `client`. Over hub-link the
+ * and inbound sync pulls the issuer's `assignment.inbound`, both through `client`. Over hub-link the
  * client is `network.client(target)`; over peer-link it is the link's service client. A change to
  * one of the worklist's operations at the issuer holds deliveries and pulls until the two agree.
  */
@@ -322,27 +322,27 @@ export function connectWorklist<K extends Worklist['kinds'][number]>(
   options: {
     readonly application: ConnectContext['application'];
     readonly workspaceId: string;
-    /** The principal that delivers to the issuer and applies its feed. */
+    /** The principal that delivers to the issuer and applies its inbound sync. */
     readonly principalId: string;
     readonly client: () => PeerClient;
     readonly reconnect?: PeerPortOptions['reconnect'];
   },
-): TargetIntegration<AnyFeedItemOf<K>> {
+): TargetIntegration<AnyInboundItemOf<K>> {
   const { application, workspaceId, client, target } = { ...options, target: worklist.target };
   const drift = createPeerDrift({
     api: target.api,
     contract: () => createPeerCall({ client }).contract(),
   });
-  return connectTarget<AnyFeedItemOf<K>>({
+  return connectTarget<AnyInboundItemOf<K>>({
     target,
     application,
     workspaceId,
     principalId: options.principalId,
-    port: createPeerPort<AnyFeedItemOf<K>>({
+    port: createPeerPort<AnyInboundItemOf<K>>({
       target: target.target,
       client,
       readBlob: (effect, digest) => application.readEffectBlob(workspaceId, effect.id, digest),
-      ...(target.feedQuery ? { feed: target.feedQuery } : {}),
+      ...(target.inboundQuery ? { inbound: target.inboundQuery } : {}),
       drift,
       ...(options.reconnect ? { reconnect: options.reconnect } : {}),
     }),

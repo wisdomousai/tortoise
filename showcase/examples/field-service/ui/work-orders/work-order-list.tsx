@@ -78,7 +78,7 @@ export function WorkOrderList() {
     setError('');
     try {
       const site = draft.site.trim();
-      const receipt = await client.command(operations.workOrderCreate, {
+      const commandResult = await client.command(operations.workOrderCreate, {
         name: draft.name,
         ...(site ? { site } : {}),
       });
@@ -86,7 +86,7 @@ export function WorkOrderList() {
       setCreating(false);
       void navigate({
         to: '/work-orders/$workOrderId',
-        params: { workOrderId: receipt.result.id },
+        params: { workOrderId: commandResult.result.id },
       });
     } catch (cause) {
       setError(message(cause));

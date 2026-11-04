@@ -28,7 +28,7 @@ function visibleReport(ctx: Ctx, id: string): StoredReport {
 }
 const covers = (ctx: Ctx, kind: string, subject: string, assignment: StoredAssignment) =>
   ctx.hooks.subject?.(kind, subject, assignment) !== false;
-/** A device or a peer reports from its own copy of the brief, which may be out of date. */
+/** A device or a peer reports from its own copy of the instructions, which may be out of date. */
 const remote = (assignment: StoredAssignment) =>
   assignment.assignee?.type === 'device' || assignment.assignee?.type === 'peer';
 
@@ -101,7 +101,7 @@ export function kindReportHandlers(assignments: Assignments, kind: AnyAssignment
           throw invalid(`The assignment is not ${kind.title} work`, 'assignmentId');
         const { subject, ...entry } = input;
         const covered = subject === undefined || covers(ctx, kind.id, subject, assignment);
-        // A record that left the assignment after a device or a peer copied the brief keeps its
+        // A record that left the assignment after a device or a peer copied the instructions keeps its
         // report, unlinked, for a person to link; a caller on this instance is refused instead.
         if (!covered && !remote(assignment))
           throw invalid('The assignment does not cover this record', 'subject');

@@ -3,7 +3,7 @@ import { defineTarget } from '@tortoise/contracts';
 import { id, orderSnapshotSchema, reasonSchema } from './schemas';
 
 /**
- * The MES as a system of record: stops and counts are forwarded to it, and its feed delivers
+ * The MES as a system of record: stops and counts are forwarded to it, and its inbound sync delivers
  * orders and the stop reason catalog. Station bridges complete their own screen procedures through
  * the same complete operation, so the status query reports every target the caller can see.
  */
@@ -16,7 +16,7 @@ export const mesTarget = defineTarget({
     status: 'line.sync.status',
   },
   changes: ['station', 'stop', 'count'],
-  feed: {
+  inbound: {
     item: orderSnapshotSchema,
     max: 200,
     extra: { reasons: z.array(reasonSchema).max(200).optional() },

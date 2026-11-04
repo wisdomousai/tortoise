@@ -1,14 +1,14 @@
 import type { WorkspaceSnapshot } from '@tortoise/runtime';
 
 /** The row kinds one workspace is stored as; the journal has its own table. */
-export type RowKind = 'state' | 'revision' | 'receipt' | 'effect' | 'blob' | 'version';
+export type RowKind = 'state' | 'revision' | 'commandResult' | 'effect' | 'blob' | 'version';
 /** Serialized rows by kind, then by key; values are JSON text. */
 export type Rows = Map<RowKind, Map<string, string>>;
 
 export const rowKinds: readonly RowKind[] = [
   'state',
   'revision',
-  'receipt',
+  'commandResult',
   'effect',
   'blob',
   'version',
@@ -40,7 +40,7 @@ export function rowsOf<State>(snapshot: WorkspaceSnapshot<State>, depth: number)
       rows.get(kind)!.set(key, JSON.stringify(value));
   };
   keyed('revision', snapshot.resourceRevisions);
-  keyed('receipt', snapshot.receipts);
+  keyed('commandResult', snapshot.commandResults);
   keyed('effect', snapshot.effects);
   keyed('blob', snapshot.blobs);
   keyed('version', snapshot.stateVersions);

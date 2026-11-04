@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { CommandReceipt, Invocation } from '@tortoise/runtime';
+import type { CommandResult, Invocation } from '@tortoise/runtime';
 import { createDriverEventIngest } from '../src/connect';
 import { defineDriverContract } from '../src/contracts';
 import type { DriverService } from '../src/open';
@@ -46,7 +46,7 @@ function harness(fail?: (invocation: Invocation) => boolean) {
       async invokeRaw(invocation) {
         if (fail?.(invocation)) throw new Error('refused');
         invocations.push(invocation);
-        return {} as CommandReceipt;
+        return {} as CommandResult;
       },
     },
     context: { workspaceId: 'w', principalId: 'scale', grant: { operations: ['weight.ingest'] } },
@@ -112,7 +112,7 @@ test('an undeclared event is refused when the ingest is built', () => {
     createDriverEventIngest({
       contract: scale,
       service: { supervisor: () => undefined as never, onEvent: () => () => undefined },
-      application: { invokeRaw: async () => ({}) as CommandReceipt },
+      application: { invokeRaw: async () => ({}) as CommandResult },
       context: { workspaceId: 'w', principalId: 'scale' },
       ingestOperation: 'weight.ingest',
       events: ['weight.lost'],

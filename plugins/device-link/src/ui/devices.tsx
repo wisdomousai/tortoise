@@ -48,8 +48,8 @@ function Enroll({ onError }: { onError: (message: string) => void }) {
             event.preventDefault();
             void client
               .command(ops.enrollmentCreate, { label, kind })
-              .then((receipt) => {
-                setCreated({ ...(receipt.result as Created), label });
+              .then((commandResult) => {
+                setCreated({ ...(commandResult.result as Created), label });
                 setLabel('');
               })
               .catch((error) => onError(message(error)));

@@ -14,7 +14,7 @@ import {
 import { live } from '@/lib/session';
 
 type Driver = OutputOf<typeof driverOperations.statusGet>['drivers'][number];
-// Driver status lives in host memory without a change feed, so the screen polls.
+// Driver status lives in host memory without a change list, so the screen polls.
 const POLL_MS = 3_000;
 
 const stateTone = {

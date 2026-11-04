@@ -120,8 +120,8 @@ const bob = { workspaceId: 'w', principalId: 'bob' };
 describe('feature composition', () => {
   test('a handler sees its slice, a lazy access view and hooks bound to the transaction', async () => {
     const { app, state, reads } = setup();
-    const receipt = await app.invoke({ operation: 'score.add', input: { by: 2 } }, ann);
-    expect(receipt.result).toEqual({ total: 2, allowed: true });
+    const commandResult = await app.invoke({ operation: 'score.add', input: { by: 2 } }, ann);
+    expect(commandResult.result).toEqual({ total: 2, allowed: true });
     expect(reads()).toBe(1);
     expect(await state()).toMatchObject({ log: ['added to 2'], score: { total: 2 } });
   });

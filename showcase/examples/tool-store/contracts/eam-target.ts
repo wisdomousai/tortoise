@@ -15,7 +15,7 @@ export type RepairOrderPayload = {
 };
 
 /**
- * One store tool in the EAM's feed: the master data the EAM owns, keyed by asset tag. The feed
+ * One store tool in the EAM's inbound: the master data the EAM owns, keyed by asset tag. The inbound sync
  * names no status, because the store decides where a tool stands.
  */
 export const eamToolSchema = z.strictObject({
@@ -36,7 +36,7 @@ export type EamTool = z.output<typeof eamToolSchema>;
 
 /**
  * The plant EAM as a system of record. It owns the tool master data and the repair orders: a
- * damaged return sends it a repair order, and its feed updates the description, category, bin and
+ * damaged return sends it a repair order, and its inbound sync updates the description, category, bin and
  * calibration date of the tools the store holds.
  */
 // #region target
@@ -44,7 +44,7 @@ export const eamTarget = defineTarget({
   target: 'eam',
   resourceType: 'EamSync',
   changes: ['loan'],
-  feed: { item: eamToolSchema, max: 100, changes: ['tool'] },
+  inbound: { item: eamToolSchema, max: 100, changes: ['tool'] },
   status: {
     pending: z.number().int().describe('Repair orders waiting for the EAM, held ones included.'),
     held: z
@@ -57,9 +57,9 @@ export const eamTarget = defineTarget({
   descriptions: {
     complete:
       'Integration principal only: record the EAM outcome for the repair order of a damaged return.',
-    sync: 'Integration principal only: apply tool master data from the EAM feed and advance the watermark. A stale from watermark conflicts, and an item no newer than the applied version of its asset tag is dropped.',
+    sync: 'Integration principal only: apply tool master data from the EAM inbound sync and advance the watermark. A stale from watermark conflicts, and an item no newer than the applied version of its asset tag is dropped.',
     status:
-      'Summarize repair orders sent to the EAM: waiting, held for a person, accepted and rejected, and the last feed sync.',
+      'Summarize repair orders sent to the EAM: waiting, held for a person, accepted and rejected, and the last inbound sync.',
   },
 });
 // #endregion target

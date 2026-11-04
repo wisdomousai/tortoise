@@ -19,7 +19,7 @@ export const deviceLinkPluginManifest = definePluginManifest({
       env: 'TORTOISE_DEVICE_LINK_SYNC_OPERATIONS',
       kind: 'string',
       description:
-        'comma-separated operations a field device may call, such as its ingest command and feed query; absent: none',
+        'comma-separated operations a field device may call, such as its ingest command and inbound query; absent: none',
     },
   ],
 });

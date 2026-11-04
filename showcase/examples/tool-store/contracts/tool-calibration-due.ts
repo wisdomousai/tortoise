@@ -76,7 +76,7 @@ export const toolCalibrationDue = defineCapability({
 
 /**
  * Workflow text for an agent that moves the tools due for calibration to the calibration bin. It
- * names operation IDs; each surface shows them under its own tool names.
+ * names operation IDs; each channel shows them under its own tool names.
  */
 // #region workflow
 export const calibrationPull: WorkflowDeclaration = {

@@ -83,7 +83,7 @@ export function snapshotFrom<State>(
     cursor: meta?.cursor ?? 0,
     authorizationRevision: meta?.authorization_revision ?? 0,
     resourceRevisions: recordFrom(rows.get('revision')),
-    receipts: recordFrom(rows.get('receipt')),
+    commandResults: recordFrom(rows.get('commandResult')),
     journal,
     effects: recordFrom(rows.get('effect')),
     blobs: recordFrom(rows.get('blob')),

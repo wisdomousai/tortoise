@@ -92,7 +92,7 @@ const scenarios: BehavioralScenario[] = [
     },
   },
   {
-    name: 'a repeated idempotency key returns the stored receipt and submits nothing',
+    name: 'a repeated idempotency key returns the stored command result and submits nothing',
     async run(driver) {
       const request = {
         operation: 'test-request.submit',

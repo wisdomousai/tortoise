@@ -52,15 +52,15 @@ async function pairPhone(host: Host) {
         ).ok,
       ).toBe(true);
     },
-    async feed() {
+    async inbound() {
       const response = await device(
-        '/api/v1/queries/assignment.feed',
+        '/api/v1/queries/assignment.inbound',
         JSON.stringify({ input: {} }),
       );
       return (
         (await response.json()) as {
           data: {
-            items: { id: string; brief: { nodes: { id: string; designation: string }[] } }[];
+            items: { id: string; instructions: { nodes: { id: string; designation: string }[] } }[];
           };
         }
       ).data.items;
@@ -108,8 +108,8 @@ test('prepare, send to a phone, review what the model read and file it into the 
     const survey = page.getByRole('listitem', { name: 'Nameplates of =G1' });
     await expect(survey.getByText('sent', { exact: true })).toBeVisible();
 
-    const [assignment] = await phone.feed();
-    const valve = assignment!.brief.nodes.find((node) => node.designation === '=G1-QM1')!;
+    const [assignment] = await phone.inbound();
+    const valve = assignment!.instructions.nodes.find((node) => node.designation === '=G1-QM1')!;
     // The valve's plate is rusted across the serial, so the reading doubts it.
     await phone.capture('cap-1', assignment!.id, valve.id, await samplePhoto('valve'));
     await expect(survey.getByText('1 to review')).toBeVisible();

@@ -92,12 +92,12 @@ export const toolOperations = {
   toolGet: collectionGet(tools, {
     id: 'tool',
     description:
-      'Read one tool by id, with its revision. Pass that revision as expectedRevisions {"tool:<id>": revision} to a command that changes the tool. The command is refused with CONFLICT when the tool changed since. The command receipt of a change to the tool has its new revision as tool:<id>. Members.',
+      'Read one tool by id, with its revision. Pass that revision as expectedRevisions {"tool:<id>": revision} to a command that changes the tool. The command is refused with CONFLICT when the tool changed since. The command result of a change to the tool has its new revision as tool:<id>. Members.',
   }),
   toolCreate: collectionCreate(tools, {
     id: 'tool',
     description:
-      'Add a tool to the store as available. A second tool with the same asset tag is refused with CONFLICT. The tool is new, so there is no revision to pass. The command receipt has its first revision as tool:<id>. Attendants only. A viewer is refused with FORBIDDEN.',
+      'Add a tool to the store as available. A second tool with the same asset tag is refused with CONFLICT. The tool is new, so there is no revision to pass. The command result has its first revision as tool:<id>. Attendants only. A viewer is refused with FORBIDDEN.',
     fields: ['assetTag', 'description', 'category', 'bin', 'calibrationDue'],
   }),
   toolUpdate: collectionUpdate(tools, {

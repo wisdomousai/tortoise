@@ -50,7 +50,7 @@ export function observe(
 
 /** Stop the run when its store stops writing; nothing continues on in-memory success. */
 function failPersistence(run: Active) {
-  // A durable run receipt is a prerequisite for subsequent tool work. Do not
+  // A durable run command result is a prerequisite for subsequent tool work. Do not
   // continue on an in-memory-only success when the selected store stops writing.
   run.persistenceFailed = true;
   run.snapshot.state = 'failed';

@@ -27,10 +27,10 @@ The date shows in these places:
 | Web frame | "Best before" and the date in the panel's status box, and a notice from the day after |
 | Audit log | The build time and date in `config.loaded` |
 | `app status` | `bestBefore` and `pastBestBefore` of the verified release |
-| Compliance posture | The `best-before` check: `pass`, then `warn` from 30 days before the date |
+| Compliance status | The `best-before` check: `pass`, then `warn` from 30 days before the date |
 | Fleet health | The `past-best-before` state |
 
-The posture check reports `info` for a build without a date, never `fail`. Commands keep committing, `app install` admits a bundle past its date, and the service keeps running.
+The compliance check reports `info` for a build without a date, never `fail`. Commands keep committing, `app install` admits a bundle past its date, and the service keeps running.
 
 ## What decommissioning removes
 

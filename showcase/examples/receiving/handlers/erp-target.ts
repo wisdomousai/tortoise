@@ -11,7 +11,7 @@ import { handler, now, type Services } from './context';
 /** The effect type of one goods receipt; the ERP port writes it as one CSV file. */
 export const goodsReceipt = 'goods-receipt.post';
 
-/** Posting goods receipts to the ERP, and the target's complete, feed and status handlers. */
+/** Posting goods receipts to the ERP, and the target's complete, inbound sync and status handlers. */
 export function erpHandlers(): HandlerContribution<AppState, Services>[] {
   return [
     handler(operations.erpSend, (input, ctx) => {

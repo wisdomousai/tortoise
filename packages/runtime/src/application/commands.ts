@@ -1,14 +1,19 @@
 import { ApplicationError } from '@tortoise/contracts';
 import type {
-  CommandReceipt,
+  CommandResult,
   Effect,
   ExecutionContext,
   Invocation,
-  StoredReceipt,
+  StoredResult,
   WorkspaceSnapshot,
 } from '../types.js';
 import { actorOf, effectRecords, failureRecord } from './audit.js';
-import { auditAccepted, journalChanges, receiptOf, storeReceipt } from './command-commit.js';
+import {
+  auditAccepted,
+  journalChanges,
+  commandResultOf,
+  storeCommandResult,
+} from './command-commit.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { replayContinuation } from './continuation.js';
 import { runFrame } from './frame.js';
@@ -17,16 +22,16 @@ import { topFrame } from './nested.js';
 
 type Report = (effects: Effect[], replay: boolean) => void;
 /**
- * A retry returns the stored receipt, reprojected for the caller's current grants. Every nested
+ * A retry returns the stored command result, reprojected for the caller's current grants. Every nested
  * command the first execution made is authorized again with the input it ran with, so a caller
- * who lost one of them cannot read the receipt.
+ * who lost one of them cannot read the command result.
  */
 async function replay<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
-  stored: StoredReceipt,
-): Promise<CommandReceipt> {
+  stored: StoredResult,
+): Promise<CommandResult> {
   const { capability, input, context } = command;
   await authorize(kernel, capability, input, context, snapshot, 'replay');
   if (stored.fingerprint !== command.fingerprint)
@@ -39,11 +44,18 @@ async function replay<State, Services>(
     if (!nested) throw new ApplicationError('NOT_FOUND', 'Unknown command');
     await authorize(kernel, nested, call.input, context, snapshot, 'replay', undefined, call.via);
   }
-  const result = await project(kernel, capability, input, context, snapshot, stored.receipt.result);
+  const result = await project(
+    kernel,
+    capability,
+    input,
+    context,
+    snapshot,
+    stored.commandResult.result,
+  );
   const continuation = await replayContinuation(kernel, command, snapshot, stored);
   await authorize(kernel, capability, input, context, snapshot, 'replay');
   return {
-    ...stored.receipt,
+    ...stored.commandResult,
     result,
     ...(continuation ? { continuation } : {}),
     authorizationRevision: snapshot.authorizationRevision,
@@ -52,21 +64,21 @@ async function replay<State, Services>(
 
 /**
  * The transaction body of a first execution: the command's frame with the frames of the
- * commands it invoked and continued with, then journal, receipt and audit for all of them.
+ * commands it invoked and continued with, then journal, command result and audit for all of them.
  */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
   report: Report,
-): Promise<CommandReceipt> {
+): Promise<CommandResult> {
   const { capability } = command;
   const frame = topFrame(capability.id, command.correlationId);
   const { run, result, continuation } = await runFrame(kernel, command, snapshot, frame);
   const fromCursor = snapshot.cursor;
   const revisions = journalChanges(snapshot, run.changes, capability.id, frame.tree);
-  const receipt: CommandReceipt = {
-    ...receiptOf(snapshot, capability.id, result, revisions, run.touched),
+  const commandResult: CommandResult = {
+    ...commandResultOf(snapshot, capability.id, result, revisions, run.touched),
     ...(continuation
       ? {
           continuation: {
@@ -76,10 +88,10 @@ async function execute<State, Services>(
         }
       : {}),
   };
-  storeReceipt(snapshot, command, receipt, frame.tree, continuation?.command);
+  storeCommandResult(snapshot, command, commandResult, frame.tree, continuation?.command);
   await auditAccepted(kernel, command, snapshot, revisions, fromCursor, frame.tree);
   report(run.touched, false);
-  return receipt;
+  return commandResult;
 }
 
 async function invokeCommand<State, Services>(
@@ -88,14 +100,14 @@ async function invokeCommand<State, Services>(
   context: ExecutionContext,
   correlationId: string,
   report: Report,
-): Promise<CommandReceipt> {
+): Promise<CommandResult> {
   const command = prepareCommand(kernel, request, context, correlationId);
   return kernel.options.storage.transact(context.workspaceId, async (snapshot) => {
-    const stored = command.key === undefined ? undefined : snapshot.receipts[command.key];
+    const stored = command.key === undefined ? undefined : snapshot.commandResults[command.key];
     if (!stored) return execute(kernel, command, snapshot, report);
-    const receipt = await replay(kernel, command, snapshot, stored);
+    const commandResult = await replay(kernel, command, snapshot, stored);
     report([], true);
-    return receipt;
+    return commandResult;
   });
 }
 
@@ -114,13 +126,13 @@ export function createCommands<State, Services>(kernel: Kernel<State, Services>)
   return async function invokeRaw(
     request: Invocation,
     context: ExecutionContext,
-  ): Promise<CommandReceipt> {
+  ): Promise<CommandResult> {
     const correlationId = crypto.randomUUID();
     const operation = typeof request?.operation === 'string' ? request.operation : '';
     let transitions: Effect[] = [];
     let replayed = false;
     try {
-      const receipt = await invokeCommand(
+      const commandResult = await invokeCommand(
         kernel,
         request,
         context,
@@ -137,12 +149,12 @@ export function createCommands<State, Services>(kernel: Kernel<State, Services>)
           operation,
           actor: actorOf(context),
           correlationId,
-          cursor: receipt.cursor,
-          resources: Object.keys(receipt.revisions).sort(),
+          cursor: commandResult.cursor,
+          resources: Object.keys(commandResult.revisions).sort(),
         },
         ...effectRecords(transitions, context, correlationId),
       ]);
-      return receipt;
+      return commandResult;
     } catch (error) {
       if (kernel.audit.enabled)
         await kernel.audit.after([

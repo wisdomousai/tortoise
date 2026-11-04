@@ -16,7 +16,7 @@ function fixture(): string {
   for (const file of [
     'check-skills.ts',
     'skills.ts',
-    'skill-surface.ts',
+    'skill-api.ts',
     'skills-stamp.ts',
     'markdown-links.ts',
   ])
@@ -71,12 +71,12 @@ test('missing coverage, unknown skills and an omitted owner are reported', () =>
   expect(run(directory).stderr).toContain('needs a reason when no skills cover it');
 });
 
-test('a changed public surface names its reviewers', () => {
+test('a changed public API names its reviewers', () => {
   const directory = fixture();
   writeFileSync(join(directory, 'packages/sample/src/index.ts'), 'export const changed = 1;\n');
   const result = run(directory);
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain('surface changed');
+  expect(result.stderr).toContain('public API changed');
   expect(result.stderr).toContain('packages/sample/skills/sample-skill/SKILL.md');
 });
 

@@ -35,7 +35,7 @@ export function erpPort(
         };
       },
     },
-    feed: {
+    inbound: {
       inbox: erpFolders.inbox,
       format: 'csv',
       ...(options.quietMs === undefined ? {} : { quietMs: options.quietMs }),

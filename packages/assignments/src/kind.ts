@@ -16,7 +16,7 @@ export const reservedAssignmentNames: readonly string[] = [
   'close',
   'list',
   'get',
-  'feed',
+  'inbound',
 ];
 
 /** The longest kind or assignment target name: `assignment_<name>_create` stays within 64 characters. */
@@ -27,7 +27,7 @@ type Shape = z.ZodObject;
 export interface AssignmentKindSpec<
   Id extends string,
   Scope extends Shape,
-  Brief extends Shape,
+  Instructions extends Shape,
   Report extends Shape,
   Accept extends Shape,
 > {
@@ -39,8 +39,8 @@ export interface AssignmentKindSpec<
   readonly description: string;
   /** What the requester fills in when creating an assignment of this kind. */
   readonly scope: Scope;
-  /** What the assignee receives. The server's `brief` hook computes it from the scope on send. */
-  readonly brief: Brief;
+  /** What the assignee receives. The server's `instructions` hook computes it from the scope on send. */
+  readonly instructions: Instructions;
   /** The body of one report. */
   readonly report: Report;
   /** The reviewer's input when accepting a report, besides the report's ID. Empty when omitted. */
@@ -48,10 +48,10 @@ export interface AssignmentKindSpec<
   /** The record type a report is about, for example `node`. A report names one by its key. */
   readonly subject?: string;
   /**
-   * Limits on the blobs a report body references, and on those a brief references. Brief blobs
+   * Limits on the blobs a report body references, and on those the instructions reference. Instructions blobs
    * reach only assignees on the same instance or a target, because a peer pull carries no blobs.
    */
-  readonly blobs?: { readonly report?: BlobLimits; readonly brief?: BlobLimits };
+  readonly blobs?: { readonly report?: BlobLimits; readonly instructions?: BlobLimits };
   /** Who may take this kind of work. */
   readonly assigneeTypes: readonly AssigneeType[];
   /** The assignment target's name, required exactly when `assigneeTypes` includes `target`. */
@@ -65,10 +65,10 @@ export interface AssignmentKindSpec<
 export interface AssignmentKind<
   Id extends string = string,
   Scope extends Shape = Shape,
-  Brief extends Shape = Shape,
+  Instructions extends Shape = Shape,
   Report extends Shape = Shape,
   Accept extends Shape = Shape,
-> extends AssignmentKindSpec<Id, Scope, Brief, Report, Accept> {
+> extends AssignmentKindSpec<Id, Scope, Instructions, Report, Accept> {
   readonly accept: Accept;
 }
 export type AnyAssignmentKind = AssignmentKind<string, Shape, Shape, Shape, Shape>;
@@ -85,18 +85,18 @@ export function checkAssignmentName(name: string, what: string): void {
  * Declare a kind of work: what the requester fills in, what the assignee receives, what one
  * report holds, what the reviewer adds on accepting, and who may take it. Browser-safe. Fails
  * at definition time on an invalid or reserved ID, an unknown or repeated assignee type, the
- * `target` type without a target name or a target name without the type, brief blobs for a
+ * `target` type without a target name or a target name without the type, instructions blobs for a
  * device or a peer, and an accept input with its own `id`.
  */
 export function defineAssignmentKind<
   const Id extends string,
   Scope extends Shape,
-  Brief extends Shape,
+  Instructions extends Shape,
   Report extends Shape,
   Accept extends Shape = z.ZodObject<{}>,
 >(
-  spec: AssignmentKindSpec<Id, Scope, Brief, Report, Accept>,
-): AssignmentKind<Id, Scope, Brief, Report, Accept> {
+  spec: AssignmentKindSpec<Id, Scope, Instructions, Report, Accept>,
+): AssignmentKind<Id, Scope, Instructions, Report, Accept> {
   const fail = (message: string): never => {
     throw new Error(`Assignment kind ${spec.id} ${message}`);
   };
@@ -115,10 +115,10 @@ export function defineAssignmentKind<
     );
   if (spec.target !== undefined) checkAssignmentName(spec.target, 'target');
   if (spec.blobs?.report) assertBlobLimits(spec.blobs.report, `${spec.id} reports`);
-  if (spec.blobs?.brief) {
-    assertBlobLimits(spec.blobs.brief, `${spec.id} briefs`);
+  if (spec.blobs?.instructions) {
+    assertBlobLimits(spec.blobs.instructions, `${spec.id} instructions`);
     if (spec.assigneeTypes.includes('device') || spec.assigneeTypes.includes('peer'))
-      fail('cannot send brief blobs to a device or a peer, whose pull carries no blobs');
+      fail('cannot send instructions blobs to a device or a peer, whose pull carries no blobs');
   }
   if (spec.accept && 'id' in spec.accept.shape) fail('has an accept input with its own id');
   if (spec.subject !== undefined && !/^[a-z][a-z0-9-]*$/.test(spec.subject))

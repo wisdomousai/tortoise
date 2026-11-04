@@ -74,19 +74,19 @@ export function skills(): Skill[] {
   return found;
 }
 
-/** Workspaces whose public surface the skills are reviewed against. */
-export const surfaceLayers = ['packages', 'workstations', 'plugins', 'sdks'] as const;
+/** Workspaces whose public API the skills are reviewed against. */
+export const apiLayers = ['packages', 'workstations', 'plugins', 'sdks'] as const;
 /** The key under which the root package scripts are recorded, and the skills that cover them. */
 export const rootScripts = 'package.json scripts';
 export const rootScriptSkills = ['check-a-change', 'create-agent-native-app'];
 /** Coverage of each framework workspace, independent of its README. */
 export const skillCoverageFile = 'scripts/skill-coverage.json';
-export const reviewedSurfaceFile = 'scripts/reviewed-surface.json';
+export const reviewedApiFile = 'scripts/reviewed-api.json';
 /** Where Claude Code and Codex read project skills; `skills-link` fills both. */
 export const linkDirectories = ['.claude/skills', '.agents/skills'];
 
-export function surfaceWorkspaces(): string[] {
-  return surfaceLayers.flatMap((layer) =>
+export function apiWorkspaces(): string[] {
+  return apiLayers.flatMap((layer) =>
     subdirectories(join(root, layer))
       .filter((name) => existsSync(join(root, layer, name, 'package.json')))
       .map((name) => `${layer}/${name}`),

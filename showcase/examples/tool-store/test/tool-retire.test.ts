@@ -61,9 +61,13 @@ test('an attendant retires a tool in repair, and a reopened instance reads it re
   const { instance, workspacePath, toolId, invoke, lend } = await open();
   await lend();
   await invoke('tool.return', { toolId, condition: 'damaged', note: 'cracked' }, 'in');
-  const receipt = await invoke('tool.retire', { toolId }, 'retire', clerk);
-  expect(receipt.result).toMatchObject({ id: toolId, assetTag: 'TC-00601', status: 'retired' });
-  expect(receipt.revisions).toHaveProperty(`tool:${toolId}`);
+  const commandResult = await invoke('tool.retire', { toolId }, 'retire', clerk);
+  expect(commandResult.result).toMatchObject({
+    id: toolId,
+    assetTag: 'TC-00601',
+    status: 'retired',
+  });
+  expect(commandResult.revisions).toHaveProperty(`tool:${toolId}`);
   await instance.close();
   const reopened = await openEmbeddedInstance(application(), { workspacePath });
   cleanup.push(() => reopened.close());
@@ -112,7 +116,7 @@ test('a stale tool revision is refused', async () => {
   expect(await status()).toBe('available');
 });
 
-test('a repeated idempotency key returns the same receipt; a second retirement conflicts', async () => {
+test('a repeated idempotency key returns the same command result; a second retirement conflicts', async () => {
   const { toolId, invoke } = await open();
   const first = await invoke('tool.retire', { toolId }, 'retire');
   expect(await invoke('tool.retire', { toolId }, 'retire')).toEqual(first);

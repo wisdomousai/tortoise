@@ -93,6 +93,6 @@ export const loanOperations = {
   loanGet: collectionGet(loans, {
     id: 'loan',
     description:
-      'Read one loan by id. A command receipt that changed it carries its revision as loan:<id> for expectedRevisions.',
+      'Read one loan by id. A command result that changed it carries its revision as loan:<id> for expectedRevisions.',
   }),
 } as const;

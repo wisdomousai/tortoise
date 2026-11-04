@@ -15,7 +15,7 @@ Agents read this file, not personal settings, so every rule that matters is here
 - Introduce a term in the page's own words, in a clause that says what it does on this page, and link it to the [glossary](glossary.md) there. A glossary link does not replace that introduction. Do not copy the glossary entry or add a block of definitions.
 - Link a term once per page, where the page introduces it. Do not link every noun.
 - A workspace README links each primitive the workspace implements or shows to its entry in [primitives](primitives.md), where the README introduces it. The overview map on the documentation site lists a workspace's primitives from those links (`scripts/overview.ts`), so a glossary link in their place drops the primitive from the map.
-- Give each word one meaning on a page. Write "goods receipt" for the receiving document and "command receipt" for a command's stored result.
+- Give each word one meaning on a page. Write "target" for an integration and "destination" for its network access.
 - Do not write a sentence whose subject is another page or a path and whose verb is explains, covers, lists, describes or has, such as "The systems-of-record guide explains…" or "The handlers are in…". Put links to other pages in a `## References` list at the end, one link per bullet. A path in parentheses after the behavior it implements is fine.
 
 ## Examples in a page

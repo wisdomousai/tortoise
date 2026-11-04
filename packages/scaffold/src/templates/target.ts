@@ -13,17 +13,17 @@ import {
 } from '@tortoise/contracts';
 import { ${one.camel}Schema } from './${one.kebab}';
 
-/** ${t.title} as a system of record: ${many.words} are sent to it, and its feed delivers the ${many.words} it holds. */
+/** ${t.title} as a system of record: ${many.words} are sent to it, and its inbound sync delivers the ${many.words} it holds. */
 export const ${t.camel}Target = defineTarget({
   target: '${t.kebab}',
   resourceType: '${t.pascal}Sync',
   changes: ['${one.kebab}'],
-  feed: { item: ${one.camel}Schema.pick({ id: true, title: true }), max: 100, changes: ['${one.kebab}'] },
+  inbound: { item: ${one.camel}Schema.pick({ id: true, title: true }), max: 100, changes: ['${one.kebab}'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
     complete: 'Integration principal only: record the ${t.words} outcome for a sent ${one.words}.',
     sync: 'Integration principal only: apply ${many.words} from ${t.words} and advance the watermark. A stale from watermark conflicts.',
-    status: 'Summarize delivery to ${t.words}: ${many.words} waiting, accepted and rejected, and the last feed sync.',
+    status: 'Summarize delivery to ${t.words}: ${many.words} waiting, accepted and rejected, and the last inbound sync.',
   },
 });
 
@@ -56,7 +56,7 @@ import { handler, now, type Services } from './context';
 
 type Item = { id: string; title: string };
 
-/** Sending ${many.words} to ${t.words}, and the target's complete, feed and status handlers. */
+/** Sending ${many.words} to ${t.words}, and the target's complete, inbound sync and status handlers. */
 export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] {
   return [
     handler(operations.${t.camel}Send, (input, ctx) => {
@@ -117,11 +117,11 @@ export type ${t.pascal}Item = { id: string; title: string };
 
 /**
  * Demo and test stand-in for ${t.words}: it accepts every delivery once per effect and serves a
- * feed of published records. Pass the real port as \`create${app.app.pascal}Application({ ${t.camel}: port })\`.
+ * inbound sync of published records. Pass the real port as \`create${app.app.pascal}Application({ ${t.camel}: port })\`.
  */
 export class Fake${t.pascal} implements SystemOfRecordPort<${t.pascal}Item> {
   readonly received = new Map<string, Readonly<Effect>>();
-  private readonly feed: ${t.pascal}Item[] = [];
+  private readonly published: ${t.pascal}Item[] = [];
 
   describe() {
     return { target: '${t.kebab}', idempotentDelivery: true } as const;
@@ -133,11 +133,11 @@ export class Fake${t.pascal} implements SystemOfRecordPort<${t.pascal}Item> {
   }
 
   async pull(cursor: string | undefined): Promise<PullBatch<${t.pascal}Item>> {
-    return { items: this.feed.slice(Number(cursor ?? 0)), cursor: String(this.feed.length) };
+    return { items: this.published.slice(Number(cursor ?? 0)), cursor: String(this.published.length) };
   }
 
   publish(item: ${t.pascal}Item) {
-    this.feed.push(structuredClone(item));
+    this.published.push(structuredClone(item));
   }
 }
 `;
@@ -218,7 +218,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
 
 /**
  * A system of record for one collection: a send command that forwards a record through the
- * outbox, the target's complete, feed and status operations, its integration allowlist,
+ * outbox, the target's complete, inbound sync and status operations, its integration allowlist,
  * an in-memory fake port, a status screen and a behavioral test.
  */
 export function target(app: AppNames, t: Names, one: Names): Generated {

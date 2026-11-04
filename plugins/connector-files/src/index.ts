@@ -4,7 +4,7 @@
  */
 export { fileExchange, type FileExchangeFolders } from './contracts';
 export { fileDropPort, type Encoded, type FileDropOptions } from './drop';
-export { folderFeed, type FileSource, type FolderFeedOptions } from './feed';
+export { folderInbound, type FileSource, type FolderInboundOptions } from './inbound';
 export {
   extensionOf,
   parseRecords,

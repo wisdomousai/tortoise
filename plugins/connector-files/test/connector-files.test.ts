@@ -8,7 +8,7 @@ import {
   fileDropPort,
   fileExchange,
   fileTargetPort,
-  folderFeed,
+  folderInbound,
   parseRecords,
   serializeRecords,
   type FileFormat,
@@ -81,7 +81,7 @@ async function harness(layout: 'receipts' | 'archive') {
         return { records: [{ order: payload.order, qty: payload.qty ?? 0 }] };
       },
     },
-    feed: {
+    inbound: {
       inbox: 'inbox',
       format: 'csv',
       quietMs: 0,
@@ -230,12 +230,12 @@ describe('file drop', () => {
   });
 });
 
-describe('folder feed', () => {
+describe('folder inbound sync', () => {
   test('reads only quiet files, skips hidden and foreign ones, and pages by received time', async () => {
     const folders = await temporaryFolders(['inbox']);
     cleanups.push(folders.remove);
     let now = Date.now() + 60_000;
-    const pull = folderFeed({
+    const pull = folderInbound({
       folders: folders.port,
       inbox: 'inbox',
       format: 'ndjson',
@@ -263,7 +263,7 @@ describe('folder feed', () => {
   test('a file copied in with an old modification time is still read, and a replaced file is read again', async () => {
     const folders = await temporaryFolders(['inbox']);
     cleanups.push(folders.remove);
-    const pull = folderFeed({
+    const pull = folderInbound({
       folders: folders.port,
       inbox: 'inbox',
       format: 'ndjson',
@@ -289,7 +289,7 @@ describe('folder feed', () => {
   test('a file that does not parse fails the pass rather than being skipped', async () => {
     const folders = await temporaryFolders(['inbox']);
     cleanups.push(folders.remove);
-    const pull = folderFeed({
+    const pull = folderInbound({
       folders: folders.port,
       inbox: 'inbox',
       format: 'json',

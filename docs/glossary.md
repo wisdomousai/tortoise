@@ -48,11 +48,11 @@ Who takes an assignment: a person, an agent definition, a paired device, a peer 
 
 ### Assignment
 
-Work that a caller hands to an assignee with a brief, and the reports the assignee sends back. See [`packages/assignments`](../packages/assignments/README.md), [assignments](assignments.md).
+Work that a caller hands to an assignee with instructions, and the reports the assignee sends back. See [`packages/assignments`](../packages/assignments/README.md), [assignments](assignments.md).
 
 ### Assignment kind
 
-The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the assignee types that may take it.
+The declaration of one kind of assignment: the scope a planner fills in, the instructions, one report's body and subject, the reviewer's accept input, and the assignee types that may take it.
 
 ### Assignment report
 
@@ -82,10 +82,6 @@ Content-addressed bytes, such as a photo or a document, that a command reference
 
 How far a screen bridge or a driver bridge may act. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
-### Brief
-
-What an assignee receives with an assignment: the kind's brief schema, computed from the scope when the caller sends the assignment, unchanged after. See [`packages/assignments`](../packages/assignments/README.md).
-
 ### Bundle
 
 One signed, versioned directory per application and platform, which an install checks before it places the release. Do not use: site bundle. See [`packages/bundle`](../packages/bundle/README.md), [`plugins/deployment`](../plugins/deployment/README.md).
@@ -104,7 +100,7 @@ The composed, validated description of everything an application can do. See [`p
 
 ### Channel
 
-The surface a request came through, as recorded in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. See [`packages/contracts`](../packages/contracts/README.md).
+One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. The host records the channel of each request in the execution context and in audit records: `direct`, `http`, `mcp`, `cli`, `embedded`, `integration`, `harness`, `host` or `shell`. Do not use: surface. See [`packages/adapters`](../packages/adapters/README.md), [`packages/contracts`](../packages/contracts/README.md).
 
 ### Collection
 
@@ -114,13 +110,17 @@ A typed set of records a module keeps in its state slice, with generated get and
 
 An authorized write that every caller submits the same way. See [`packages/runtime`](../packages/runtime/README.md), [state and reactivity](state-and-reactivity.md).
 
+### Command result
+
+The stored result of a command under its idempotency key: the outcome, the changed resources and any continuation. Do not use: receipt, command receipt. See [`packages/runtime`](../packages/runtime/README.md).
+
 ### Compensation
 
 The command a declared workflow step names to undo it. See [`plugins/workflows`](../plugins/workflows/README.md).
 
 ### Compliance bundle
 
-The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. See [`plugins/compliance`](../plugins/compliance/README.md).
+The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a compliance monitor. Do not use: posture, posture monitor. See [`plugins/compliance`](../plugins/compliance/README.md).
 
 ### Composition
 
@@ -244,10 +244,6 @@ Turns one frame, such as a screen capture or a driver's state read, into reading
 
 A reusable domain part an application mounts once, such as approval requests: modules whose operations start with the feature's ID, a state slice under that ID, handlers and a policy. See [architecture](architecture.md#features-and-host-plugins).
 
-### Feed
-
-The inbound side of a target: the item schema, the most items one batch may include, and the records a batch changes. See [`packages/contracts`](../packages/contracts/README.md).
-
 ### Fencing token
 
 A number that grows with each new holder of a worker claim or a workspace lease. See [`packages/runtime`](../packages/runtime/README.md), [`packages/adapters`](../packages/adapters/README.md).
@@ -318,11 +314,11 @@ The instance that phones and tablets pair with and deliver to, usually the host 
 
 ### Idempotency key
 
-The caller-chosen key that makes a repeated command return its first receipt instead of running again. See [interaction contract](interaction-contract.md).
+The caller-chosen key that makes a repeated command return its first command result instead of running again. See [interaction contract](interaction-contract.md).
 
 ### Inbound sync
 
-Importing a system of record's changes as ordinary commands. See [`packages/integration`](../packages/integration/README.md).
+Importing a system of record's changes as ordinary commands. A target declares its inbound side with `inbound`: the item schema, the most items one batch may include, and the records a batch changes. Do not use: feed. See [`packages/integration`](../packages/integration/README.md), [`packages/contracts`](../packages/contracts/README.md).
 
 ### Input source
 
@@ -331,6 +327,10 @@ Device input, such as a scan, normalized into events and routed to a capability 
 ### Instance
 
 One application opened on one workspace: its plugins and ports, storage, the runtime and the integrations. See [`packages/kernel`](../packages/kernel/README.md), [`packages/runtime`](../packages/runtime/README.md).
+
+### Instructions
+
+What an assignee receives with an assignment: the kind's instructions schema, computed from the scope when the caller sends the assignment, unchanged after. Do not use: brief. See [`packages/assignments`](../packages/assignments/README.md).
 
 ### Integration allowlist
 
@@ -460,10 +460,6 @@ The host port that starts declared child processes from the deployment policy's 
 
 An authorized read of one snapshot that changes nothing and returns a cursor the caller can follow. See [`packages/runtime`](../packages/runtime/README.md).
 
-### Receipt
-
-The stored result of a command under its idempotency key: the outcome, the changed resources and any continuation. See [`packages/runtime`](../packages/runtime/README.md).
-
 ### Reconciliation
 
 The tracked state and procedure for effects whose outcome no one can establish automatically. See [`packages/runtime`](../packages/runtime/README.md), [systems of record](systems-of-record.md).
@@ -548,10 +544,6 @@ The signed `Tortoise-Subject` header with which a peer names the person a reques
 
 The called application's table from a peer's subject IDs to its own principals.
 
-### Surface
-
-One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. See [`packages/adapters`](../packages/adapters/README.md).
-
 ### Synced records
 
 The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders.
@@ -602,7 +594,7 @@ The selection and observed revisions a screen shares with an agent run, which th
 
 ### Watermark
 
-The target's opaque position after the last applied feed batch, stored in the application's state. See [`packages/integration`](../packages/integration/README.md).
+The target's opaque position after the last applied inbound batch, stored in the application's state. See [`packages/integration`](../packages/integration/README.md).
 
 ### Web frame
 
@@ -630,7 +622,7 @@ The assignee side of assignments in another application, such as a phone or a pe
 
 ### Workspace
 
-The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database.
+The data one instance owns: state, revisions, command results, journal, outbox, blobs and plugin slices, at one path or in one database.
 
 ### Workspace lease
 

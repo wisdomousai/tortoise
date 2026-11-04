@@ -5,7 +5,7 @@ import type { Loan } from './contracts/loan';
 /** Workspace roles: attendants change records, viewers read them. */
 export type Role = 'attendant' | 'viewer';
 
-/** Where a target's feed stands. */
+/** Where a target's inbound sync stands. */
 export interface Cursor {
   watermark?: string;
   lastSyncAt?: number;
@@ -15,11 +15,11 @@ export interface Cursor {
 export interface AppState {
   /** People who work in this workspace and their role. */
   members: Record<string, Role>;
-  /** Feed positions by target. */
+  /** Inbound sync positions by target. */
   sync: Record<string, Cursor>;
   tools: Record<string, Tool>;
   loans: Record<string, Loan>;
-  /** The last EAM feed version applied, by asset tag; an older or equal version is dropped. */
+  /** The last EAM inbound sync version applied, by asset tag; an older or equal version is dropped. */
   eamVersions: Record<string, number>;
   // scaffold:state
 }

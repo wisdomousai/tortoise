@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { live, transport } from '@/lib/session';
 import { assignmentOperations } from '../contracts';
-import type { RoundBrief } from './round';
+import type { RoundInstructions } from './round';
 
 const MAX_TRANSFORMERS = 20;
 
@@ -145,7 +145,8 @@ export function LinkToTransformer({
   const assignment = useQuery(
     live.liveQueryOptions(assignmentOperations.get, { id: report.assignmentId }),
   );
-  const transformers = (assignment.data?.brief as RoundBrief | undefined)?.transformers ?? [];
+  const transformers =
+    (assignment.data?.instructions as RoundInstructions | undefined)?.transformers ?? [];
   const [transformer, setTransformer] = useState('');
   if (report.subject) return null;
   return (

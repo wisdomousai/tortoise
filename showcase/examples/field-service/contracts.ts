@@ -243,7 +243,7 @@ export const fieldServiceModule = defineModule({
     {
       id: 'work-order-planning',
       operations: ['work-order.create', 'task.create', 'task.list', 'task.set-status'],
-      text: 'Create a work order from the brief, add concrete tasks, inspect the scoped task list, and update each task status as work progresses.',
+      text: 'Create a work order from the instructions, add concrete tasks, inspect the scoped task list, and update each task status as work progresses.',
     },
   ],
   os: fieldServiceOs,
@@ -265,7 +265,7 @@ export const workOrderPlannerModule = defineModule({
       id: 'work-order.planner',
       title: 'Work order planner',
       instructions:
-        'Break the selected work order into concrete tasks. Read the work order and its task list first, then request approval for task.create for each missing task (resource work-order:<id>) and task.set-status for tasks the brief says are done (resource task:<id>, with the task revision you read as baseRevisions). A person approves or rejects each request. Never request approval for deleting tasks or changing members.',
+        'Break the selected work order into concrete tasks. Read the work order and its task list first, then request approval for task.create for each missing task (resource work-order:<id>) and task.set-status for tasks the instructions says are done (resource task:<id>, with the task revision you read as baseRevisions). A person approves or rejects each request. Never request approval for deleting tasks or changing members.',
       operations: [
         'work-order.get',
         'task.list',

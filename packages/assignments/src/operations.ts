@@ -9,7 +9,7 @@ import {
 import type { AnyAssignmentKind } from './kind';
 import {
   anyAssignmentSchema,
-  anyFeedItemSchema,
+  anyInboundItemSchema,
   anyReportSchema,
   assigneeSchema,
   assignmentNoteSchema,
@@ -19,7 +19,7 @@ import {
   kindIdSchema,
   reportSchemaOf,
   reviewStateSchema,
-  type AnyFeedItemOf,
+  type AnyInboundItemOf,
   type AnyReportOf,
   type Assignee,
   type AssignmentOf,
@@ -72,7 +72,7 @@ export function kindOperations<const K extends AnyAssignmentKind>(kind: K) {
   const forwards = kind.target
     ? { integration: { target: targetOf(kind.target), delivery: 'outbox' as const } }
     : {};
-  const briefBlobs = kind.blobs?.brief ? { blobs: kind.blobs.brief } : {};
+  const instructionsBlobs = kind.blobs?.instructions ? { blobs: kind.blobs.instructions } : {};
   const one = kind.title.toLowerCase();
   return {
     create: defineCapability({
@@ -93,12 +93,12 @@ export function kindOperations<const K extends AnyAssignmentKind>(kind: K) {
       ui: { binding: `${base}.create` },
       display: display(`New ${one}`, 'assignment'),
       ...forwards,
-      ...briefBlobs,
+      ...instructionsBlobs,
     }),
     send: defineCapability({
       id: `${base}.send` as `assignment.${K['id']}.send`,
       kind: 'command',
-      description: `Send a draft ${one} assignment to an assignee, with the brief computed from its scope now. An assignee who may not take ${one} work is refused.`,
+      description: `Send a draft ${one} assignment to an assignee, with the instructions computed from its scope now. An assignee who may not take ${one} work is refused.`,
       input: jsonSchema(z.strictObject({ id: recordKeySchema, assignee: assigneeSchema })),
       output: jsonSchema(assignment),
       permission: permission(ASSIGNMENT, 'plan'),
@@ -106,7 +106,7 @@ export function kindOperations<const K extends AnyAssignmentKind>(kind: K) {
       ui: { binding: `${base}.send` },
       display: display('Send', 'assignment'),
       ...forwards,
-      ...briefBlobs,
+      ...instructionsBlobs,
     }),
     report: defineCapability({
       id: `${base}.report` as `assignment.${K['id']}.report`,
@@ -171,11 +171,11 @@ export type ReportListInput = {
   readonly limit?: number;
 };
 
-/** The operations shared by every kind: lifecycle, reads, the feed and review. */
+/** The operations shared by every kind: lifecycle, reads, inbound sync and review. */
 export function genericOperations<const K extends AnyAssignmentKind>(kinds: readonly K[]) {
   const assignment = anyAssignmentSchema(kinds);
   const report = anyReportSchema(kinds);
-  const feedItem = anyFeedItemSchema(kinds) as unknown as z.ZodType<AnyFeedItemOf<K>>;
+  const inboundItem = anyInboundItemSchema(kinds) as unknown as z.ZodType<AnyInboundItemOf<K>>;
   const kindId = kindIdSchema(kinds);
   const id = z.strictObject({ id: recordKeySchema });
   const idInput = jsonSchema(id);
@@ -263,7 +263,7 @@ export function genericOperations<const K extends AnyAssignmentKind>(kinds: read
     get: defineCapability({
       id: 'assignment.get',
       kind: 'query',
-      description: 'One assignment you may see, with its scope and brief, or NOT_FOUND.',
+      description: 'One assignment you may see, with its scope and instructions, or NOT_FOUND.',
       input: idInput,
       output: jsonSchema(assignment),
       permission: permission(ASSIGNMENT, 'read'),
@@ -271,22 +271,22 @@ export function genericOperations<const K extends AnyAssignmentKind>(kinds: read
       ui: { binding: 'assignment.get' },
       display: display('Assignment', 'assignment'),
     }),
-    feed: defineCapability({
-      id: 'assignment.feed',
+    inbound: defineCapability({
+      id: 'assignment.inbound',
       kind: 'query',
       description:
-        'The assignments sent to you that are not done, with their briefs: all of them at once. Pass the cursor of your last read; an unchanged set returns no items and the same cursor.',
+        'The assignments sent to you that are not done, with their instructions: all of them at once. Pass the cursor of your last read; an unchanged set returns no items and the same cursor.',
       input: jsonSchema(z.strictObject({ cursor: z.string().max(256).optional() })),
       output: jsonSchema(
         z.strictObject({
-          items: z.array(feedItem),
+          items: z.array(inboundItem),
           cursor: z.string(),
           more: z.boolean().optional(),
         }),
       ),
       permission: permission(ASSIGNMENT, 'work'),
       dependencies: ['assignment'],
-      ui: { binding: 'assignment.feed' },
+      ui: { binding: 'assignment.inbound' },
       display: display('My assignments', 'assignment'),
     }),
     reportList: defineCapability({

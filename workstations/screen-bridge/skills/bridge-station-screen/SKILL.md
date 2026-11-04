@@ -51,7 +51,7 @@ A station whose software has an automation interface is reached through a driver
 
 1. Gate every profile or recognition change with the golden test on labeled frames: `cd showcase/examples/winding-line && bun run station:golden` (`scripts/station-golden.ts`). Without a configured model it replays recorded expectations and checks only the wiring.
 2. Re-record frames from the fake HMI with the example's `station:record-golden` script.
-3. Add a composed conformance test for surface parity and for each principal calling only its own operations.
+3. Add a composed conformance test for channel parity and for each principal calling only its own operations.
 4. Add a browser test against a separate fake HMI process (`showcase/examples/winding-line/e2e/station.pw.ts`).
 5. Run the tests:
 

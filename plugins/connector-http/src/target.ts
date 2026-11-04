@@ -51,7 +51,7 @@ export interface HttpTargetOptions<Item> {
     readonly pendingWhen?: (body: unknown) => boolean;
   };
   /** Inbound changes: a GET page of items after a cursor. */
-  readonly feed?: {
+  readonly inbound?: {
     readonly path: (cursor: string | undefined) => string;
     /** JSON pointers into the page. */
     readonly items: string;
@@ -135,20 +135,20 @@ export function httpTargetPort<Item = unknown>(
     return { status: 'accepted' as const, ...(externalRef ? { externalRef } : {}) };
   };
 
-  const pull = options.feed
+  const pull = options.inbound
     ? async (cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>> => {
-        const feed = options.feed!;
-        const response = await send(feed.path(cursor), { method: 'GET' }, signal);
+        const inbound = options.inbound!;
+        const response = await send(inbound.path(cursor), { method: 'GET' }, signal);
         if (!response.ok) throw transient(response.status);
         const body = await bodyOf(response);
-        const items = readPointer(body, feed.items);
-        const next = readPointer(body, feed.cursor);
+        const items = readPointer(body, inbound.items);
+        const next = readPointer(body, inbound.cursor);
         if (!Array.isArray(items) || typeof next !== 'string')
           throw new DeliveryFailure(
-            `${options.target} returned a feed page without items or a cursor`,
+            `${options.target} returned an inbound page without items or a cursor`,
           );
-        const more = feed.more ? readPointer(body, feed.more) === true : false;
-        return { items: items.map(feed.map), cursor: next, more };
+        const more = inbound.more ? readPointer(body, inbound.more) === true : false;
+        return { items: items.map(inbound.map), cursor: next, more };
       }
     : undefined;
 

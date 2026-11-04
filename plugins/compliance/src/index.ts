@@ -6,7 +6,7 @@
  * - `controls`, `controlsMarkdown`: control catalog mapped to ISO 27001, NIST 800-53/CSF and
  *   IEC 62443-4-2, with re-runnable evidence.
  * - `cycloneDx`: CycloneDX 1.6 SBOM from `bun.lock`, with declared destinations as services.
- * - `assessPosture`, `createPostureMonitor`: passive runtime posture and `posture.checked`.
+ * - `assessCompliance`, `createComplianceMonitor`: passive runtime compliance status and `compliance.checked`.
  * - `compliancePlugin`: the host plugin composing the auditor queries, the monitor and the CLI
  *   verb; its manifest (`./plugin-manifest`) and screens (`./plugin-screens`) are browser-safe.
  */
@@ -21,25 +21,25 @@ export { controls, controlsMarkdown, type Control } from './controls';
 export { cycloneDx, parseBunLock, type SbomOptions } from './sbom';
 export {
   accumulateNetworkUsage,
-  assessPosture,
-  postureMarkdown,
+  assessCompliance,
+  complianceMarkdown,
   type NetworkUsage,
-  type PostureInput,
-} from './posture';
+  type ComplianceInput,
+} from './status';
 export {
-  createPostureMonitor,
+  createComplianceMonitor,
   type CompliancePort,
-  type PostureMonitor,
-  type PostureMonitorOptions,
+  type ComplianceMonitor,
+  type ComplianceMonitorOptions,
 } from './monitor';
 export {
   complianceModule,
   complianceOperations,
   type AuditEventView,
-  type DestinationPosture,
+  type DestinationStatus,
   type LogVerification,
-  type Posture,
-  type PostureCheck,
+  type ComplianceStatus,
+  type ComplianceCheck,
 } from './contracts';
 export { compliancePlugin } from './plugin';
 export { compliancePluginManifest } from './plugin-manifest';

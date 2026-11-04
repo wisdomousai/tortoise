@@ -19,7 +19,7 @@ import { localUser, supervisor, utilityIds } from './support';
  * weights, and each run starts as the assistant panel starts it: through the run route, with the
  * assistant's agent ID, no harness and a UI session. LOCAL_MODEL_LICENSE names the license.
  *
- * Each test judges the receipts: the calls a run finished and their refusal codes, the questions it
+ * Each test judges the command results: the calls a run finished and their refusal codes, the questions it
  * asked through the question tool, the records it changed and the approval requests it made, and
  * what approving such a request as a supervisor commits. It never judges the text. A test holds
  * the whole turn and fails at its end with every rule the run broke, so one run shows all of them.
@@ -141,8 +141,8 @@ async function until(
   throw new Error(`Run ${id} did not reach ${states.join(' or ')}`);
 }
 
-/** A run's receipts: its finished calls with refusal codes and changed records, and its questions. */
-function receipts(run: RunSnapshot) {
+/** A run's command results: its finished calls with refusal codes and changed records, and its questions. */
+function commandResults(run: RunSnapshot) {
   return {
     id: run.id,
     state: run.state,
@@ -194,7 +194,7 @@ live(
     const request = 'A caller from Northgrid reads TR-404 off the plate. Which transformer is it?';
     let run = await until((await start(request, session)).id);
     const runs = [run];
-    const first = receipts(run);
+    const first = commandResults(run);
     if (first.calls[0]?.operation !== 'transformer.find' || first.calls[0]?.code)
       failures.push(`the first call is not transformer.find: ${JSON.stringify(first.calls)}`);
 
@@ -223,7 +223,7 @@ live(
       );
     }
 
-    const all = runs.map(receipts);
+    const all = runs.map(commandResults);
     console.log(JSON.stringify(all, null, 2));
     for (const each of all) {
       if (each.state !== 'succeeded') failures.push(`run ${each.id} ended ${each.state}`);
@@ -283,7 +283,7 @@ live(
       'failed',
       'cancelled',
     ]);
-    const result = receipts(run);
+    const result = commandResults(run);
     console.log(JSON.stringify(result, null, 2));
     if (result.state !== 'succeeded') failures.push(`the run ended ${result.state}`);
     const changed = result.calls.flatMap((call) => call.resources ?? []);

@@ -42,12 +42,12 @@ test('a member reports the samples of a round sent to them, and a technician acc
   expect(sent).toMatchObject({ status: 'sent', stage: 'sent' });
 
   // Vera sees each transformer's last sample as it was when the round was sent.
-  expect(await read('assignment.feed', {}, vera)).toMatchObject({
+  expect(await read('assignment.inbound', {}, vera)).toMatchObject({
     items: [
       {
         id: sent.id,
         kind: 'sampling',
-        brief: {
+        instructions: {
           substation: 'Northfield 110 kV',
           transformers: [
             { transformer: 'TR-40517', lastSample: 'OS-24-0301', lastMethod: gas },
@@ -57,7 +57,7 @@ test('a member reports the samples of a round sent to them, and a technician acc
       },
     ],
   });
-  expect(await refused(read('assignment.feed', {}, olga))).toBe('FORBIDDEN');
+  expect(await refused(read('assignment.inbound', {}, olga))).toBe('FORBIDDEN');
 
   const report = (id: string, sample: string, description: string, subject?: string) =>
     run(
@@ -105,7 +105,7 @@ test('a member reports the samples of a round sent to them, and a technician acc
   await run('assignment.close', { id: sent.id });
   expect(await read('assignment.get', { id: sent.id })).toMatchObject({ stage: 'closed' });
   expect(await refused(report('r6', 'OS-24-0421', 'Too late.', 'TR-40517'))).toBe('CONFLICT');
-  expect(await read('assignment.feed', {}, vera)).toMatchObject({ items: [], more: false });
+  expect(await read('assignment.inbound', {}, vera)).toMatchObject({ items: [], more: false });
 });
 
 test('the assignee list names the members of the lab', async () => {

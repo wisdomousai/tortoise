@@ -21,7 +21,7 @@ const open = Object.fromEntries(
 /**
  * Membership and region policy. Searches, lists and status are open to members and scoped to
  * their regions in the handlers, before anything is counted. The integration principal may only
- * apply the feed, complete outcomes and read the watermark; nobody else may do either.
+ * apply inbound sync, complete outcomes and read the watermark; nobody else may do either.
  */
 export const crmPolicy = definePolicy<CrmState, never>({
   integrations: [

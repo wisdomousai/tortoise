@@ -45,6 +45,6 @@ test('the trial records cover every category and assembly, and a relaunch adds n
   expect(new Set(first.parts.items.map((item) => item.assembly))).toEqual(new Set(assemblies));
   expect(first.parts.items.some((item) => item.stock === 0)).toBe(true);
   expect(first.parts.items.some((item) => (item.stock as number) > 0)).toBe(true);
-  // The second launch replays the stored receipts: the same records under the same IDs.
+  // The second launch replays the stored command results: the same records under the same IDs.
   expect(await launch(workspacePath)).toEqual(first);
 });

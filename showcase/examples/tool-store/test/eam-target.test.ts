@@ -103,10 +103,11 @@ const idle = { accepted: 0, rejected: 0, retried: 0, deferred: 0, held: 0, ackno
 
 test('a damaged return sends a repair order and the loan records the EAM number', async () => {
   const { eam, deliver, returnTool, loan, status } = await open();
-  const receipt = await returnTool('damaged', ' ratchet slips ');
-  const effectId = (receipt.result as { repairOrder: { effectId: string } }).repairOrder.effectId;
-  // The receipt proves the local commit only: the EAM has not answered yet.
-  expect(receipt.result).toMatchObject({ repairOrder: { effectId, sync: 'pending' } });
+  const commandResult = await returnTool('damaged', ' ratchet slips ');
+  const effectId = (commandResult.result as { repairOrder: { effectId: string } }).repairOrder
+    .effectId;
+  // The command result proves the local commit only: the EAM has not answered yet.
+  expect(commandResult.result).toMatchObject({ repairOrder: { effectId, sync: 'pending' } });
   expect(eam.repairOrders).toEqual([]);
 
   expect(await deliver()).toMatchObject({ accepted: 1 });
@@ -155,8 +156,9 @@ test('the EAM refuses an asset tag it does not know with ASSET_UNKNOWN, once', a
 test('a lost reply is held, not sent again, and a person records the number they found', async () => {
   const { eam, deliver, returnTool, loan, status, held, resolve } = await open();
   eam.loseNextReply();
-  const receipt = await returnTool('damaged', 'cracked housing');
-  const effectId = (receipt.result as { repairOrder: { effectId: string } }).repairOrder.effectId;
+  const commandResult = await returnTool('damaged', 'cracked housing');
+  const effectId = (commandResult.result as { repairOrder: { effectId: string } }).repairOrder
+    .effectId;
 
   // The first pass loses the reply and retries. Before sending again the dispatcher looks the
   // request up, and the EAM's log has no answer, so it holds the repair order.
@@ -240,7 +242,7 @@ const master = (fields: Partial<EamTool> & Pick<EamTool, 'version'>): EamTool =>
   ...fields,
 });
 
-test('the feed updates master data by asset tag, never status, and drops a stale item', async () => {
+test('inbound sync updates master data by asset tag, never status, and drops a stale item', async () => {
   const { eam, app, integrations, tool, status } = await open();
   eam.publish(master({ version: 5 }));
   // An asset the store does not hold adds no tool.
@@ -271,7 +273,7 @@ test('the feed updates master data by asset tag, never status, and drops a stale
   expect(updated).not.toHaveProperty('calibrationDue');
 });
 
-test('a stale feed range conflicts and changes nothing', async () => {
+test('a stale inbound range conflicts and changes nothing', async () => {
   const { eam, app, integrations, connector, tool, status } = await open();
   eam.publish(master({ version: 1 }));
   await integrations.sync();
@@ -292,8 +294,9 @@ test('a stale feed range conflicts and changes nothing', async () => {
 
 test('only the connector completes and syncs, and it can do nothing else', async () => {
   const { app, connector, returnTool } = await open();
-  const receipt = await returnTool('damaged');
-  const effectId = (receipt.result as { repairOrder: { effectId: string } }).repairOrder.effectId;
+  const commandResult = await returnTool('damaged');
+  const effectId = (commandResult.result as { repairOrder: { effectId: string } }).repairOrder
+    .effectId;
   const complete = {
     operation: 'eam.effect.complete',
     input: { effectId, outcome: { status: 'accepted', externalRef: 'RO-999999' } },

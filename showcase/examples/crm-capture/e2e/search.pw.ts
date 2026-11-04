@@ -34,7 +34,7 @@ test('search as you type, follow, and log an activity that reaches the CRM', asy
     await search.fill('alpine');
     await expect(page.getByText('No matches you can see in the CRM.')).toBeVisible();
 
-    // Following asks the CRM; the feed then delivers the account, live, without a new search.
+    // Following asks the CRM; inbound sync then delivers the account, live, without a new search.
     await search.fill('acme rob');
     await page.getByRole('button', { name: 'Follow Acme Robotics' }).click();
     await expect(accounts.getByText('Follow requested')).toBeVisible();

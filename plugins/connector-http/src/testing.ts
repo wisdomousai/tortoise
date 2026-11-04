@@ -1,7 +1,7 @@
 /**
  * A REST system of record for tests: it deduplicates on the idempotency header, or keys a
  * record by the client reference in its `ref` field when the header is absent, refuses records
- * without a `sku` with 422, finds a record by its key, and serves a change feed. It listens on
+ * without a `sku` with 422, finds a record by its key, and serves a change list. It listens on
  * loopback only; reach it through a network port bound to its origin.
  */
 export class FakeRestSystem {
@@ -26,7 +26,7 @@ export class FakeRestSystem {
     await this.server?.stop(true);
   }
 
-  /** Make one record appear in the feed, as if another user created it. */
+  /** Make one record appear in inbound sync, as if another user created it. */
   change() {
     const id = `ext-${this.changes.length + 1}`;
     this.changes.push({ seq: this.changes.length + 1, id });

@@ -63,29 +63,29 @@ function CapturedTools({ run }: { run: Run }) {
  * so it captures the ticked tools, and it acts as the terminal's session, the local user, not
  * as the signed-in attendant. The deterministic demo harness takes a script: Start run reads each
  * ticked tool with `tool.get`, and Pull for calibration opens the first ticked tool at the counter
- * and asks the attendant to review its bin change. A provider harness takes the brief instead.
+ * and asks the attendant to review its bin change. A provider harness takes the instructions instead.
  * Neither script calls a command; the attendant saves the change on the counter.
  */
 export function TerminalAgent({
   selected,
   agent,
   onAgent,
-  brief,
-  onBrief,
+  instructions,
+  onInstructions,
   prepareSession,
 }: {
   selected: readonly SelectedTool[];
   agent: AgentSelection;
   onAgent: (agent: AgentSelection) => void;
-  brief: string;
-  onBrief: (brief: string) => void;
+  instructions: string;
+  onInstructions: (instructions: string) => void;
   /** Bind the UI session to the current selection and return the version a run must capture. */
   prepareSession: () => Promise<{ sessionId: string; version: number }>;
 }) {
   const runs = useRuns();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const briefId = useId();
+  const instructionsId = useId();
   const demo = agent.harnessId === 'deterministic';
   const first = selected[0];
   const latest = runs.data?.at(-1);
@@ -119,24 +119,24 @@ export function TerminalAgent({
       </p>
       <Accounts selection={agent} onSelect={onAgent} onError={setError} />
       <div className="space-y-1">
-        <Label htmlFor={briefId}>Brief</Label>
+        <Label htmlFor={instructionsId}>Instructions</Label>
         <Textarea
-          id={briefId}
-          value={brief}
-          onChange={(event) => onBrief(event.target.value)}
+          id={instructionsId}
+          value={instructions}
+          onChange={(event) => onInstructions(event.target.value)}
           placeholder="What the agent does with the ticked tools"
         />
         {demo && (
           <p className="text-xs text-muted-foreground">
-            The demo harness runs a script and ignores the brief.
+            The demo harness runs a script and ignores the instructions.
           </p>
         )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="secondary"
-          disabled={busy || !first || (!demo && !brief.trim())}
-          onClick={() => void start(demo ? readToolsScript(selected) : brief.trim())}
+          disabled={busy || !first || (!demo && !instructions.trim())}
+          onClick={() => void start(demo ? readToolsScript(selected) : instructions.trim())}
         >
           Start run
         </Button>
@@ -145,7 +145,9 @@ export function TerminalAgent({
           disabled={busy || !first}
           onClick={() =>
             first &&
-            void start(demo ? calibrationPullScript(first) : calibrationPullPrompt(brief, first))
+            void start(
+              demo ? calibrationPullScript(first) : calibrationPullPrompt(instructions, first),
+            )
           }
         >
           Pull for calibration

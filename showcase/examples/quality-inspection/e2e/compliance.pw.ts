@@ -4,13 +4,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../../tests/e2e/service';
 
-test('the compliance screen shows posture and a new denial without a reload', async ({ page }) => {
+test('the compliance screen shows compliance status and a new denial without a reload', async ({
+  page,
+}) => {
   const workspace = await mkdtemp(join(tmpdir(), 'tortoise-compliance-'));
   const host = await startService('@tortoise/quality-inspection', workspace);
   try {
     await page.goto(host.launchUrl);
     await page.getByRole('link', { name: 'Compliance', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Security posture' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compliance status' })).toBeVisible();
     // No deployment policy: the service runs isolated, and says which destinations that closes.
     await expect(page.getByText('network isolated', { exact: false })).toBeVisible();
     await expect(page.getByRole('row', { name: /openai-api/ })).toContainText('isolated');

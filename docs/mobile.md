@@ -32,7 +32,7 @@ Screens and the background task share one instance through `apps/mobile/src/app.
 
 ## Embedded and attached modes
 
-**Embedded.** Work for another system goes through the outbox, as on the desktop. For a hub, the peer connector `createPeerPort` sends over the hub-link network port. The hub's feed comes back through inbound sync.
+**Embedded.** Work for another system goes through the outbox, as on the desktop. For a hub, the peer connector `createPeerPort` sends over the hub-link network port. Records from the hub come back through inbound sync.
 
 **Attached.** A tablet paired as `attached` opens the hub's web build in a WebView, from hub-link's Hub screens tab. The tablet bundles nothing, so screens always match the hub's version. The hub's screens declare a `compact` variant for narrow viewports, as the asset-survey review queue does.
 

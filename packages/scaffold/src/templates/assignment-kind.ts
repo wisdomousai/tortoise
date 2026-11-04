@@ -8,15 +8,15 @@ import { defineAssignmentKind } from '@tortoise/assignments';
 import { ${one.camel}Schema } from './${one.kebab}';
 
 /**
- * ${kind.title} of ${many.words}: whoever takes it reports on each ${one.words} in the brief.
+ * ${kind.title} of ${many.words}: whoever takes it reports on each ${one.words} in the instructions.
  * Accepting a report sets that ${one.words}'s status to the reported one.
  */
 export const ${kind.camel} = defineAssignmentKind({
   id: '${kind.kebab}',
   title: '${kind.title}',
-  description: 'Look at each ${one.words} in the brief and report whether it is open or done, with a note.',
+  description: 'Look at each ${one.words} in the instructions and report whether it is open or done, with a note.',
   scope: z.strictObject({ ${many.camel}: z.array(recordKeySchema).min(1).max(50) }),
-  brief: z.strictObject({
+  instructions: z.strictObject({
     ${many.camel}: z.array(
       z.strictObject({
         id: recordKeySchema,
@@ -106,7 +106,7 @@ const invalid = (message: string, field: string) =>
 
 /**
  * The ${kind.words} hooks, which the assignment feature calls inside its commands. The scope
- * names ${many.words} that exist, and the assignee is a member. The brief holds each
+ * names ${many.words} that exist, and the assignee is a member. The instructions hold each
  * ${one.words}'s title and status when the assignment is sent. A report is about one of them,
  * and accepting it runs ${one.kebab}.update as the person accepting.
  */
@@ -118,7 +118,7 @@ export const ${kind.camel}Hooks = {
   assignee(assignee: { readonly type: string; readonly id: string }, ctx: Context) {
     if (!own(ctx.state.members, assignee.id)) throw invalid(\`\${assignee.id} is not a member\`, 'assignee');
   },
-  brief(assignment: Readonly<StoredAssignment>, ctx: Context) {
+  instructions(assignment: Readonly<StoredAssignment>, ctx: Context) {
     return {
       ${many.camel}: ${many.camel}In(assignment.scope).flatMap((id) => {
         const record = own(ctx.state.${many.camel}, id);
@@ -243,7 +243,7 @@ function Mine() {
   return (
     <MyAssignments
       title="My ${kinds.words}"
-      feed={assignmentOperations.feed}
+      inbound={assignmentOperations.inbound}
       complete={assignmentOperations.complete}
       kinds={[{ kind: ${kind.camel}, report: assignmentOperations.${kind.camel}Report }]}
     />
@@ -312,9 +312,9 @@ test('${kind.a} sent to a member comes back as reports, and accepting one sets i
     localUser,
     'send',
   );
-  const feed = await app.queryRaw({ operation: 'assignment.feed', input: {} }, worker);
-  expect(feed.data).toMatchObject({
-    items: [{ id: sent.id, brief: { ${many.camel}: [{ id: first, title: 'First', status: 'open' }] } }],
+  const inbound = await app.queryRaw({ operation: 'assignment.inbound', input: {} }, worker);
+  expect(inbound.data).toMatchObject({
+    items: [{ id: sent.id, instructions: { ${many.camel}: [{ id: first, title: 'First', status: 'open' }] } }],
   });
 
   const report = (id: string, subject: string) => ({
@@ -345,7 +345,7 @@ test('${kind.a} sent to a member comes back as reports, and accepting one sets i
   expect(board.data).toMatchObject({ items: [{ id: sent.id, stage: 'closed' }] });
 });
 
-test('a viewer may not plan, work goes only to members, and a stranger has no feed', async () => {
+test('a viewer may not plan, work goes only to members, and a stranger has no inbound sync', async () => {
   const { app, run } = await open();
   const first = (await run('${one.kebab}.create', { title: 'First' }, localUser, 'first')).id;
   const draft = { title: 'Week 1', scope: { ${many.camel}: [first] } };
@@ -361,7 +361,7 @@ test('a viewer may not plan, work goes only to members, and a stranger has no fe
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   await expect(
-    app.queryRaw({ operation: 'assignment.feed', input: {} }, stranger),
+    app.queryRaw({ operation: 'assignment.inbound', input: {} }, stranger),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 });
 `;
@@ -421,7 +421,7 @@ export function assignmentKind(app: AppNames, kind: Names, one: Names, first: bo
       ...(first
         ? [
             `{ prefix: 'assignment.', to: '${board}' },`,
-            `{ prefix: 'assignment.feed', to: '${mine}' },`,
+            `{ prefix: 'assignment.inbound', to: '${mine}' },`,
             `{ prefix: 'assignment.complete', to: '${mine}' },`,
             `{ prefix: 'assignee.', to: '${board}' },`,
           ]

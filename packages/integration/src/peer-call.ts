@@ -27,8 +27,8 @@ export class PeerCallError extends Error {
   }
 }
 
-/** What the peer's command route returns: its receipt, without the session-bound cursor. */
-export interface PeerReceipt<T = unknown> {
+/** What the peer's command route returns: its command result, without the session-bound cursor. */
+export interface PeerCommandResult<T = unknown> {
   readonly operation: string;
   readonly result: T;
   readonly effects?: readonly string[];
@@ -48,7 +48,7 @@ export interface PeerCall {
     input: unknown,
     idempotencyKey: string,
     signal?: AbortSignal,
-  ): Promise<PeerReceipt<T>>;
+  ): Promise<PeerCommandResult<T>>;
   query<T = unknown>(operation: string, input?: unknown, signal?: AbortSignal): Promise<T>;
   /** Store a blob on the peer; returns the digest the peer stored it under. */
   upload(mediaType: string, data: Uint8Array, signal?: AbortSignal): Promise<string>;
@@ -114,7 +114,7 @@ export function createPeerCall(options: PeerCallOptions): PeerCall {
         { input, idempotencyKey },
         signal,
       );
-      const { operation: returned, result, effects } = await json<PeerReceipt<T>>(response);
+      const { operation: returned, result, effects } = await json<PeerCommandResult<T>>(response);
       return { operation: returned, result, ...(effects ? { effects } : {}) };
     },
     async query<T>(operation: string, input: unknown = {}, signal?: AbortSignal) {

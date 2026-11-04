@@ -100,7 +100,7 @@ export const partOperations = {
   partGet: collectionGet(parts, {
     id: 'part',
     description:
-      'Read one spare part by its ID, as part.list or part.search returns it. Call it for the current price, stock and lead time of a part whose ID you have. Returns the record. An unknown ID is NOT_FOUND. A command receipt that changed it includes its revision as part:<id>, for expectedRevisions. Any member may call it.',
+      'Read one spare part by its ID, as part.list or part.search returns it. Call it for the current price, stock and lead time of a part whose ID you have. Returns the record. An unknown ID is NOT_FOUND. A command result that changed it includes its revision as part:<id>, for expectedRevisions. Any member may call it.',
   }),
   partCreate: collectionCreate(parts, {
     id: 'part',

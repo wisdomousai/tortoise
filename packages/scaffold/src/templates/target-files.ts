@@ -1,7 +1,7 @@
 import type { AppNames } from './application';
 import type { Names } from './names';
 
-/** The target's screen: delivery counts, the last feed sync, and a form that sends one record. */
+/** The target's screen: delivery counts, the last inbound sync, and a form that sends one record. */
 export const targetScreen = (
   t: Names,
   one: Names,
@@ -10,7 +10,7 @@ import { CapabilityForm } from '@/components/capability-form';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
 
-/** Delivery to ${t.words}: what is waiting, accepted and rejected, and the last feed sync. */
+/** Delivery to ${t.words}: what is waiting, accepted and rejected, and the last inbound sync. */
 export function ${t.pascal}Screen() {
   const status = useQuery(live.liveQueryOptions(operations.${t.camel}Status, {}));
   const rows: [string, string][] = [
@@ -18,7 +18,7 @@ export function ${t.pascal}Screen() {
     ['Accepted', String(status.data?.accepted ?? 0)],
     ['Rejected', String(status.data?.rejected ?? 0)],
     [
-      'Last feed sync',
+      'Last inbound sync',
       status.data?.lastSyncAt ? new Date(status.data.lastSyncAt).toLocaleString() : 'Never',
     ],
   ];
@@ -42,7 +42,7 @@ export function ${t.pascal}Screen() {
 }
 `;
 
-/** The target's behavioral test: send, deliver, complete, feed, and who may do each. */
+/** The target's behavioral test: send, deliver, complete, inbound sync, and who may do each. */
 export const targetTest = (
   app: AppNames,
   t: Names,
@@ -80,7 +80,7 @@ async function open() {
   return { port, ...instance };
 }
 
-test('a sent ${one.words} is delivered after commit and completed; the feed adds ${many.words}', async () => {
+test('a sent ${one.words} is delivered after commit and completed; inbound sync adds ${many.words}', async () => {
   const { port, application, integrations } = await open();
   await application.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Local' }, idempotencyKey: 'create' },

@@ -52,7 +52,7 @@ export const customerOperations = {
   customerGet: collectionGet(customers, {
     id: 'customer',
     description:
-      'Read one utility by its ID, such as the customerId of a transformer, inquiry or quote. Call it for the account, name and phone to call back. Returns the record. An unknown ID is NOT_FOUND. A command receipt that changed the utility includes its revision as customer:<id>, for expectedRevisions. Any member may call it.',
+      'Read one utility by its ID, such as the customerId of a transformer, inquiry or quote. Call it for the account, name and phone to call back. Returns the record. An unknown ID is NOT_FOUND. A command result that changed the utility includes its revision as customer:<id>, for expectedRevisions. Any member may call it.',
   }),
   customerCreate: collectionCreate(customers, {
     id: 'customer',

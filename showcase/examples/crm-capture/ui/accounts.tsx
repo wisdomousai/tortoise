@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Building2 } from 'lucide-react';
 import { LocalStatusBadge, useLocalAccounts } from './local-status';
 
-/** Accounts this workspace follows, live: they fill in as the CRM feed delivers them. */
+/** Accounts this workspace follows, live: they fill in as the CRM inbound sync delivers them. */
 export function AccountsScreen() {
   const { accounts } = useLocalAccounts();
   return (

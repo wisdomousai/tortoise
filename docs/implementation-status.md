@@ -16,7 +16,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 | [State migrations](#state-migrations)                           | Declared in most examples                                  | Keeping data of a removed feature                          |
 | [Workflows](#workflows)                                         | Unit tests                                                 | Browser test, multi-day run                                |
 | [Authorization and live queries](#authorization-and-live-queries) | Tests                                                    | Device and peer revocation during a request                |
-| [Surfaces](#surfaces)                                           | Five apps in the browser                                   | —                                                          |
+| [Screens](#screens)                                             | Five apps in the browser                                   | —                                                          |
 | [Agents and providers](#agents-and-providers)                   | Gemma 4 E4B on llama.cpp, live                             | ChatGPT, Claude, AI SDK inference                          |
 | [Execution host](#execution-host)                               | bubblewrap in a Linux container                            | x86-64, glibc, macOS, Windows, a harness inside it         |
 | [Systems of record](#systems-of-record)                         | Fakes and a loopback LIMS                                  | Any real ERP, CRM, EAM or LIMS                             |
@@ -36,7 +36,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Catalog, runtime and storage
 
 - **Proven:** 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms. A triggered agent requested approval on a real local model.
-- **Limits:** row storage serializes every row to find the change, so commit CPU grows with state. The instance keeps receipts by default. The phone's snapshot storage has no rows or retention. No encryption at rest.
+- **Limits:** row storage serializes every row to find the change, so commit CPU grows with state. The instance keeps command results by default. The phone's snapshot storage has no rows or retention. No encryption at rest.
 
 ### Hosted instance
 
@@ -102,7 +102,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Proven:** `packages/adapters/src/http-credentials.test.ts` revokes a host session, and aborts a plugin credential's signal, inside a command's handler; the command returns `CANCELLED` and commits nothing. Workforce sign-out and operator sign-out abort their sessions' signals.
 - **Limits:** a plugin credential stops a running request only when the plugin sets a signal on the context it resolves. Paired-device and peer credentials set none, so their revocation applies at the next request.
 
-### Surfaces
+### Screens
 
 - **Proven (browser or by hand in Chrome):** field-service (live updates from an MCP process, drafts, paging), quality-inspection (keyboard capture, conflicting drafts), crm-capture (search, follow, log), review (approvals, revisions, signatures), signals (OPC UA and Sparkplug B readings from a plant stand-in).
 - **Proven (browser, 4 Nov):** `showcase/patterns/base/e2e/export-and-print.pw.ts` exports 120 test requests as one CSV over two list pages and checks the print layout with print media emulated in headless Chromium.
@@ -130,7 +130,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ### Systems of record
 
-- **Proven (by hand):** `showcase/patterns/system-of-record` against its fake LIMS: register, held after six attempts, resolve as applied, reject with the LIMS's reason, import through the feed.
+- **Proven (by hand):** `showcase/patterns/system-of-record` against its fake LIMS: register, held after six attempts, resolve as applied, reject with the LIMS's reason, import through inbound sync.
 - **Proven (browser):** `showcase/examples/tool-store` against its fake EAM: a damaged return shows the repair order number on the tool, and with `DEMO_EAM_UNKNOWN_TAGS` the refused repair order (`ASSET_UNKNOWN`) shows as needing attention and is counted on the EAM screen. Its held repair orders are tested through the instance only.
 - **Not yet:** any real ERP, CRM, EAM or LIMS; extraction on a model provider; asset-survey's live comparison.
 - **Limits:** two dispatcher processes cannot share a local workspace. Capture timings are synthetic.
@@ -145,11 +145,11 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 - **Proven (browser):** `showcase/patterns/assignments/e2e/rounds.pw.ts` (person assignees) and `showcase/patterns/worklist/e2e/worklist.pw.ts` (peer assignee across two hosts).
 - **Not yet:** an agent assignee on a model; an assignment target outside tests; the cycle count screens of `showcase/examples/tool-store` in a browser. Those screens act as the terminal's session, so an attendant signed in at the counter cannot work a count there.
-- **Limits:** an app that fills no slots shows the brief as JSON.
+- **Limits:** an app that fills no slots shows the instructions as JSON.
 
 ### Connector plugins
 
-- **Proven (by hand, 17 Oct):** `connector-opcua` read values from an asyncua server. `connector-mqtt` decoded Sparkplug B from an amqtt broker. `showcase/examples/receiving/e2e/receiving.pw.ts` imports a notice, posts a receipt and shows it accepted. The [receiving walkthrough](../showcase/examples/receiving/README.md) ran by hand on 28–29 Oct.
+- **Proven (by hand, 17 Oct):** `connector-opcua` read values from an asyncua server. `connector-mqtt` decoded Sparkplug B from an amqtt broker. `showcase/examples/receiving/e2e/receiving.pw.ts` imports a notice, posts a command result and shows it accepted. The [receiving walkthrough](../showcase/examples/receiving/README.md) ran by hand on 28–29 Oct.
 - **Not yet:** a real PLC, OPC UA gateway, Sparkplug node or broker over TLS; OPC UA security; a real network share; a real REST system.
 
 ### Operator workstation bridge
@@ -199,7 +199,7 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 
 ## Planned improvements
 
-- Share event, receipt and cancellation handling between the HTTP and direct adapters.
+- Share event, command result and cancellation handling between the HTTP and direct adapters.
 - Extract a reusable draft model from capture and scanner setup.
 - Replace `./*` wildcard exports with explicit entrypoints before 1.0.
 

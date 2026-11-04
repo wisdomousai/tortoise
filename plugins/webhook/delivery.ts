@@ -59,13 +59,13 @@ async function deliverOnce(loop: Loop) {
     }
     return;
   }
-  const receipt = await application.invokeRaw(
+  const commandResult = await application.invokeRaw(
     { operation: recordOperation, input: { cursor: batch.cursor, delivered: changes.length } },
     loop.caller,
   );
   delete loop.lastError;
   // Past this pass's own record, so the next pass does not read it again.
-  loop.cursor = receipt.cursor;
+  loop.cursor = commandResult.cursor;
 }
 
 /**

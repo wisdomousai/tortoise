@@ -16,8 +16,8 @@ export function useScreenCommand<C extends AnyCapability & { kind: 'command' }>(
     // The input is opaque to the form; the capability's schema validates it before the request.
     defaultValues: { input: null as unknown },
     toInput: (values) => values.input as InputOf<C>,
-    onCommitted: (receipt) => {
-      committed.current = receipt.result;
+    onCommitted: (commandResult) => {
+      committed.current = commandResult.result;
     },
   });
   return {

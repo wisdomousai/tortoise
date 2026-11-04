@@ -12,7 +12,7 @@ import { createFieldHandlers, notifyNewSurvey } from './handlers';
 import { fieldManifest } from './manifest';
 import { fieldPolicy } from './policy';
 
-/** The principal that delivers to the hub and applies its feed. */
+/** The principal that delivers to the hub and applies its inbound sync. */
 export const INTEGRATION_PRINCIPAL = 'integration';
 
 /**

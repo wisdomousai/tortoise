@@ -31,8 +31,8 @@ export function WorkOrdersScreen() {
     <div className="mx-auto max-w-xl space-y-4 rounded-2xl border border-dashed bg-card p-10 text-center">
       <h1 className="text-2xl font-semibold">Your first work order</h1>
       <p className="text-sm text-muted-foreground">
-        Name it and give the customer site, then add tasks yourself or let the agent turn a brief
-        into tasks. Your data stays on this computer.
+        Name it and give the customer site, then add tasks yourself or let the agent turn the
+        instructions into tasks. Your data stays on this computer.
       </p>
       <form
         className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
@@ -43,10 +43,10 @@ export function WorkOrdersScreen() {
               name,
               ...(site.trim() ? { site: site.trim() } : {}),
             })
-            .then((receipt) =>
+            .then((commandResult) =>
               navigate({
                 to: '/work-orders/$workOrderId',
-                params: { workOrderId: receipt.result.id },
+                params: { workOrderId: commandResult.result.id },
               }),
             )
             .catch((cause) => setError(message(cause)));

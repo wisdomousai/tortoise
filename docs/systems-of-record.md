@@ -21,12 +21,12 @@ export const qualityTarget = defineTarget({
     status: 'inspection.sync.status', // anyone: pending, accepted, rejected counts
   },
   changes: ['lot', 'result', 'defect'],
-  feed: { item: lotSnapshotSchema, max: 200, changes: ['lot'] },
+  inbound: { item: lotSnapshotSchema, max: 200, changes: ['lot'] },
   // status: ..., descriptions: ...
 });
 ```
 
-Without a `feed`, the target only delivers. `targetHandlers(qualityTarget, {...})` builds the three handlers; you supply how an outcome changes your record and how a feed item changes local state.
+Without an `inbound` declaration, the target only delivers. `targetHandlers(qualityTarget, {...})` builds the three handlers; you supply how an outcome changes your record and how an inbound item changes local state.
 
 ## Outbox and completion
 
@@ -61,7 +61,7 @@ What happens next:
 
 | Step                               | Rule                                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------------------- |
-| Commit                             | State, receipt, journal and effect commit together. A replayed command adds no effect. |
+| Commit                             | State, command result, journal and effect commit together. A replayed command adds no effect. |
 | Delivery                           | Every second. At least once, so the target must dedupe by effect ID or offer a lookup. |
 | Transient failure                  | The dispatcher retries with backoff from 1 s to 60 s.                                 |
 | Business rejection                 | The complete command records `rejected`. No retry.                                    |
@@ -113,7 +113,7 @@ A target may also return `pending` (acknowledged). The dispatcher then polls its
 
 ## Inbound sync
 
-Inbound sync pulls changes after the stored watermark every 5 s and submits them through the target's sync command. A stale range fails with `CONFLICT`, so two pullers can't apply the same page. If the feed can send old versions late, set the `versions` option on `targetHandlers`.
+Inbound sync pulls changes after the stored watermark every 5 s and submits them through the target's sync command. A stale range fails with `CONFLICT`, so two pullers can't apply the same page. If inbound sync can send old versions late, set the `versions` option on `targetHandlers`.
 
 ## Connectors
 

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SQLiteStorage } from './sqlite';
 
-test('snapshot transaction persists journal and receipts together, rolls back, and reads isolate mutation', async () => {
+test('snapshot transaction persists journal and command results together, rolls back, and reads isolate mutation', async () => {
   const path = await mkdtemp(join(tmpdir(), 'agent-storage-'));
   let storage = new SQLiteStorage(join(path, 'workspace.sqlite'), () => ({ count: 0 }));
   try {
@@ -18,11 +18,11 @@ test('snapshot transaction persists journal and receipts together, rolls back, a
         type: 'changed',
         operation: 'task.update',
       });
-      snapshot.receipts.k = {
+      snapshot.commandResults.k = {
         fingerprint: 'f',
         principalId: 'local-user',
         input: {},
-        receipt: {
+        commandResult: {
           operation: 'task.update',
           cursor: 1,
           authorizationRevision: 0,
@@ -44,7 +44,7 @@ test('snapshot transaction persists journal and receipts together, rolls back, a
       expect(snapshot.state.count).toBe(1);
       expect(snapshot.cursor).toBe(1);
       expect(snapshot.journal).toHaveLength(1);
-      expect(snapshot.receipts.k?.fingerprint).toBe('f');
+      expect(snapshot.commandResults.k?.fingerprint).toBe('f');
       snapshot.state.count = 99;
     });
     await storage.read('w', async (snapshot) => expect(snapshot.state.count).toBe(1));
@@ -81,11 +81,11 @@ test('JSON snapshot adapter rejects unsupported values instead of silently losin
   }
 });
 
-test('process death before commit rolls back, and death after commit retains receipt and journal', async () => {
+test('process death before commit rolls back, and death after commit retains command result and journal', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-storage-crash-'));
   const databasePath = join(directory, 'workspace.sqlite');
   const runUntilReady = async (commit: boolean) => {
-    const source = `import { SQLiteStorage } from ${JSON.stringify(import.meta.dir + '/sqlite.ts')}; const store = new SQLiteStorage(process.argv[1], () => ({ count: 0 })); ${commit ? 'await' : 'void'} store.transact('w', async s => { s.state.count = 7; s.cursor = 1; s.journal.push({cursor:1,resource:'task:1',revision:1,type:'changed',operation:'task.update'}); s.receipts.key = {fingerprint:'f',principalId:'local-user',input:{},receipt:{operation:'task.update',result:{},cursor:1,authorizationRevision:0,revisions:{'task:1':1}}}; ${commit ? '' : "console.log('ready'); await new Promise(() => {});"} }); ${commit ? "console.log('ready');" : ''} setInterval(() => {}, 1000);`;
+    const source = `import { SQLiteStorage } from ${JSON.stringify(import.meta.dir + '/sqlite.ts')}; const store = new SQLiteStorage(process.argv[1], () => ({ count: 0 })); ${commit ? 'await' : 'void'} store.transact('w', async s => { s.state.count = 7; s.cursor = 1; s.journal.push({cursor:1,resource:'task:1',revision:1,type:'changed',operation:'task.update'}); s.commandResults.key = {fingerprint:'f',principalId:'local-user',input:{},commandResult:{operation:'task.update',result:{},cursor:1,authorizationRevision:0,revisions:{'task:1':1}}}; ${commit ? '' : "console.log('ready'); await new Promise(() => {});"} }); ${commit ? "console.log('ready');" : ''} setInterval(() => {}, 1000);`;
     const child = Bun.spawn([process.execPath, '-e', source, databasePath], {
       stdout: 'pipe',
       stderr: 'pipe',
@@ -104,7 +104,7 @@ test('process death before commit rolls back, and death after commit retains rec
     await storage.read('w', async (s) => {
       expect(s.state.count).toBe(0);
       expect(s.journal).toEqual([]);
-      expect(s.receipts).toEqual({});
+      expect(s.commandResults).toEqual({});
     });
     await storage.close();
     await runUntilReady(true);
@@ -114,7 +114,7 @@ test('process death before commit rolls back, and death after commit retains rec
         expect(s.state.count).toBe(7);
         expect(s.cursor).toBe(1);
         expect(s.journal).toHaveLength(1);
-        expect(s.receipts.key?.fingerprint).toBe('f');
+        expect(s.commandResults.key?.fingerprint).toBe('f');
       });
     } finally {
       await storage.close();

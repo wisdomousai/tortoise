@@ -97,13 +97,13 @@ test('attendants plan, work and review a bin count, viewers read it, and accepti
   });
   await run('assignment.cycle-count.send', to);
 
-  // Working: the brief lists the bin and its tools with their status, without the retired one
+  // Working: the instructions list the bin and its tools with their status, without the retired one
   // and without a tool from another bin. Only the assignee works it.
-  expect(await read('assignment.feed', {}, clerk)).toMatchObject({
+  expect(await read('assignment.inbound', {}, clerk)).toMatchObject({
     items: [
       {
         id,
-        brief: {
+        instructions: {
           bin: 'A-03',
           tools: [
             { assetTag: 'TC-00601', status: 'available' },
@@ -114,7 +114,7 @@ test('attendants plan, work and review a bin count, viewers read it, and accepti
       },
     ],
   });
-  await expect(read('assignment.feed', {}, viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  await expect(read('assignment.inbound', {}, viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
   const body = { found: ['TC-00603'], missing: ['TC-00601'] };
   for (const caller of [viewer, localUser])
     await expect(
@@ -153,7 +153,7 @@ test('attendants plan, work and review a bin count, viewers read it, and accepti
   expect(await read('assignment.get', { id }, viewer)).toMatchObject({ stage: 'closed' });
 
   // A non-member reaches none of it.
-  await expect(read('assignment.feed', {}, stranger)).rejects.toMatchObject({
+  await expect(read('assignment.inbound', {}, stranger)).rejects.toMatchObject({
     code: 'FORBIDDEN',
   });
   await expect(read('assignment.list', {}, stranger)).rejects.toMatchObject({

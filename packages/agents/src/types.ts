@@ -46,7 +46,7 @@ export interface RunEvent {
   operation?: string;
   callId?: string;
   /**
-   * On `tool-finish`: the records the command changed (`<kind>:<id>`, from its receipt's
+   * On `tool-finish`: the records the command changed (`<kind>:<id>`, from its command result's
    * revisions), so a run view can link a call to its record.
    */
   resources?: readonly string[];

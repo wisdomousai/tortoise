@@ -80,7 +80,7 @@ type Generic =
   | 'close'
   | 'list'
   | 'get'
-  | 'feed'
+  | 'inbound'
   | 'report.list'
   | 'report.get'
   | 'report.link'
@@ -169,7 +169,7 @@ export function decide(
       return access.allows(context, 'read');
     case 'get':
       return seen ? true : access.allows(context, 'read');
-    case 'feed':
+    case 'inbound':
       return access.allows(context, 'work');
     case 'withdraw':
       return seen ? access.allows(context, 'plan', seen.kind) : access.allows(context, 'read');

@@ -21,14 +21,14 @@ export interface TargetIntegrationOptions<Item> {
   readonly completeOperation: string;
   /** The complete command takes `fence` (a `defineTarget` complete does), so completions are fenced. */
   readonly fencedCompletion?: boolean;
-  /** Absent for a target without a feed: the inbound side then pulls nothing. */
+  /** Absent for a target without inbound: the inbound side then pulls nothing. */
   readonly syncOperation?: string;
   /** Authorized query whose result carries the stored inbound `watermark`. */
   readonly statusOperation: string;
   readonly toInput: InboundSyncOptions<Item>['toInput'];
 }
 
-/** The inbound side of a target without a feed: every pass pulls nothing. */
+/** The inbound side of a target without inbound: every pass pulls nothing. */
 function idleInbound(target: string) {
   return {
     target,
@@ -97,7 +97,7 @@ export type TargetIntegration<Item = unknown> = ReturnType<typeof createTargetIn
 /**
  * Wire a declared target (`defineTarget`) to its port under its integration principal. The
  * complete, sync and status operations and the principal's narrow grant come from the
- * declaration; a target without a feed only delivers, and its inbound side pulls nothing; `toInput` defaults to passing the pulled batch through as the sync input.
+ * declaration; a target without inbound sync only delivers, and its inbound side pulls nothing; `toInput` defaults to passing the pulled batch through as the sync input.
  */
 export function connectTarget<Item>(options: {
   readonly target: Target;

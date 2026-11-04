@@ -8,7 +8,7 @@ import manifest from './manifest';
 import { operations } from './contracts';
 import { crmTarget } from './contracts/target';
 import { createCrmState, REGIONS, type CrmState, type Member } from './domain';
-import { FakeCrm, type CrmFeedItem } from './fake-crm';
+import { FakeCrm, type CrmInboundItem } from './fake-crm';
 import { createCrmHandlers, crmPolicy, type CrmServices } from './server';
 
 /** The CRM integration's principal; distinct from every person. */
@@ -31,7 +31,7 @@ export function demoCrm(env: Record<string, string | undefined> = process.env) {
 
 /**
  * The CRM capture application. One CRM serves three paths: live search (the remote source),
- * follow requests and activities (the outbox), and followed accounts (the feed). `members` are
+ * follow requests and activities (the outbox), and followed accounts (inbound sync). `members` are
  * the people who work in a new workspace and their regions; by default the local user covers all.
  */
 export function createCrmCaptureApplication(
@@ -57,14 +57,14 @@ export function createCrmCaptureApplication(
       crm: createRemoteSource({ target: 'crm', port: crm, credentials: crm.credentials }),
     },
     connect: ({ application, workspaceId }) => {
-      const integration = connectTarget<CrmFeedItem>({
+      const integration = connectTarget<CrmInboundItem>({
         target: crmTarget,
         application,
         port: crm,
         workspaceId,
         principalId: INTEGRATION_PRINCIPAL,
       });
-      // The feed carries only followed accounts, so it is cheap to poll every second: a followed
+      // The inbound sync carries only followed accounts, so it is cheap to poll every second: a followed
       // account fills in shortly after the CRM accepts the follow request.
       const start: typeof integration.start = (intervals = {}) =>
         integration.start({ ...intervals, syncMs: intervals.syncMs ?? 1_000 });

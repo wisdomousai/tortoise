@@ -34,7 +34,7 @@ const port = (ctx: Context) => {
 };
 
 /**
- * Query handlers over the host's posture monitor. They read files and host memory, never
+ * Query handlers over the host's compliance monitor. They read files and host memory, never
  * workspace state, so they change nothing and need no transaction beyond authorization.
  */
 export function createComplianceHandlers(): HandlerContribution<
@@ -42,7 +42,7 @@ export function createComplianceHandlers(): HandlerContribution<
   ComplianceServices
 >[] {
   return [
-    handler(complianceOperations.postureGet, async (_input, ctx) => port(ctx).posture()),
+    handler(complianceOperations.statusGet, async (_input, ctx) => port(ctx).status()),
     handler(complianceOperations.eventsList, async (input, ctx) => port(ctx).events(input)),
     handler(complianceOperations.logVerify, async (_input, ctx) => port(ctx).verify()),
   ];

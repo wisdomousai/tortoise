@@ -9,7 +9,7 @@ import { StatusPill } from '@tortoise/frame-native/components/status-pill';
 import { SyncPill, WorklistSync } from '@tortoise/frame-native/components/worklist-sync';
 import { useOsAction } from '@tortoise/frame-native/os-actions';
 import { useSession } from '@tortoise/frame-native/session';
-import type { CaptureBody } from './brief';
+import type { CaptureBody } from './instructions';
 import { fieldOperations as ops } from '../contracts';
 import { captureSummary, refusal } from './os-requests';
 import { Empty, ErrorText, Screen } from './shared';

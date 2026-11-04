@@ -70,7 +70,7 @@ The handler scopes a list to what you may see before filtering, sorting, paging 
 
 Effective access is your current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and bind to a principal, workspace and run. An agent run keeps its starting grant. A resource-scoped grant may change only those records; its `creates` list lets it add records of named types (e.g. `approval-request`).
 
-- **Retry:** the same idempotency key returns the stored receipt after authorizing again, including each nested command (`replay` phase). An old receipt can't recover revoked access.
+- **Retry:** the same idempotency key returns the stored command result after authorizing again, including each nested command (`replay` phase). An old command result can't recover revoked access.
 - **Dispatch:** before the first claim of an outbox effect, the runtime authorizes the committing person again without delegation (`dispatch` phase). A denial puts the effect in `held` for a person.
 
 ## Revocation and live updates

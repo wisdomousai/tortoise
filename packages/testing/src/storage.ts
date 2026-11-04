@@ -1,4 +1,4 @@
-import type { Storage, StoredReceipt } from '@tortoise/runtime';
+import type { Storage, StoredResult } from '@tortoise/runtime';
 import type { ConformanceCase } from './connectors';
 
 /** The state every storage case works on. */
@@ -21,11 +21,11 @@ export interface StorageHarness {
 }
 
 const fresh = (): ConformanceState => ({ count: 0, items: {} });
-const receipt = (cursor: number): StoredReceipt => ({
+const commandResult = (cursor: number): StoredResult => ({
   fingerprint: `f${cursor}`,
   principalId: 'local-user',
   input: {},
-  receipt: {
+  commandResult: {
     operation: 'item.put',
     cursor,
     authorizationRevision: 0,
@@ -66,7 +66,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
     };
   return [
     {
-      name: 'a commit stores state, journal, revisions and receipts together, and a reopen sees them',
+      name: 'a commit stores state, journal, revisions and command results together, and a reopen sees them',
       run: run(async (open) => {
         const storage = await open();
         await storage.transact('w', async (snapshot) => {
@@ -81,7 +81,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
             type: 'changed',
             operation: 'item.put',
           });
-          snapshot.receipts.k1 = receipt(1);
+          snapshot.commandResults.k1 = commandResult(1);
         });
         await storage.close();
         await (
@@ -95,7 +95,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
             snapshot.journal.length === 1 && snapshot.journal[0]!.cursor === 1,
             'the journal entry is missing',
           );
-          assert(snapshot.receipts.k1?.fingerprint === 'f1', 'the receipt is missing');
+          assert(snapshot.commandResults.k1?.fingerprint === 'f1', 'the command result is missing');
         });
       }),
     },
@@ -112,7 +112,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
             snapshot.state.count = 2;
             snapshot.state.items.b = { text: 'b' };
             snapshot.cursor = 2;
-            snapshot.receipts.k2 = receipt(2);
+            snapshot.commandResults.k2 = commandResult(2);
             throw new Error('fail');
           });
         } catch (error) {
@@ -123,7 +123,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
           storage.read('w', async (snapshot) => {
             assert(snapshot.state.count === 1, `count is ${snapshot.state.count} after a rollback`);
             assert(
-              !snapshot.state.items.b && !snapshot.receipts.k2 && snapshot.cursor === 0,
+              !snapshot.state.items.b && !snapshot.commandResults.k2 && snapshot.cursor === 0,
               'a rolled-back write is visible',
             );
           });

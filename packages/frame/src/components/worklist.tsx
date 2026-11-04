@@ -18,7 +18,7 @@ export interface WorklistAssignment {
   kind: string;
   title: string;
   note?: string;
-  brief: Record<string, unknown>;
+  instructions: Record<string, unknown>;
   sentAt: number;
   open: boolean;
   done: boolean;
@@ -43,8 +43,8 @@ export interface WorklistKind {
   kind: { id: string; title: string; subject?: string };
   /** The worklist's `<kind>Report` command. */
   report: Command;
-  /** How the brief reads; its JSON when omitted. */
-  brief?: (item: WorklistAssignment) => ReactNode;
+  /** How the instructions read; its JSON when omitted. */
+  instructions?: (item: WorklistAssignment) => ReactNode;
   /** The application's own report form; fields generated from the report body when omitted. */
   form?: (item: WorklistAssignment, submit: SubmitReport) => ReactNode;
   /** How a recorded report's body reads; its fields as a list when omitted. */
@@ -131,11 +131,11 @@ function Item({
           </p>
         )}
       </div>
-      {kind?.brief ? (
-        kind.brief(item)
+      {kind?.instructions ? (
+        kind.instructions(item)
       ) : (
         <pre className="overflow-x-auto rounded bg-muted p-2 text-xs">
-          {JSON.stringify(item.brief, null, 2)}
+          {JSON.stringify(item.instructions, null, 2)}
         </pre>
       )}
       {item.open && kind && !item.done && (
@@ -182,7 +182,7 @@ function Counts({ status, issuer }: { status: Query; issuer: string }) {
  * The work an issuer sent here, live, and every report recorded for it. An open assignment takes
  * reports and Done; each goes to the issuer through the outbox as soon as it can be reached, and
  * how it stands there shows on it. A refused report keeps the issuer's reason and is not sent
- * again. `status` is the worklist target's status query, for the counts and the last feed.
+ * again. `status` is the worklist target's status query, for the counts and the last inbound sync.
  */
 export function Worklist({
   title = 'Worklist',

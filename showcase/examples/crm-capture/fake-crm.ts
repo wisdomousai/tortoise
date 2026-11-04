@@ -10,8 +10,8 @@ import {
 import { page } from './fake-crm/cursor';
 import { crmUsers, demoSeed, type CrmAccountRecord, type CrmContactRecord } from './fake-crm/seed';
 
-/** A followed account as the feed delivers it, in the application's field names. */
-export interface CrmFeedItem {
+/** A followed account as inbound sync delivers it, in the application's field names. */
+export interface CrmInboundItem {
   externalId: string;
   name: string;
   industry: string;
@@ -38,17 +38,17 @@ const matches = (q: string, ...fields: string[]) =>
 /**
  * Deterministic in-memory CRM. Sharing: a CRM user sees the accounts they own and public ones;
  * the service account sees everything. Search runs as the CRM user behind the credential;
- * a follow request checks the requesting principal's own access; the feed delivers followed
+ * a follow request checks the requesting principal's own access; inbound sync delivers followed
  * accounts. Search returns pages of `PAGE_SIZE` (see `fake-crm/cursor`). `latencyMs` makes search slow and `unavailable` makes every call fail transiently.
  */
-export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
+export class FakeCrm implements SystemOfRecordPort<CrmInboundItem, string> {
   latencyMs = 0;
   unavailable = false;
   private readonly accounts = new Map<string, CrmAccountRecord>();
   private readonly contacts: CrmContactRecord[];
   /** Principal → CRM user, as an administrator connected them. */
   private readonly logins = new Map<string, string>();
-  /** Followed account → feed sequence of its latest change. */
+  /** Followed account → inbound sequence of its latest change. */
   private readonly followed = new Map<string, number>();
   private readonly activities = new Map<string, string>();
   private sequence = 0;
@@ -80,7 +80,7 @@ export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
   private sees(user: string, account: CrmAccountRecord | undefined): account is CrmAccountRecord {
     return !!account && (user === SERVICE || account.Public || account.OwnerId === user);
   }
-  private accountItem(account: CrmAccountRecord): CrmFeedItem {
+  private accountItem(account: CrmAccountRecord): CrmInboundItem {
     return {
       externalId: account.Id,
       name: account.Name,
@@ -182,7 +182,7 @@ export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
   }
 
   /** Followed accounts changed after `cursor`, oldest first. */
-  async pull(cursor: string | undefined): Promise<PullBatch<CrmFeedItem>> {
+  async pull(cursor: string | undefined): Promise<PullBatch<CrmInboundItem>> {
     if (this.unavailable) throw new DeliveryFailure('The CRM is not reachable');
     const after = Number(cursor ?? 0);
     const items = [...this.followed]
@@ -192,7 +192,7 @@ export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
     return { items, cursor: String(this.sequence) };
   }
 
-  /** Demo and tests: someone changes an account in the CRM; followers receive it on the feed. */
+  /** Demo and tests: someone changes an account in the CRM; followers receive it on inbound sync. */
   rename(externalId: string, name: string) {
     const account = this.accounts.get(externalId);
     if (!account) throw new Error(`Unknown account ${externalId}`);

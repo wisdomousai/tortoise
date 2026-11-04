@@ -25,13 +25,13 @@ test('the device credential goes only to the paired origin, never through a redi
     return new Response('{}');
   }) as typeof fetch);
   const hub = port.client('hub');
-  await expect(hub.fetch('/api/v1/queries/feed')).rejects.toThrow('not paired');
+  await expect(hub.fetch('/api/v1/queries/inbound')).rejects.toThrow('not paired');
 
   link = { origin: 'https://hub.plant.example', token: 'device-token' };
-  await hub.fetch('/api/v1/queries/feed', { headers: { Authorization: 'Bearer other' } });
+  await hub.fetch('/api/v1/queries/inbound', { headers: { Authorization: 'Bearer other' } });
   expect(sent).toEqual([
     {
-      url: 'https://hub.plant.example/api/v1/queries/feed',
+      url: 'https://hub.plant.example/api/v1/queries/inbound',
       authorization: 'Bearer device-token',
       redirect: 'error',
     },

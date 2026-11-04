@@ -59,7 +59,7 @@ export const ${one.camel}Operations = {
   }),
   ${one.camel}Get: collectionGet(${many.camel}, {
     id: '${one.kebab}',
-    description: 'Read one ${one.words} by id. A command receipt that changed it carries its revision as ${one.kebab}:<id> for expectedRevisions.',
+    description: 'Read one ${one.words} by id. A command result that changed it carries its revision as ${one.kebab}:<id> for expectedRevisions.',
   }),
 ${only(
   tree,

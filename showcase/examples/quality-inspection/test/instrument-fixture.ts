@@ -1,7 +1,7 @@
 import {
   createApplication,
   createMemoryStorage,
-  type CommandReceipt,
+  type CommandResult,
   type ExecutionContext,
 } from '@tortoise/runtime';
 import { createInboundSync } from '@tortoise/integration';
@@ -71,7 +71,7 @@ export async function setup() {
     input: unknown,
     context: ExecutionContext = inspector,
     idempotencyKey?: string,
-  ): Promise<CommandReceipt<any>> =>
+  ): Promise<CommandResult<any>> =>
     app.invokeRaw({ operation, input, ...(idempotencyKey ? { idempotencyKey } : {}) }, context);
   const readings = async (context = inspector): Promise<any[]> =>
     (

@@ -1,10 +1,10 @@
 import { canonicalJson, type AuditEvent, type AuditRecord } from '@tortoise/contracts';
 import type { WorkspaceSnapshot } from '../types.js';
-import { receiptScope } from './audit.js';
+import { commandResultScope } from './audit.js';
 import type { Kernel } from './kernel.js';
 
 /**
- * Whether the journal (or the idempotency receipt) shows the accepted transaction committed.
+ * Whether the journal (or the idempotency command result) shows the accepted transaction committed.
  * The group holds the `command.accepted` events of one transaction: the command, the commands
  * it invoked and the one it continued with. `undefined` when a transaction without changes or
  * key left nothing to compare against.
@@ -22,7 +22,7 @@ function committedIn<State>(
   const from = froms.length ? Math.min(...froms) : undefined;
   const to = tos.length ? Math.max(...tos) : undefined;
   const operations = new Set(group.map((event) => event.operation));
-  // Retention removed the entries that would show it; a receipt may still show it below.
+  // Retention removed the entries that would show it; a command result may still show it below.
   const compacted = from !== undefined && from < (snapshot.journalFloor ?? 0);
   if (from !== undefined && to !== undefined && to > from && !compacted)
     return snapshot.journal.some(
@@ -30,9 +30,14 @@ function committedIn<State>(
     );
   const keyed = group.find((event) => typeof dataOf(event).idempotencyKey === 'string');
   if (keyed) {
-    const key = canonicalJson([receiptScope(keyed.actor!), dataOf(keyed).idempotencyKey]);
-    const stored = Object.hasOwn(snapshot.receipts, key) ? snapshot.receipts[key] : undefined;
-    return stored?.receipt.operation === keyed.operation && stored?.receipt.cursor === keyed.cursor;
+    const key = canonicalJson([commandResultScope(keyed.actor!), dataOf(keyed).idempotencyKey]);
+    const stored = Object.hasOwn(snapshot.commandResults, key)
+      ? snapshot.commandResults[key]
+      : undefined;
+    return (
+      stored?.commandResult.operation === keyed.operation &&
+      stored?.commandResult.cursor === keyed.cursor
+    );
   }
   return undefined;
 }
@@ -68,7 +73,7 @@ function resolution(event: AuditEvent, committed: boolean | undefined): AuditRec
  * Host-only, at startup and before serving: resolve `command.accepted` events that have no
  * outcome because the process stopped between the audited commit and `command.committed`.
  * Events are resolved per transaction, by correlation ID: the journal entries between
- * `fromCursor` and `cursor` of any of its operations (or the idempotency receipt) decide whether
+ * `fromCursor` and `cursor` of any of its operations (or the idempotency command result) decide whether
  * it committed. It must run before new commands could reuse those cursors.
  * Appends with the log required: an unrecorded resolution would stay invisible.
  */

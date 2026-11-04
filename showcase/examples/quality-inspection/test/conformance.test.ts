@@ -137,7 +137,7 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     expect(deniedMcp.isError).toBe(true);
     expect(decode(deniedMcp).error.code).toBe('FORBIDDEN');
 
-    // An agent records over MCP; a retry over HTTP or CLI with the same key replays the receipt.
+    // An agent records over MCP; a retry over HTTP or CLI with the same key replays the command result.
     const recorded = decode(
       await inspectorMcp.callTool({
         name: 'inspection_result_record',

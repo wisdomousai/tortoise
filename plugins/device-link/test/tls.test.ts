@@ -98,7 +98,7 @@ test.skipIf(!Bun.which('openssl'))(
         integration: false,
         settings: {
           'deployment-policy': join(directory, 'deployment-policy.json'),
-          'device-link-sync-operations': 'captures.ingest,assignments.feed',
+          'device-link-sync-operations': 'captures.ingest,assignments.inbound',
         },
       });
       try {

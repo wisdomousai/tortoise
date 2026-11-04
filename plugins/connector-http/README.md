@@ -1,6 +1,6 @@
 # @tortoise/connector-http
 
-Reaches a REST system of record through the network port. You describe the system as data: the request per effect, the rejection statuses, lookup by key and the change feed; `connect` turns that into a connector. Every request goes through `network.client(destination).fetch`, so the network guard sees it and the deployment policy supplies the address and credentials. The port never reads a credential.
+Reaches a REST system of record through the network port. You describe the system as data: the request per effect, the rejection statuses, lookup by key and the change list; `connect` turns that into a connector. Every request goes through `network.client(destination).fetch`, so the network guard sees it and the deployment policy supplies the address and credentials. The port never reads a credential.
 
 Primitives:
 

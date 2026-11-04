@@ -1,6 +1,6 @@
 import { ApplicationError, canonicalJson, type AnyCapability } from '@tortoise/contracts';
 import type { ExecutionContext, HandlerContribution, Invocation } from '../types.js';
-import { actorOf, receiptScope } from './audit.js';
+import { actorOf, commandResultScope } from './audit.js';
 import { resolveOperation, type Kernel } from './kernel.js';
 
 /** One command after validation; everything the transaction needs besides the snapshot. */
@@ -13,7 +13,7 @@ export interface Command<State, Services> {
   readonly correlationId: string;
   readonly expected: Readonly<Record<string, number>>;
   readonly fingerprint: string;
-  /** Idempotency receipt key, scoped to the principal. */
+  /** Idempotency command result key, scoped to the principal. */
   readonly key: string | undefined;
 }
 
@@ -63,7 +63,7 @@ function fingerprintOf(
     expectedRevisions: expected,
     runId: context.runId ?? null,
     grant,
-    // A peer's receipts are keyed by the peer: the person it acted for makes it another request.
+    // A peer's command results are keyed by the peer: the person it acted for makes it another request.
     ...(context.peer?.subject === undefined ? {} : { principalId: context.principalId }),
   });
 }
@@ -90,6 +90,6 @@ export function prepareCommand<State, Services>(
     key:
       request.idempotencyKey === undefined
         ? undefined
-        : canonicalJson([receiptScope(actorOf(context)), request.idempotencyKey]),
+        : canonicalJson([commandResultScope(actorOf(context)), request.idempotencyKey]),
   };
 }

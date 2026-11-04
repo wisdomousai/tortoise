@@ -100,7 +100,7 @@ export interface ResolvedPolicy {
   readonly ingressTls?: { readonly cert: string; readonly key: string; readonly clientCa?: string };
   /**
    * Validity of the ingress certificate, the ingress client CA and every destination CA bundle,
-   * as `loadDeploymentPolicy` read them. Empty for a policy resolved without its files. Posture checks
+   * as `loadDeploymentPolicy` read them. Empty for a policy resolved without its files. Compliance status checks
    * judge these again on each run, so expiry while the host runs is reported.
    */
   readonly certificates: readonly CertificateValidity[];

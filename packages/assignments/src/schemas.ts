@@ -42,7 +42,7 @@ export type Assignee = z.output<typeof assigneeSchema>;
 export const reviewStateSchema = z.enum(['new', 'accepted', 'discarded']);
 export type ReviewState = z.output<typeof reviewStateSchema>;
 
-/** The most assignments one assignee may hold open; the feed carries all of them at once. */
+/** The most assignments one assignee may hold open; inbound sync carries all of them at once. */
 export const MAX_OPEN = 100;
 /** The most reports a target returns for one offer. */
 export const MAX_TARGET_REPORTS = 50;
@@ -57,7 +57,7 @@ const reason = z.string().min(1).max(2000);
 export const assignmentShape = {
   id: recordKeySchema,
   title: assignmentTitleSchema,
-  /** Instructions for the assignee, beyond what the brief holds. */
+  /** A note for the assignee, beyond what the instructions hold. */
   note: assignmentNoteSchema.optional(),
   assignee: assigneeSchema.optional(),
   status: assignmentStatusSchema,
@@ -97,13 +97,13 @@ export const reportShape = {
   reason: reason.optional(),
 };
 
-/** One assignment of `kind`, with its scope and, once sent, its brief. */
+/** One assignment of `kind`, with its scope and, once sent, its instructions. */
 export function assignmentSchemaOf<K extends AnyAssignmentKind>(kind: K) {
   return z.strictObject({
     ...assignmentShape,
     kind: z.literal(kind.id as K['id']),
     scope: kind.scope as K['scope'],
-    brief: (kind.brief as K['brief']).optional(),
+    instructions: (kind.instructions as K['instructions']).optional(),
   });
 }
 /** One report on an assignment of `kind`, with what the reviewer gave on accepting it. */
@@ -122,7 +122,7 @@ export function offerSchemaOf<K extends AnyAssignmentKind>(kind: K) {
     kind: z.literal(kind.id as K['id']),
     title: assignmentTitleSchema,
     note: assignmentNoteSchema.optional(),
-    brief: kind.brief as K['brief'],
+    instructions: kind.instructions as K['instructions'],
   });
 }
 
@@ -140,14 +140,14 @@ export const kindIdSchema = <K extends AnyAssignmentKind>(kinds: readonly K[]) =
 
 /**
  * An assignment of any of `kinds`: one object whose `kind` is any of theirs and whose scope and
- * brief are any of theirs, so a generic read keeps one record shape for display.
+ * instructions are any of theirs, so a generic read keeps one record shape for display.
  */
 export function anyAssignmentSchema<K extends AnyAssignmentKind>(kinds: readonly K[]) {
   return z.strictObject({
     ...assignmentShape,
     kind: kindIdSchema(kinds),
     scope: unionOf(kinds.map((kind) => kind.scope)),
-    brief: unionOf(kinds.map((kind) => kind.brief)).optional(),
+    instructions: unionOf(kinds.map((kind) => kind.instructions)).optional(),
   }) as unknown as z.ZodType<AnyAssignmentOf<K>>;
 }
 /** A report on an assignment of any of `kinds`. */
@@ -159,8 +159,8 @@ export function anyReportSchema<K extends AnyAssignmentKind>(kinds: readonly K[]
     accepted: unionOf(kinds.map((kind) => kind.accept)).optional(),
   }) as unknown as z.ZodType<AnyReportOf<K>>;
 }
-/** A feed item of any of `kinds`, with `extra` fields. */
-export function anyFeedItemSchema<K extends AnyAssignmentKind, Extra extends z.ZodRawShape = {}>(
+/** An inbound item of any of `kinds`, with `extra` fields. */
+export function anyInboundItemSchema<K extends AnyAssignmentKind, Extra extends z.ZodRawShape = {}>(
   kinds: readonly K[],
   extra?: Extra,
 ) {
@@ -169,14 +169,14 @@ export function anyFeedItemSchema<K extends AnyAssignmentKind, Extra extends z.Z
     kind: kindIdSchema(kinds),
     title: assignmentTitleSchema,
     note: assignmentNoteSchema.optional(),
-    brief: unionOf(kinds.map((kind) => kind.brief)),
+    instructions: unionOf(kinds.map((kind) => kind.instructions)),
     sentAt: time,
     ...extra,
   });
 }
 
 /**
- * What a target returns for one offer, as an item of its feed: the reports, each under an ID
+ * What a target returns for one offer, as an item of its inbound: the reports, each under an ID
  * the target chose. Applying it marks the assignment done. Each body is checked against the
  * assignment's kind when the result is applied, so one malformed report does not hold back the others.
  */
@@ -200,7 +200,7 @@ type Common<Shape extends z.ZodRawShape> = z.output<z.ZodObject<Shape>>;
 export type AssignmentOf<K extends AnyAssignmentKind> = Common<typeof assignmentShape> & {
   readonly kind: K['id'];
   readonly scope: z.output<K['scope']>;
-  readonly brief?: z.output<K['brief']>;
+  readonly instructions?: z.output<K['instructions']>;
 };
 /** A report on an assignment of kind `K`. */
 export type AssignmentReportOf<K extends AnyAssignmentKind> = Common<typeof reportShape> & {
@@ -208,13 +208,13 @@ export type AssignmentReportOf<K extends AnyAssignmentKind> = Common<typeof repo
   readonly body: z.output<K['report']>;
   readonly accepted?: z.output<K['accept']>;
 };
-/** What an assignee's feed carries for an assignment of kind `K`. */
-export type FeedItemOf<K extends AnyAssignmentKind> = {
+/** What an assignee's inbound sync carries for an assignment of kind `K`. */
+export type InboundItemOf<K extends AnyAssignmentKind> = {
   readonly id: string;
   readonly kind: K['id'];
   readonly title: string;
   readonly note?: string;
-  readonly brief: z.output<K['brief']>;
+  readonly instructions: z.output<K['instructions']>;
   readonly sentAt: number;
 };
 /** The offer a target receives for an assignment of kind `K`. */
@@ -223,13 +223,13 @@ export type OfferOf<K extends AnyAssignmentKind> = {
   readonly kind: K['id'];
   readonly title: string;
   readonly note?: string;
-  readonly brief: z.output<K['brief']>;
+  readonly instructions: z.output<K['instructions']>;
 };
-/** Any of the kinds' assignments, reports, feed items or offers. */
+/** Any of the kinds' assignments, reports, inbound items or offers. */
 export type AnyAssignmentOf<K> = K extends AnyAssignmentKind ? AssignmentOf<K> : never;
 export type AnyReportOf<K> = K extends AnyAssignmentKind ? AssignmentReportOf<K> : never;
-export type AnyFeedItemOf<K> = K extends AnyAssignmentKind ? FeedItemOf<K> : never;
+export type AnyInboundItemOf<K> = K extends AnyAssignmentKind ? InboundItemOf<K> : never;
 export type AnyOfferOf<K> = K extends AnyAssignmentKind ? OfferOf<K> : never;
 
-/** A report's body or a brief as stored, before its kind's schema is applied. */
+/** A report's body or instructions as stored, before its kind's schema is applied. */
 export type StoredBody = Readonly<Record<string, JsonValue>>;

@@ -49,8 +49,8 @@ function LogCall() {
         ? { transformerSerial: serialText(values.transformerSerial) }
         : {}),
     }),
-    onCommitted: (receipt) => {
-      setSaved(`Logged: ${receipt.result.subject}`);
+    onCommitted: (commandResult) => {
+      setSaved(`Logged: ${commandResult.result.subject}`);
       form.reset();
       caller.current?.focus();
     },

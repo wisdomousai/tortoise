@@ -11,7 +11,7 @@ import { startHost } from '@tortoise/host/host';
 import { createAssetSurveyApplication } from '../application';
 import { nameplatePhoto } from '../connectors/nameplate-photo';
 
-test('a paired device hands over a capture over HTTP, and every surface reads it alike', async () => {
+test('a paired device hands over a capture over HTTP, and every channel reads it alike', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-survey-'));
   const host = await startHost(createAssetSurveyApplication(), {
     workspacePath: join(directory, 'workspace'),
@@ -80,11 +80,14 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
         headers: { Authorization: `Bearer ${paired.token}`, 'Content-Type': contentType },
         body,
       });
-    const feed = await device('/api/v1/queries/assignment.feed', JSON.stringify({ input: {} }));
-    expect(feed.status).toBe(200);
+    const inbound = await device(
+      '/api/v1/queries/assignment.inbound',
+      JSON.stringify({ input: {} }),
+    );
+    expect(inbound.status).toBe(200);
     expect(
-      ((await feed.json()) as { data: { items: { brief: { nodes: unknown[] } }[] } }).data.items[0]!
-        .brief.nodes,
+      ((await inbound.json()) as { data: { items: { instructions: { nodes: unknown[] } }[] } }).data
+        .items[0]!.instructions.nodes,
     ).toHaveLength(2);
     const upload = await device(
       '/api/v1/blobs',

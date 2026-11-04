@@ -4,7 +4,7 @@ import { codeGroupSchema, id, lotSnapshotSchema, timestamp } from './schemas';
 
 /**
  * The quality system as a system of record: results, defects and usage decisions are forwarded
- * to it, and its feed delivers lots with their characteristics plus the code catalogs.
+ * to it, and its inbound sync delivers lots with their characteristics plus the code catalogs.
  */
 export const qualityTarget = defineTarget({
   target: 'quality-system',
@@ -15,7 +15,7 @@ export const qualityTarget = defineTarget({
     status: 'inspection.sync.status',
   },
   changes: ['lot', 'result', 'defect'],
-  feed: {
+  inbound: {
     item: lotSnapshotSchema,
     max: 200,
     extra: { codeGroups: z.array(codeGroupSchema).max(100).optional() },

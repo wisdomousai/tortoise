@@ -108,7 +108,7 @@ export function createDirectTransport(
     ) {
       if (!commandOptions.idempotencyKey)
         throw new ApplicationError('INVALID_INPUT', 'Commands require an idempotency key');
-      const receipt = await application.invokeRaw(
+      const commandResult = await application.invokeRaw(
         {
           operation,
           input,
@@ -120,13 +120,15 @@ export function createDirectTransport(
         withSignal(context, commandOptions.signal),
       );
       return {
-        operation: receipt.operation,
-        result: receipt.result as T,
-        cursor: cursorOf(receipt.cursor, receipt.authorizationRevision),
-        authorizationRevision: receipt.authorizationRevision,
-        revisions: { ...receipt.revisions },
-        ...(receipt.effects ? { effects: [...receipt.effects] } : {}),
-        ...(receipt.continuation ? { continuation: structuredClone(receipt.continuation) } : {}),
+        operation: commandResult.operation,
+        result: commandResult.result as T,
+        cursor: cursorOf(commandResult.cursor, commandResult.authorizationRevision),
+        authorizationRevision: commandResult.authorizationRevision,
+        revisions: { ...commandResult.revisions },
+        ...(commandResult.effects ? { effects: [...commandResult.effects] } : {}),
+        ...(commandResult.continuation
+          ? { continuation: structuredClone(commandResult.continuation) }
+          : {}),
       };
     },
     events: (cursor: Cursor, signal: AbortSignal) =>

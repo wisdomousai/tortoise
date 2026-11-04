@@ -97,11 +97,11 @@ async function bumpWith(
 ) {
   const instance = await openEmbeddedInstance(definition, { workspacePath });
   try {
-    const receipt = await instance.application.invokeRaw(
+    const commandResult = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
       { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
     );
-    return (receipt.result as { value: number }).value;
+    return (commandResult.result as { value: number }).value;
   } finally {
     await instance.close();
   }

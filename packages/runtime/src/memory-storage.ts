@@ -8,7 +8,7 @@ export function createWorkspaceSnapshot<State>(state: State): WorkspaceSnapshot<
     cursor: 0,
     authorizationRevision: 0,
     resourceRevisions: {},
-    receipts: {},
+    commandResults: {},
     journal: [],
     effects: {},
     blobs: {},

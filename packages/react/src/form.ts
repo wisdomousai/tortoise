@@ -7,7 +7,7 @@ import {
   type InputOf,
   type OutputOf,
 } from '@tortoise/contracts';
-import type { Receipt, Transport } from '@tortoise/client';
+import type { CommandResult, Transport } from '@tortoise/client';
 
 const newKey = () => crypto.randomUUID();
 
@@ -74,7 +74,7 @@ export interface CapabilityFormOptions<C extends AnyCapability, Values> {
   readonly expectedRevisions?: (values: Values) => Readonly<Record<string, number>> | undefined;
   /** Map an input field named by the schema or `ApplicationError.details.field` to a form field. */
   readonly fieldFor?: (inputField: string) => string | undefined;
-  readonly onCommitted?: (receipt: Receipt<OutputOf<C>>, values: Values) => void;
+  readonly onCommitted?: (commandResult: CommandResult<OutputOf<C>>, values: Values) => void;
 }
 
 /**
@@ -87,7 +87,7 @@ export interface CapabilityFormOptions<C extends AnyCapability, Values> {
  *   command commits, so double taps, scanner double-sends and retries after a lost response
  *   record one datapoint. A new key is created only after a commit.
  * - The mapped input is frozen per attempt: a retry with unchanged values sends byte-identical
- *   input under the same key and replays the original receipt.
+ *   input under the same key and replays the original command result.
  * - Server validation (`ApplicationError.details.field`) is shown on the offending field when the
  *   form has that field; other failures, including CONFLICT, become a form error and the draft
  *   is kept.
@@ -103,7 +103,7 @@ export function useCapabilityForm<C extends AnyCapability, Values extends object
   key.current ??= newKey();
   const latest = useRef(options);
   latest.current = options;
-  const receipt = useRef<Receipt<OutputOf<C>>>(undefined);
+  const commandResult = useRef<CommandResult<OutputOf<C>>>(undefined);
   const attempt = useRef<{ values: string; input: InputOf<C> }>(undefined);
   const rotate = () => {
     key.current = newKey();
@@ -135,7 +135,7 @@ export function useCapabilityForm<C extends AnyCapability, Values extends object
         const checked = await capability.input['~standard'].validate(input);
         if (checked.issues) return issueErrors(checked.issues, field);
         try {
-          receipt.current = await transport.command<OutputOf<C>>(capability.id, input, {
+          commandResult.current = await transport.command<OutputOf<C>>(capability.id, input, {
             idempotencyKey: key.current!,
             ...(latest.current.expectedRevisions?.(value)
               ? { expectedRevisions: latest.current.expectedRevisions(value) }
@@ -151,9 +151,9 @@ export function useCapabilityForm<C extends AnyCapability, Values extends object
       },
     },
     onSubmit: ({ value }) => {
-      const committed = receipt.current;
+      const committed = commandResult.current;
       if (!committed) return;
-      receipt.current = undefined;
+      commandResult.current = undefined;
       rotate();
       latest.current.onCommitted?.(committed, value);
     },

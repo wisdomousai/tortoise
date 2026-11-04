@@ -11,7 +11,7 @@ const describe = (effect: HeldEffect) =>
   `Repair order for ${(effect.payload as Partial<RepairOrderPayload>).assetTag ?? effect.resource}`;
 
 /**
- * Delivery to the plant EAM: repair orders waiting, held, accepted and rejected, the last feed
+ * Delivery to the plant EAM: repair orders waiting, held, accepted and rejected, the last inbound sync
  * sync, and the held repair orders. For a held one, the person looks for the order in the EAM:
  * applied with the repair order number found there, not applied to send it again, or refused with
  * the EAM's reason. Viewers see the list and are refused on decision.
@@ -23,7 +23,7 @@ export function EamScreen() {
     ['Held for a decision', String(status.data?.held ?? 0)],
     ['Accepted', String(status.data?.accepted ?? 0)],
     ['Rejected', String(status.data?.rejected ?? 0)],
-    ['Last feed sync', status.data?.lastSyncAt ? formatDate(status.data.lastSyncAt) : 'Never'],
+    ['Last inbound sync', status.data?.lastSyncAt ? formatDate(status.data.lastSyncAt) : 'Never'],
   ];
   return (
     <div className="space-y-6">

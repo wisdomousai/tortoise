@@ -4,7 +4,7 @@ import { Inbox } from 'lucide-react';
 import { Worklist, type WorklistReport } from '@/components/worklist';
 import { live } from '@/lib/session';
 import { sampling, worklistOperations } from '../contracts';
-import { BriefRound, SampleForm, SampleTransformer, SampleView } from './round';
+import { InstructionsRound, SampleForm, SampleTransformer, SampleView } from './round';
 import { formatDate } from '@/lib/fields';
 
 const ISSUER = 'the oil lab';
@@ -21,7 +21,7 @@ function Rounds() {
         {
           kind: sampling,
           report: worklistOperations.samplingReport,
-          brief: (item) => <BriefRound brief={item.brief} />,
+          instructions: (item) => <InstructionsRound instructions={item.instructions} />,
           form: (item, submit) => <SampleForm item={item} submit={submit} />,
           body: (report) => <SampleView body={report.body} />,
           subject: (report) => <SampleTransformer subject={report.subject} />,
@@ -53,7 +53,7 @@ function RoundScreen() {
         </p>
         {assignment.note && <p className="text-sm">{assignment.note}</p>}
       </header>
-      <BriefRound brief={assignment.brief} />
+      <InstructionsRound instructions={assignment.instructions} />
       <section aria-label="Samples" className="space-y-2">
         <h2 className="text-base font-medium">Samples</h2>
         {recorded.length === 0 ? (

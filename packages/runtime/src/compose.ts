@@ -54,7 +54,7 @@ function scopedContext<State, Services>(
 
 /**
  * Adapt a feature's handlers to the application's state. Each handler sees only `state[key]`,
- * the access view and the bound hooks; the runtime still commits the whole state, receipts,
+ * the access view and the bound hooks; the runtime still commits the whole state, command results,
  * journal and outbox atomically, so a command remains one transaction across the application.
  * Change, revision and effect operations are shared because resources are application-wide.
  */

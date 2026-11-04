@@ -13,9 +13,9 @@
  *
  * It keeps skills current with the code they describe. `scripts/skill-coverage.json` names the
  * skills covering each tracked workspace, or why none do. The check fails when a
- * workspace's public surface (entrypoints and exported names, see `skill-surface.ts`) or the root
- * package scripts differ from `scripts/reviewed-surface.json`, and names the skills to review;
- * `bun run skills:stamp` records the surface once they are reviewed. When the agents' link
+ * workspace's public API (entrypoints and exported names, see `skill-api.ts`) or the root
+ * package scripts differ from `scripts/reviewed-api.json`, and names the skills to review;
+ * `bun run skills:stamp` records the public API once they are reviewed. When the agents' link
  * directories exist, a missing or stale link fails too.
  *
  * What a skill says is left to its author. Reads files only; writes nothing.
@@ -23,18 +23,18 @@
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { brokenLinks } from './markdown-links';
-import { currentSurface } from './skill-surface';
+import { currentApi } from './skill-api';
 import {
   layers,
   linkDirectories,
   installedSkills,
-  reviewedSurfaceFile,
+  reviewedApiFile,
   root,
   rootScripts,
   rootScriptSkills,
   skillCoverageFile,
   skills,
-  surfaceWorkspaces,
+  apiWorkspaces,
 } from './skills';
 
 const errors: string[] = [];
@@ -99,7 +99,7 @@ for (const skill of found) {
 // An application may cover its own workspace with a skill from an installed framework package.
 const byName = new Map([...found, ...installedSkills()].map((skill) => [skill.name, skill]));
 const reviewers = new Map<string, readonly string[]>([[rootScripts, rootScriptSkills]]);
-const workspaces = surfaceWorkspaces();
+const workspaces = apiWorkspaces();
 let coverage: Record<string, unknown> = {};
 if (workspaces.length) {
   try {
@@ -145,19 +145,17 @@ for (const skill of found) {
   }
 }
 
-// Drift: the surface the skills were last reviewed against. An application that installs the
+// Drift: the public API the skills were last reviewed against. An application that installs the
 // framework from a registry has no framework workspaces and no record of them.
 let recorded: Record<string, string[]> = {};
 const tracked = workspaces.length > 0;
 try {
-  recorded = JSON.parse(readFileSync(join(root, reviewedSurfaceFile), 'utf8'));
+  recorded = JSON.parse(readFileSync(join(root, reviewedApiFile), 'utf8'));
 } catch {
   if (tracked)
-    errors.push(
-      `${reviewedSurfaceFile} is missing; review the skills, then run bun run skills:stamp`,
-    );
+    errors.push(`${reviewedApiFile} is missing; review the skills, then run bun run skills:stamp`);
 }
-const current = tracked ? currentSurface(root) : {};
+const current = tracked ? currentApi(root) : {};
 const listed = (items: string[]) =>
   items.length > 8
     ? `${items.slice(0, 8).join(', ')} and ${items.length - 8} more`
@@ -167,7 +165,7 @@ for (const key of new Set([...Object.keys(current), ...Object.keys(recorded)])) 
   const then = recorded[key];
   const stamp = `bun run skills:stamp ${key === rootScripts ? 'package.json' : key}`;
   if (!now) {
-    errors.push(`${reviewedSurfaceFile}: ${key} no longer exists; run ${stamp}`);
+    errors.push(`${reviewedApiFile}: ${key} no longer exists; run ${stamp}`);
     continue;
   }
   const added = now.filter((item) => !then?.includes(item)).map((item) => `+${item}`);
@@ -180,7 +178,7 @@ for (const key of new Set([...Object.keys(current), ...Object.keys(recorded)])) 
       ? `review ${names.map((name) => `${byName.get(name)?.directory ?? name}/SKILL.md`).join(', ')}`
       : `decide whether ${key} now needs a skill (the registry says none)`;
   errors.push(
-    `${key}: ${then ? `surface changed (${listed([...added, ...removed])})` : 'surface not reviewed yet'}; ${review}, then run ${stamp}`,
+    `${key}: ${then ? `public API changed (${listed([...added, ...removed])})` : 'public API not reviewed yet'}; ${review}, then run ${stamp}`,
   );
 }
 
@@ -202,5 +200,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `${found.length} skills with valid frontmatter, links and paths, all listed, linked and reviewed against the current surface.`,
+  `${found.length} skills with valid frontmatter, links and paths, all listed, linked and reviewed against the current public API.`,
 );

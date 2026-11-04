@@ -17,7 +17,7 @@ import { createOutbox } from './application/outbox.js';
 import { createQueries } from './application/queries.js';
 import { createRecovery } from './application/recovery.js';
 import type {
-  CommandReceipt,
+  CommandResult,
   ExecutionContext,
   HandlerContribution,
   Invocation,
@@ -89,9 +89,9 @@ export function createApplication<
   function invoke<Id extends Command['id']>(
     request: Invocation<InputOf<CapabilityById<Command, Id>>> & { readonly operation: Id },
     context: ExecutionContext,
-  ): Promise<CommandReceipt<OutputOf<CapabilityById<Command, Id>>>> {
+  ): Promise<CommandResult<OutputOf<CapabilityById<Command, Id>>>> {
     return invokeRaw(request, context) as Promise<
-      CommandReceipt<OutputOf<CapabilityById<Command, Id>>>
+      CommandResult<OutputOf<CapabilityById<Command, Id>>>
     >;
   }
   function query<Id extends Query['id']>(

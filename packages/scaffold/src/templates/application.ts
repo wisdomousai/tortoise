@@ -41,7 +41,7 @@ async function templates(directory: string): Promise<string[]> {
 
 /**
  * Every file a new application has besides its parts: the three entrypoints, contracts, domain,
- * policy, server and handler context with their `// scaffold:<list>` markers, a cross-surface
+ * policy, server and handler context with their `// scaffold:<list>` markers, a cross-channel
  * conformance test over the first collection's list, a UI-binding test and the README. Each
  * collection brings its own browser test of its default screens.
  */

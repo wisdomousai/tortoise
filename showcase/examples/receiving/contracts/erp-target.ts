@@ -29,7 +29,7 @@ export const erpTarget = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
   changes: ['delivery'],
-  feed: { item: asnLineSchema, max: 100, changes: ['delivery'] },
+  inbound: { item: asnLineSchema, max: 100, changes: ['delivery'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
     complete: 'Integration principal only: record the ERP outcome for a posted goods receipt.',

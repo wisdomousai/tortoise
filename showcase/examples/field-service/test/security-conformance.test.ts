@@ -211,7 +211,7 @@ for (const kind of ['memory', 'sqlite'] as const)
         storage.read(localUser.workspaceId, async (snapshot) => {
           expect(snapshot.state.value).toBe(0);
           expect(snapshot.journal).toEqual([]);
-          expect(snapshot.receipts).toEqual({});
+          expect(snapshot.commandResults).toEqual({});
         });
       try {
         await expect(
@@ -229,7 +229,7 @@ for (const kind of ['memory', 'sqlite'] as const)
             ['counter:batch', 'security.batch'],
             ['counter:one', 'security.write'],
           ]);
-          expect(Object.values(snapshot.receipts)[0]?.calls).toEqual([
+          expect(Object.values(snapshot.commandResults)[0]?.calls).toEqual([
             { operation: 'security.write', input: { value: 3 }, via: ['security.batch'] },
           ]);
         });
@@ -320,7 +320,7 @@ for (const kind of ['memory', 'sqlite'] as const)
             expect(snapshot.state.value).toBe(0);
             expect(snapshot.cursor).toBe(0);
             expect(snapshot.journal).toEqual([]);
-            expect(snapshot.receipts).toEqual({});
+            expect(snapshot.commandResults).toEqual({});
           });
           entered = deferred();
           release = deferred();

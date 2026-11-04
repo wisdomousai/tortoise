@@ -7,12 +7,12 @@ import {
   type ForwardingStats,
 } from '@tortoise/event-log';
 import { auditEvents } from './audit-events';
-import type { AuditEventView, LogVerification, Posture } from './contracts';
-import { accumulateNetworkUsage, assessPosture, type NetworkUsage } from './posture';
+import type { AuditEventView, LogVerification, ComplianceStatus } from './contracts';
+import { accumulateNetworkUsage, assessCompliance, type NetworkUsage } from './status';
 
-/** What the compliance capabilities read. Implemented by the posture monitor. */
+/** What the compliance capabilities read. Implemented by the compliance monitor. */
 export interface CompliancePort {
-  posture(): Promise<Posture>;
+  status(): Promise<ComplianceStatus>;
   events(query: {
     readonly afterSeq?: number;
     readonly limit?: number;
@@ -23,13 +23,13 @@ export interface CompliancePort {
   verify(): Promise<LogVerification>;
 }
 
-export interface PostureMonitorOptions {
+export interface ComplianceMonitorOptions {
   readonly policy: ResolvedPolicy;
   /** Directory of the JSON-lines log the running process writes. */
   readonly directory: string;
   /** The writer's current head; verification stops there, so live appends are never misread. */
   readonly head: () => ChainHead;
-  /** Where `posture.checked` is recorded. */
+  /** Where `compliance.checked` is recorded. */
   readonly eventLog: EventLogPort;
   readonly forwarding?: () => ForwardingStats | undefined;
   readonly attestation?: () => Promise<{ catalogDigest?: string; executableDigest?: string }>;
@@ -37,7 +37,7 @@ export interface PostureMonitorOptions {
   readonly bestBefore?: string;
   /** Re-check cadence. Default 15 minutes; each check re-verifies the whole chain. */
   readonly intervalMs?: number;
-  /** A posture read older than this triggers a new check. Default one minute. */
+  /** A compliance status read older than this triggers a new check. Default one minute. */
   readonly maxAgeMs?: number;
   readonly now?: () => number;
 }
@@ -45,7 +45,7 @@ export interface PostureMonitorOptions {
 const networkKinds = ['network.allowed', 'network.denied'];
 
 /** Verify the chain up to the writer's head, which is read first. */
-async function verifyToHead(options: PostureMonitorOptions) {
+async function verifyToHead(options: ComplianceMonitorOptions) {
   const head = options.head();
   return { head, report: await verifyEventLog(options.directory, { head }) };
 }
@@ -56,19 +56,19 @@ interface UsageState {
   scanned: number;
 }
 
-/** One check: verify, fold new network events, assess, then record `posture.checked` (best effort). */
+/** One check: verify, fold new network events, assess, then record `compliance.checked` (best effort). */
 async function runCheck(
-  options: PostureMonitorOptions,
+  options: ComplianceMonitorOptions,
   state: UsageState,
   now: () => number,
-): Promise<Posture> {
+): Promise<ComplianceStatus> {
   const { head, report } = await verifyToHead(options);
   const fresh = (
     await readEvents(options.directory, { afterSeq: state.scanned, kinds: networkKinds })
   ).filter((event) => event.seq <= head.seq);
   state.usage = accumulateNetworkUsage(state.usage, fresh);
   state.scanned = head.seq;
-  const posture = assessPosture({
+  const compliance = assessCompliance({
     policy: options.policy,
     verification: report,
     ...(options.forwarding?.() ? { forwarding: options.forwarding()! } : {}),
@@ -80,20 +80,20 @@ async function runCheck(
   await options.eventLog
     .append([
       {
-        kind: 'posture.checked',
+        kind: 'compliance.checked',
         outcome: 'info',
         data: {
-          status: posture.status,
+          status: compliance.status,
           headSeq: head.seq,
-          checks: posture.checks.map((check) => ({ id: check.id, status: check.status })),
+          checks: compliance.checks.map((check) => ({ id: check.id, status: check.status })),
         },
       },
     ])
     .catch(() => undefined);
-  return posture;
+  return compliance;
 }
 
-async function verification(options: PostureMonitorOptions): Promise<LogVerification> {
+async function verification(options: ComplianceMonitorOptions): Promise<LogVerification> {
   const { head, report } = await verifyToHead(options);
   return {
     ok: report.ok,
@@ -106,29 +106,29 @@ async function verification(options: PostureMonitorOptions): Promise<LogVerifica
 }
 
 /**
- * Continuous, passive posture monitoring for a running instance. Each check verifies the
+ * Continuous, passive compliance monitoring for a running instance. Each check verifies the
  * chain up to the writer's head, folds new network events into per-destination usage, assesses
- * the posture and records `posture.checked` (best effort: monitoring never blocks the app).
+ * the compliance status and records `compliance.checked` (best effort: monitoring never blocks the app).
  * Reads scan the log files, which suits the reference scale; a large deployment would index.
  */
-export function createPostureMonitor(options: PostureMonitorOptions) {
+export function createComplianceMonitor(options: ComplianceMonitorOptions) {
   const now = options.now ?? Date.now;
   const state: UsageState = { usage: new Map(), scanned: 0 };
-  let latest: Posture | undefined;
-  let running: Promise<Posture> | undefined;
+  let latest: ComplianceStatus | undefined;
+  let running: Promise<ComplianceStatus> | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
 
   /** One check at a time; concurrent callers share the running one. */
   const check = () =>
     (running ??= runCheck(options, state, now)
-      .then((posture) => (latest = posture))
+      .then((compliance) => (latest = compliance))
       .finally(() => {
         running = undefined;
       }));
 
   const port: CompliancePort = {
-    // Reuse a recent check; an older one is redone so a reader never sees stale posture.
-    posture: async () =>
+    // Reuse a recent check; an older one is redone so a reader never sees stale compliance status.
+    status: async () =>
       latest && now() - latest.checkedAt < (options.maxAgeMs ?? 60_000) ? latest : check(),
     events: async (query) => auditEvents(options.directory, options.head(), query),
     verify: () => verification(options),
@@ -154,4 +154,4 @@ export function createPostureMonitor(options: PostureMonitorOptions) {
     },
   };
 }
-export type PostureMonitor = ReturnType<typeof createPostureMonitor>;
+export type ComplianceMonitor = ReturnType<typeof createComplianceMonitor>;

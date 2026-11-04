@@ -1,7 +1,7 @@
 import type {
   AttemptRecord,
   ClaimResult,
-  CommandReceipt,
+  CommandResult,
   Effect,
   EffectOutcome,
   ExecutionContext,
@@ -28,7 +28,7 @@ export interface DispatcherApplication {
     id: string,
     claim: { readonly worker: string; readonly leaseMs: number; readonly recheck?: boolean },
   ): Promise<ClaimResult>;
-  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
 }
 export interface DispatchReport {
   accepted: number;

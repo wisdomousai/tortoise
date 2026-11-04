@@ -110,34 +110,36 @@ describe('asset survey', () => {
     const { g1, q1, assignment } = await dispatched(survey);
     await survey.node(undefined, '=G2', 'Generator 2');
 
-    type Feed = {
+    type Inbound = {
       items: {
         id: string;
-        brief: { nodes: { id: string; parentId?: string; designation: string }[] };
+        instructions: { nodes: { id: string; parentId?: string; designation: string }[] };
       }[];
       cursor: string;
     };
-    const feed = await query<Feed>('assignment.feed', {}, device);
-    expect(feed.items).toHaveLength(1);
-    expect(feed.items[0]!.brief.nodes.map((item) => item.designation).sort()).toEqual([
+    const inbound = await query<Inbound>('assignment.inbound', {}, device);
+    expect(inbound.items).toHaveLength(1);
+    expect(inbound.items[0]!.instructions.nodes.map((item) => item.designation).sort()).toEqual([
       '=G1',
       '=G1-Q1',
       '=G1-Q2',
     ]);
-    expect(feed.items[0]!.brief.nodes.find((item) => item.id === g1.id)!.parentId).toBeUndefined();
-    expect((await query<Feed>('assignment.feed', { cursor: feed.cursor }, device)).items).toEqual(
-      [],
-    );
-    expect((await query<Feed>('assignment.feed', {}, otherDevice)).items).toEqual([]);
-    // The brief is the slice as it stood when sent; a later rename reaches the next survey.
+    expect(
+      inbound.items[0]!.instructions.nodes.find((item) => item.id === g1.id)!.parentId,
+    ).toBeUndefined();
+    expect(
+      (await query<Inbound>('assignment.inbound', { cursor: inbound.cursor }, device)).items,
+    ).toEqual([]);
+    expect((await query<Inbound>('assignment.inbound', {}, otherDevice)).items).toEqual([]);
+    // The instructions are the slice as it stood when sent; a later rename reaches the next survey.
     await command('structure.node.update', { id: q1.id, name: 'Main breaker' });
-    expect((await query<Feed>('assignment.feed', { cursor: feed.cursor }, device)).items).toEqual(
-      [],
-    );
+    expect(
+      (await query<Inbound>('assignment.inbound', { cursor: inbound.cursor }, device)).items,
+    ).toEqual([]);
 
-    // A manager's own feed holds nothing sent to the device; a viewer takes no work.
-    expect((await query<Feed>('assignment.feed', {}, localUser)).items).toEqual([]);
-    await expect(query('assignment.feed', {}, vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    // A manager's own inbound sync holds nothing sent to the device; a viewer takes no work.
+    expect((await query<Inbound>('assignment.inbound', {}, localUser)).items).toEqual([]);
+    await expect(query('assignment.inbound', {}, vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     // The device reads nothing else.
     await expect(query('structure.tree', {}, device)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(command('structure.node.retire', { id: g1.id }, device)).rejects.toMatchObject({
@@ -304,7 +306,7 @@ describe('asset survey', () => {
         .nodeId,
     ).toBe(q1.id);
 
-    // The EAM's own users retire the asset; its feed reaches the node.
+    // The EAM's own users retire the asset; its inbound sync reaches the node.
     survey.eam().retire('EAM-1001');
     await complete();
     expect(await query<Node>('structure.node.get', { id: q1.id })).toMatchObject({
@@ -361,7 +363,7 @@ describe('asset survey', () => {
     ).toMatchObject({ value: 'S-1', edited: false });
   });
 
-  test('the model and EAM feeds sync as one principal before either reported anything', async () => {
+  test('the model and EAM inbound syncs sync as one principal before either reported anything', async () => {
     const survey = await open();
     await survey.complete();
     await survey.complete();

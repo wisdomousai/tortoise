@@ -50,7 +50,7 @@ async function watchedChange(runner: Runner, item: Due) {
 
 /**
  * Advance one instance by one step. The key names the instance and its `seq`, so an advance
- * repeated after a crash replays the stored receipt instead of running the step twice. A
+ * repeated after a crash replays the stored command result instead of running the step twice. A
  * failure rolls the step back with its record; the runner then records it under its own key.
  */
 async function step(runner: Runner, item: Due, cursor: number | undefined) {

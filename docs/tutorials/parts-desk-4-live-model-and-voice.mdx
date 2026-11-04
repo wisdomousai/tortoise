@@ -26,7 +26,7 @@ bunx playwright test showcase/examples/parts-desk
 
 **Goal:** one real conversation with a local model. **Skill:** [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md).
 
-With `LOCAL_MODEL_GGUF` set, the launch measures the weights into the model entry and starts `llama-server` on them through the process port; the run records keep the model's digest as verified. The conversation goes through the same panel, runs and approvals as the stand-in, and the receipts show what the model called, asked and requested. A live run is evidence to record, not a test to pass: a small model fails some turns, and the README says where. [Agents](../agents.md#evaluation) describes live scenarios and [Providers](../providers.md#local-models) the local harness.
+With `LOCAL_MODEL_GGUF` set, the launch measures the weights into the model entry and starts `llama-server` on them through the process port; the run records keep the model's digest as verified. The conversation goes through the same panel, runs and approvals as the stand-in, and the command results show what the model called, asked and requested. A live run is evidence to record, not a test to pass: a small model fails some turns, and the README says where. [Agents](../agents.md#evaluation) describes live scenarios and [Providers](../providers.md#local-models) the local harness.
 
 ```text prompt
 Use the serve-a-local-model skill. Start showcase/examples/parts-desk with bun run dev:web and
@@ -44,7 +44,7 @@ ends:
 Report for each turn the calls with their outcomes, the questions, the approval requests, the
 text and the time it took, and say where the model went wrong. Save a screenshot of the panel
 after each turn. Add an opt-in test that holds turns 1 and 4 through the run route when
-LOCAL_MODEL_GGUF is set and judges the receipts, not the text. Run the checks the
+LOCAL_MODEL_GGUF is set and judges the command results, not the text. Run the checks the
 serve-a-local-model skill names and report what passed. Do not change prompts or code to make the
 model succeed; record what it did in the README.
 ```

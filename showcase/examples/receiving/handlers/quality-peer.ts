@@ -45,7 +45,7 @@ const lotRecord = z.object({
   status: z.enum(['open', 'decided', 'closed']),
 });
 
-/** The quality target's complete, feed and status handlers, and the live lot search. */
+/** The quality target's complete, inbound sync and status handlers, and the live lot search. */
 export function qualityHandlers(): HandlerContribution<AppState, Services>[] {
   return [
     ...targetHandlers<AppState, Services, ClosedInspectionRequest>(qualityPeer, {

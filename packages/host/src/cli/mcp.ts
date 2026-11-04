@@ -25,7 +25,7 @@ async function embeddedMcp(definition: AnyApplicationDefinition, args: string[])
   const settings = settingsOf(definition.manifest, args);
   const grantFile = takeFlag(args, 'grant-file') ?? process.env.TORTOISE_GRANT_FILE;
   rejectRemaining(args);
-  // MCP is the agent surface, so an embedded server always runs under an explicit delegation.
+  // MCP is the agent channel, so an embedded server always runs under an explicit delegation.
   if (!grantFile)
     throw new ApplicationError('INVALID_INPUT', 'mcp --embedded requires --grant-file');
   const context: ExecutionContext = {

@@ -136,7 +136,7 @@ describe('audited runtime', () => {
   test('a command records accepted, committed and enqueued under one correlation', async () => {
     const log = createMemoryEventLog();
     const { app } = fixture(log);
-    const receipt = await app.invoke(
+    const commandResult = await app.invoke(
       { operation: 'reading.record', input, idempotencyKey: 'k1' },
       localUser,
     );
@@ -148,7 +148,7 @@ describe('audited runtime', () => {
     ]);
     expect(new Set(events.map((event) => event.correlationId)).size).toBe(1);
     expect(events[0]!.actor).toEqual({ principalId: 'inspector', workspaceId: 'w', via: 'http' });
-    expect(events[1]!.cursor).toBe(receipt.cursor);
+    expect(events[1]!.cursor).toBe(commandResult.cursor);
     expect(events[0]!.inputDigest).toMatch(/^[0-9a-f]{64}$/);
     // Only allow-listed fields appear in plain text; the note and value stay out of the log.
     expect(events[0]!.data).toMatchObject({
@@ -157,7 +157,7 @@ describe('audited runtime', () => {
     });
     expect(JSON.stringify(events)).not.toContain('operator remark');
     expect(JSON.stringify(events)).not.toContain('10.5');
-    expect(events[2]!.data).toMatchObject({ target: 'sor', effectId: receipt.effects![0] });
+    expect(events[2]!.data).toMatchObject({ target: 'sor', effectId: commandResult.effects![0] });
   });
 
   test('fail-closed: an unwritable log commits nothing and reports UNAVAILABLE', async () => {
@@ -207,15 +207,15 @@ describe('audited runtime', () => {
     const log = createMemoryEventLog();
     const { app } = fixture(log);
     const request = { operation: 'reading.record' as const, input, idempotencyKey: 'k1' };
-    const receipt = await app.invoke(request, localUser);
+    const commandResult = await app.invoke(request, localUser);
     await app.invoke(request, localUser);
     const integration = { workspaceId: 'w', principalId: 'integration' };
-    await app.recordAttempt(integration, receipt.effects![0]!, 'timeout');
-    await app.recordAttempt(integration, receipt.effects![0]!, 'lost reply', { hold: true });
+    await app.recordAttempt(integration, commandResult.effects![0]!, 'timeout');
+    await app.recordAttempt(integration, commandResult.effects![0]!, 'lost reply', { hold: true });
     await app.invoke(
       {
         operation: 'reading.complete',
-        input: { effectId: receipt.effects![0]!, outcome: { status: 'accepted' } },
+        input: { effectId: commandResult.effects![0]!, outcome: { status: 'accepted' } },
         idempotencyKey: 's1',
       },
       integration,

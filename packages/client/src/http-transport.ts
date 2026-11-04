@@ -4,7 +4,7 @@ import type {
   BlobTransport,
   ChangeBatch,
   CommandOptions,
-  Receipt,
+  CommandResult,
   Snapshot,
   Transport,
 } from './types.js';
@@ -112,7 +112,7 @@ export function createHttpTransport(options: {
     query: <T>(operation: string, input: unknown, signal?: AbortSignal) =>
       json<Snapshot<T>>(`/api/v1/queries/${encodeURIComponent(operation)}`, { input }, signal),
     command: <T>(operation: string, input: unknown, command: CommandOptions = {}) =>
-      json<Receipt<T>>(
+      json<CommandResult<T>>(
         `/api/v1/commands/${encodeURIComponent(operation)}`,
         {
           input,

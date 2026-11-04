@@ -42,7 +42,7 @@ A deployment policy binds what the application declares to one host's addresses,
 13. Install with the bundled binary, `<bundle>/files/bin/<app> install <bundle> --trust key.pub.json --deployment-policy <file> --approval <file> --service systemd|windows|none`. `--prefix` defaults to `/`, so stage under a temporary `--prefix` first to read what install writes. Then install without `--prefix`, with `--apply` to run the service and firewall commands. A staged tree is for reading and is not promoted. On macOS the service is `none` and nothing is applied. A refused admission, policy check, render or migration leaves the previous release current.
 14. Use `app status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
 15. Remove a release with `app uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/deployment/skills/decommission-an-application/SKILL.md`).
-16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --policy <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
+16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --policy <file> --format markdown`. A running host re-checks compliance status, including certificate validity, on every check.
 
 ## Checks
 

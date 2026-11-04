@@ -25,10 +25,10 @@ import {
 } from '@tortoise/testing';
 import {
   accumulateNetworkUsage,
-  assessPosture,
+  assessCompliance,
   controls,
   controlsMarkdown,
-  createPostureMonitor,
+  createComplianceMonitor,
   cycloneDx,
   dataFlowsMarkdown,
   securityManifest,
@@ -337,19 +337,19 @@ describe('generated compliance artifacts', () => {
   });
 });
 
-describe('posture', () => {
+describe('compliance', () => {
   test('denials ask for attention; a broken chain fails', async () => {
     const policy = await sandboxPolicy();
     const usage = accumulateNetworkUsage(new Map(), [
       { kind: 'network.allowed', outcome: 'allowed', at: 5, data: { destination: 'mes-api' } },
       { kind: 'network.denied', outcome: 'denied', at: 6, data: { destination: 'vendor-api' } },
     ] as any);
-    const posture = assessPosture({ policy, usage, now: 10 });
-    expect(posture.status).toBe('attention');
-    expect(posture.checks.find((check) => check.id === 'network-denials')!.summary).toBe(
+    const compliance = assessCompliance({ policy, usage, now: 10 });
+    expect(compliance.status).toBe('attention');
+    expect(compliance.checks.find((check) => check.id === 'network-denials')!.summary).toBe(
       'Denied connections to vendor-api (1)',
     );
-    const state = Object.fromEntries(posture.destinations.map((item) => [item.id, item.state]));
+    const state = Object.fromEntries(compliance.destinations.map((item) => [item.id, item.state]));
     expect(state).toEqual({
       'audit-collector': 'bound',
       'host-http': 'local',
@@ -358,12 +358,12 @@ describe('posture', () => {
       'station-screen': 'disabled',
       'vendor-api': 'bound',
     });
-    expect(posture.destinations.find((item) => item.id === 'mes-api')).toMatchObject({
+    expect(compliance.destinations.find((item) => item.id === 'mes-api')).toMatchObject({
       origin: 'https://mes.plant.local:8443',
       allowed: 1,
       lastUsedAt: 5,
     });
-    const broken = assessPosture({
+    const broken = assessCompliance({
       policy,
       verification: {
         ok: false,
@@ -379,7 +379,7 @@ describe('posture', () => {
 
   test('certificates are judged at each check, so one that expires while running fails', async () => {
     const policy = await sandboxPolicy();
-    expect(assessPosture({ policy, now: 10 }).checks).toContainEqual({
+    expect(assessCompliance({ policy, now: 10 }).checks).toContainEqual({
       id: 'certificates',
       status: 'info',
       summary: 'No certificates are configured',
@@ -398,19 +398,19 @@ describe('posture', () => {
       ],
     };
     const check = (now: number) =>
-      assessPosture({ policy: withCertificate, now }).checks.find(
+      assessCompliance({ policy: withCertificate, now }).checks.find(
         (item) => item.id === 'certificates',
       )!;
     expect(check(notAfter - 90 * 86_400_000).status).toBe('pass');
     expect(check(notAfter - 5 * 86_400_000)).toMatchObject({ status: 'warn' });
     expect(check(notAfter + 1)).toMatchObject({ status: 'fail' });
-    expect(assessPosture({ policy: withCertificate, now: notAfter + 1 }).status).toBe('failing');
+    expect(assessCompliance({ policy: withCertificate, now: notAfter + 1 }).status).toBe('failing');
   });
 
   test('a build warns from 30 days before its best-before date and never fails for it', async () => {
     const policy = await sandboxPolicy();
     const check = (now: number, bestBefore?: string) =>
-      assessPosture({ policy, now, ...(bestBefore ? { bestBefore } : {}) }).checks.find(
+      assessCompliance({ policy, now, ...(bestBefore ? { bestBefore } : {}) }).checks.find(
         (item) => item.id === 'best-before',
       )!;
     expect(check(10)).toMatchObject({ status: 'info' });
@@ -428,7 +428,7 @@ describe('posture', () => {
       summary: 'Past its best-before date of 2031-01-01',
     });
     expect(
-      assessPosture({ policy, now: lastDay + 86_400_000, bestBefore: '2031-01-01' }).status,
+      assessCompliance({ policy, now: lastDay + 86_400_000, bestBefore: '2031-01-01' }).status,
     ).not.toBe('failing');
   });
 });
@@ -452,7 +452,7 @@ async function monitoredLog() {
     },
     { kind: 'query.executed', outcome: 'allowed', operation: 'inspection.lot.list' },
   ]);
-  const monitor = createPostureMonitor({
+  const monitor = createComplianceMonitor({
     policy: await sandboxPolicy(),
     directory,
     head: () => log.head(),
@@ -462,18 +462,18 @@ async function monitoredLog() {
   return { directory, log, monitor };
 }
 
-describe('posture monitor', () => {
-  test('checks verify the live chain, fold network events and record posture.checked', async () => {
+describe('compliance monitor', () => {
+  test('checks verify the live chain, fold network events and record compliance.checked', async () => {
     const { directory, log, monitor } = await monitoredLog();
-    const posture = await monitor.check();
-    expect(posture.log).toMatchObject({ verified: true, problems: 0 });
-    expect(posture.catalogDigest).toBe('c'.repeat(64));
-    expect(posture.destinations.find((item) => item.id === 'mes-api')!.allowed).toBe(1);
+    const compliance = await monitor.check();
+    expect(compliance.log).toMatchObject({ verified: true, problems: 0 });
+    expect(compliance.catalogDigest).toBe('c'.repeat(64));
+    expect(compliance.destinations.find((item) => item.id === 'mes-api')!.allowed).toBe(1);
     // Concurrent readers within the freshness window reuse the check.
-    expect(await monitor.posture()).toBe(posture);
-    const checked = await monitor.events({ kinds: ['posture.checked'] });
+    expect(await monitor.status()).toBe(compliance);
+    const checked = await monitor.events({ kinds: ['compliance.checked'] });
     expect(checked.items).toHaveLength(1);
-    expect(checked.items[0]!.data).toMatchObject({ status: posture.status });
+    expect(checked.items[0]!.data).toMatchObject({ status: compliance.status });
     await monitor.stop();
     await log.close();
     expect((await verifyEventLog(directory)).ok).toBe(true);
@@ -514,12 +514,12 @@ const rejects = async (promise: Promise<unknown>, code: string) =>
 /** Reusable across transports: the operations are read-only and auditor-only. */
 const complianceScenarios: BehavioralScenario[] = [
   {
-    name: 'an auditor reads posture, events and chain status',
+    name: 'an auditor reads compliance status, events and chain status',
     async run(driver) {
-      const posture = (
-        await driver.query({ operation: 'compliance.posture.get', input: {} }, auditor)
+      const compliance = (
+        await driver.query({ operation: 'compliance.status.get', input: {} }, auditor)
       ).data as { profile: string; log: { verified: boolean } };
-      expect(posture).toMatchObject({ profile: 'sandbox', log: { verified: true } });
+      expect(compliance).toMatchObject({ profile: 'sandbox', log: { verified: true } });
       const events = (
         await driver.query(
           { operation: 'compliance.events.list', input: { outcome: 'denied', limit: 10 } },
@@ -537,7 +537,7 @@ const complianceScenarios: BehavioralScenario[] = [
     name: 'a non-auditor is refused every compliance read',
     async run(driver) {
       for (const operation of [
-        'compliance.posture.get',
+        'compliance.status.get',
         'compliance.events.list',
         'compliance.log.verify',
       ])
@@ -557,7 +557,7 @@ const complianceScenarios: BehavioralScenario[] = [
       );
       await rejects(
         driver.query(
-          { operation: 'compliance.posture.get', input: {} },
+          { operation: 'compliance.status.get', input: {} },
           { ...auditor, grant: { operations, resources: ['audit:log'] } },
         ),
         'FORBIDDEN',
@@ -591,7 +591,7 @@ describe('compliance capabilities', () => {
   test('a host without an audit log reports unavailable, not empty', async () => {
     const app = complianceApplication();
     await rejects(
-      app.queryRaw({ operation: 'compliance.posture.get', input: {} }, auditor),
+      app.queryRaw({ operation: 'compliance.status.get', input: {} }, auditor),
       'UNAVAILABLE',
     );
   });

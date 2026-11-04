@@ -1,6 +1,6 @@
 # A field crew's sampling worklist
 
-The oil lab in the [assignments pattern](../assignments/README.md) sends sampling rounds to the field crew that draws the samples; this pattern is the crew's own application. The crew reads each round's brief in its worklist, reports samples and marks the round done. A report commits locally with an outbox effect, the peer link delivers it, and the lab decides as `peer:<id>` whether to accept it; the worklist keeps a refusal with its reason and never resends a rejected report.
+The oil lab in the [assignments pattern](../assignments/README.md) sends sampling rounds to the field crew that draws the samples; this pattern is the crew's own application. The crew reads each round's instructions in its worklist, reports samples and marks the round done. A report commits locally with an outbox effect, the peer link delivers it, and the lab decides as `peer:<id>` whether to accept it; the worklist keeps a refusal with its reason and never resends a rejected report.
 
 ```sh
 cd showcase/patterns/assignments && bun run dev:web   # terminal 1

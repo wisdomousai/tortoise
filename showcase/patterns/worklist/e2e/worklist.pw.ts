@@ -73,7 +73,7 @@ test('connect the field crew, take a sampling round from the oil lab and send ba
     await form.getByLabel('TR-40517').check();
     await form.getByRole('button', { name: 'Create and send' }).click();
 
-    // The round arrives at the next sync with its brief; the sample names a transformer of it.
+    // The round arrives at the next sync with its instructions; the sample names a transformer of it.
     await peer.goto(`${crew.origin}/#/rounds`);
     const item = peer.getByRole('listitem', { name: 'Northfield, week 17' });
     await expect(item.getByRole('list', { name: 'Transformers to sample' })).toContainText(

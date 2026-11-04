@@ -121,17 +121,17 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
         idempotencyKey: `agent-${worklist.next.sample}`,
       };
       first ??= request;
-      const receipt = decode(
+      const commandResult = decode(
         await agent.callTool({ name: 'inspection_result_record', arguments: request }),
       );
-      expect(receipt.result.capture).toEqual({
+      expect(commandResult.result.capture).toEqual({
         actor: 'agent',
         durationMs: 300,
         input: 'instrument',
       });
-      recorded.push(receipt.result.id);
+      recorded.push(commandResult.result.id);
     }
-    // A harness retrying after a lost response gets the original receipt, not a duplicate.
+    // A harness retrying after a lost response gets the original command result, not a duplicate.
     const replay = decode(
       await agent.callTool({ name: 'inspection_result_record', arguments: first! }),
     );
@@ -223,8 +223,11 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
   expect(verified.value).toMatchObject({ ok: true, problems: [] });
   const report = await run(['compliance', 'report', '--log', auditLog, '--format', 'json']);
   expect(report.exitCode).toBe(0);
-  expect(report.value.posture).toMatchObject({ networkMode: 'isolated', log: { verified: true } });
-  for (const destination of report.value.posture.destinations)
+  expect(report.value.compliance).toMatchObject({
+    networkMode: 'isolated',
+    log: { verified: true },
+  });
+  for (const destination of report.value.compliance.destinations)
     expect(destination).toMatchObject({ allowed: 0, denied: 0 });
 }, 60_000);
 

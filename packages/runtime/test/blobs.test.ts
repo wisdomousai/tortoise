@@ -323,8 +323,8 @@ describe('blob references', () => {
     const other = await app.putBlob(photo(9), 'image/jpeg', owner);
     await invoke('photo.attach', { capture: 'c1', photo: ref });
     await invoke('photo.attach', { capture: 'c2', photo: other });
-    const receipt = await invoke('photo.file', { capture: 'c1' });
-    const { effectId } = receipt.result as { effectId: string };
+    const commandResult = await invoke('photo.file', { capture: 'c1' });
+    const { effectId } = commandResult.result as { effectId: string };
     expect((await app.readEffectBlob('w', effectId, ref.digest))?.data).toEqual(data);
     expect(await app.readEffectBlob('w', effectId, other.digest)).toBeUndefined();
     expect(await app.readEffectBlob('w', 'effect-unknown', ref.digest)).toBeUndefined();

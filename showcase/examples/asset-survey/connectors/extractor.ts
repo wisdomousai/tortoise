@@ -62,7 +62,7 @@ export function createExtractionPort(options: {
     readBlob: options.readBlob,
     async work(offer, { readBlob, signal }) {
       const photos: Photo[] = [];
-      for (const ref of offer.brief.photos) {
+      for (const ref of offer.instructions.photos) {
         const photo = await readBlob(ref.digest);
         if (!photo)
           return {
@@ -73,7 +73,7 @@ export function createExtractionPort(options: {
           };
         photos.push(photo);
       }
-      const fields = await options.extractor.extract(photos, offer.brief.kind, signal);
+      const fields = await options.extractor.extract(photos, offer.instructions.kind, signal);
       return [{ body: { model: options.extractor.model, fields } }];
     },
   });

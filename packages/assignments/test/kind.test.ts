@@ -9,7 +9,7 @@ const base: Spec = {
   title: 'Check',
   description: 'Check the text.',
   scope: object,
-  brief: object,
+  instructions: object,
   report: object,
   assigneeTypes: ['person'],
 };
@@ -26,7 +26,7 @@ describe('defineAssignmentKind', () => {
   test('refuses an invalid, reserved or overlong ID', () => {
     expect(define({ id: 'Check' })).toThrow('Invalid assignment kind');
     expect(define({ id: 'report' })).toThrow('reserved');
-    expect(define({ id: 'feed' })).toThrow('reserved');
+    expect(define({ id: 'inbound' })).toThrow('reserved');
     expect(define({ id: `a${'-b'.repeat(20)}` })).toThrow('Invalid assignment kind');
   });
 
@@ -47,10 +47,10 @@ describe('defineAssignmentKind', () => {
     ).toBe('checker');
   });
 
-  test('refuses brief blobs for a device or a peer, whose pull carries no blobs', () => {
-    const blobs = { brief: { maxBytes: 1000, mediaTypes: ['image/png'] } };
-    expect(define({ assigneeTypes: ['device'], blobs })).toThrow('brief blobs');
-    expect(define({ assigneeTypes: ['person', 'peer'], blobs })).toThrow('brief blobs');
+  test('refuses instructions blobs for a device or a peer, whose pull carries no blobs', () => {
+    const blobs = { instructions: { maxBytes: 1000, mediaTypes: ['image/png'] } };
+    expect(define({ assigneeTypes: ['device'], blobs })).toThrow('instructions blobs');
+    expect(define({ assigneeTypes: ['person', 'peer'], blobs })).toThrow('instructions blobs');
     expect(defineAssignmentKind({ ...base, blobs }).blobs).toEqual(blobs);
   });
 

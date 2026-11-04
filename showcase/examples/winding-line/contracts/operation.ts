@@ -17,7 +17,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'line.control.get':
     'Station bridge only: read the bridge mode and who holds the station screen. The bridge reads this before every screen action.',
   'line.order.start':
-    'Start a released MES order at a station: records the desired recipe and asks the station bridge to load it through the station screen. Needs a person at the station (operator or supervisor, not an agent): the receipt proves the request, the station shows the result later. Starts only when the machine is stopped.',
+    'Start a released MES order at a station: records the desired recipe and asks the station bridge to load it through the station screen. Needs a person at the station (operator or supervisor, not an agent): the command result proves the request, the station shows the result later. Starts only when the machine is stopped.',
   'line.stop.classify':
     'Classify a detected machine stop with an MES stop reason as operator or supervisor. The classification is forwarded to the MES; a rejected classification can be classified again.',
   'line.count.confirm':

@@ -83,9 +83,9 @@ Keeping skills current:
 
 - Name a skill for a task, uniquely across the repo. The owning workspace's README links it and this table lists it.
 - `scripts/skill-coverage.json` maps each package, workstation, plugin and SDK to its skills, or to an empty `skills` array with a `reason`. Include a workspace's own skills.
-- An application that installs the framework from a registry has no coverage file or surface stamp. If it adds a local workspace, create its coverage registry and review and stamp that surface.
+- An application that installs the framework from a registry has no coverage file or public API stamp. If it adds a local workspace, create its coverage registry and review and stamp that API.
 - `bun run check:skills` validates the registry, discovery, links and paths. Update coverage when a workspace or skill changes.
-- `scripts/reviewed-surface.json` records each workspace's entrypoints, exported names and the root scripts as of the last review. When that surface changes, the check names the skills to review. Update them in the same commit, then run `bun run skills:stamp <workspace>`.
+- `scripts/reviewed-api.json` records each workspace's entrypoints, exported names and the root scripts as of the last review. When that public API changes, the check names the skills to review. Update them in the same commit, then run `bun run skills:stamp <workspace>`.
 - A new extension point that other code uses and no skill covers gets a skill in its workspace.
 - When two skills repeat steps, keep them in the owning package's skill and link from the other.
 - Link to docs and READMEs instead of copying. Every path a skill names must exist.

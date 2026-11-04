@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/table';
 import { live } from '@/lib/session';
 
-type Posture = OutputOf<typeof complianceOperations.postureGet>;
+type ComplianceStatus = OutputOf<typeof complianceOperations.statusGet>;
 type AuditEvent = OutputOf<typeof complianceOperations.eventsList>['items'][number];
 const time = (at: number | undefined) => (at === undefined ? '—' : new Date(at).toLocaleString());
-// The audit log has no change feed of its own, so the screen polls: a denial shows up within
+// The audit log has no change list of its own, so the screen polls: a denial shows up within
 // seconds without a reload. Each read is itself audited.
 const POLL_MS = 5_000;
 const denialKinds = ['network.denied', 'command.denied', 'query.denied'];
@@ -32,13 +32,13 @@ const statusTone = {
   fail: 'destructive',
 } as const;
 
-function PostureHeader({ data }: { data: Posture }) {
+function StatusHeader({ data }: { data: ComplianceStatus }) {
   return (
     <header className="space-y-1">
       <p className="text-xs font-medium tracking-widest text-muted-foreground">COMPLIANCE</p>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">Security posture</h1>
-        <Badge variant={statusTone[data.status]} aria-label={`Posture ${data.status}`}>
+        <h1 className="text-2xl font-semibold">Security compliance</h1>
+        <Badge variant={statusTone[data.status]} aria-label={`Compliance status ${data.status}`}>
           {data.status}
         </Badge>
       </div>
@@ -50,7 +50,7 @@ function PostureHeader({ data }: { data: Posture }) {
   );
 }
 
-function Checks({ checks }: { checks: Posture['checks'] }) {
+function Checks({ checks }: { checks: ComplianceStatus['checks'] }) {
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Checks">
       {checks.map((check) => (
@@ -69,7 +69,7 @@ function Checks({ checks }: { checks: Posture['checks'] }) {
 }
 
 /** Chain head, forwarding and digests, plus a full re-verification on request. */
-function AuditLog({ data }: { data: Posture }) {
+function AuditLog({ data }: { data: ComplianceStatus }) {
   // A full re-verification of every segment on request, beyond the monitor's periodic check.
   const verification = useQuery({
     ...live.liveQueryOptions(complianceOperations.logVerify, {}),
@@ -114,13 +114,13 @@ function AuditLog({ data }: { data: Posture }) {
 }
 
 /**
- * Security posture for auditors (`compliance.*` bindings): what this installation may reach and
+ * Compliance status for auditors (`compliance.*` bindings): what this installation may reach and
  * whether it did, recent denials, and whether the audit chain is intact. Read-only; changing
- * the posture means changing the deployment policy and restarting the instance.
+ * the compliance status means changing the deployment policy and restarting the instance.
  */
 export function ComplianceScreen() {
-  const posture = useQuery({
-    ...live.liveQueryOptions(complianceOperations.postureGet, {}),
+  const compliance = useQuery({
+    ...live.liveQueryOptions(complianceOperations.statusGet, {}),
     refetchInterval: POLL_MS,
   });
   const denials = useQuery({
@@ -131,18 +131,20 @@ export function ComplianceScreen() {
     }),
     refetchInterval: POLL_MS,
   });
-  if (posture.error)
+  if (compliance.error)
     return (
       <p role="alert" className="text-sm text-destructive">
-        {posture.error instanceof Error ? posture.error.message : 'Security posture unavailable'}
+        {compliance.error instanceof Error
+          ? compliance.error.message
+          : 'Compliance status unavailable'}
       </p>
     );
-  if (!posture.data) return <p role="status">Checking security posture…</p>;
-  const data = posture.data;
+  if (!compliance.data) return <p role="status">Checking security compliance…</p>;
+  const data = compliance.data;
   const recent = [...(denials.data?.items ?? [])].reverse();
   return (
     <div className="space-y-6">
-      <PostureHeader data={data} />
+      <StatusHeader data={data} />
       <Checks checks={data.checks} />
       <Card>
         <CardHeader>
@@ -176,7 +178,7 @@ export function ComplianceScreen() {
   );
 }
 
-function Destinations({ destinations }: { destinations: Posture['destinations'] }) {
+function Destinations({ destinations }: { destinations: ComplianceStatus['destinations'] }) {
   return (
     <Table>
       <TableHeader>

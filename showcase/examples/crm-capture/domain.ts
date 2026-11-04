@@ -5,7 +5,7 @@ import { own } from '@tortoise/runtime';
  * and log what happened with them.
  *
  * The CRM owns accounts and contacts. Searches read it at call time and store nothing. Following
- * an account asks the CRM (through the outbox) to let this workspace follow it; the CRM feed then
+ * an account asks the CRM (through the outbox) to let this workspace follow it; the CRM inbound sync then
  * delivers the account and keeps it current through the integration principal's sync command.
  * This application owns activities logged against followed accounts, each forwarded to the CRM.
  */
@@ -16,7 +16,7 @@ export interface Rejection {
   message: string;
 }
 
-/** Account identifiers are CRM IDs. Details are absent until the feed delivers them. */
+/** Account identifiers are CRM IDs. Details are absent until inbound sync delivers them. */
 export interface LocalAccount {
   id: string;
   status: LocalStatus;
@@ -54,7 +54,7 @@ export interface CrmState {
   members: Record<string, Member>;
   accounts: Record<string, LocalAccount>;
   activities: Record<string, Activity>;
-  /** CRM feed position after the last applied sync. */
+  /** CRM inbound sync position after the last applied sync. */
   watermark?: string;
   lastSyncAt?: number;
 }

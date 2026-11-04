@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import type { ObservedReading } from './debounce';
 
 /**
@@ -19,7 +19,7 @@ export interface ObserverOptions<Observation extends ObservationBase> {
   /** Take one frame and build its observation, readings already gated. */
   readonly sample: (signal: AbortSignal) => Promise<Observation>;
   readonly application: {
-    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   };
   /** The observing principal, granted the ingest operation only. */
   readonly context: ExecutionContext;
@@ -96,7 +96,7 @@ export function createObserver<Observation extends ObservationBase>(
 ) {
   const heartbeatMs = options.heartbeatMs ?? 10_000;
   // The last accepted submission; a failed one is not recorded, so the next pass resends.
-  let last: { content: string; window: number; receipt: CommandReceipt } | undefined;
+  let last: { content: string; window: number; commandResult: CommandResult } | undefined;
 
   async function runOnce(signal: AbortSignal = new AbortController().signal) {
     const observation = await options.sample(signal);
@@ -105,10 +105,10 @@ export function createObserver<Observation extends ObservationBase>(
     const content = contentOf(observation);
     const window = Math.floor(observation.observedAt / heartbeatMs);
     if (last && last.content === content && last.window === window)
-      return { observation, receipt: last.receipt };
-    const receipt = await submit(options, observation);
-    last = { content, window, receipt };
-    return { observation, receipt };
+      return { observation, commandResult: last.commandResult };
+    const commandResult = await submit(options, observation);
+    last = { content, window, commandResult };
+    return { observation, commandResult };
   }
 
   let controller: AbortController | undefined;

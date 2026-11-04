@@ -69,7 +69,7 @@ export const inquiryOperations = {
   inquiryGet: collectionGet(inquiries, {
     id: 'inquiry',
     description:
-      'Read one call to the desk by its ID, as inquiry.list returns it. Call it for the caller, utility, serial, subject and status of one call. Returns the record. An unknown ID is NOT_FOUND. A command receipt that changed it includes its revision as inquiry:<id>, for expectedRevisions. Any member may call it.',
+      'Read one call to the desk by its ID, as inquiry.list returns it. Call it for the caller, utility, serial, subject and status of one call. Returns the record. An unknown ID is NOT_FOUND. A command result that changed it includes its revision as inquiry:<id>, for expectedRevisions. Any member may call it.',
   }),
   inquiryCreate: collectionCreate(inquiries, {
     id: 'inquiry',

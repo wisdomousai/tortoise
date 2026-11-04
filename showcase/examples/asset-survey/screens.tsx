@@ -45,7 +45,7 @@ export default defineScreens({
     { prefix: 'document.', to: '/documents' },
     { prefix: 'assignment.survey.report', to: '/work' },
     { prefix: 'assignment.extraction.report', to: '/work' },
-    { prefix: 'assignment.feed', to: '/work' },
+    { prefix: 'assignment.inbound', to: '/work' },
     { prefix: 'assignment.complete', to: '/work' },
     { prefix: 'assignment.extraction.accept', to: '/review' },
     { prefix: 'assignment.extraction.', to: '/assignments' },

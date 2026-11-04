@@ -50,8 +50,8 @@ export interface TargetSpec<
   };
   /** Records the target completes; their changes refresh the status query. */
   readonly changes: readonly string[];
-  /** The inbound feed, when the target has one: one item schema plus optional side lists. */
-  readonly feed?: {
+  /** The inbound side, when the target has one: one item schema plus optional side lists. */
+  readonly inbound?: {
     readonly item: Item;
     /** The most items one batch may carry. */
     readonly max: number;
@@ -105,7 +105,7 @@ function completeCapability<const Complete extends string>(id: Complete, spec: C
   });
 }
 
-/** Apply one feed batch bound to the stored watermark. */
+/** Apply one inbound batch bound to the stored watermark. */
 function syncCapability<
   const Sync extends string,
   Item extends z.ZodType,
@@ -113,24 +113,24 @@ function syncCapability<
 >(
   id: Sync,
   spec: Common,
-  feed: NonNullable<TargetSpec<string, string, Sync, string, Item, Extra, {}>['feed']>,
+  inbound: NonNullable<TargetSpec<string, string, Sync, string, Item, Extra, {}>['inbound']>,
 ) {
   return defineCapability({
     id,
     kind: 'command',
     description:
-      spec.descriptions.sync ?? `Integration principal only: apply a ${spec.target} feed batch.`,
+      spec.descriptions.sync ?? `Integration principal only: apply a ${spec.target} inbound batch.`,
     input: jsonSchema(
       z.strictObject({
         from: z.string().max(256).optional(),
         to: z.string().min(1).max(256),
-        items: z.array(feed.item).max(feed.max),
-        ...feed.extra,
+        items: z.array(inbound.item).max(inbound.max),
+        ...inbound.extra,
       }) as unknown as z.ZodType<SyncBatch<z.output<Item>, z.output<z.ZodObject<Extra>>>>,
     ),
     output: jsonSchema(z.strictObject({ watermark: z.string(), items: z.number().int() })),
     permission: { action: 'sync', resourceType: spec.resourceType },
-    dependencies: [...new Set([...feed.changes, 'sync'])],
+    dependencies: [...new Set([...inbound.changes, 'sync'])],
     ui: { exception },
   });
 }
@@ -141,7 +141,7 @@ function syncCapability<
  * integration principal except the status query:
  *
  * - complete: record the target's outcome for one effect (`{ effectId, outcome, fence? }`).
- * - sync: apply one feed batch (`{ from?, to, items, ...extra }`); a `from` that is not the
+ * - sync: apply one inbound batch (`{ from?, to, items, ...extra }`); a `from` that is not the
  *   stored watermark conflicts, so a stale or replayed range cannot apply old data.
  * - status: the stored watermark and last sync time, plus the application's own counts.
  *
@@ -182,20 +182,20 @@ export function defineTarget<
     dependencies: [...new Set([...spec.changes, 'sync'])],
     ui: spec.ui?.status ?? { binding: ids.status },
   });
-  const feed = spec.feed;
-  const sync = feed ? syncCapability<Sync, Item, Extra>(ids.sync, spec, feed) : undefined;
+  const inbound = spec.inbound;
+  const sync = inbound ? syncCapability<Sync, Item, Extra>(ids.sync, spec, inbound) : undefined;
   return Object.freeze({
     target: spec.target,
     syncResource,
     complete,
     status,
-    /** Present exactly when the target declares a feed. */
+    /** Present exactly when the target declares inbound sync. */
     sync: sync as [Item] extends [z.ZodNever] ? undefined : NonNullable<typeof sync>,
     /** Every operation the integration principal may call. */
     integrationOperations: [
       ids.complete,
       ids.status,
-      ...(feed ? [ids.sync] : []),
+      ...(inbound ? [ids.sync] : []),
     ] as readonly string[],
     capabilities: (sync ? [complete, sync, status] : [complete, status]) as readonly (
       typeof complete | NonNullable<typeof sync> | typeof status

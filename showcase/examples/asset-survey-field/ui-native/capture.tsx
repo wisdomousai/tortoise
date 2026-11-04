@@ -8,7 +8,7 @@ import type { BlobRef } from '@tortoise/contracts';
 import { HoldButton } from '@tortoise/frame-native/components/hold-button';
 import { useOsAction } from '@tortoise/frame-native/os-actions';
 import { useSession } from '@tortoise/frame-native/session';
-import type { CaptureBody, SurveyBrief } from './brief';
+import type { CaptureBody, SurveyInstructions } from './instructions';
 import { fieldOperations as ops } from '../contracts';
 import { refusal, workRequest } from './os-requests';
 import { ActionButton, ErrorText, Screen } from './shared';
@@ -80,10 +80,11 @@ export function CaptureScreen() {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
-  const brief = useQuery(live.liveQueryOptions(ops.assignmentGet, { id: params.assignmentId })).data
-    ?.brief as SurveyBrief | undefined;
-  const node = brief?.nodes.find((item) => item.id === params.nodeId);
-  const kinds = brief?.kinds ?? [];
+  const instructions = useQuery(
+    live.liveQueryOptions(ops.assignmentGet, { id: params.assignmentId }),
+  ).data?.instructions as SurveyInstructions | undefined;
+  const node = instructions?.nodes.find((item) => item.id === params.nodeId);
+  const kinds = instructions?.kinds ?? [];
   const chosenKind = kind ?? (kinds.length === 1 ? kinds[0] : undefined);
 
   useEffect(

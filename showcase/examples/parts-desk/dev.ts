@@ -17,7 +17,7 @@
  *
  * Then it opens the workspace the host is about to serve in this process, creates the trial
  * records through the commands (`trial-records.ts`) and closes it again, which releases the
- * workspace lock for the host. A relaunch replays the stored receipts and adds nothing. A host
+ * workspace lock for the host. A relaunch replays the stored command results and adds nothing. A host
  * already running on the workspace holds the lock, so the launch fails with CONFLICT instead of
  * writing beside it.
  *

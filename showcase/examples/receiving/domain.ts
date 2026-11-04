@@ -5,7 +5,7 @@ import type { Delivery } from './contracts/delivery';
 /** Workspace roles: editors count and post, viewers read. */
 export type Role = 'editor' | 'viewer';
 
-/** Where a target's feed stands. */
+/** Where a target's inbound sync stands. */
 export interface Cursor {
   watermark?: string;
   lastSyncAt?: number;
@@ -15,7 +15,7 @@ export interface Cursor {
 export interface AppState {
   /** People who work in this workspace and their role. */
   members: Record<string, Role>;
-  /** Feed positions by target. */
+  /** Inbound sync positions by target. */
   sync: Record<string, Cursor>;
   deliveries: Record<string, Delivery>;
   // scaffold:state

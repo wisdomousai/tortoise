@@ -245,7 +245,7 @@ export function WorkOrderScreen() {
           <div className="mx-6 mb-6 rounded-xl border border-dashed p-8 text-center">
             <h2 className="font-medium">A clear place to start</h2>
             <p className="text-sm text-muted-foreground">
-              Add a task yourself, or turn a brief into tasks with the agent.
+              Add a task yourself, or turn the instructions into tasks with the agent.
             </p>
           </div>
         )}

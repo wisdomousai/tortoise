@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 import type { HostPorts } from '@tortoise/host/plugin';
 import { z } from 'zod';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { createDriverObserver } from '../src/connect';
 import { defineDriverContract, driverOperations } from '../src/contracts';
 import { driverServiceOf, openDrivers } from '../src/open';
@@ -30,7 +30,7 @@ function recorder() {
     application: {
       async invokeRaw(request: Invocation) {
         submitted.push(request);
-        return { result: {}, revision: submitted.length } as unknown as CommandReceipt;
+        return { result: {}, revision: submitted.length } as unknown as CommandResult;
       },
     },
   };

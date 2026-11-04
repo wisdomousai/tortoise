@@ -1,6 +1,6 @@
 # Interaction contract
 
-Every surface shares one contract. Modules own their schemas and operation IDs. The framework owns the shared protocol types.
+Every channel shares one contract. Modules own their schemas and operation IDs. The framework owns the shared protocol types.
 
 ## Schemas
 
@@ -30,9 +30,9 @@ Who reads the metadata:
 
 A capability without display metadata falls back to its schema.
 
-Operation IDs are the same on every surface. An MCP name replaces dots and hyphens with underscores, up to 64 characters.
+Operation IDs are the same on every channel. An MCP name replaces dots and hyphens with underscores, up to 64 characters.
 
-A handler registers against its exact capability; typed `invoke` and `query` follow from the composed modules. Surface adapters use the raw variants, which run the same validation and authorization. No type comes from runtime discovery.
+A handler registers against its exact capability; typed `invoke` and `query` follow from the composed modules. Channel adapters use the raw variants, which run the same validation and authorization. No type comes from runtime discovery.
 
 Discovery marks capabilities outside the caller's grant as denied, and every call still authorizes on its own. `/api/v1/contract` also names the `application` (its ID, contract version and a digest of every operation) and gives each operation a `schemaDigest` (`operationSchemaDigest`), so a caller learns when an operation it depends on changed.
 
@@ -89,7 +89,7 @@ Shared error codes:
 - unavailable dependency
 - internal failure
 
-Surface adapters map an `ApplicationError` to one envelope with its code, message and details. Any other exception becomes a generic internal error.
+Channel adapters map an `ApplicationError` to one envelope with its code, message and details. Any other exception becomes a generic internal error.
 
 ## Versions and idempotency
 

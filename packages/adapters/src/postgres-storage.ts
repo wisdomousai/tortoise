@@ -24,7 +24,7 @@ export interface PostgresStorageOptions<State> extends RowStorageOptions<State> 
 
 /**
  * Workspace persistence on Postgres in the row layout of the SQLite storage: one row per record,
- * one per resource revision, receipt, effect, blob reference and journal entry, and a commit
+ * one per resource revision, command result, effect, blob reference and journal entry, and a commit
  * writes only what changed, in one transaction.
  *
  * Several hosts may share the database. A commit takes a transaction-scoped advisory lock on its

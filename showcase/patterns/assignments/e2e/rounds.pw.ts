@@ -76,14 +76,14 @@ test('send a sampling round to yourself, report a sample per transformer, link a
     await expect(row.getByText('sent', { exact: true })).toBeVisible();
     await expect(row).toContainText('Northfield 110 kV · TR-40517, TR-40522, TR-40530');
 
-    // The brief shows each transformer's last sample as sent, and the form moves to the next
+    // The instructions show each transformer's last sample as sent, and the form moves to the next
     // transformer after a report.
     await page.getByRole('link', { name: 'My rounds' }).click();
     const item = page.getByRole('listitem', { name: 'Northfield, week 17' });
-    const brief = item.getByRole('list', { name: 'Transformers to sample' });
-    await expect(brief).toContainText(`Last sample OS-24-0301: ${gas}`);
-    await expect(brief).toContainText('Last sample OS-24-0302: no method assigned');
-    await expect(brief).toContainText('No sample in the lab yet');
+    const instructions = item.getByRole('list', { name: 'Transformers to sample' });
+    await expect(instructions).toContainText(`Last sample OS-24-0301: ${gas}`);
+    await expect(instructions).toContainText('Last sample OS-24-0302: no method assigned');
+    await expect(instructions).toContainText('No sample in the lab yet');
     const sample = item.getByRole('form', { name: 'Sample for Northfield, week 17' });
     const transformer = sample.getByLabel('Transformer');
     await expect(transformer.locator('option:checked')).toHaveText('TR-40517');
@@ -98,7 +98,7 @@ test('send a sampling round to yourself, report a sample per transformer, link a
     await expect(transformer.locator('option:checked')).toHaveText('TR-40530');
     await item.getByRole('button', { name: 'Done' }).click();
     await expect(page.getByText('Nothing assigned to you.')).toBeVisible();
-    // A report without a transformer, as a peer's from an out-of-date brief would arrive.
+    // A report without a transformer, as a peer's from an out-of-date instructions would arrive.
     const listed = (await call(host, 'queries', 'assignment.list', {})) as {
       data: { items: { id: string }[] };
     };

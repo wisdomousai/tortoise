@@ -34,13 +34,13 @@ function operation<const Id extends string, const Kind extends 'command' | 'quer
   });
 }
 
-/** Local reads, writes forwarded to the CRM, and the integration principal's feed. */
+/** Local reads, writes forwarded to the CRM, and the integration principal's inbound sync. */
 export const operations = {
   accountList: collectionList(accounts, {
     id: 'crm.account',
     filters: ['status'],
     description:
-      'List accounts this workspace follows, in your regions, newest first: their status (requested until the CRM feed delivers them, following, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.',
+      'List accounts this workspace follows, in your regions, newest first: their status (requested until the CRM inbound sync delivers them, following, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.',
     dependencies: ['activity'],
   }),
   accountGet: operation('crm.account.get', 'query', {
@@ -57,7 +57,7 @@ export const operations = {
     output: z.strictObject({ id: externalId, status: localStatus.exclude(['none']) }),
     permission: { action: 'follow', resourceType: 'CrmAccount' },
     description:
-      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details are then imported through the CRM feed and kept current. The receipt proves the local request only: the account is requested until then, or rejected if the CRM refuses. Following an account already requested or followed returns it unchanged.',
+      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details are then imported through the CRM inbound sync and kept current. The command result proves the local request only: the account is requested until then, or rejected if the CRM refuses. Following an account already requested or followed returns it unchanged.',
     dependencies: ['account'],
     forwards: true,
   }),

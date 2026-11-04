@@ -15,7 +15,7 @@ import {
   ScopeTransformers,
   TransformerPicker,
 } from './round-parts';
-import { BriefRound, SampleForm, SampleView } from './round';
+import { InstructionsRound, SampleForm, SampleView } from './round';
 
 type Peer = { id: string; label: string; application: string; revokedAt?: number };
 type Assignee = { type: string; id: string };
@@ -167,13 +167,13 @@ function Mine() {
   return (
     <MyAssignments
       title="My rounds"
-      feed={assignmentOperations.feed}
+      inbound={assignmentOperations.inbound}
       complete={assignmentOperations.complete}
       kinds={[
         {
           kind: sampling,
           report: assignmentOperations.samplingReport,
-          brief: (item) => <BriefRound brief={item.brief} />,
+          instructions: (item) => <InstructionsRound instructions={item.instructions} />,
           form: (item, submit) => <SampleForm item={item} submit={submit} />,
         },
       ]}
@@ -197,7 +197,7 @@ export const roundNavigation = [
 export const roundCapabilityScreens = [
   { prefix: 'assignment.sampling.report', to: '/my-rounds' },
   { prefix: 'assignment.complete', to: '/my-rounds' },
-  { prefix: 'assignment.feed', to: '/my-rounds' },
+  { prefix: 'assignment.inbound', to: '/my-rounds' },
   { prefix: 'assignment.', to: '/rounds' },
   { prefix: 'sampling.', to: '/rounds' },
 ];

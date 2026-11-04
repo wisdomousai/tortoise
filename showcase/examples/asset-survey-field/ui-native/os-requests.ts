@@ -1,7 +1,7 @@
 import type { OsActionOutcome, OutputOf } from '@tortoise/contracts';
 import type { NativeSession } from '@tortoise/frame-native/session';
 import { fieldOperations as ops } from '../contracts';
-import type { BriefNode, CaptureBody } from './brief';
+import type { InstructionsNode, CaptureBody } from './instructions';
 
 type Report = OutputOf<typeof ops.reportList>['items'][number];
 
@@ -25,7 +25,10 @@ export async function tagScreen(tag: string, session: Pick<NativeSession, 'clien
 }
 
 /** The extras of a work request for `node`, which the maintenance app receives. */
-export const workRequest = (node: Pick<BriefNode, 'designation' | 'name'>, note: string) => ({
+export const workRequest = (
+  node: Pick<InstructionsNode, 'designation' | 'name'>,
+  note: string,
+) => ({
   designation: node.designation,
   name: node.name,
   note: note.trim(),

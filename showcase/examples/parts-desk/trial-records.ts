@@ -6,7 +6,7 @@ import type { Part } from './contracts/part';
  * and 24 parts across every category and assembly, some out of stock. TR-40417 and TR-40471
  * share the start TR-404, so a find for it is ambiguous. Every record goes through its create
  * command as the local user, under a fixed idempotency key: on a workspace that has them,
- * each command replays its stored receipt and the seed adds nothing. Names and phone numbers are
+ * each command replays its stored command result and the seed adds nothing. Names and phone numbers are
  * made up.
  */
 const utilities = [

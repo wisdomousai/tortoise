@@ -4,7 +4,7 @@ import { Link, useParams } from '@tanstack/react-router';
 import { AssignmentBoard, type AssigneeOption } from '@/components/assignment-board';
 import { AssignmentReports, type AssignmentReport } from '@/components/assignment-reports';
 import { RecordScreen } from '@/components/collection-screen';
-import { MyAssignments, type FeedItem, type SubmitReport } from '@/components/my-assignments';
+import { MyAssignments, type InboundItem, type SubmitReport } from '@/components/my-assignments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,8 +24,8 @@ import { cycleCount } from '../contracts/cycle-count-assignment';
 const board = '/assignments/cycle-counts';
 const words = (value: string) => value.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
-/** A count's brief and one report's body, as the cycle count kind declares them. */
-interface Brief {
+/** A count's instructions and one report's body, as the cycle count kind declares them. */
+interface Instructions {
   bin: string;
   tools: { assetTag: string; status: string }[];
 }
@@ -126,12 +126,12 @@ function CountScreen() {
   );
 }
 
-function BriefLine({ item }: { item: FeedItem }) {
-  const brief = item.brief as unknown as Brief;
+function InstructionsLine({ item }: { item: InboundItem }) {
+  const instructions = item.instructions as unknown as Instructions;
   return (
     <p className="text-sm">
-      Count bin <span className="font-mono font-medium">{brief.bin}</span>: {brief.tools.length}{' '}
-      {brief.tools.length === 1 ? 'tool' : 'tools'}.
+      Count bin <span className="font-mono font-medium">{instructions.bin}</span>:{' '}
+      {instructions.tools.length} {instructions.tools.length === 1 ? 'tool' : 'tools'}.
     </p>
   );
 }
@@ -139,14 +139,14 @@ function BriefLine({ item }: { item: FeedItem }) {
 type Mark = 'found' | 'missing';
 
 /**
- * Each tool of the brief with its status when the count was sent, marked found or missing. A
+ * Each tool of the instructions with its status when the count was sent, marked found or missing. A
  * tool left unmarked is not in the report and keeps its status.
  */
-function CountForm({ item, submit }: { item: FeedItem; submit: SubmitReport }) {
-  const brief = item.brief as unknown as Brief;
+function CountForm({ item, submit }: { item: InboundItem; submit: SubmitReport }) {
+  const instructions = item.instructions as unknown as Instructions;
   const [marks, setMarks] = useState<Record<string, Mark>>({});
   const marked = (mark: Mark) =>
-    brief.tools.map((tool) => tool.assetTag).filter((tag) => marks[tag] === mark);
+    instructions.tools.map((tool) => tool.assetTag).filter((tag) => marks[tag] === mark);
   return (
     <form
       aria-label={`Report on ${item.title}`}
@@ -167,7 +167,7 @@ function CountForm({ item, submit }: { item: FeedItem; submit: SubmitReport }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {brief.tools.map((tool) => (
+          {instructions.tools.map((tool) => (
             <TableRow key={tool.assetTag}>
               <TableCell className="font-mono">{tool.assetTag}</TableCell>
               <TableCell>{words(tool.status)}</TableCell>
@@ -200,13 +200,13 @@ function Mine() {
   return (
     <MyAssignments
       title="My cycle counts"
-      feed={assignmentOperations.feed}
+      inbound={assignmentOperations.inbound}
       complete={assignmentOperations.complete}
       kinds={[
         {
           kind: cycleCount,
           report: assignmentOperations.cycleCountReport,
-          brief: (item) => <BriefLine item={item} />,
+          instructions: (item) => <InstructionsLine item={item} />,
           form: (item, submit) => <CountForm item={item} submit={submit} />,
         },
       ]}

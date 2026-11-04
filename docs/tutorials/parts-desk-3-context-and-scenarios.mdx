@@ -112,7 +112,7 @@ The run added two framework changes for this step: a `prepare` handler gets the 
 
 **Goal:** tests that judge what the assistant committed and requested and which calls the policy refused, without a model. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
 
-An agent scenario gives an agent a task and a starting state, then checks the receipts, the approval requests and the refusals, never the text. On the deterministic harness the run follows a script of calls, so a scenario is repeatable in CI; the same scenarios run on a real model with `AGENT_SCENARIOS=live`. A scripted run cannot use a result and ends at its first refused call, which shapes what one scenario can cover. [Agents](../agents.md#evaluation) covers scenarios and the gate a fine-tune passes.
+An agent scenario gives an agent a task and a starting state, then checks the command results, the approval requests and the refusals, never the text. On the deterministic harness the run follows a script of calls, so a scenario is repeatable in CI; the same scenarios run on a real model with `AGENT_SCENARIOS=live`. A scripted run cannot use a result and ends at its first refused call, which shapes what one scenario can cover. [Agents](../agents.md#evaluation) covers scenarios and the gate a fine-tune passes.
 
 ```text prompt
 Use the add-capability skill. In showcase/examples/parts-desk, write the assistant's scripted

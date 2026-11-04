@@ -6,7 +6,7 @@ import {
   type ObservationBase,
   type Reading,
 } from '@tortoise/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { createMqttSubscriber, type MqttSubscriberOptions } from './client';
 import { decodePayload, parseTopic, SparkplugState, type MetricValue } from './sparkplug';
 
@@ -41,7 +41,7 @@ export interface MqttObserverOptions {
   readonly subscriber: Omit<MqttSubscriberOptions, 'filters' | 'onMessage' | 'onConnection'>;
   readonly fields: readonly MqttField[];
   readonly application: {
-    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   };
   /** The observing principal, granted the ingest operation only. */
   readonly context: ExecutionContext;

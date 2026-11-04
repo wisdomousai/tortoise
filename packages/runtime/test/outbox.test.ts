@@ -101,13 +101,13 @@ function fixture(options: { declareChange?: boolean; invalidOutput?: boolean } =
 }
 
 describe('transactional outbox', () => {
-  test('a committed command persists its effect with the receipt and journal', async () => {
+  test('a committed command persists its effect with the command result and journal', async () => {
     const { app } = fixture();
-    const receipt = await app.invoke(
+    const commandResult = await app.invoke(
       { operation: 'result.record', input: { id: 'r1', value: 10.02 }, idempotencyKey: 'k1' },
       localUser,
     );
-    expect(receipt.effects).toEqual(['effect-1']);
+    expect(commandResult.effects).toEqual(['effect-1']);
     const pending = await app.pendingEffects(integration, { target: 'sor' });
     expect(pending).toHaveLength(1);
     expect(pending[0]).toMatchObject({
@@ -141,7 +141,7 @@ describe('transactional outbox', () => {
     expect(pending.map((effect) => effect.runId)).toEqual(['run-1', undefined]);
   });
 
-  test('an idempotent replay returns the stored receipt without enqueuing again', async () => {
+  test('an idempotent replay returns the stored command result without enqueuing again', async () => {
     const { app } = fixture();
     const request = {
       operation: 'result.record' as const,
@@ -237,18 +237,18 @@ describe('transactional outbox', () => {
 
   test('a delivery attempt is journaled without changing the resource revision', async () => {
     const { app } = fixture();
-    const receipt = await app.invoke(
+    const commandResult = await app.invoke(
       { operation: 'result.record', input: { id: 'r1', value: 1 } },
       localUser,
     );
     const attempted = await app.recordAttempt(integration, 'effect-1', 'Target unavailable');
     expect(attempted).toMatchObject({ attempts: 1, lastFailure: 'Target unavailable' });
-    const batch = await app.events(receipt.cursor, localUser);
+    const batch = await app.events(commandResult.cursor, localUser);
     expect(batch.events).toEqual([
       {
-        cursor: receipt.cursor + 1,
+        cursor: commandResult.cursor + 1,
         resource: 'result:r1',
-        revision: receipt.revisions['result:r1']!,
+        revision: commandResult.revisions['result:r1']!,
         type: 'effect.attempted',
         operation: 'result.record',
       },
@@ -258,7 +258,7 @@ describe('transactional outbox', () => {
       {
         operation: 'result.complete',
         input: { effectId: 'effect-1', outcome: { status: 'accepted' } },
-        expectedRevisions: { 'result:r1': receipt.revisions['result:r1']! },
+        expectedRevisions: { 'result:r1': commandResult.revisions['result:r1']! },
       },
       integration,
     );

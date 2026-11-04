@@ -51,7 +51,7 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
         ...(durationMs === undefined ? {} : { capture: { durationMs, input: scanner.lastInput } }),
       };
     },
-    onCommitted: (receipt) => committed(receipt.result),
+    onCommitted: (commandResult) => committed(commandResult.result),
   });
   function committed(result: RecordedResult) {
     setAnnouncement(
@@ -73,7 +73,7 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
     setReadingError('');
     const durationMs = elapsed();
     try {
-      const receipt = await client.command(operations.resultRecord, {
+      const commandResult = await client.command(operations.resultRecord, {
         lotId: lot.id,
         characteristicId: target.characteristicId,
         sample: target.sample,
@@ -83,7 +83,7 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
         station: 'web',
         ...(durationMs === undefined ? {} : { capture: { durationMs, input: 'instrument' } }),
       });
-      committed(receipt.result);
+      committed(commandResult.result);
     } catch (cause) {
       setReadingError(cause instanceof Error ? cause.message : 'Recording the reading failed');
     }

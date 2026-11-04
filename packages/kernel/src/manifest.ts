@@ -59,7 +59,7 @@ export interface ApplicationManifest<
   readonly expoPlugins?: readonly ExpoPluginEntry[];
   /**
    * Days a build of the application is expected to serve its task. Each build's best-before date
-   * is its build date plus this; hosts, `app status`, compliance posture and the fleet show it, and
+   * is its build date plus this; hosts, `app status`, compliance status and the fleet show it, and
    * nothing is refused after it. Absent: builds carry no best-before date.
    */
   readonly shelfLifeDays?: number;

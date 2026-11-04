@@ -66,7 +66,7 @@ export const deliveryOperations = {
   deliveryGet: collectionGet(deliveries, {
     id: 'delivery',
     description:
-      'Read one delivery line by id. A command receipt that changed it carries its revision as delivery:<id> for expectedRevisions.',
+      'Read one delivery line by id. A command result that changed it carries its revision as delivery:<id> for expectedRevisions.',
   }),
   deliveryReceive: defineCapability({
     id: 'delivery.receive',

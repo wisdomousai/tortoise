@@ -189,13 +189,13 @@ describe('nested call', () => {
       const b = await ctx.invokeRaw('item.set', { id: 'b', value: value + 1 });
       return { a, b: b.result, effects: b.effects };
     };
-    const receipt = await invoke();
-    expect(receipt.result).toEqual({
+    const commandResult = await invoke();
+    expect(commandResult.result).toEqual({
       a: { id: 'a', value: 1 },
       b: { id: 'b', value: 2 },
       effects: [],
     });
-    expect(receipt.revisions).toEqual({ 'item:a': 1, 'item:b': 1 });
+    expect(commandResult.revisions).toEqual({ 'item:a': 1, 'item:b': 1 });
     const stored = await snapshot();
     expect(stored.state.items).toEqual({ a: 1, b: 2 });
     expect(stored.cursor).toBe(2);
@@ -211,8 +211,8 @@ describe('nested call', () => {
       ctx.change('item:own');
       return {};
     };
-    const receipt = await invoke();
-    expect(receipt.revisions).toEqual({ 'item:a': 1, 'item:own': 1 });
+    const commandResult = await invoke();
+    expect(commandResult.revisions).toEqual({ 'item:a': 1, 'item:own': 1 });
     const { journal } = await snapshot();
     expect(journal.map(({ resource, type, operation }) => ({ resource, type, operation }))).toEqual(
       [
@@ -346,7 +346,7 @@ describe('nested call', () => {
     expect((await app.invokeRaw({ operation: 'chain.2', input: {} }, localUser)).result).toBe(4);
   });
 
-  test('a retry replays the receipt only while every nested command is still allowed', async () => {
+  test('a retry replays the command result only while every nested command is still allowed', async () => {
     const { control, invoke, refused, runs } = setup();
     control.compose = async (_input, ctx) => ctx.invoke(set, { id: 'a', value: 1 });
     const first = await invoke({}, localUser, 'k1');
@@ -406,9 +406,12 @@ describe('continuation as a tail frame', () => {
       ctx.continueWith('item.set', { id: 'a', value: 2 });
       return {};
     };
-    const receipt = await invoke();
-    expect(receipt.continuation).toEqual({ operation: 'item.set', result: { id: 'a', value: 2 } });
-    expect(receipt.revisions).toEqual({ 'item:a': 1 });
+    const commandResult = await invoke();
+    expect(commandResult.continuation).toEqual({
+      operation: 'item.set',
+      result: { id: 'a', value: 2 },
+    });
+    expect(commandResult.revisions).toEqual({ 'item:a': 1 });
     const { journal } = await snapshot();
     expect(journal.map(({ operation }) => operation)).toEqual(['item.set']);
     expect(seen.map((request) => [request.capability.id, request.phase])).toEqual([
@@ -527,9 +530,12 @@ describe('nested call across slices', () => {
 
   test('a child runs on its own slice under its own policy', async () => {
     const { app, seen } = crossing(false);
-    const receipt = await app.invoke({ operation: 'note.add', input: { id: 'n1' } }, localUser);
-    expect(receipt.result).toEqual({ keys: ['notes'], counter: 1 });
-    expect(receipt.revisions).toEqual({ 'counter:n1': 1, 'note:n1': 1 });
+    const commandResult = await app.invoke(
+      { operation: 'note.add', input: { id: 'n1' } },
+      localUser,
+    );
+    expect(commandResult.result).toEqual({ keys: ['notes'], counter: 1 });
+    expect(commandResult.revisions).toEqual({ 'counter:n1': 1, 'note:n1': 1 });
     expect(seen).toContainEqual(['counters', 'counters', 'frozen']);
     expect(
       seen.every(([module, first]) =>

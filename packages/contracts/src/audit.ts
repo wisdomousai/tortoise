@@ -2,14 +2,14 @@ import type { JsonObject } from './json';
 
 /**
  * Audit event envelope shared by the event-log port, its adapters, verifiers and UI. It is
- * browser-safe data so a posture screen can render events without loading the log adapter.
+ * browser-safe data so a compliance status screen can render events without loading the log adapter.
  *
  * Events carry references and digests, never business payloads: input values appear only for
  * fields a capability lists in `audit.fields`, and network events never contain bodies. A log is
- * evidence about the instance; it does not replace the committed journal or receipts.
+ * evidence about the instance; it does not replace the committed journal or command results.
  */
 
-/** Which surface carried the request. Derived by the host, never supplied by the caller. */
+/** Which channel carried the request. Derived by the host, never supplied by the caller. */
 export type AuditChannel =
   'direct' | 'http' | 'mcp' | 'cli' | 'embedded' | 'integration' | 'harness' | 'host' | 'shell';
 
@@ -76,9 +76,10 @@ export function isAuditKind(kind: string): boolean {
 export const auditEventKinds = {
   'command.accepted': 'A command passed final authorization and is about to commit.',
   'command.committed': 'A command committed; carries the journal cursor.',
-  'command.replayed': 'An idempotent retry returned the stored receipt; nothing new committed.',
-  'command.recovered': 'Startup resolved an accepted command against the receipt store.',
-  'command.aborted': 'An accepted command left no receipt and did not commit.',
+  'command.replayed':
+    'An idempotent retry returned the stored command result; nothing new committed.',
+  'command.recovered': 'Startup resolved an accepted command against the command result store.',
+  'command.aborted': 'An accepted command left no command result and did not commit.',
   'command.denied': 'Authorization or grant checks refused a command.',
   'command.failed': 'A command failed validation, conflicted or errored without committing.',
   'query.executed': 'A query returned authorized data.',
@@ -98,7 +99,7 @@ export const auditEventKinds = {
   'run.ended': 'A harness run finished, failed, was cancelled or interrupted.',
   'config.loaded': 'The host started; carries binary, catalog and deployment-policy digests.',
   'policy.loaded': 'A deployment policy was validated and applied.',
-  'posture.checked': 'A periodic security posture check completed.',
+  'compliance.checked': 'A periodic compliance status check completed.',
   'log.opened': 'An event log segment was opened or resumed.',
   'log.checkpoint': 'A checkpoint recorded the chain head.',
   'blob.stored': 'A caller uploaded a blob into the workspace staging area.',
@@ -118,7 +119,7 @@ export type FrameworkAuditKind = keyof typeof auditEventKinds;
 /**
  * Whether an unwritable log blocks the audited action. `required` fails closed: the command does
  * not commit, the query returns no data and the connection does not open. `best-effort` proceeds
- * and the gap becomes visible through the verifier and posture checks.
+ * and the gap becomes visible through the verifier and compliance checks.
  */
 export type AuditRequirement = 'required' | 'best-effort';
 export interface AuditMode {

@@ -73,8 +73,8 @@ const assignmentAdd = defineCapability({
   permission: { action: 'create', resourceType: 'Assignment' },
   ...fixture,
 });
-const feed = defineCapability({
-  id: 'assignments.feed',
+const inbound = defineCapability({
+  id: 'assignments.inbound',
   kind: 'query',
   input: jsonSchema(z.strictObject({ cursor: z.string().optional() })),
   output: jsonSchema(
@@ -89,10 +89,10 @@ type HubState = {
   assignments: string[];
 };
 const hubBind = createHandlerFactory<HubState, unknown>();
-const deviceOperations = new Set<string>([ingest.id, feed.id]);
+const deviceOperations = new Set<string>([ingest.id, inbound.id]);
 
 /**
- * The hub application with the device-link plugin; field devices may ingest and read the feed.
+ * The hub application with the device-link plugin; field devices may ingest and read inbound sync.
  * With `deployed`, the deployment, network and audit plugins listen and record as the deployment policy says.
  */
 export function hubApplication(options: { now?: () => number; deployed?: boolean } = {}) {
@@ -109,7 +109,7 @@ export function hubApplication(options: { now?: () => number; deployed?: boolean
       id: 'hub',
       title: 'Hub',
       modules: [
-        defineModule({ id: 'survey', capabilities: [ingest, captureList, assignmentAdd, feed] }),
+        defineModule({ id: 'survey', capabilities: [ingest, captureList, assignmentAdd, inbound] }),
       ],
       plugins: [...deployment.map((entry) => entry.manifest), deviceLinkPluginManifest],
     }),
@@ -133,7 +133,7 @@ export function hubApplication(options: { now?: () => number; deployed?: boolean
         ctx.change(`assignment:${ctx.state.assignments.length}`);
         return { count: ctx.state.assignments.length };
       }),
-      hubBind(feed, async (input, ctx) => {
+      hubBind(inbound, async (input, ctx) => {
         const from = Number(input.cursor ?? '0');
         return {
           items: ctx.state.assignments.slice(from),
@@ -269,7 +269,7 @@ export function fieldApplication(options: { fetch?: typeof fetch } = {}) {
           throw new ApplicationError('CONFLICT', 'Stale watermark');
         ctx.state.assignments.push(...input.items);
         ctx.state.watermark = input.to;
-        ctx.change('assignments:feed');
+        ctx.change('assignments:inbound');
         return {};
       }),
       fieldBind(status, async (_input, ctx) => ({
@@ -286,7 +286,7 @@ export function fieldApplication(options: { fetch?: typeof fetch } = {}) {
             client: () => network.client('hub'),
             readBlob: (effect, digest) =>
               application.readEffectBlob(workspaceId, effect.id, digest),
-            feed: feed.id,
+            inbound: inbound.id,
           }),
           context: { workspaceId, principalId: 'integration' },
           completeOperation: complete.id,

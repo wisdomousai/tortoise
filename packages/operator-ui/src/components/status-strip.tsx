@@ -147,7 +147,7 @@ const deliveryLook: Record<
 };
 
 /**
- * Where a local write stands with the system that owns it. A commit receipt proves the local
+ * Where a local write stands with the system that owns it. A commit command result proves the local
  * write only; this badge shows the outbox state: waiting, retrying, held for reconciliation
  * (the result of a screen action could not be confirmed), accepted with the system of record's reference,
  * or rejected with its reason.

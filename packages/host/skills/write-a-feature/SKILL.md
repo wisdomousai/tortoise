@@ -11,7 +11,7 @@ A feature contributes modules whose operation IDs start with its ID, a state sli
 
 - Domain behavior for one application is a capability in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`).
 - Look in [primitives](../../../../docs/primitives.md#feature) for a feature that already covers the part. Work handed to someone who reports back is the `assignment` feature; follow the `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`).
-- Pick the ID once. It is the state key, the `feature:<id>` stamp, the services key and the operation namespace, and journal resources and receipts keep it.
+- Pick the ID once. It is the state key, the `feature:<id>` stamp, the services key and the operation namespace, and journal resources and command results keep it.
 - `showcase/patterns/review` writes a feature next to the application that mounts it: a four-eyes review whose access view names each record's author, with a panel the application places on its own record screen.
 
 ## Steps

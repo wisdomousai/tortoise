@@ -15,7 +15,7 @@ import { digestExecutable } from './executable-digest';
 
 /**
  * What the audit plugin exposes to later plugins as `services.audit`: read access to the log it
- * writes and the facts it attests. The compliance plugin builds its posture monitor on it. It
+ * writes and the facts it attests. The compliance plugin builds its compliance monitor on it. It
  * carries no credentials and no write access beyond the event-log port every caller shares.
  */
 export interface AuditService {

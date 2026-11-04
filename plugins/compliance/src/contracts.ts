@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 
 /**
- * Browser-safe capability module through which authorized auditors read the running posture and
+ * Browser-safe capability module through which authorized auditors read the running compliance status and
  * the audit log. Queries only: nothing here changes configuration, and the log itself is
  * append-only. Every call is authorized like any other operation (permission `read` on
  * `Audit`) and is itself audited, so reading the audit trail leaves a trace.
@@ -11,12 +11,12 @@ const auditRead = { action: 'read', resourceType: 'Audit' } as const;
 const count = z.number().int().min(0);
 const digest = z.string().regex(/^[0-9a-f]{64}$|^unavailable$/);
 
-export const postureCheckSchema = z.strictObject({
+export const complianceCheckSchema = z.strictObject({
   id: z.string(),
   status: z.enum(['pass', 'info', 'warn', 'fail']),
   summary: z.string(),
 });
-export const destinationPostureSchema = z.strictObject({
+export const destinationStatusSchema = z.strictObject({
   id: z.string(),
   owner: z.string(),
   direction: z.enum(['outbound', 'inbound']),
@@ -30,7 +30,7 @@ export const destinationPostureSchema = z.strictObject({
   denied: count,
   lastUsedAt: z.number().int().optional(),
 });
-export const postureSchema = z.strictObject({
+export const complianceStatusSchema = z.strictObject({
   checkedAt: z.number().int(),
   status: z.enum(['ok', 'attention', 'failing']),
   profile: z.enum(['desktop-local', 'hub', 'sandbox', 'zero-trust']),
@@ -39,8 +39,8 @@ export const postureSchema = z.strictObject({
   policyDigest: digest,
   catalogDigest: digest.optional(),
   executableDigest: digest.optional(),
-  checks: z.array(postureCheckSchema),
-  destinations: z.array(destinationPostureSchema),
+  checks: z.array(complianceCheckSchema),
+  destinations: z.array(destinationStatusSchema),
   findings: z.array(
     z.strictObject({
       level: z.enum(['error', 'warning', 'info']),
@@ -121,16 +121,16 @@ export const verificationSchema = z.strictObject({
 });
 
 export const complianceOperations = {
-  postureGet: defineCapability({
-    id: 'compliance.posture.get',
+  statusGet: defineCapability({
+    id: 'compliance.status.get',
     kind: 'query',
     description:
-      'Read the current security posture: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity, audit forwarding health and the running build’s best-before date. Use it to answer what this installation can reach and whether its audit trail is intact.',
+      'Read the current compliance status: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity, audit forwarding health and the running build’s best-before date. Use it to answer what this installation can reach and whether its audit trail is intact.',
     input: jsonSchema(z.strictObject({})),
-    output: jsonSchema(postureSchema),
+    output: jsonSchema(complianceStatusSchema),
     permission: auditRead,
     dependencies: ['audit'],
-    ui: { binding: 'compliance-posture' },
+    ui: { binding: 'compliance-status' },
   }),
   eventsList: defineCapability({
     id: 'compliance.events.list',
@@ -176,7 +176,7 @@ export const complianceOperations = {
     ),
     permission: auditRead,
     dependencies: ['audit'],
-    ui: { binding: 'compliance-posture' },
+    ui: { binding: 'compliance-status' },
   }),
   logVerify: defineCapability({
     id: 'compliance.log.verify',
@@ -187,7 +187,7 @@ export const complianceOperations = {
     output: jsonSchema(verificationSchema),
     permission: auditRead,
     dependencies: ['audit'],
-    ui: { binding: 'compliance-posture' },
+    ui: { binding: 'compliance-status' },
   }),
 } as const;
 
@@ -196,15 +196,15 @@ export const complianceModule = defineModule({
   capabilities: Object.values(complianceOperations),
   workflows: [
     {
-      id: 'review-compliance-posture',
-      operations: ['compliance.posture.get', 'compliance.events.list', 'compliance.log.verify'],
-      text: 'Start with the posture. For any check that is not passing, list the matching audit events (for example kinds network.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.',
+      id: 'review-compliance-status',
+      operations: ['compliance.status.get', 'compliance.events.list', 'compliance.log.verify'],
+      text: 'Start with the compliance status. For any check that is not passing, list the matching audit events (for example kinds network.denied, command.denied or compliance.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.',
     },
   ],
 });
 
-export type Posture = z.infer<typeof postureSchema>;
-export type PostureCheck = z.infer<typeof postureCheckSchema>;
-export type DestinationPosture = z.infer<typeof destinationPostureSchema>;
+export type ComplianceStatus = z.infer<typeof complianceStatusSchema>;
+export type ComplianceCheck = z.infer<typeof complianceCheckSchema>;
+export type DestinationStatus = z.infer<typeof destinationStatusSchema>;
 export type AuditEventView = z.infer<typeof auditEventSchema>;
 export type LogVerification = z.infer<typeof verificationSchema>;

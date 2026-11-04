@@ -12,7 +12,7 @@ export const inspectionOutcomeSchema = z.enum(['accepted', 'rejected']);
 
 /**
  * Goods that another application received and sent for incoming inspection. `requestedBy` is
- * the requesting peer's principal; the feed returns each peer only its own requests.
+ * the requesting peer's principal; inbound sync returns each peer only its own requests.
  */
 export const inspectionRequestSchema = z.strictObject({
   id,
@@ -30,12 +30,12 @@ export const inspectionRequestSchema = z.strictObject({
   requestedAt: timestamp,
   closedAt: timestamp.optional(),
   closedBy: z.string().optional(),
-  /** Position in the feed of closed requests. */
+  /** Position in inbound sync of closed requests. */
   seq: z.number().int().min(1).optional(),
 });
 export type InspectionRequest = z.output<typeof inspectionRequestSchema>;
 
-/** One closed inspection request as the feed returns it to the application that created it. */
+/** One closed inspection request as inbound sync returns it to the application that created it. */
 export const closedInspectionRequestSchema = z.strictObject({
   id,
   delivery: id,
@@ -52,7 +52,7 @@ export const inspectionRequests = defineCollection({
   label: { one: 'Inspection request', many: 'Inspection requests' },
 });
 
-/** Inspection requests created by a peer, closed by inspectors, and the feed of their outcomes. */
+/** Inspection requests created by a peer, closed by inspectors, and inbound sync of their outcomes. */
 export const inspectionRequestOperations = {
   inspectionRequestList: collectionList(inspectionRequests, {
     id: 'inspection.request',
@@ -89,7 +89,7 @@ export const inspectionRequestOperations = {
     id: 'inspection.request.close',
     kind: 'command',
     description:
-      'Close an open inspection request with the incoming inspection outcome, accepted or rejected, and an optional note. Inspectors and supervisors at some plant; a closed request conflicts. The requesting application reads the outcome from its feed.',
+      'Close an open inspection request with the incoming inspection outcome, accepted or rejected, and an optional note. Inspectors and supervisors at some plant; a closed request conflicts. The requesting application reads the outcome from its inbound sync.',
     input: jsonSchema(
       z.strictObject({
         id,
@@ -102,8 +102,8 @@ export const inspectionRequestOperations = {
     dependencies: ['inspection-request'],
     ui: { binding: 'inspection.request.close' },
   }),
-  inspectionRequestFeed: defineCapability({
-    id: 'inspection.request.feed',
+  inspectionRequestOutcomes: defineCapability({
+    id: 'inspection.request.outcomes',
     kind: 'query',
     description:
       'Peer applications only: the outcomes of the inspection requests the calling peer created, closed after cursor, oldest first.',

@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite';
 import type { RunSnapshot, RunStore } from '@tortoise/agents/types';
 
-/** Run snapshots are separate from business transactions; a completed run is never a commit receipt. */
+/** Run snapshots are separate from business transactions; a completed run is never a commit command result. */
 export class SQLiteRunStore implements RunStore {
   private db: Database;
   constructor(path: string) {

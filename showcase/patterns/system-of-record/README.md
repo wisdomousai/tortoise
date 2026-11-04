@@ -11,7 +11,7 @@ bun run dev:web
 
 - Create a request (port 4351), assign a method and publish it; the publication screen shows the LIMS outcome.
 - Act as LIMS staff against the fake on `127.0.0.1:4371`: `curl -X POST localhost:4371/control/review -d '{"on":true}'` turns on the review queue, `/control/approve -d '{"key":"<effect id>"}'` approves a held publication, `/control/forget` loses one.
-- `curl -X POST localhost:4371/control/register -d '{"sample":"OS-24-2001","transformer":"TR-38822","description":"Acidity of aged oil","method":"IEC 62021-1"}'` registers a request at another plant, and the feed imports it.
+- `curl -X POST localhost:4371/control/register -d '{"sample":"OS-24-2001","transformer":"TR-38822","description":"Acidity of aged oil","method":"IEC 62021-1"}'` registers a request at another plant, and inbound sync imports it.
 - The `lims-integration` principal completes and syncs the target's operations but cannot publish or submit requests.
 
 ## References

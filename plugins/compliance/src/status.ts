@@ -2,7 +2,7 @@ import type { AuditEvent } from '@tortoise/contracts';
 import { judgeCertificates, type ResolvedPolicy } from '@tortoise/deployment/policy';
 import type { ForwardingStats, VerificationReport } from '@tortoise/event-log';
 import { pastBestBefore } from '@tortoise/kernel/build';
-import type { DestinationPosture, Posture, PostureCheck } from './contracts';
+import type { DestinationStatus, ComplianceStatus, ComplianceCheck } from './contracts';
 
 /** Per-destination network use, accumulated from `network.*` audit events. */
 export interface NetworkUsage {
@@ -29,7 +29,7 @@ export function accumulateNetworkUsage(
   return next;
 }
 
-export interface PostureInput {
+export interface ComplianceInput {
   readonly policy: ResolvedPolicy;
   readonly verification?: VerificationReport;
   readonly forwarding?: ForwardingStats;
@@ -40,7 +40,7 @@ export interface PostureInput {
   readonly now: number;
 }
 
-function policyCheck(policy: ResolvedPolicy): PostureCheck {
+function policyCheck(policy: ResolvedPolicy): ComplianceCheck {
   const errors = policy.findings.filter((finding) => finding.level === 'error');
   const warnings = policy.findings.filter((finding) => finding.level === 'warning');
   return {
@@ -58,7 +58,7 @@ function policyCheck(policy: ResolvedPolicy): PostureCheck {
  * Certificate validity judged at the time of this check, not when the policy was loaded, so a
  * certificate that expires while the host runs turns this check to `fail`.
  */
-function certificateCheck(policy: ResolvedPolicy, now: number): PostureCheck {
+function certificateCheck(policy: ResolvedPolicy, now: number): ComplianceCheck {
   if (!policy.certificates.length)
     return { id: 'certificates', status: 'info', summary: 'No certificates are configured' };
   const problems = judgeCertificates(policy.certificates, now);
@@ -88,7 +88,7 @@ const BEST_BEFORE_WARNING_MS = 30 * 86_400_000;
  * The build's best-before date, judged at the time of this check. A build past it, or within 30
  * days of it, is a `warn` for a reviewer; it is never a `fail`, because nothing is refused for it.
  */
-function bestBeforeCheck(bestBefore: string | undefined, now: number): PostureCheck {
+function bestBeforeCheck(bestBefore: string | undefined, now: number): ComplianceCheck {
   if (!bestBefore)
     return {
       id: 'best-before',
@@ -107,7 +107,7 @@ function bestBeforeCheck(bestBefore: string | undefined, now: number): PostureCh
     : { id: 'best-before', status: 'pass', summary: `Best before ${bestBefore}` };
 }
 
-function auditChainCheck(verification: VerificationReport | undefined): PostureCheck {
+function auditChainCheck(verification: VerificationReport | undefined): ComplianceCheck {
   return !verification
     ? { id: 'audit-chain', status: 'warn', summary: 'Audit chain not verified yet' }
     : verification.ok
@@ -126,7 +126,7 @@ function auditChainCheck(verification: VerificationReport | undefined): PostureC
 function forwardingCheck(
   forwardTo: string | undefined,
   forwarding: ForwardingStats | undefined,
-): PostureCheck {
+): ComplianceCheck {
   return !forwardTo
     ? {
         id: 'audit-forwarding',
@@ -156,7 +156,7 @@ function forwardingCheck(
 function networkChecks(
   policy: ResolvedPolicy,
   usage: ReadonlyMap<string, NetworkUsage>,
-): PostureCheck[] {
+): ComplianceCheck[] {
   const denied = [...usage].filter(([, item]) => item.denied > 0);
   const requiredOff = policy.consequences.filter((item) => item.availability === 'required');
   const unused = [...policy.bindings.keys()].filter((id) => !usage.get(id)?.allowed).sort();
@@ -190,10 +190,10 @@ function networkChecks(
 }
 
 /** Every declared destination, sorted by ID, with its state and usage. */
-function destinationPostures(
+function destinationStatuses(
   policy: ResolvedPolicy,
   usage: ReadonlyMap<string, NetworkUsage>,
-): DestinationPosture[] {
+): DestinationStatus[] {
   const consequence = new Map(policy.consequences.map((item) => [item.destination, item]));
   return [...policy.declared.values()]
     .sort((a, b) => (a.id < b.id ? -1 : 1))
@@ -226,16 +226,16 @@ function destinationPostures(
 }
 
 /**
- * Judge the running posture from facts the host already has: the resolved policy, a chain
+ * Judge the running compliance status from facts the host already has: the resolved policy, a chain
  * verification, forwarding statistics and network usage. Never probes the network. `failing`
  * means the audit trail or policy cannot be trusted; `attention` means something a reviewer
  * should look at (denials, unforwarded events, required features switched off).
  */
-export function assessPosture(input: PostureInput): Posture {
+export function assessCompliance(input: ComplianceInput): ComplianceStatus {
   const { policy, verification, forwarding } = input;
   const usage = input.usage ?? new Map<string, NetworkUsage>();
   const forwardTo = policy.policy.audit.forwardTo;
-  const checks: PostureCheck[] = [
+  const checks: ComplianceCheck[] = [
     policyCheck(policy),
     certificateCheck(policy, input.now),
     bestBeforeCheck(input.bestBefore, input.now),
@@ -260,7 +260,7 @@ export function assessPosture(input: PostureInput): Posture {
       ? { executableDigest: input.attestation.executableDigest }
       : {}),
     checks,
-    destinations: destinationPostures(policy, usage),
+    destinations: destinationStatuses(policy, usage),
     findings: policy.findings.map((finding) => ({
       level: finding.level,
       code: finding.code,
@@ -276,27 +276,29 @@ export function assessPosture(input: PostureInput): Posture {
   };
 }
 
-/** Markdown audit report: posture, destinations and recent denials, for an audit pack. */
-export function postureMarkdown(
-  posture: Posture,
+/** Markdown audit report: compliance status, destinations and recent denials, for an audit pack. */
+export function complianceMarkdown(
+  compliance: ComplianceStatus,
   options: { readonly application: string; readonly denials?: readonly AuditEvent[] },
 ): string {
   const time = (value: number) => new Date(value).toISOString();
   return [
-    `# Security posture: ${options.application}`,
+    `# Compliance status: ${options.application}`,
     '',
-    `Checked ${time(posture.checkedAt)}. Status: **${posture.status}**. Profile \`${posture.profile}\`, network ${posture.networkMode}, audit ${posture.auditMode}.`,
+    `Checked ${time(compliance.checkedAt)}. Status: **${compliance.status}**. Profile \`${compliance.profile}\`, network ${compliance.networkMode}, audit ${compliance.auditMode}.`,
     '',
-    `- Policy digest: \`${posture.policyDigest}\``,
-    ...(posture.catalogDigest ? [`- Catalog digest: \`${posture.catalogDigest}\``] : []),
-    ...(posture.executableDigest ? [`- Executable digest: \`${posture.executableDigest}\``] : []),
-    `- Audit log: head ${posture.log.headSeq}, ${posture.log.verified ? 'verified' : 'NOT verified'}, ${posture.log.problems} problem(s), ${posture.log.checkpoints} checkpoint(s)`,
+    `- Policy digest: \`${compliance.policyDigest}\``,
+    ...(compliance.catalogDigest ? [`- Catalog digest: \`${compliance.catalogDigest}\``] : []),
+    ...(compliance.executableDigest
+      ? [`- Executable digest: \`${compliance.executableDigest}\``]
+      : []),
+    `- Audit log: head ${compliance.log.headSeq}, ${compliance.log.verified ? 'verified' : 'NOT verified'}, ${compliance.log.problems} problem(s), ${compliance.log.checkpoints} checkpoint(s)`,
     '',
     '## Checks',
     '',
     '| Check | Status | Summary |',
     '| --- | --- | --- |',
-    ...posture.checks.map(
+    ...compliance.checks.map(
       (check) => `| ${check.id} | ${check.status} | ${check.summary.replace(/\|/g, '\\|')} |`,
     ),
     '',
@@ -304,7 +306,7 @@ export function postureMarkdown(
     '',
     '| ID | Owner | Scope | State | Origin | Allowed | Denied | Last used |',
     '| --- | --- | --- | --- | --- | --- | --- | --- |',
-    ...posture.destinations.map(
+    ...compliance.destinations.map(
       (item) =>
         `| \`${item.id}\` | ${item.owner} | ${item.scope} | ${item.state} | ${item.origin ?? '—'} | ${item.allowed} | ${item.denied} | ${item.lastUsedAt ? time(item.lastUsedAt) : '—'} |`,
     ),

@@ -171,7 +171,7 @@ function filingCounts(ctx: Context, target: Filing['target']) {
 }
 
 /**
- * Filing into the EAM and the export directory. The EAM's outcome names the asset, and its feed
+ * Filing into the EAM and the export directory. The EAM's outcome names the asset, and its inbound sync
  * reports assets filed; the export's outcome names the folder written.
  */
 export const filingHandlers = (): HandlerContribution<SurveyState, SurveyServices>[] => [
@@ -222,7 +222,7 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     applyBatch({ items }, ctx) {
       let applied = 0;
       for (const asset of items) {
-        // Only nodes filed as this asset follow the feed; other EAM assets are not ours.
+        // Only nodes filed as this asset follow inbound sync; other EAM assets are not ours.
         for (const node of Object.values(ctx.state.nodes))
           if (node.assetId === asset.externalId && node.assetStatus !== asset.status) {
             nodeRecords(ctx).update(node.id, { assetStatus: asset.status }, 'asset-status');
@@ -234,7 +234,7 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     status: (ctx) => filingCounts(ctx, 'eam'),
   }),
   ...targetHandlers<SurveyState, SurveyServices>(exportTarget, {
-    // No feed: the written folder is the whole outcome.
+    // No inbound: the written folder is the whole outcome.
     cursor: () => ({}),
     now,
     onOutcome: (effect, outcome, ctx) => void completeFiling(ctx, effect, outcome),

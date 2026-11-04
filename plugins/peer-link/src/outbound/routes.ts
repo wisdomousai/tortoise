@@ -71,7 +71,7 @@ export async function connect(
     );
   const secret = { peerId: reply.peer.id, token: reply.token, privateKey: key.privateKey };
   await options.secrets.write(target, secret);
-  const receipt = await caller.application.invokeRaw(
+  const commandResult = await caller.application.invokeRaw(
     {
       operation: ops.connectionRecord.id,
       input: {
@@ -89,7 +89,7 @@ export async function connect(
     context,
   );
   options.outbound.hold(target, secret, reply.peer.audience);
-  return receipt.result as { connection: Record<string, unknown> };
+  return commandResult.result as { connection: Record<string, unknown> };
 }
 
 /** POST /api/v1/peer/connect `{ target, code }`, as a person signed in here. */

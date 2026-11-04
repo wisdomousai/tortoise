@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import {
   createApplication,
   createMemoryStorage,
-  type CommandReceipt,
+  type CommandResult,
   type ExecutionContext,
 } from '@tortoise/runtime';
 import { createEffectDispatcher, createInboundSync } from '@tortoise/integration';
@@ -94,7 +94,7 @@ async function setup() {
     input: unknown,
     context = operator,
     extra = {},
-  ): Promise<CommandReceipt<any>> => app.invokeRaw({ operation, input, ...extra }, context);
+  ): Promise<CommandResult<any>> => app.invokeRaw({ operation, input, ...extra }, context);
   const query = async (operation: string, input: unknown, context = operator): Promise<any> =>
     (await app.queryRaw({ operation, input }, context)).data;
   /** Observe until state-field stability (two agreeing reads) is reached. */

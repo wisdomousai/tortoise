@@ -10,7 +10,7 @@ Commands and queries share the same runtime, execution context and authorization
 2. In the workspace transaction, check current authorization, then any expected revisions.
 3. Run the handler. The handler changes state and declares what it changed.
 4. Project and validate the output, then recheck authorization and cancellation.
-5. Assign revisions and journal cursors, store the receipt, and commit.
+5. Assign revisions and journal cursors, store the command result, and commit.
 
 Any failure rolls everything back. Changing state without declaring a changed resource fails — no change bypasses live delivery.
 
@@ -33,7 +33,7 @@ Storage adapters differ in layout but share the same contract:
 
 The rows are not an index: a query still reads the snapshot.
 
-Receipts and journal entries commit with the state — a crash after commit but before notification keeps both. An optional retention limit drops old entries and receipts. A retry whose receipt the limit dropped runs again.
+Command results and journal entries commit with the state — a crash after commit but before notification keeps both. An optional retention limit drops old entries and command results. A retry whose command result the limit dropped runs again.
 
 ## Live queries
 
@@ -77,7 +77,7 @@ Cancellation stops future work; the runtime checks it before commit. It does not
 - Cancelling an agent run aborts its tool calls still in flight.
 - A request stops at the runtime's next check when its host session is revoked or expires, or when the plugin credential it presented aborts its signal; the command commits nothing.
 - After a restart, the host marks incomplete runs interrupted rather than replaying them.
-- Only a receipt shows that a change committed; a finished stream or run does not.
+- Only a command result shows that a change committed; a finished stream or run does not.
 
 ## References
 

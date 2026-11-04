@@ -31,7 +31,7 @@ const pending: ApprovalRequest = {
   id: 'a1',
   operation: 'task.create',
   input: { workOrderId: 'p1', title: 'Replace the burner nozzle' },
-  rationale: 'The brief lists a nozzle replacement',
+  rationale: 'The instructions list a nozzle replacement',
   resource: 'work-order:p1',
   baseRevisions: {},
   status: 'pending',

@@ -28,7 +28,7 @@ async function countOnce(loop: Loop) {
     loop.cursor = batch.cursor;
     return;
   }
-  const receipt = await application.invokeRaw(
+  const commandResult = await application.invokeRaw(
     {
       operation: recordOperation,
       input: {
@@ -39,7 +39,7 @@ async function countOnce(loop: Loop) {
     loop.caller,
   );
   // Past this pass's own record, so the next pass does not read it again.
-  loop.cursor = receipt.cursor;
+  loop.cursor = commandResult.cursor;
 }
 
 /**

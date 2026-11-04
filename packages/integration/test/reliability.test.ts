@@ -30,7 +30,7 @@ const erp = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
   changes: ['reading'],
-  feed: {
+  inbound: {
     item: z.strictObject({ code: z.string(), version: z.number().int() }),
     max: 10,
     changes: ['code'],
@@ -381,7 +381,7 @@ describe('delivery reliability', () => {
     expect(held.input).toBeUndefined();
   });
 
-  test('feed items not newer than the applied source version are dropped', async () => {
+  test('inbound items not newer than the applied source version are dropped', async () => {
     const env = setup();
     const sync = (from: string | undefined, to: string, items: unknown[]) =>
       env.app.invokeRaw(

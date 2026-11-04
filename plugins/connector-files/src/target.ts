@@ -1,6 +1,6 @@
 import type { SystemOfRecordPort } from '@tortoise/integration';
 import { fileDropPort, type FileDropOptions } from './drop';
-import { folderFeed, type FolderFeedOptions } from './feed';
+import { folderInbound, type FolderInboundOptions } from './inbound';
 
 /**
  * One system of record reached through folders: effects dropped as files, receipts or the
@@ -10,12 +10,12 @@ import { folderFeed, type FolderFeedOptions } from './feed';
 export function fileTargetPort<Item>(options: {
   readonly target: string;
   readonly drop?: Omit<FileDropOptions, 'target' | 'folders'>;
-  readonly feed?: Omit<FolderFeedOptions<Item>, 'folders'>;
+  readonly inbound?: Omit<FolderInboundOptions<Item>, 'folders'>;
   readonly folders: FileDropOptions['folders'];
 }): SystemOfRecordPort<Item> {
   const { target, folders } = options;
   const drop = options.drop ? fileDropPort({ ...options.drop, target, folders }) : undefined;
-  const pull = options.feed ? folderFeed<Item>({ ...options.feed, folders }) : undefined;
+  const pull = options.inbound ? folderInbound<Item>({ ...options.inbound, folders }) : undefined;
   return {
     describe: () => ({ target, idempotentDelivery: false }),
     deliver: (effect, signal) => {

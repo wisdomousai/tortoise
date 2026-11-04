@@ -327,9 +327,9 @@ describe('inbound sync', () => {
       application: {
         invokeRaw: async (request, context) => {
           keys.push(request.idempotencyKey!);
-          const receipt = await app.invokeRaw(request, context);
-          watermark = (receipt.result as { watermark: string }).watermark;
-          return receipt;
+          const commandResult = await app.invokeRaw(request, context);
+          watermark = (commandResult.result as { watermark: string }).watermark;
+          return commandResult;
         },
       },
       port: {

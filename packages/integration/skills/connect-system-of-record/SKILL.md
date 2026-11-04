@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its synced records and its pending outbox effects. A local receipt proves the local commit, not acceptance by the target.
+The application owns its synced records and its pending outbox effects. A local command result proves the local commit, not acceptance by the target.
 
 ## Before writing
 
@@ -21,13 +21,13 @@ The application owns its synced records and its pending outbox effects. A local 
    - a network destination that reads the target and queues while offline;
    - or, for a system reached through shared folders, the exchange folders with `fileExchange` from `@tortoise/connector-files/contracts`.
 3. Enqueue in commands. A command that forwards a record calls `ctx.enqueue` on a changed resource and declares `integration` on the capability. The record keeps its effect ID and delivery state. Never call the target inside a handler. When an existing command forwards the record, such as a return that sends a repair order, delete the send command and delivery map that `scaffold add target` generated.
-4. Implement the complete and sync handlers with `targetHandlers`. They say how an outcome changes the forwarded record, how a feed item changes local state, and which records a caller may count.
-5. Pass `versions` to `targetHandlers` when the feed can deliver an older version after a newer one.
+4. Implement the complete and sync handlers with `targetHandlers`. They say how an outcome changes the forwarded record, how an inbound item changes local state, and which records a caller may count.
+5. Pass `versions` to `targetHandlers` when inbound sync can deliver an older version after a newer one.
 6. Implement the connector (`SystemOfRecordPort`) as the only code that talks to the target. It reaches the target through the network port or the folder port. Start from a ready-made port when one fits:
-   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `showcase/patterns/system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
+   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `showcase/patterns/system-of-record/lims-port.ts` adds a pending status, a lookup and inbound sync;
    - `fileTargetPort` (`plugins/connector-files`) for a file drop with receipts or an archive, and an inbox of result exports.
 7. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided. For a target whose delivery is not idempotent, the dispatcher calls `lookup` before each redelivery, so a lost reply can be thrown as a transient failure; throw `DeliveryUncertain` when the connector may already have acted and its lookup cannot tell.
-8. Connect the target in `application.ts` with `connectTarget` (`showcase/examples/quality-inspection/application.ts`). A target without a feed only delivers.
+8. Connect the target in `application.ts` with `connectTarget` (`showcase/examples/quality-inspection/application.ts`). A target without inbound sync only delivers.
 9. Compose reconciliation for held effects. The dispatcher puts an effect in `held` when its outcome cannot be established, its acknowledgement was lost or its recheck was denied. It polls `acknowledged` effects. Only a domain command moves an effect out of `held`: complete it when the target applied or refused it, release it when it did not.
    - Mount `reconciliationFeature()` from `@tortoise/runtime`: list `reconciliationFeatureManifest` in `defineManifest({ features })` and mount it with `mountFeature` in `application.ts`, as `showcase/examples/receiving/application.ts` does and the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
    - In the access view, `allows(context, action)` applies the application's membership gate and integration allowlists, and `sees(context, effect)` decides which held effects a caller may see and decide.
@@ -36,7 +36,7 @@ The application owns its synced records and its pending outbox effects. A local 
 10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`showcase/examples/winding-line/handlers/attention.ts`).
 11. For live search, declare search and lookup queries with `defineDataProvider` (`showcase/examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. A provider declared `identity: 'service'` reads with the service credential only.
 12. Make following a search result a domain command that enqueues a follow effect.
-13. For a target that is another agent-native application, import the peer API it publishes with `definePeerApi` and declare the target with `definePeerTarget` instead of `defineTarget`. Build effects with `target.effect(command, { resource, payload })`, so the peer's input schema checks the payload when the command enqueues. Add `target.destination` to the requirements. Connect it with `connectPeerTarget`, and serve remote queries from the peer with `createPeerSource`, `peerQuery` and `peerList`. Pass one `createPeerDrift` to both, so a peer operation whose schema changed waits instead of receiving input the peer would read differently. `packages/testing/test/peer-target.test.ts` shows the wiring. The called application serves its surface with `createPeerLinkPlugin({ api })` from `@tortoise/peer-link/plugin` and adds `peerAllowlist(api)` to its policy's `integrations`, with an `integration` rule for each service operation (`plugins/peer-link/test/fixtures.ts`). The [connect-two-applications](../../../../plugins/peer-link/skills/connect-two-applications/SKILL.md) skill covers both sides, connecting with a code and the two-host tests.
+13. For a target that is another agent-native application, import the peer API it publishes with `definePeerApi` and declare the target with `definePeerTarget` instead of `defineTarget`. Build effects with `target.effect(command, { resource, payload })`, so the peer's input schema checks the payload when the command enqueues. Add `target.destination` to the requirements. Connect it with `connectPeerTarget`, and serve remote queries from the peer with `createPeerSource`, `peerQuery` and `peerList`. Pass one `createPeerDrift` to both, so a peer operation whose schema changed waits instead of receiving input the peer would read differently. `packages/testing/test/peer-target.test.ts` shows the wiring. The called application serves its API with `createPeerLinkPlugin({ api })` from `@tortoise/peer-link/plugin` and adds `peerAllowlist(api)` to its policy's `integrations`, with an `integration` rule for each service operation (`plugins/peer-link/test/fixtures.ts`). The [connect-two-applications](../../../../plugins/peer-link/skills/connect-two-applications/SKILL.md) skill covers both sides, connecting with a code and the two-host tests.
 14. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
 Never give the integration principal more than complete, sync and status. Never give a CLI or agent the system of record's credentials; it calls the application's capabilities.
@@ -52,7 +52,7 @@ bun test showcase/examples/<app>
 bun run generate
 ```
 
-`generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest; a command that invokes an integrated command is listed there as a `nested` flow with the same destinations. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
+`generate` writes the capability reference, which states for each integrated command that a command result is not acceptance. Review the destinations in the generated security manifest; a command that invokes an integrated command is listed there as a `nested` flow with the same destinations. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
 
 ## References
 

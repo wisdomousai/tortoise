@@ -9,12 +9,12 @@ flowchart LR
     Agent[Agent run]
     Script[Script, job, CLI]
   end
-  Catalog[Catalog] --> Surface
-  Callers --> Surface[Surface adapters]
-  Surface --> Command
-  Surface --> Query
+  Catalog[Catalog] --> Channel
+  Callers --> Channel[Channel adapters]
+  Channel --> Command
+  Channel --> Query
   subgraph Instance
-    Command --> Store[(Storage: state, receipts, journal, outbox)]
+    Command --> Store[(Storage: state, command results, journal, outbox)]
     Query --> Store
   end
   Store --> Live[Journal and live query] --> Callers
@@ -91,7 +91,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Execution context
 
-_Who is calling, in which workspace, under which grant, through which channel and with which cancellation signal. For an agent, also the run. The host supplies it; a surface never builds it from caller input._
+_Who is calling, in which workspace, under which grant, through which channel and with which cancellation signal. For an agent, also the run. The host supplies it; a channel never builds it from caller input._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
@@ -181,9 +181,9 @@ implemented · [`apps/service`](../apps/service/README.md) [`apps/web`](../apps/
 
 ## Callers
 
-### Surface adapter
+### Channel adapter
 
-_The adapter that maps one surface onto the instance's raw command and query entry points._
+_The adapter that maps one channel onto the instance's raw command and query entry points. Do not use: surface adapter._
 
 implemented · [`packages/adapters`](../packages/adapters/README.md)
 
@@ -237,7 +237,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 ### Assignment
 
-_Work handed to a person, an agent, a paired device, a peer application or a target, with a brief. The assignee sends back structured reports. A person accepts or discards each one. The `assignment` feature keeps assignments and reports._
+_Work handed to a person, an agent, a paired device, a peer application or a target, with instructions. The assignee sends back structured reports. A person accepts or discards each one. The `assignment` feature keeps assignments and reports. Do not use: brief._
 
 implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/patterns/assignments`](../showcase/patterns/assignments/README.md) [`showcase/examples/asset-survey`](../showcase/examples/asset-survey/README.md)
 
@@ -317,7 +317,7 @@ implemented · [`packages/integration`](../packages/integration/README.md)
 
 ### Inbound sync
 
-_Importing a system of record's changes as ordinary commands._
+_Importing a system of record's changes as ordinary commands. Do not use: feed._
 
 implemented · [`packages/integration`](../packages/integration/README.md)
 
@@ -341,7 +341,7 @@ partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/inte
 
 ### Worklist
 
-_The assignee side of assignments in another application. It shows the open assignments from the issuer's feed. It records reports and done marks locally and delivers them to the issuer through the outbox._
+_The assignee side of assignments in another application. It shows the open assignments from the issuer's inbound sync. It records reports and done marks locally and delivers them to the issuer through the outbox._
 
 implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`showcase/patterns/worklist`](../showcase/patterns/worklist/README.md) [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
 
@@ -353,7 +353,7 @@ partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/ru
 
 ### Data provider
 
-_One declaration of what callers can search a system of record for. It becomes ordinary catalog entries for every surface._
+_One declaration of what callers can search a system of record for. It becomes ordinary catalog entries for every channel._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`showcase/examples/crm-capture`](../showcase/examples/crm-capture/README.md)
 
@@ -475,7 +475,7 @@ implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/READ
 
 ### Compliance bundle
 
-_What an auditor checks. The generator derives it from the catalog and the deployment policy; the posture monitor re-checks it while the application runs._
+_What an auditor checks. The generator derives it from the catalog and the deployment policy; the compliance monitor re-checks it while the application runs. Do not use: posture._
 
 implemented · [`plugins/compliance`](../plugins/compliance/README.md) [`packages/host`](../packages/host/README.md)
 
@@ -511,7 +511,7 @@ partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts
 
 ### Shelf life
 
-_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a bundle signs the date. Hosts, `app status`, posture and fleet health show it. The host refuses nothing after that date._
+_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a bundle signs the date. Hosts, `app status`, the compliance status and fleet health show it. The host refuses nothing after that date._
 
 implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/deployment/src/install`](../plugins/deployment/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
 

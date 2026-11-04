@@ -39,8 +39,8 @@ export interface AssignmentHooks {
   scope?(kind: string, scope: StoredBody): void;
   /** Check an assignee before sending; throw `INVALID_INPUT` to refuse it. */
   assignee?(kind: string, assignee: Assignee): void;
-  /** The brief an assignment carries, from its scope; the scope itself when omitted. */
-  brief?(kind: string, assignment: Readonly<StoredAssignment>): StoredBody;
+  /** The instructions an assignment carries, from its scope; the scope itself when omitted. */
+  instructions?(kind: string, assignment: Readonly<StoredAssignment>): StoredBody;
   /** Whether the assignment covers the record a report names. Every subject when omitted. */
   subject?(kind: string, subject: string, assignment: Readonly<StoredAssignment>): boolean;
   /**
@@ -59,7 +59,7 @@ type PerKind<Hook> = Hook extends (kind: string, ...rest: infer Rest) => infer R
   ? (...rest: Rest) => R
   : never;
 type KindHooks = {
-  readonly [H in 'scope' | 'assignee' | 'brief' | 'subject' | 'accept']?: PerKind<
+  readonly [H in 'scope' | 'assignee' | 'instructions' | 'subject' | 'accept']?: PerKind<
     NonNullable<AssignmentHooks[H]>
   >;
 };
@@ -82,8 +82,8 @@ export function byKind<Context>(
   return {
     scope: dispatch('scope', undefined),
     assignee: dispatch('assignee', undefined),
-    brief: (kind: string, assignment: StoredAssignment, context: Context) => {
-      const own = Object.hasOwn(kinds, kind) ? kinds[kind]?.brief : undefined;
+    instructions: (kind: string, assignment: StoredAssignment, context: Context) => {
+      const own = Object.hasOwn(kinds, kind) ? kinds[kind]?.instructions : undefined;
       return own
         ? (own as (...args: unknown[]) => StoredBody)(assignment, context)
         : assignment.scope;

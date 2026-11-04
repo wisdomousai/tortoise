@@ -13,7 +13,7 @@ export function operationHelp(operation: CatalogOperation, program: string): Cli
   ];
   if (operation.integration)
     lines.push(
-      `Forwarded to ${operation.integration.target} after commit; a receipt is not acceptance.`,
+      `Forwarded to ${operation.integration.target} after commit; a command result is not acceptance.`,
     );
   if (operation.remote)
     lines.push(

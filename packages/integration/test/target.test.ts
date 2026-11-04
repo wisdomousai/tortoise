@@ -24,7 +24,7 @@ const erp = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
   changes: ['reading'],
-  feed: {
+  inbound: {
     item: z.strictObject({ code: z.string() }),
     max: 10,
     extra: { note: z.string().optional() },
@@ -231,7 +231,7 @@ describe('completeDelivery', () => {
 });
 
 describe('connectTarget', () => {
-  test('a target without a feed only delivers: its inbound side pulls nothing', async () => {
+  test('a target without inbound sync only delivers: its inbound side pulls nothing', async () => {
     const outbound = defineTarget({
       target: 'mail',
       resourceType: 'Mail',

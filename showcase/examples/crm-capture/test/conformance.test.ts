@@ -59,7 +59,7 @@ test('one provider serves the screen, HTTP, the CLI and MCP with the same result
     expect(withoutFetchTime(commandLine.value.data)).toEqual(expected);
     expect(withoutFetchTime(tool.data)).toEqual(expected);
 
-    // Paging is part of the contract: a cursor from one surface continues on another.
+    // Paging is part of the contract: a cursor from one channel continues on another.
     const page1 = await localUser.query<{ next?: string }>('crm.account.search', { q: '' });
     const page2 = { q: '', cursor: page1.data.next };
     const viaHttp = await localUser.query('crm.account.search', page2);

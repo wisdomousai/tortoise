@@ -20,7 +20,7 @@ export interface EamRepairOrder {
 export interface FakeEamOptions {
   /** Asset tags the EAM does not know: a repair order for one is refused with ASSET_UNKNOWN. */
   unknownTags?: Iterable<string>;
-  /** The most feed items one pull returns. Default 100, the target's batch limit. */
+  /** The most inbound items one pull returns. Default 100, the target's batch limit. */
   pageSize?: number;
 }
 
@@ -49,7 +49,7 @@ export function tagList(value: string | undefined): string[] {
 export class FakeEam implements SystemOfRecordPort<EamTool> {
   private readonly orders: EamRepairOrder[] = [];
   private readonly log = new Map<string, { result?: EffectOutcome }>();
-  private readonly feed: EamTool[] = [];
+  private readonly published: EamTool[] = [];
   private readonly unknownTags: ReadonlySet<string>;
   private readonly pageSize: number;
   private failing = false;
@@ -99,16 +99,16 @@ export class FakeEam implements SystemOfRecordPort<EamTool> {
 
   async pull(cursor: string | undefined): Promise<PullBatch<EamTool>> {
     const from = Number(cursor ?? 0);
-    if (!Number.isInteger(from) || from < 0 || from > this.feed.length)
-      throw new DeliveryFailure('The EAM does not know this feed position');
-    const items = this.feed.slice(from, from + this.pageSize);
+    if (!Number.isInteger(from) || from < 0 || from > this.published.length)
+      throw new DeliveryFailure('The EAM does not know this inbound position');
+    const items = this.published.slice(from, from + this.pageSize);
     const to = from + items.length;
-    return { items: structuredClone(items), cursor: String(to), more: to < this.feed.length };
+    return { items: structuredClone(items), cursor: String(to), more: to < this.published.length };
   }
 
   /** The EAM changes the master data of one asset; the next pull returns it. */
   publish(item: EamTool) {
-    this.feed.push(structuredClone(item));
+    this.published.push(structuredClone(item));
   }
 
   /** The next delivery fails before it reaches the EAM. */

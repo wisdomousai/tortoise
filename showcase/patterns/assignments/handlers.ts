@@ -36,7 +36,7 @@ export function createSamplingHandlers(): HandlerContribution<
 }
 
 /**
- * The sampling kind's hooks. The scope names each transformer once; the brief adds each
+ * The sampling kind's hooks. The scope names each transformer once; the instructions adds each
  * transformer's last sample and method in the lab when the round is sent; a report is about one
  * transformer of the round; accepting it submits a test request for the sample through
  * `test-request.submit`, as the technician accepting, with the method they assign.
@@ -53,7 +53,7 @@ export const samplingHooks = {
             field: 'scope',
           });
       },
-      brief: (assignment, ctx) => ({
+      instructions: (assignment, ctx) => ({
         substation: assignment.scope.substation as string,
         transformers: transformersIn(assignment.scope).map((transformer) => {
           const last = lastRequest(ctx, transformer);

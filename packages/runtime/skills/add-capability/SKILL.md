@@ -12,7 +12,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
 - Name the action or query a person takes, who may run it, on which resource and which fields. That boundary becomes the permission and the policy rule.
 - Check [primitives](../../../../docs/primitives.md) for an existing building block: a collection for keyed records, a target for another system's acceptance, a data provider or remote source for a live read.
 - If the write must be accepted by another system, read the `connect-system-of-record` skill first (`packages/integration/skills/connect-system-of-record/SKILL.md`).
-- Never add a second writable store. Never duplicate a handler in an API route, MCP tool, CLI command or agent adapter; those surfaces are generated from the catalog.
+- Never add a second writable store. Never duplicate a handler in an API route, MCP tool, CLI command or agent adapter; those channels are generated from the catalog.
 
 ## Steps
 
@@ -46,7 +46,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
 9. Compose through the application's `manifest.ts` and `application.ts`, never in `apps/*`.
 10. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
 11. Bind it to a screen with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one idempotency key.
-12. Prove it with a behavioral scenario: permitted and denied access and, for a command, a stale revision, a repeated idempotency key and the change visible to another process. A handler reads the time through `services.now` (`now(ctx)` in the generated `handlers/context.ts`), so a test passes a fixed clock in the services. Use `packages/testing` for cross-surface scenarios.
+12. Prove it with a behavioral scenario: permitted and denied access and, for a command, a stale revision, a repeated idempotency key and the change visible to another process. A handler reads the time through `services.now` (`now(ctx)` in the generated `handlers/context.ts`), so a test passes a fixed clock in the services. Use `packages/testing` for cross-channel scenarios.
 13. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `showcase/patterns/operations/migrations.ts` has one.
 14. For a scheduled or event-driven job, declare a trigger from `plugins/automation`. It submits commands under its trigger grant like any caller. `showcase/patterns/agents/automation.ts` runs a job that requests approval instead of committing.
 15. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in its scenario test, `showcase/examples/<app>/test/<name>-agent.test.ts` as `scaffold add agent` writes it, with `runAgentScenarios` from `@tortoise/testing/agent-scenarios`. A scenario contains:
@@ -55,14 +55,14 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
     - the calls that must be refused;
     - for a run that asks the person, the `answers` and the number of `questions` expected; a deterministic `script` asks with `question`.
 
-    Scenarios judge the receipts, never the agent's text. Pass `harness: scenarioHarness()` from `@tortoise/testing` and give the test `scenarioTimeout()`, as the generated test does, so `AGENT_SCENARIOS=live` runs them against a local model.
+    Scenarios judge the command results, never the agent's text. Pass `harness: scenarioHarness()` from `@tortoise/testing` and give the test `scenarioTimeout()`, as the generated test does, so `AGENT_SCENARIOS=live` runs them against a local model.
 
     A `direct` agent that must ask before some changes lists those commands in `requests`, such as a cancellation, or a command it runs itself whose policy refuses it some input, such as a discount above its limit. Its grant then includes `approval.request` and its instructions list those commands. The policy decides which input needs approval: refuse it to a delegated caller (`context.grant?.agent`) and allow it to the approver.
 
     An agent that requests approval needs the `approval` feature: mount `approvalFeature()` with an `ApprovalAccess` view, as the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
 16. For an agent that names a local model in `models`, and the approval dataset its decisions become, follow the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
 17. Write a command's `description` for a model as well as a person. Describe each input property with zod's `.describe()`; a doc comment on a schema field does not reach the JSON Schema a model reads. The generated collection reads and commands describe the `id`, search and paging inputs they add. A run under an agent definition starts its prompt with `agentInstructions(catalog, agentId)`, which lists a requesting agent's commands, or a direct agent's `requests`, and their inputs with those descriptions. A screen starts such a run with `POST /api/v1/runs` and `agentId` ([agents](../../../../docs/agents.md#runs)).
-18. For a new surface or harness, build a capability's tool schema with `operationToolSchema` from `@tortoise/contracts`, or `toolEnvelopeSchema` for the surface's own envelope fields. A recursive input schema (`jsonValueSchema`, `z.lazy`) includes `$defs` that resolve only from the envelope's root. llama.cpp and strict MCP clients refuse the tool otherwise.
+18. For a new channel or harness, build a capability's tool schema with `operationToolSchema` from `@tortoise/contracts`, or `toolEnvelopeSchema` for the channel's own envelope fields. A recursive input schema (`jsonValueSchema`, `z.lazy`) includes `$defs` that resolve only from the envelope's root. llama.cpp and strict MCP clients refuse the tool otherwise.
 
 ## Checks
 

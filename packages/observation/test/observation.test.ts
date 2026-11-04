@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { CommandReceipt, Invocation } from '@tortoise/runtime';
+import type { CommandResult, Invocation } from '@tortoise/runtime';
 import {
   Debouncer,
   clampConfidence,
@@ -74,7 +74,7 @@ test('the observer resubmits unchanged content once per heartbeat under payload 
     application: {
       async invokeRaw(request) {
         submitted.push(request);
-        return { result: {}, revision: submitted.length } as unknown as CommandReceipt;
+        return { result: {}, revision: submitted.length } as unknown as CommandResult;
       },
     },
     context: { workspaceId: 'w', principalId: 'driver:gauge-1' },
@@ -104,7 +104,7 @@ test('stopping during a pass ends the loop without waiting out the interval', as
       new Promise((resolve) => {
         release = () => resolve({ observedAt: 1, frameDigest: 'f', readings: [] });
       }),
-    application: { invokeRaw: async () => ({ result: {} }) as unknown as CommandReceipt },
+    application: { invokeRaw: async () => ({ result: {} }) as unknown as CommandResult },
     context: { workspaceId: 'w', principalId: 'observer' },
     ingestOperation: 'gauge.observation.ingest',
   });

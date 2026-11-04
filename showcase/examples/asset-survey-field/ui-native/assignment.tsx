@@ -6,14 +6,14 @@ import { HoldButton } from '@tortoise/frame-native/components/hold-button';
 import { ListRow } from '@tortoise/frame-native/components/list-row';
 import { useFrameNavigation } from '@tortoise/frame-native/frame';
 import { useSession } from '@tortoise/frame-native/session';
-import { matches, tree, type SurveyBrief } from './brief';
+import { matches, tree, type SurveyInstructions } from './instructions';
 import { fieldOperations as ops } from '../contracts';
 import { ActionButton, Empty, ErrorText, Screen, useScans } from './shared';
 
 const field = 'min-h-target rounded-xl border border-border px-4 text-operator text-foreground';
 
 /**
- * One survey's structure as a tree from its brief, with designation search. A scanned tag
+ * One survey's structure as a tree from its instructions, with designation search. A scanned tag
  * searches the same way and opens the capture screen when it matches exactly one node. A tag
  * another app sent is passed as `q`. Marking the survey done ends its field work on this device.
  */
@@ -28,18 +28,18 @@ export function AssignmentScreen() {
   const [error, setError] = useState<unknown>();
   const assignment = useQuery(live.liveQueryOptions(ops.assignmentGet, { id: assignmentId }));
   const reports = useQuery(live.liveQueryOptions(ops.reportList, { assignmentId }));
-  const brief = assignment.data?.brief as SurveyBrief | undefined;
+  const instructions = assignment.data?.instructions as SurveyInstructions | undefined;
   const counts = new Map<string, number>();
   for (const report of reports.data?.items ?? [])
     if (report.subject) counts.set(report.subject, (counts.get(report.subject) ?? 0) + 1);
-  const nodes = tree(brief?.nodes ?? []).filter((node) => matches(node, q));
+  const nodes = tree(instructions?.nodes ?? []).filter((node) => matches(node, q));
   const takes = assignment.data?.open === true;
   const capture = (nodeId?: string, codes: string[] = []) =>
     open('/capture', { assignmentId, ...(nodeId ? { nodeId } : {}), codes });
 
   useScans((scan) => {
     setQ(scan.data);
-    const found = (brief?.nodes ?? []).filter((node) => matches(node, scan.data));
+    const found = (instructions?.nodes ?? []).filter((node) => matches(node, scan.data));
     if (takes && found.length === 1) capture(found[0]!.id, [scan.data]);
   });
 

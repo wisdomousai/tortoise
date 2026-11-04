@@ -81,9 +81,9 @@ afterAll(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
-/** The approval request a run submitted, from its receipt. */
+/** The approval request a run submitted, from its command result. */
 const requestOf = (result: Awaited<ReturnType<typeof runAgentScenario>>) =>
-  result.calls.find((call) => call.operation === 'approval.request')?.receipt?.result as {
+  result.calls.find((call) => call.operation === 'approval.request')?.commandResult?.result as {
     id: string;
   };
 

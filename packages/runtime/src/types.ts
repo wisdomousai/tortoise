@@ -46,12 +46,12 @@ export interface ExecutionContext {
   readonly grant?: DelegationGrant;
   readonly runId?: string;
   readonly signal?: AbortSignal;
-  /** Surface that carried the request, for audit events. Set by the host adapter, never by callers. */
+  /** Channel that carried the request, for audit events. Set by the host adapter, never by callers. */
   readonly channel?: AuditChannel;
   /**
    * The peer application that made the call, set only by the host plugin that authenticated it.
    * `subject` is the peer's own name for the person the call acts for; `principalId` is then the
-   * person it is mapped to here. Receipts of such calls are keyed by the peer, not the person.
+   * person it is mapped to here. Command results of such calls are keyed by the peer, not the person.
    */
   readonly peer?: { readonly id: string; readonly subject?: string };
 }
@@ -62,7 +62,7 @@ export interface ChangeEvent {
   readonly type: string;
   readonly operation: string;
 }
-export interface CommandReceipt<T = unknown> {
+export interface CommandResult<T = unknown> {
   readonly operation: string;
   readonly result: T;
   readonly cursor: number;
@@ -73,9 +73,9 @@ export interface CommandReceipt<T = unknown> {
   /** The command this one continued with (`continueWith`) and its result, projected for the caller. */
   readonly continuation?: { readonly operation: string; readonly result: unknown };
 }
-export interface StoredReceipt {
+export interface StoredResult {
   readonly fingerprint: string;
-  readonly receipt: CommandReceipt;
+  readonly commandResult: CommandResult;
   readonly principalId: string;
   readonly input: JsonValue;
   /** The command this one continued with, and its input. */
@@ -103,7 +103,7 @@ export interface WorkspaceSnapshot<State> {
   cursor: number;
   authorizationRevision: number;
   resourceRevisions: Record<string, number>;
-  receipts: Record<string, StoredReceipt>;
+  commandResults: Record<string, StoredResult>;
   journal: ChangeEvent[];
   /** Transactional outbox. Storage adapters load documents without it as an empty record. */
   effects: Record<string, Effect>;

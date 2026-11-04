@@ -114,7 +114,7 @@ async function verify(
  * - With one, after the checks of `verify`, it acts as the person the subject maps to, with a
  *   grant of the API's on-behalf-of operations within the mapping's. That person's own policy
  *   applies; a person-only rule refuses the call, as it refuses any delegated caller. The grant
- *   has no expiry, so the receipt fingerprint of a redelivered effect stays the same.
+ *   has no expiry, so the command result fingerprint of a redelivered effect stays the same.
  *
  * A bearer this plugin did not issue is not its business: it returns undefined and the next
  * plugin is asked.

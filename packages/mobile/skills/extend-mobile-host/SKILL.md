@@ -29,7 +29,7 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
    - keep Expo imports under `src/expo/`, which `tsconfig.native.json` checks.
 8. For a build-time permission or resource of the application's own, list `expoPlugins` with options in its manifest, as `showcase/examples/asset-survey-field/manifest.ts` does for `expo-camera`.
 9. Compose `plugins/device-link` on the hub. Set `device-link-sync-operations`, or pass `syncOperations` to `createDeviceLinkPlugin`.
-10. Compose `plugins/hub-link` on the device. The device names its outbox target `hub` and reaches it through `createPeerPort` in `packages/integration`. The hub's feed comes back through inbound sync.
+10. Compose `plugins/hub-link` on the device. The device names its outbox target `hub` and reaches it through `createPeerPort` in `packages/integration`. Records from the hub come back through inbound sync.
 11. Compose `plugins/managed-config` so that MDM values such as `hub-url` and `enrollment-code` become settings. A managed device then pairs on first start.
 12. Declare links, shares, intents, shortcuts and notifications in the application's OS declarations. The `add-os-integration` skill (`packages/shell/skills/add-os-integration/SKILL.md`) has the steps. A native screen asks for a declared action with `useOsAction` from `@tortoise/frame-native/os-actions`.
 13. Build with the commands below.

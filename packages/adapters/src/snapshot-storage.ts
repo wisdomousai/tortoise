@@ -10,7 +10,7 @@ function emptySnapshot<State>(state: State): WorkspaceSnapshot<State> {
     cursor: 0,
     authorizationRevision: 0,
     resourceRevisions: {},
-    receipts: {},
+    commandResults: {},
     journal: [],
     effects: {},
     blobs: {},

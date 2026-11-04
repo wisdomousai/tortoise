@@ -11,12 +11,12 @@ import type { sampling } from '../contracts';
 
 // The assignments pattern has views like these, but the web build generates styles only for
 // classes in this application's directory and the frame, so this application keeps its own.
-type Brief = z.output<typeof sampling.brief>;
+type Instructions = z.output<typeof sampling.instructions>;
 type Sample = z.output<typeof sampling.report>;
 
 /** The substation and its transformers, as the oil lab sent them. */
-export function BriefRound({ brief }: { brief: Record<string, unknown> }) {
-  const { substation, transformers } = brief as Brief;
+export function InstructionsRound({ instructions }: { instructions: Record<string, unknown> }) {
+  const { substation, transformers } = instructions as Instructions;
   return (
     <div className="space-y-2">
       <p className="text-sm">Substation {substation}</p>
@@ -45,10 +45,10 @@ export function SampleForm({
   item,
   submit,
 }: {
-  item: { id: string; title: string; brief: Record<string, unknown> };
+  item: { id: string; title: string; instructions: Record<string, unknown> };
   submit: SubmitReport;
 }) {
-  const { transformers } = item.brief as Brief;
+  const { transformers } = item.instructions as Instructions;
   const [transformer, setTransformer] = useState(transformers[0]?.transformer ?? '');
   const [sample, setSample] = useState('');
   const [description, setDescription] = useState('');

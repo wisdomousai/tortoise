@@ -15,11 +15,11 @@ export interface TestReference {
 /** A guide page and an optional heading on it, as `page` or `page#anchor` under `docs/`. */
 export type DocReference = string;
 
-export type Column = 'world' | 'surfaces' | 'instance' | 'delivery' | 'records';
+export type Column = 'world' | 'channels' | 'instance' | 'delivery' | 'records';
 
 export const columns: ReadonlyArray<{ readonly id: Column; readonly title: string }> = [
   { id: 'world', title: 'Workstation' },
-  { id: 'surfaces', title: 'Surfaces' },
+  { id: 'channels', title: 'Channels' },
   { id: 'instance', title: 'Instance' },
   { id: 'delivery', title: 'Delivery' },
   { id: 'records', title: 'Systems of record' },
@@ -43,7 +43,7 @@ export interface RequestPath {
 
 const live: Step = {
   id: 'live',
-  column: 'surfaces',
+  column: 'channels',
   title: 'Live query',
   summary:
     'Every open screen whose reads changed refetches from the journal, filtered by current read access.',
@@ -91,12 +91,12 @@ export const paths: readonly RequestPath[] = [
         ],
       },
       {
-        id: 'surface',
-        column: 'surfaces',
-        title: 'Surface',
+        id: 'channel',
+        column: 'channels',
+        title: 'Channel',
         summary:
           'The screen, HTTP, MCP or the CLI validates the input and derives the principal, workspace and grant from the session.',
-        doc: 'architecture#surfaces-and-identity',
+        doc: 'architecture#channels-and-identity',
         sources: ['packages/adapters/src', 'packages/host/src'],
         tests: [
           {
@@ -125,13 +125,13 @@ export const paths: readonly RequestPath[] = [
         column: 'instance',
         title: 'Commit',
         summary:
-          'State, revisions, the receipt, journal entries and the outbox effect commit in one transaction, and the caller receives the receipt.',
+          'State, revisions, the command result, journal entries and the outbox effect commit in one transaction, and the caller receives the command result.',
         doc: 'systems-of-record#outbox-and-completion',
         sources: ['packages/runtime/src', 'packages/adapters/src/row-storage.ts'],
         tests: [
           {
             file: 'packages/runtime/test/outbox.test.ts',
-            test: 'a committed command persists its effect with the receipt and journal',
+            test: 'a committed command persists its effect with the command result and journal',
           },
           {
             file: 'packages/runtime/test/outbox.test.ts',
@@ -224,9 +224,9 @@ export const paths: readonly RequestPath[] = [
     title: 'Inbound sync',
     steps: [
       {
-        id: 'feed',
+        id: 'pull',
         column: 'records',
-        title: 'Feed',
+        title: 'Pull',
         summary: 'The target returns the records that changed after a watermark, page by page.',
         doc: 'systems-of-record#inbound-sync',
         sources: ['packages/integration/src'],
@@ -276,7 +276,7 @@ export const paths: readonly RequestPath[] = [
     steps: [
       {
         id: 'remote-call',
-        column: 'surfaces',
+        column: 'channels',
         title: 'Query',
         summary: 'A screen, an agent or the CLI calls a query that names a remote source.',
         doc: 'systems-of-record#remote-queries',
@@ -319,7 +319,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'remote-result',
-        column: 'surfaces',
+        column: 'channels',
         title: 'Result',
         summary:
           'The caller receives the rows with the source status and fetch time; nothing is stored, and an unreachable source is a status.',
@@ -362,7 +362,8 @@ export interface Property {
 
 export const properties: readonly Property[] = [
   {
-    property: 'A command commits and returns its receipt before the system of record is contacted.',
+    property:
+      'A command commits and returns its command result before the system of record is contacted.',
     mechanism: 'The outbox effect commits with the state; the dispatcher delivers afterwards.',
     doc: 'systems-of-record#outbox-and-completion',
     tests: [
@@ -391,7 +392,7 @@ export const properties: readonly Property[] = [
     property:
       'Every capability is reachable without the screens, with the same validation, authorization and results.',
     mechanism: 'HTTP, MCP and the CLI are generated from the catalog and call one handler.',
-    doc: 'architecture#surfaces-and-identity',
+    doc: 'architecture#channels-and-identity',
     tests: [
       {
         file: 'showcase/examples/field-service/test/transport-conformance.test.ts',
@@ -585,7 +586,7 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
   'tool-store': {
     input: 'A wedge scanner and badge sign-in at a shared counter terminal, and an agent over MCP.',
     record:
-      'A fake plant EAM: repair orders through the outbox and tool master data from its feed.',
+      'A fake plant EAM: repair orders through the outbox and tool master data from its inbound sync.',
     sources: ['showcase/examples/tool-store/eam-port.ts'],
   },
   'parts-desk': {
@@ -595,7 +596,8 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
   },
   'crm-capture': {
     input: "A remote query of the CRM with the caller's access, then following accounts.",
-    record: 'A fake CRM, with follow requests through the outbox and updates from its feed.',
+    record:
+      'A fake CRM, with follow requests through the outbox and updates from its inbound sync.',
     sources: ['showcase/examples/crm-capture/fake-crm.ts'],
   },
   'asset-survey': {

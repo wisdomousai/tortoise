@@ -35,7 +35,7 @@ export const searchInput = z.strictObject({
   limit: z.number().int().min(1).max(50).optional(),
 });
 
-/** A followed account: the copy the CRM feed keeps current, and how it got here. */
+/** A followed account: the copy the CRM inbound sync keeps current, and how it got here. */
 export const accountSchema = z.strictObject({
   id: externalId,
   status: localStatus.exclude(['none']),
@@ -65,7 +65,7 @@ export const accountDetailSchema = z.strictObject({
   ...accountSchema.shape,
   history: z.array(activitySchema),
 });
-/** An account snapshot the CRM feed delivers for a followed account. */
+/** An account snapshot the CRM inbound sync delivers for a followed account. */
 export const accountSnapshotSchema = z.strictObject({
   externalId,
   name: z.string().max(200),

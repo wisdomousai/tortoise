@@ -1,7 +1,7 @@
 import { workflowMarkdown, type CatalogWorkflow } from '@tortoise/contracts';
 import { CliText } from './types';
 
-/** Render a value for humans. Snapshot and receipt envelopes show their payload. */
+/** Render a value for humans. Snapshot and command result envelopes show their payload. */
 export function formatText(value: unknown): string {
   if (value instanceof CliText) return value.text;
   // A workflow: its text, and the steps of a declared one.

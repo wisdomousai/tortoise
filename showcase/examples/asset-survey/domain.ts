@@ -13,7 +13,7 @@ import { nodes as nodeCollection } from './contracts/structure';
  *
  * The hub owns the structure, reviewed attributes and filings. Field work and reading photos are
  * assignments: a survey goes to a paired device or a person, who reports one capture at a time;
- * an extraction goes to the model, which reports through its feed, or to a person. Neither
+ * an extraction goes to the model, which reports through its inbound sync, or to a person. Neither
  * writes the structure; a person accepting a report does. The EAM decides about filings.
  */
 export type Role = 'manager' | 'reviewer' | 'viewer';
@@ -42,7 +42,7 @@ export interface SurveyNode {
   attributes: Record<string, Attribute>;
   retired: boolean;
   assetId?: string;
-  /** The asset's status in the EAM, from its feed. */
+  /** The asset's status in the EAM, from its inbound sync. */
   assetStatus?: 'active' | 'retired';
   createdBy: string;
   createdAt: number;
@@ -127,7 +127,10 @@ export const inScope = (
  * What a survey carries to the field: the kinds to capture and the slice of the structure it
  * covers. A root's parent is outside the slice, so the assignee sees it as a root.
  */
-export function surveyBrief(nodes: Readonly<Record<string, SurveyNode>>, scope: SurveyScope) {
+export function surveyInstructions(
+  nodes: Readonly<Record<string, SurveyNode>>,
+  scope: SurveyScope,
+) {
   const slice = new Map(
     scope.roots.flatMap((root) => subtree(nodes, root)).map((node) => [node.id, node]),
   );

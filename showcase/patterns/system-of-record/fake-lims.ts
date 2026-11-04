@@ -2,7 +2,7 @@
  * An enterprise LIMS for the pattern, on loopback. It registers a test request at once, or queues
  * it for the lab manager's review when `reviewed` is set. It refuses a request without a test
  * method with 422, deduplicates on the `Idempotency-Key` header, finds a registration by that
- * key, and serves a change feed of requests registered at other plants. The `/control/*` routes
+ * key, and serves a change list of requests registered at other plants. The `/control/*` routes
  * act as the LIMS's own staff would.
  */
 export class FakeLims {
@@ -47,7 +47,7 @@ export class FakeLims {
     this.registrations.delete(key);
   }
 
-  /** Another plant's front desk registers a request; the change feed reports it. */
+  /** Another plant's front desk registers a request; the change list reports it. */
   register(sample: string, transformer: string, description: string, method: string) {
     const seq = this.elsewhere.length + 1;
     this.elsewhere.push({ seq, id: `r${seq}`, sample, transformer, description, method });

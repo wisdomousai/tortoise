@@ -12,8 +12,8 @@ import { relayResponseSchema, relayRequestSchema } from '@tortoise/fleet-agent/c
 /**
  * A remote-access request to one instance's API and, once the instance responded, its response. The
  * request's headers are dropped when the instance takes it, so an instance session passed in
- * `authorization` stays in the request's state only while it waits. The command receipt of
- * `relay.request` keeps the input as well, for as long as receipts are kept.
+ * `authorization` stays in the request's state only while it waits. The command result of
+ * `relay.request` keeps the input as well, for as long as command results are kept.
  */
 export const relaySchema = z.strictObject({
   id: recordKeySchema,

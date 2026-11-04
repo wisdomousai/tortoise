@@ -167,11 +167,11 @@ for (const kind of ['memory', 'sqlite'] as const)
             context('technician'),
           ),
         ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-        const receipt = await app.invokeRaw(
+        const commandResult = await app.invokeRaw(
           { operation: 'task.set-status', input: { id: 't1', status: 'doing' } },
           context('technician'),
         );
-        expect(receipt.result).not.toHaveProperty('internalNote');
+        expect(commandResult.result).not.toHaveProperty('internalNote');
         await app.invokeRaw(
           { operation: 'work-order.close', input: { id: 'p1' } },
           context('local-user'),

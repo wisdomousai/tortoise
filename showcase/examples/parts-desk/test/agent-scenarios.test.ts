@@ -74,7 +74,7 @@ test('the assistant finds TR-40417, searches its bushings, creates a draft quote
         outcome: 'succeeded',
       },
       async check(result, application) {
-        const created = result.commits[0]!.receipt!.result as { id: string };
+        const created = result.commits[0]!.commandResult!.result as { id: string };
         expect(created.id).toBe(quoteId);
         const stored = await application.queryRaw(
           { operation: 'quote.get', input: { id: quoteId } },
@@ -149,7 +149,7 @@ test('the assistant requests approval for a cancellation, and the cancellation r
   ]);
   expect(await readQuote(app, quote.id)).toMatchObject({ status: 'submitted' });
 
-  const request = result!.calls[0]!.receipt!.result as { id: string; requestedBy: string };
+  const request = result!.calls[0]!.commandResult!.result as { id: string; requestedBy: string };
   expect(request).toMatchObject({ status: 'pending', requestedBy: localUser.principalId });
   const approved = await app.invokeRaw(
     { operation: 'approval.approve', input: { id: request.id }, idempotencyKey: 'approve' },

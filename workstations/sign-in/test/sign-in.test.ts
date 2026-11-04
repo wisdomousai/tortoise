@@ -69,7 +69,7 @@ test('an operator signs in at a terminal with badge and PIN, acts as themselves,
   expect((await post('/api/v1/queries/station.badge.list', token, { input: {} })).status).toBe(403);
   expect((await signIn('BADGE-0042', '2468', 'press-1', token)).status).toBe(403);
 
-  // Neither the badge value nor the PIN is stored in state or in a receipt.
+  // Neither the badge value nor the PIN is stored in state or in a command result.
   const listed = await host.application.queryRaw(
     { operation: 'station.badge.list', input: {} },
     { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },

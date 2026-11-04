@@ -15,7 +15,7 @@ const localUser: ExecutionContext = { workspaceId: 'local', principalId: 'local-
 const device: ExecutionContext = { workspaceId: 'local', principalId: 'device:d1' };
 const composite = 'capture.link-and-extract';
 
-test('linking and extracting in one command commits both or neither on every surface', async () => {
+test('linking and extracting in one command commits both or neither on every channel', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-survey-nested-'));
   const host = await startHost(createAssetSurveyApplication(), {
     workspacePath: join(directory, 'workspace'),
@@ -122,7 +122,7 @@ test('linking and extracting in one command commits both or neither on every sur
     });
     expect(await unlinked()).toEqual([...ids].sort());
 
-    // Each surface links one capture and sends it to the model in one commit.
+    // Each channel links one capture and sends it to the model in one commit.
     const viaDirect = await direct(composite, input('cap-direct'), localUser, 'k-direct');
     const viaHttp = await http.command(composite, input('cap-http'), { idempotencyKey: 'k-http' });
     const viaCli = await cli([
@@ -142,21 +142,23 @@ test('linking and extracting in one command commits both or neither on every sur
         arguments: { input: input('cap-mcp'), idempotencyKey: 'k-mcp' },
       }),
     );
-    for (const [receipt, id] of [
+    for (const [commandResult, id] of [
       [viaDirect, 'cap-direct'],
       [viaHttp, 'cap-http'],
       [viaCli.value, 'cap-cli'],
       [viaMcp, 'cap-mcp'],
     ] as const) {
-      expect(receipt.result).toMatchObject({ capture: { id, nodeId: q1.id, reading: 'reading' } });
-      expect(receipt.effects).toHaveLength(1);
-      expect(Object.keys(receipt.revisions).sort()).toEqual(
-        [`assignment-report:${id}`, `assignment:${receipt.result.extraction.id}`].sort(),
+      expect(commandResult.result).toMatchObject({
+        capture: { id, nodeId: q1.id, reading: 'reading' },
+      });
+      expect(commandResult.effects).toHaveLength(1);
+      expect(Object.keys(commandResult.revisions).sort()).toEqual(
+        [`assignment-report:${id}`, `assignment:${commandResult.result.extraction.id}`].sort(),
       );
     }
     expect(await unlinked()).toEqual([]);
 
-    // A retry on another surface returns the same receipt and sends nothing twice.
+    // A retry on another channel returns the same command result and sends nothing twice.
     const retried = await cli([
       composite,
       '--json',

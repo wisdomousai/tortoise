@@ -3,7 +3,7 @@
 /** Workspace roles: editors change records, viewers read them. */
 export type Role = 'editor' | 'viewer';
 
-/** Where a target's feed stands. */
+/** Where a target's inbound sync stands. */
 export interface Cursor {
   watermark?: string;
   lastSyncAt?: number;
@@ -13,7 +13,7 @@ export interface Cursor {
 export interface AppState {
   /** People who work in this workspace and their role. */
   members: Record<string, Role>;
-  /** Feed positions by target. */
+  /** Inbound sync positions by target. */
   sync: Record<string, Cursor>;
   // scaffold:state
 }

@@ -10,20 +10,20 @@ import {
   type XmlNames,
 } from './formats';
 
-/** Where a feed item came from, for the application's mapping and its error messages. */
+/** Where an inbound item came from, for the application's mapping and its error messages. */
 export interface FileSource {
   readonly file: string;
   /** Zero-based record index within the file. */
   readonly index: number;
 }
 
-export interface FolderFeedOptions<Item> {
+export interface FolderInboundOptions<Item> {
   readonly folders: FolderPort;
   /** Folder ID of the result exports. */
   readonly inbox: string;
   readonly format: FileFormat;
   readonly xml?: XmlNames;
-  /** Map one record to a feed item. Throwing fails the pass, so a bad file is not skipped silently. */
+  /** Map one record to an inbound item. Throwing fails the pass, so a bad file is not skipped silently. */
   readonly map: (record: FileRecord, source: FileSource) => Item;
   /** Files per pull; `more` reports the rest. Default 20. */
   readonly maxFiles?: number;
@@ -46,7 +46,7 @@ function parseCursor(cursor: string | undefined): Watermark | undefined {
   if (cursor === undefined || cursor === '') return undefined;
   const value = JSON.parse(cursor) as Watermark;
   if (typeof value.at !== 'number' || typeof value.name !== 'string')
-    throw new Error('Not a folder feed cursor');
+    throw new Error('Not a folder inbound cursor');
   return value;
 }
 
@@ -57,7 +57,7 @@ function parseCursor(cursor: string | undefined): Watermark | undefined {
  * the source's modification time and the copy would otherwise sort before the watermark. Files
  * are never moved or deleted: the folder is read-only to the application.
  */
-export function folderFeed<Item>(options: FolderFeedOptions<Item>) {
+export function folderInbound<Item>(options: FolderInboundOptions<Item>) {
   const ext = `.${extensionOf[options.format]}`;
   const maxFiles = options.maxFiles ?? 20;
   const quietMs = options.quietMs ?? 2_000;

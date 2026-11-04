@@ -16,7 +16,13 @@ import {
 import type { AnyAssignmentKind } from './kind';
 import type { Assignments } from './manifest';
 import { camel, type Camel } from './operations';
-import { anyFeedItemSchema, kindIdSchema, MAX_OPEN, unionOf, type AnyFeedItemOf } from './schemas';
+import {
+  anyInboundItemSchema,
+  kindIdSchema,
+  MAX_OPEN,
+  unionOf,
+  type AnyInboundItemOf,
+} from './schemas';
 
 /** The resource types the worklist's operations name in their permissions. */
 export const WORKLIST_ASSIGNMENT = 'WorklistAssignment';
@@ -26,7 +32,7 @@ export const WORKLIST_SYNC = 'WorklistSync';
 const time = z.number().int();
 const sync = { sync: deliveryStatusSchema, rejection: rejectionSchema.optional() };
 
-/** An assignment as the assignee holds it: the issuer's feed item and what was done here. */
+/** An assignment as the assignee holds it: the issuer's inbound item and what was done here. */
 const localAssignmentShape = {
   /**
    * Whether it takes reports: the issuer still lists it as sent and it is not done here. The
@@ -64,7 +70,7 @@ export type LocalReportOf<K extends AnyAssignmentKind> = {
   readonly rejection?: z.output<typeof rejectionSchema>;
 };
 type AnyLocalReportOf<K> = K extends AnyAssignmentKind ? LocalReportOf<K> : never;
-export type LocalAssignmentOf<K> = AnyFeedItemOf<K> & {
+export type LocalAssignmentOf<K> = AnyInboundItemOf<K> & {
   readonly open: boolean;
   readonly reports: number;
   readonly done: boolean;
@@ -140,7 +146,7 @@ type FlatReports<K extends AnyAssignmentKind, Namespace extends string> = {
  * issuer sent it, and the reports it records for that work. The result holds the worklist's
  * `module`, its `operations` (`assignmentList`, `assignmentGet`, `reportList`, `complete`, one
  * `<kind>Report` per kind the assignee type takes, and the target's `status`, `sync` and `complete`), the
- * peer `target` whose feed is the issuer's `assignment.feed`, and the resource types it changes.
+ * peer `target` whose inbound sync is the issuer's `assignment.inbound`, and the resource types it changes.
  *
  * Browser-safe. The server pairs it with `worklistHandlers`, `worklistRules` and
  * `connectWorklist` from `@tortoise/assignments/server`.
@@ -160,7 +166,7 @@ export function defineWorklist<
     if (!offered.has(id))
       throw new Error(`The peer API of ${issuer.application} does not list ${id}`);
   const types = { assignment: `${namespace}-assignment`, report: `${namespace}-report` } as const;
-  const feedItem = anyFeedItemSchema(kinds) as unknown as z.ZodType<AnyFeedItemOf<K>>;
+  const inboundItem = anyInboundItemSchema(kinds) as unknown as z.ZodType<AnyInboundItemOf<K>>;
   const peer = definePeerTarget({
     target,
     resourceType: WORKLIST_SYNC,
@@ -171,9 +177,9 @@ export function defineWorklist<
       status: `${namespace}.${target}.status`,
     },
     changes: [types.assignment, types.report],
-    feed: {
-      query: assignments.operations.feed,
-      item: feedItem,
+    inbound: {
+      query: assignments.operations.inbound,
+      item: inboundItem,
       max: MAX_OPEN,
       changes: [types.assignment],
     },
@@ -189,7 +195,7 @@ export function defineWorklist<
     },
     destination: spec.destination,
   });
-  const localAssignment = anyFeedItemSchema(kinds, localAssignmentShape) as unknown as z.ZodType<
+  const localAssignment = anyInboundItemSchema(kinds, localAssignmentShape) as unknown as z.ZodType<
     LocalAssignmentOf<K>
   >;
   const localReport = z.strictObject({
@@ -220,7 +226,7 @@ export function defineWorklist<
     assignmentGet: defineCapability({
       id: `${namespace}.assignment.get` as `${Namespace}.assignment.get`,
       kind: 'query',
-      description: 'One assignment held here, with its brief, or NOT_FOUND.',
+      description: 'One assignment held here, with its instructions, or NOT_FOUND.',
       input: id,
       output: jsonSchema(localAssignment),
       permission: { action: 'read', resourceType: WORKLIST_ASSIGNMENT },

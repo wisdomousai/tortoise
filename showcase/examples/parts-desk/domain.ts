@@ -13,7 +13,7 @@ import type { roleSchema } from './contracts/member-current';
  */
 export type Role = z.output<typeof roleSchema>;
 
-/** Where a target's feed stands. */
+/** Where a target's inbound sync stands. */
 export interface Cursor {
   watermark?: string;
   lastSyncAt?: number;
@@ -23,7 +23,7 @@ export interface Cursor {
 export interface AppState {
   /** People who work in this workspace and their role. */
   members: Record<string, Role>;
-  /** Feed positions by target. */
+  /** Inbound sync positions by target. */
   sync: Record<string, Cursor>;
   inquiries: Record<string, Inquiry>;
   customers: Record<string, Customer>;

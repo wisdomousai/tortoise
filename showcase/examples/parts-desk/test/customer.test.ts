@@ -67,7 +67,7 @@ test('an account is U and four digits, and one utility holds it', async () => {
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });
 
-test('a repeated key returns the first receipt and a stale revision is refused', async () => {
+test('a repeated key returns the first command result and a stale revision is refused', async () => {
   const app = await open();
   const first = await app.invokeRaw(
     { operation: 'customer.create', input: nordhafen, idempotencyKey: 'once' },

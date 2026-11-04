@@ -3,7 +3,7 @@ import type { WorklistAssignment } from '@tortoise/assignments/server';
 import type { HandlerContext, HandlerContribution } from '@tortoise/runtime';
 import { fieldOperations as ops, worklist } from './contracts';
 import type { FieldServices, FieldState } from './domain';
-import { matches, type SurveyBrief } from './ui-native/brief';
+import { matches, type SurveyInstructions } from './ui-native/instructions';
 
 type Context = HandlerContext<FieldState, FieldServices>;
 
@@ -17,7 +17,7 @@ function handler<C extends AnyCapability>(
 const assignmentResource = (id: string) => `${worklist.types.assignment}:${id}`;
 
 /**
- * The device's local user is told of each open survey the first time the hub's feed brings it. The
+ * The device's local user is told of each open survey the first time the hub's inbound sync brings it. The
  * notice waits in the outbox until the app is in the foreground to show it.
  */
 export function notifyNewSurvey(assignment: WorklistAssignment, ctx: Context) {
@@ -52,7 +52,7 @@ export const createFieldHandlers = () => [
     matches: Object.values(ctx.state.worklist.assignments)
       .filter((assignment) => assignment.listed && !assignment.done)
       .flatMap((assignment) =>
-        (assignment.brief as SurveyBrief).nodes
+        (assignment.instructions as SurveyInstructions).nodes
           .filter((node) => matches(node, input.id))
           .map((node) => ({
             assignmentId: assignment.id,

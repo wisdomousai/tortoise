@@ -68,7 +68,7 @@ export function eamHandlers(): HandlerContribution<AppState, Services>[] {
     cursor: (state) => state.sync[eamTarget.target]!,
     now,
     onOutcome: recordOutcome,
-    // The feed can replay an older version of an asset after a newer one, so each item is
+    // The inbound sync can replay an older version of an asset after a newer one, so each item is
     // checked against the last version applied for its asset tag before `applyBatch` sees it.
     versions: {
       store: (state) => state.eamVersions,

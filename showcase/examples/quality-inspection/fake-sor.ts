@@ -19,7 +19,7 @@ export interface FakeFaults {
 
 /**
  * Deterministic in-memory stand-in for an external quality system (for example an ERP quality
- * module). It publishes lots and code catalogs as an ordered change feed, accepts forwarded
+ * module). It publishes lots and code catalogs as an ordered change list, accepts forwarded
  * documents idempotently by effect ID, and enforces a few SoR-side rules the capture app cannot
  * see locally (a lot locked in the SoR). Tests and the demo use it; it is not a protocol adapter.
  */
@@ -27,21 +27,21 @@ export class FakeQualitySystem implements SystemOfRecordPort<QualityItem> {
   readonly documents = new Map<string, { type: string; payload: unknown; ref: string }>();
   readonly deliveries: string[] = [];
   faults: FakeFaults = {};
-  private readonly feed: QualityItem[] = [];
+  private readonly published: QualityItem[] = [];
   private readonly lots = new Map<string, LotSnapshot>();
   private readonly locked = new Set<string>();
 
   constructor(seed: { lots: LotSnapshot[]; codeGroups: CodeGroupSnapshot[] } = demoSeed()) {
-    for (const group of seed.codeGroups) this.feed.push({ kind: 'codeGroup', group });
+    for (const group of seed.codeGroups) this.published.push({ kind: 'codeGroup', group });
     for (const lot of seed.lots) this.publishLot(lot);
   }
   describe() {
     return { target: 'quality-system', idempotentDelivery: true } as const;
   }
-  /** Publish a new or changed lot to the change feed. */
+  /** Publish a new or changed lot to the change list. */
   publishLot(lot: LotSnapshot): void {
     this.lots.set(lot.id, structuredClone(lot));
-    this.feed.push({ kind: 'lot', lot: structuredClone(lot) });
+    this.published.push({ kind: 'lot', lot: structuredClone(lot) });
   }
   closeLot(id: string): void {
     const lot = this.lots.get(id);
@@ -55,11 +55,11 @@ export class FakeQualitySystem implements SystemOfRecordPort<QualityItem> {
   async pull(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<QualityItem>> {
     await this.wait(signal);
     const start = cursor === undefined ? 0 : Number(cursor);
-    const items = this.feed.slice(start, start + 50);
+    const items = this.published.slice(start, start + 50);
     return {
       items: structuredClone(items),
       cursor: String(start + items.length),
-      more: start + items.length < this.feed.length,
+      more: start + items.length < this.published.length,
     };
   }
   async deliver(effect: Readonly<Effect>, signal: AbortSignal): Promise<EffectOutcome> {

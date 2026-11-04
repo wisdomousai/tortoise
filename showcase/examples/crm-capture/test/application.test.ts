@@ -40,7 +40,7 @@ async function open(crm = new FakeCrm({ logins: { 'local-user': 'ann' } })) {
     (await application.queryRaw({ operation, input }, as)).data as T;
   const command = (operation: string, input: unknown, key: string, as = localUser) =>
     application.invokeRaw({ operation, input, idempotencyKey: key }, as);
-  /** One outbox pass, then one feed pass: what the background loops do every second. */
+  /** One outbox pass, then one inbound pass: what the background loops do every second. */
   const complete = async () => {
     await integrations.target('crm').dispatcher.runOnce();
     await integrations.sync();
@@ -96,11 +96,11 @@ describe('CRM capture', () => {
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
 
-  test('following an account asks the CRM; the feed fills it in and keeps it current', async () => {
+  test('following an account asks the CRM; inbound sync fills it in and keeps it current', async () => {
     const { crm, query, command, complete } = await open();
-    const receipt = await command('crm.account.follow', { externalId: '001A1' }, 'follow-1');
-    expect(receipt.result).toEqual({ id: '001A1', status: 'requested' });
-    expect(receipt.effects).toHaveLength(1);
+    const commandResult = await command('crm.account.follow', { externalId: '001A1' }, 'follow-1');
+    expect(commandResult.result).toEqual({ id: '001A1', status: 'requested' });
+    expect(commandResult.effects).toHaveLength(1);
     expect((await query('crm.account.search', { q: 'acme robotics' })).items[0]!.local).toBe(
       'requested',
     );

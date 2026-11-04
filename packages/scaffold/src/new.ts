@@ -26,7 +26,7 @@ export function appNames(name: string, displayName: string): AppNames {
 /**
  * Export the framework and the starter with a new, empty application as the only content: a
  * manifest, application and screens entrypoint, one collection with its default screens, the
- * deployment, network, audit and compliance plugins, a cross-surface conformance test, a UI-binding
+ * deployment, network, audit and compliance plugins, a cross-channel conformance test, a UI-binding
  * test and a behavioral test. No example is copied.
  */
 export async function scaffoldNew(options: NewOptions): Promise<ScaffoldManifest> {

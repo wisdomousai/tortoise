@@ -281,7 +281,9 @@ describe('agent scenarios with the deterministic harness', () => {
       { application: app, harness: deterministicHarness },
     );
     expect(extra!.failures).toEqual(['Expected 0 commits, got 1: ["lot.release"]']);
-    expect(extra!.commits[0]!.receipt?.revisions).toMatchObject({ 'lot:l1': expect.any(Number) });
+    expect(extra!.commits[0]!.commandResult?.revisions).toMatchObject({
+      'lot:l1': expect.any(Number),
+    });
     expect(scoped!.calls[0]).toMatchObject({ outcome: 'refused', code: 'FORBIDDEN' });
     expect(scoped!.failures[0]).toStartWith('Expected 1 commits, got 0');
     // The advisor's check sees l1 released by the first scenario: one application throughout.

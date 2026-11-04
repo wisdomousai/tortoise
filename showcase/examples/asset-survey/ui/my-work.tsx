@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MyAssignments, type FeedItem, type SubmitReport } from '@/components/my-assignments';
+import { MyAssignments, type InboundItem, type SubmitReport } from '@/components/my-assignments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,13 +10,13 @@ import { extraction, operations, survey } from '../contracts';
 import type { CaptureKind } from '../domain';
 import { blobUrl, ErrorText, Page, valueLines } from './shared';
 
-type BriefNode = { id: string; designation: string; name: string };
+type InstructionsNode = { id: string; designation: string; name: string };
 
 /** One capture taken at a desk: photos uploaded from files, the node, the kind and a note. */
-function CaptureForm({ item, submit }: { item: FeedItem; submit: SubmitReport }) {
-  const brief = item.brief as { kinds: CaptureKind[]; nodes: BriefNode[] };
+function CaptureForm({ item, submit }: { item: InboundItem; submit: SubmitReport }) {
+  const instructions = item.instructions as { kinds: CaptureKind[]; nodes: InstructionsNode[] };
   const [files, setFiles] = useState<File[]>([]);
-  const [kind, setKind] = useState(brief.kinds[0] ?? 'nameplate');
+  const [kind, setKind] = useState(instructions.kinds[0] ?? 'nameplate');
   const [nodeId, setNodeId] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string>();
@@ -64,7 +64,7 @@ function CaptureForm({ item, submit }: { item: FeedItem; submit: SubmitReport })
           onChange={(event) => setNodeId(event.target.value)}
         >
           <option value="">Not known</option>
-          {brief.nodes.map((node) => (
+          {instructions.nodes.map((node) => (
             <option key={node.id} value={node.id}>
               {node.designation} {node.name}
             </option>
@@ -78,7 +78,7 @@ function CaptureForm({ item, submit }: { item: FeedItem; submit: SubmitReport })
           value={kind}
           onChange={(event) => setKind(event.target.value as CaptureKind)}
         >
-          {brief.kinds.map((option) => (
+          {instructions.kinds.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
@@ -104,14 +104,14 @@ function CaptureForm({ item, submit }: { item: FeedItem; submit: SubmitReport })
 }
 
 /** Reading a capture by hand: the photos, and one `name: value` line per value read. */
-function ReadingForm({ item, submit }: { item: FeedItem; submit: SubmitReport }) {
-  const brief = item.brief as { photos: { digest: string }[] };
+function ReadingForm({ item, submit }: { item: InboundItem; submit: SubmitReport }) {
+  const instructions = item.instructions as { photos: { digest: string }[] };
   const [lines, setLines] = useState('');
   const fields = valueLines(lines).map(([name, value]) => ({
     name,
     value,
     confidence: 1,
-    source: { digest: brief.photos[0]!.digest },
+    source: { digest: instructions.photos[0]!.digest },
   }));
   return (
     <form
@@ -123,7 +123,7 @@ function ReadingForm({ item, submit }: { item: FeedItem; submit: SubmitReport })
       }}
     >
       <div className="flex flex-wrap gap-2">
-        {brief.photos.map((photo) => (
+        {instructions.photos.map((photo) => (
           <img
             key={photo.digest}
             src={blobUrl(photo.digest)}
@@ -156,7 +156,7 @@ export function MyWorkScreen() {
     >
       <MyAssignments
         title="Sent to me"
-        feed={operations.feed}
+        inbound={operations.inbound}
         complete={operations.complete}
         kinds={[
           {

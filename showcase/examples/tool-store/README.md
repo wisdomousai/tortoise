@@ -1,6 +1,6 @@
 # Tool store
 
-A plant's tool store lends torque wrenches, crimpers and testers to maintenance technicians against work orders. Attendants sign in at the shared counter terminal with a badge and PIN, scan the etched asset tag (`TC-` and five digits) and the borrower's badge, and check the tool out or back in. A tool returned damaged sends a repair order to the plant EAM through the outbox, and the EAM's feed keeps the tool master data current. A repair triage agent asks an attendant to approve retiring worn tools. Cycle counts check one bin at a time, and an agent moves the tools due for calibration to bin `CAL-01` over MCP. An in-memory fake stands in for the EAM.
+A plant's tool store lends torque wrenches, crimpers and testers to maintenance technicians against work orders. Attendants sign in at the shared counter terminal with a badge and PIN, scan the etched asset tag (`TC-` and five digits) and the borrower's badge, and check the tool out or back in. A tool returned damaged sends a repair order to the plant EAM through the outbox, and the EAM's inbound sync keeps the tool master data current. A repair triage agent asks an attendant to approve retiring worn tools. Cycle counts check one bin at a time, and an agent moves the tools due for calibration to bin `CAL-01` over MCP. An in-memory fake stands in for the EAM.
 
 ```sh
 cd showcase/examples/tool-store

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { CommandReceipt, Invocation } from '@tortoise/runtime';
+import type { CommandResult, Invocation } from '@tortoise/runtime';
 import { createAccessibilityExtractor } from '../src/recognition/accessibility';
 import { createStationObserver, type Observation } from '../src/observer';
 import { createCounterModel, createHmi, profile } from './support';
@@ -25,7 +25,7 @@ function observerFixture() {
           });
         payloads.set(request.idempotencyKey!, payload);
         submitted.push(request);
-        return { result: {}, revision: submitted.length } as unknown as CommandReceipt;
+        return { result: {}, revision: submitted.length } as unknown as CommandResult;
       },
     },
     context: { workspaceId: 'w', principalId: 'station-bridge:line-1' },

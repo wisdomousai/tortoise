@@ -8,7 +8,7 @@ import {
 } from '@tortoise/contracts';
 import {
   agentGrant,
-  type CommandReceipt,
+  type CommandResult,
   type ExecutionContext,
   type Invocation,
   type QueryResult,
@@ -23,7 +23,7 @@ import {
 /** The parts of a hosted application a scenario drives. */
 export interface ScenarioApplication {
   readonly catalog: Catalog;
-  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   queryRaw(request: Invocation, context: ExecutionContext): Promise<QueryResult>;
 }
 
@@ -94,7 +94,7 @@ export interface AgentScenarioCall {
   readonly operation: string;
   readonly input: unknown;
   readonly outcome: 'committed' | 'read' | 'refused';
-  readonly receipt?: CommandReceipt;
+  readonly commandResult?: CommandResult;
   /** For a refusal: the error code and message the application returned. */
   readonly code?: string;
   readonly message?: string;
@@ -109,7 +109,7 @@ export interface AgentScenarioResult {
   /** The model the run recorded, with its digests, when the harness names one. */
   readonly model?: ModelIdentity;
   readonly calls: readonly AgentScenarioCall[];
-  /** Committed commands other than approval requests, with their receipts. */
+  /** Committed commands other than approval requests, with their command results. */
   readonly commits: readonly AgentScenarioCall[];
   /** Inputs of the committed `approval.request` calls. */
   readonly approvals: readonly {
@@ -258,9 +258,9 @@ function scenarioTools(
           calls.push({ operation, input: envelope.input, outcome: 'read' });
           return result;
         }
-        const receipt = await application.invokeRaw(request, scoped);
-        calls.push({ operation, input: envelope.input, outcome: 'committed', receipt });
-        return receipt;
+        const commandResult = await application.invokeRaw(request, scoped);
+        calls.push({ operation, input: envelope.input, outcome: 'committed', commandResult });
+        return commandResult;
       } catch (error) {
         const { code, message } = errorEnvelope(error);
         calls.push({ operation, input: envelope.input, outcome: 'refused', code, message });
@@ -293,7 +293,7 @@ function promptFor(scenario: AgentScenario, harness: Harness, instructions: stri
 
 /**
  * Run one scenario: commit its setup, start the agent's run under `agentGrant`, wait for it to
- * end, then judge the receipts and approval requests. Never throws for a failed expectation; the result
+ * end, then judge the command results and approval requests. Never throws for a failed expectation; the result
  * lists the failures, so a model gate can compare candidates.
  */
 export async function runAgentScenario(

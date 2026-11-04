@@ -69,7 +69,7 @@ export function access(state: Root): AssignmentAccess {
 }
 
 let sequence = 0;
-/** The review kind's hooks: the brief holds the notes in scope, and accepting adds a comment. */
+/** The review kind's hooks: the instructions hold the notes in scope, and accepting adds a comment. */
 export const hooks = {
   newId: () => `a${++sequence}`,
   now: () => 1_000,
@@ -80,7 +80,7 @@ export const hooks = {
           if (!Object.hasOwn(ctx.state.notes, id))
             throw new ApplicationError('INVALID_INPUT', 'Unknown note', { field: 'scope' });
       },
-      brief: (assignment, ctx) => ({
+      instructions: (assignment, ctx) => ({
         notes: (assignment.scope.notes as string[]).map((id) => {
           const { title, body } = ctx.state.notes[id]!;
           return { id, title, body };
@@ -94,9 +94,11 @@ export const hooks = {
       },
     },
     'field-survey': {
-      brief: () => ({ nodes: [{ id: 'n1', designation: '=A1' }] }),
+      instructions: () => ({ nodes: [{ id: 'n1', designation: '=A1' }] }),
       subject: (subject, assignment) =>
-        ((assignment.brief?.nodes ?? []) as { id: string }[]).some((node) => node.id === subject),
+        ((assignment.instructions?.nodes ?? []) as { id: string }[]).some(
+          (node) => node.id === subject,
+        ),
     },
   }),
 } satisfies Record<string, unknown>;

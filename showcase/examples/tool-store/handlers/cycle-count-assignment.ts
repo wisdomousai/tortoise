@@ -21,7 +21,7 @@ const counted = (state: AppState, bin: string) =>
 
 /**
  * The cycle count hooks, which the assignment feature calls inside its commands. The scope names
- * a bin that holds tools, the assignee is an attendant, and the brief lists the bin's tools with
+ * a bin that holds tools, the assignee is an attendant, and the instructions list the bin's tools with
  * their status when the count is sent. Reports name no record; the accept hook checks each tag.
  */
 export const cycleCountHooks = {
@@ -37,7 +37,7 @@ export const cycleCountHooks = {
     if (own(ctx.state.members, assignee.id) !== 'attendant')
       throw invalid(`${assignee.id} is not an attendant`, { field: 'assignee' });
   },
-  brief(assignment: Readonly<StoredAssignment>, ctx: Context) {
+  instructions(assignment: Readonly<StoredAssignment>, ctx: Context) {
     const bin = binOf(assignment.scope);
     return {
       bin,
@@ -46,7 +46,7 @@ export const cycleCountHooks = {
   },
   /**
    * Write an accepted report through the tool commands, as the attendant accepting it, in the
-   * accept's transaction. Every tag is checked against the tools in the bin now, not the brief,
+   * accept's transaction. Every tag is checked against the tools in the bin now, not the instructions,
    * before anything changes. A tool reported missing that is missing already, and a found tool
    * that was not missing, stay as they are. `tool.mark-missing` refuses a tool that is not
    * available, such as a checked-out one. Any refusal fails the whole accept, so the report stays

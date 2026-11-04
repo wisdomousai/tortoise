@@ -86,7 +86,7 @@ test('a publication the LIMS lost is held until a person resolves it', async () 
   expect((await query<{ items: unknown[] }>('reconciliation.list', {})).items).toEqual([]);
 });
 
-test('requests registered at another plant are imported once through the change feed', async () => {
+test('requests registered at another plant are imported once through the change list', async () => {
   const { integrations, query, lims } = await open();
   lims.register('OS-24-2001', 'TR-38822', 'Acidity of aged oil', 'IEC 62021-1');
   await integrations.sync();

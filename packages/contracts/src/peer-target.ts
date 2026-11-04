@@ -12,8 +12,7 @@ import type {
 import { defineHostComponent } from './requirements';
 import { defineTarget, type TargetSpec } from './target';
 
-type SurfaceCommand<S extends PeerApi> =
-  S['commands'][number] | S['onBehalfOf']['commands'][number];
+type ApiCommand<S extends PeerApi> = S['commands'][number] | S['onBehalfOf']['commands'][number];
 
 /** The effect a command enqueues for a peer: the peer command's ID as type, its input as payload. */
 export interface PeerEffectRequest {
@@ -35,7 +34,7 @@ export interface PeerEffectRequest {
  *   fails the enqueuing command instead;
  * - `onBehalfOf(type)`: whether an effect is delivered as the person who enqueued it rather than
  *   as the peer's service principal;
- * - `feed`, when given: a service query of the API that returns `{ items, cursor, more? }`.
+ * - `inbound`, when given: a service query of the API that returns `{ items, cursor, more? }`.
  *
  * Browser-safe. The server pairs it with `connectPeerTarget` from `@tortoise/integration`.
  */
@@ -49,7 +48,7 @@ export function definePeerTarget<
   Extra extends z.ZodRawShape = {},
   StatusShape extends z.ZodRawShape = {},
 >(
-  spec: Omit<TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>, 'feed'> & {
+  spec: Omit<TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>, 'inbound'> & {
     readonly api: S;
     readonly destination: {
       readonly id: string;
@@ -60,17 +59,17 @@ export function definePeerTarget<
       readonly availability: Availability;
       readonly offline: OfflineBehavior;
     };
-    readonly feed?: NonNullable<
-      TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>['feed']
+    readonly inbound?: NonNullable<
+      TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>['inbound']
     > & { readonly query: S['queries'][number] };
     /** Whether data providers read this target through the peer; adds it to the destination's reads. */
     readonly reads?: boolean;
   },
 ) {
   const { api, destination: declared, reads, ...target } = spec;
-  if (spec.feed && !api.queries.some((query) => query.id === spec.feed!.query.id))
+  if (spec.inbound && !api.queries.some((query) => query.id === spec.inbound!.query.id))
     throw new Error(
-      `Peer target ${spec.target} feeds from ${spec.feed.query.id}, not a service query`,
+      `Peer target ${spec.target} pulls inbound items from ${spec.inbound.query.id}, not a service query`,
     );
   const defined = defineTarget<Target, Complete, Sync, Status, Item, Extra, StatusShape>(
     target as TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>,
@@ -102,9 +101,9 @@ export function definePeerTarget<
       description: `${api.application}, called as a peer: ${declared.purpose}`,
       requirements: { network: [destination] },
     }),
-    feedQuery: spec.feed?.query.id,
+    inboundQuery: spec.inbound?.query.id,
     onBehalfOf: (type: string) => personal.has(type),
-    effect<C extends SurfaceCommand<S>>(
+    effect<C extends ApiCommand<S>>(
       command: C,
       request: { readonly resource: string; readonly payload: InputOf<C> },
     ): PeerEffectRequest {

@@ -1,15 +1,15 @@
 import type { BlobRef, Catalog } from '@tortoise/contracts';
 import type {
-  CommandReceipt,
+  CommandResult,
   EventBatch,
   ExecutionContext,
   Invocation,
   QueryResult,
 } from '@tortoise/runtime';
 
-/** Minimal execution surface shared by all host adapters. No handler implementation lives here. */
+/** Minimal execution interface shared by all host adapters. No handler implementation lives here. */
 export interface ApplicationPort {
-  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   queryRaw(request: Invocation, context: ExecutionContext): Promise<QueryResult>;
   events(after: number, context: ExecutionContext): Promise<EventBatch>;
   deliverEvents(

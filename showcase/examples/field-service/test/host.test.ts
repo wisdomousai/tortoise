@@ -288,7 +288,7 @@ test('real host preserves delegated grants for runs and isolates runs across wor
   }
 });
 
-test('request fields cannot select identity, browser cookie writes require Origin, commands require receipt keys', async () => {
+test('request fields cannot select identity, browser cookie writes require Origin, commands require command result keys', async () => {
   const { handler, session, seen } = fixture();
   const response = await handler(
     request('/api/v1/queries/test.read', session.token, {

@@ -6,8 +6,8 @@ const HOUR = 3_600_000;
 /** A parcel created and filed by ann, which starts `ship-parcel` through `parcel.file`. */
 async function filed(app: ReturnType<typeof inProcess>, id = 'p1') {
   await app.invoke('parcel.create', { id });
-  const receipt = await app.invoke('parcel.file', { id });
-  return (receipt.result as { id: string }).id;
+  const commandResult = await app.invoke('parcel.file', { id });
+  return (commandResult.result as { id: string }).id;
 }
 const carrierEffect = async (app: ReturnType<typeof inProcess>) =>
   (await app.pending()).find((effect) => effect.target === 'carrier')!;
@@ -182,7 +182,7 @@ describe('workflow durability', () => {
     expect(accepted[1]?.correlationId).toBe(accepted[0]?.correlationId);
   });
 
-  test('an advance repeated after a crash replays its receipt; a stale seq changes nothing', async () => {
+  test('an advance repeated after a crash replays its command result; a stale seq changes nothing', async () => {
     const app = inProcess();
     const id = await filed(app);
     const { item, context } = await asRunner(app, id);

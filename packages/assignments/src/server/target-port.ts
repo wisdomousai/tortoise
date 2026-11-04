@@ -5,7 +5,7 @@ import { targetOf } from '../operations';
 import type { AnyOfferOf, StoredBody } from '../schemas';
 import type { TargetResult } from './assignment-target';
 
-/** A blob of an offer's brief, as the target receives it. */
+/** A blob of an offer's instructions, as the target receives it. */
 export interface OfferBlob {
   readonly ref: BlobRef;
   readonly data: Uint8Array;
@@ -25,7 +25,7 @@ export type TargetWork =
 
 /**
  * An assignment target's port around a function that does the work, such as a model call. `deliver`
- * runs `work` once per offer and keeps its result for the feed; delivering the same offer again
+ * runs `work` once per offer and keeps its result for inbound sync; delivering the same offer again
  * returns accepted without working twice. `pull` returns the results in order. A throw from
  * `work` is a transient failure the dispatcher retries.
  *
@@ -35,7 +35,7 @@ export type TargetWork =
  */
 export function assignmentTargetPort<K extends AnyAssignmentKind = AnyAssignmentKind>(options: {
   readonly target: string;
-  /** Reads a blob the offer's brief references; `ConnectContext` readers give `readEffectBlob`. */
+  /** Reads a blob the offer's instructions references; `ConnectContext` readers give `readEffectBlob`. */
   readonly readBlob: (effectId: string, digest: string) => Promise<OfferBlob | undefined>;
   readonly work: (
     offer: AnyOfferOf<K>,

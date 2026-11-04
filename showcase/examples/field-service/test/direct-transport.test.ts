@@ -95,7 +95,7 @@ test('a subscription from a current snapshot cursor resumes without a reset', as
   }
 }, 2_000);
 
-test('direct receipts carry committed outbox effects like HTTP receipts', async () => {
+test('direct command results carry committed outbox effects like HTTP command results', async () => {
   const post = defineCapability({
     id: 'note.post',
     kind: 'command',
@@ -147,10 +147,10 @@ test('direct receipts carry committed outbox effects like HTTP receipts', async 
       }),
     ],
   });
-  const receipt = await createDirectTransport(app, localUser).command(
+  const commandResult = await createDirectTransport(app, localUser).command(
     'note.post',
     { id: 'n1' },
     { idempotencyKey: 'post-n1' },
   );
-  expect(receipt.effects).toEqual(['effect-1']);
+  expect(commandResult.effects).toEqual(['effect-1']);
 });

@@ -58,7 +58,7 @@ const loanTotal = async (app: Awaited<ReturnType<typeof open>>) =>
 
 test('an attendant lends an available tool: an open loan and a checked-out tool', async () => {
   const app = await open();
-  const receipt = await app.invokeRaw(
+  const commandResult = await app.invokeRaw(
     {
       operation: 'tool.check-out',
       input: { ...checkOut, workOrder: ' WO-100 ' },
@@ -66,7 +66,7 @@ test('an attendant lends an available tool: an open loan and a checked-out tool'
     },
     localUser,
   );
-  expect(receipt.result).toEqual({
+  expect(commandResult.result).toEqual({
     id: 'id-2',
     toolId: 'id-1',
     assetTag: 'TC-00601',
@@ -125,7 +125,7 @@ test('a stale tool revision is refused and nothing changes', async () => {
   expect(await statusOf(app)).toMatchObject({ status: 'checked-out' });
 });
 
-test('a repeated idempotency key returns the same receipt and lends once', async () => {
+test('a repeated idempotency key returns the same command result and lends once', async () => {
   const app = await open();
   const request = { operation: 'tool.check-out', input: checkOut, idempotencyKey: 'retry' };
   const first = await app.invokeRaw(request, localUser);

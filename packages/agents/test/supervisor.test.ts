@@ -22,7 +22,7 @@ const harness = (run: Harness['run']): Harness => ({
   run,
 });
 
-describe('run receipts and terminal states', () => {
+describe('run command results and terminal states', () => {
   test('fixture tools use captured context, run identity and stable invocation keys', async () => {
     const calls: unknown[] = [];
     const supervisor = createRunSupervisor({
@@ -133,7 +133,7 @@ describe('run receipts and terminal states', () => {
       }),
     });
     const waiting = await until(supervisor, run.id, 'awaiting-question');
-    // The state is saved before the question event; wait for its durable receipt.
+    // The state is saved before the question event; wait for its durable command result.
     let requestId: string | undefined;
     for await (const event of supervisor.events(run.id, waiting.nextSequence - 2))
       if (event.type === 'question') {
@@ -224,7 +224,7 @@ describe('run receipts and terminal states', () => {
     expect(done.failure!.message).toContain('different arguments');
     expect(calls).toBe(1);
   });
-  test('restart recovery marks nonterminal receipts interrupted', async () => {
+  test('restart recovery marks nonterminal command results interrupted', async () => {
     const store = new MemoryRunStore();
     await store.save({
       id: 'old',
@@ -242,7 +242,7 @@ describe('run receipts and terminal states', () => {
   });
 });
 
-test('native completion waits for an outstanding application call receipt', async () => {
+test('native completion waits for an outstanding application call command result', async () => {
   let finish!: () => void;
   const pending = new Promise<void>((resolve) => {
     finish = resolve;

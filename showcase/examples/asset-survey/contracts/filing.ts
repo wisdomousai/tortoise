@@ -10,7 +10,7 @@ import {
 } from './schemas';
 
 /**
- * The enterprise asset management system: filings go out through the outbox, and its feed
+ * The enterprise asset management system: filings go out through the outbox, and its inbound sync
  * reports the assets they created or updated. Searches read it live.
  */
 export const eamTarget = defineTarget({
@@ -18,7 +18,7 @@ export const eamTarget = defineTarget({
   resourceType: 'Filing',
   operations: { complete: 'filing.complete', sync: 'filing.sync', status: 'filing.status' },
   changes: ['filing'],
-  feed: { item: assetSnapshotSchema, max: 200, changes: ['node'] },
+  inbound: { item: assetSnapshotSchema, max: 200, changes: ['node'] },
   status: {
     pending: z.number().int(),
     accepted: z.number().int(),
@@ -27,14 +27,15 @@ export const eamTarget = defineTarget({
   descriptions: {
     complete: 'Integration principal only: record the EAM outcome of a filing.',
     sync: 'Integration principal only: apply EAM asset snapshots and advance the watermark.',
-    status: 'Filing with the EAM: filings waiting, accepted and rejected, and the last feed sync.',
+    status:
+      'Filing with the EAM: filings waiting, accepted and rejected, and the last inbound sync.',
   },
 });
 
 /**
  * A directory the deployment policy names: each filing becomes a folder with its record as JSON and its
  * evidence photos, for systems that import files instead of offering an API. The declared
- * `filing-export` process writes it, so the deployment policy decides the directory. No feed: a
+ * `filing-export` process writes it, so the deployment policy decides the directory. No inbound: a
  * written folder is the outcome.
  */
 export const exportTarget = defineTarget({
@@ -81,7 +82,7 @@ export const filingOperations = {
     output: filingSchema,
     permission: { action: 'file', resourceType: 'Filing' },
     description:
-      'File a node with its accepted attributes and the photos they were read from into the EAM: update assetId, or create an asset when it is absent. The receipt proves the local request; the EAM accepts or rejects it later (filing.list).',
+      'File a node with its accepted attributes and the photos they were read from into the EAM: update assetId, or create an asset when it is absent. The command result proves the local request; the EAM accepts or rejects it later (filing.list).',
     dependencies: ['filing', 'node'],
     forwards: 'eam',
     // The evidence photos are attached to the filing so the connector may send them.
@@ -92,7 +93,7 @@ export const filingOperations = {
     output: filingSchema,
     permission: { action: 'file', resourceType: 'Filing' },
     description:
-      'Export a node with its accepted attributes and the photos they were read from to the export directory the deployment policy names, as a folder of JSON and photos. The receipt proves the local request; filing.list shows when the folder is written. Independent of filing the node into the EAM.',
+      'Export a node with its accepted attributes and the photos they were read from to the export directory the deployment policy names, as a folder of JSON and photos. The command result proves the local request; filing.list shows when the folder is written. Independent of filing the node into the EAM.',
     dependencies: ['filing', 'node'],
     forwards: 'export',
     blobs: photoLimits,

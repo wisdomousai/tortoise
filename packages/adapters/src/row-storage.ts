@@ -15,10 +15,10 @@ export interface Retention {
    */
   readonly journal?: number;
   /**
-   * Idempotency receipts to keep, oldest removed first. A retry whose receipt was removed runs
+   * Idempotency command results to keep, oldest removed first. A retry whose command result was removed runs
    * again, so keep more than any caller retries across.
    */
-  readonly receipts?: number;
+  readonly commandResults?: number;
 }
 export interface RowStorageOptions<State> {
   /** See `SnapshotStorage`: maps a state written by an earlier version on load. */
@@ -34,15 +34,15 @@ export function retain<State>(snapshot: WorkspaceSnapshot<State>, retention: Ret
     const removed = snapshot.journal.splice(0, snapshot.journal.length - retention.journal);
     snapshot.journalFloor = removed.at(-1)!.cursor;
   }
-  const keys = Object.keys(snapshot.receipts);
-  if (retention.receipts !== undefined && keys.length > retention.receipts)
-    for (const key of keys.slice(0, keys.length - retention.receipts))
-      delete snapshot.receipts[key];
+  const keys = Object.keys(snapshot.commandResults);
+  if (retention.commandResults !== undefined && keys.length > retention.commandResults)
+    for (const key of keys.slice(0, keys.length - retention.commandResults))
+      delete snapshot.commandResults[key];
 }
 
 /**
  * Workspace persistence over a `SqlRowsDriver` with one row per record: feature state split to
- * `depth` object levels, and one row per resource revision, receipt, effect, blob reference and
+ * `depth` object levels, and one row per resource revision, command result, effect, blob reference and
  * journal entry. A commit diffs the snapshot against the rows it started from and writes only
  * what changed, inside one SQLite transaction, so it stays atomic. Reads and transactions run
  * one after another on the shared connection, like `SnapshotStorage`. A file from another

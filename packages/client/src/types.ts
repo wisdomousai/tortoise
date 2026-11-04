@@ -5,7 +5,7 @@ export interface Snapshot<T> {
   cursor: Cursor;
   authorizationRevision: number;
 }
-export interface Receipt<T> {
+export interface CommandResult<T> {
   result: T;
   cursor: Cursor;
   authorizationRevision: number;
@@ -49,7 +49,11 @@ export interface BlobTransport {
 }
 export interface Transport {
   query<T>(operation: string, input: unknown, signal?: AbortSignal): Promise<Snapshot<T>>;
-  command<T>(operation: string, input: unknown, options?: CommandOptions): Promise<Receipt<T>>;
+  command<T>(
+    operation: string,
+    input: unknown,
+    options?: CommandOptions,
+  ): Promise<CommandResult<T>>;
   events(cursor: Cursor, signal: AbortSignal): AsyncIterable<ChangeBatch>;
   /** Present when the instance keeps blobs. */
   readonly blobs?: BlobTransport;

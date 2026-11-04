@@ -1,6 +1,11 @@
 import type { StateMigrations } from '@tortoise/runtime';
 import type { AssignmentSlice, StoredAssignment, StoredReport } from '@tortoise/assignments/server';
-import { surveyBrief, type CaptureKind, type ProposedField, type SurveyNode } from './domain';
+import {
+  surveyInstructions,
+  type CaptureKind,
+  type ProposedField,
+  type SurveyNode,
+} from './domain';
 
 /**
  * Version 1 kept field work, captures and extractions in the application's own records. Version
@@ -74,7 +79,7 @@ export function adoptAssignments(stored: unknown, localUserId: string): Assignme
       title: old.title,
       note: old.note,
       scope,
-      brief: old.status === 'draft' ? undefined : surveyBrief(nodes, scope),
+      instructions: old.status === 'draft' ? undefined : surveyInstructions(nodes, scope),
       assignee: old.deviceId ? { type: 'device' as const, id: old.deviceId } : undefined,
       status: old.status === 'draft' ? 'draft' : old.status === 'dispatched' ? 'sent' : 'done',
       createdBy: old.createdBy,
@@ -116,7 +121,7 @@ export function adoptAssignments(stored: unknown, localUserId: string): Assignme
       kind: 'extraction',
       title: `Read ${capture.kind} ${capture.id}`,
       scope: { reportId: capture.id },
-      brief: { reportId: capture.id, kind: capture.kind, photos: capture.photos },
+      instructions: { reportId: capture.id, kind: capture.kind, photos: capture.photos },
       assignee: { type: 'target' as const, id: 'model' },
       status: !responded ? 'sent' : extraction.status === 'accepted' ? 'closed' : 'done',
       createdBy: localUserId,

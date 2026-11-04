@@ -33,7 +33,7 @@ async function cli(file: string, args: string[]) {
 const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
   response.structuredContent ?? JSON.parse((response.content as { text: string }[])[0]!.text);
 
-test('approving an approval runs its command as the approver on every surface, once', async () => {
+test('approving an approval runs its command as the approver on every channel, once', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-approvals-'));
   const host = await startHost(fieldService, { workspacePath: join(directory, 'workspace') });
   const localUserToken = ((await Bun.file(host.connectionFile!).json()) as { token: string }).token;
@@ -75,7 +75,7 @@ test('approving an approval runs its command as the approver on every surface, o
             {
               operation: 'task.create',
               input: { workOrderId: workOrder.result.id, title },
-              rationale: `The brief lists ${title}.`,
+              rationale: `The instructions list ${title}.`,
               resource: `work-order:${workOrder.result.id}`,
             },
             { idempotencyKey: `request-${title}` },
@@ -111,7 +111,7 @@ test('approving an approval runs its command as the approver on every surface, o
       (await customer.query<{ total: number }>('approval.list', { status: 'pending' })).data.total,
     ).toBe(4);
 
-    // The local user approves one approval request per surface; each creates its task as the local user.
+    // The local user approves one approval request per channel; each creates its task as the local user.
     const approved = [
       await host.application.invokeRaw(
         { operation: 'approval.approve', input: { id: direct }, idempotencyKey: 'o-direct' },
@@ -134,13 +134,13 @@ test('approving an approval runs its command as the approver on every surface, o
         }),
       ),
     ];
-    expect(approved.map((receipt: any) => receipt.continuation.result.title)).toEqual([
+    expect(approved.map((commandResult: any) => commandResult.continuation.result.title)).toEqual([
       'Direct',
       'HTTP',
       'CLI',
       'MCP',
     ]);
-    // A retry over another surface with the same key returns the same continuation.
+    // A retry over another channel with the same key returns the same continuation.
     const retried = await localUser.command(
       'approval.approve',
       { id: mcp },

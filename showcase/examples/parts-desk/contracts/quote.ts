@@ -171,7 +171,7 @@ export const quoteOperations = {
   quoteGet: collectionGet(quotes, {
     id: 'quote',
     description:
-      'Read one quote by its ID, as quote.list returns it. Call it for the lines, discount, status and total before you change a quote. Returns the record. An unknown ID is NOT_FOUND. A command receipt that changed it includes its revision as quote:<id>, for expectedRevisions. Any member may call it.',
+      'Read one quote by its ID, as quote.list returns it. Call it for the lines, discount, status and total before you change a quote. Returns the record. An unknown ID is NOT_FOUND. A command result that changed it includes its revision as quote:<id>, for expectedRevisions. Any member may call it.',
   }),
   quoteCreate: quoteCommand({
     id: 'quote.create',

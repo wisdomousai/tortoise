@@ -31,7 +31,7 @@ export async function enroll(
   const code = typeof body.code === 'string' ? body.code : '';
   const token = newCredential();
   try {
-    const receipt = await caller.application.invokeRaw(
+    const commandResult = await caller.application.invokeRaw(
       {
         operation: ops.enrollmentRedeem.id,
         input: { code, tokenDigest: credentialDigest(token) },
@@ -39,7 +39,9 @@ export async function enroll(
       },
       { ...caller.context, channel: 'http' },
     );
-    const { device } = receipt.result as { device: { id: string; label: string; kind: string } };
+    const { device } = commandResult.result as {
+      device: { id: string; label: string; kind: string };
+    };
     return jsonResponse(
       { token, device: { id: device.id, label: device.label, kind: device.kind } },
       201,

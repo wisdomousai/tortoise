@@ -52,11 +52,11 @@ export function createInspectionDeskApplication(options: InspectionDeskOptions =
 
 `bun run generate` writes the app's reference (OpenAPI, operations, agent skill) to `dist/reference/<id>/`. Don't commit it.
 
-## Surfaces and identity
+## Channels and identity
 
-All surfaces call the same handlers with the same checks. The caller's identity comes from the session, never from input.
+All channels call the same handlers with the same checks. The caller's identity comes from the session, never from input.
 
-| Surface      | How to call it                                              | Who you are                                                         |
+| Channel      | How to call it                                              | Who you are                                                         |
 | ------------ | ----------------------------------------------------------- | ------------------------------------------------------------------- |
 | HTTP         | `POST /api/v1/commands/<id>`, `/api/v1/queries/<id>`        | Browser: launch link, then a cookie. Process: bearer token.         |
 | Live updates | `GET /api/v1/events` (SSE)                                  | Same session; read access filters the stream.                       |
@@ -142,7 +142,7 @@ Tests: `packages/host/test/plugins.test.ts`.
 
 - One handler per capability; screens, HTTP, MCP and CLI get the same results and errors.
 - Authorization runs inside the transaction. The policy filters rows before counting or paging.
-- A command commits state, revisions, receipt, journal and outbox in one transaction, or nothing.
+- A command commits state, revisions, command result, journal and outbox in one transaction, or nothing.
 - Handlers make no network or model calls. Changes to other systems go through the outbox.
 - Server code reaches the network only through the network port and starts processes only through the process port. `scripts/boundary-rules.ts` lists the exemptions.
 - The framework imports no plugin, workstation, starter or example.

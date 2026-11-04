@@ -97,7 +97,7 @@ async function signIn(
   ).badge;
   if (!verifier) throw notRecognized();
   const token = newOperatorToken();
-  const receipt = await caller.application.invokeRaw(
+  const commandResult = await caller.application.invokeRaw(
     command(ops.sessionStart.id, {
       badgeId: verifier.id,
       verified: pin !== undefined && pinMatches(pin, verifier),
@@ -107,7 +107,7 @@ async function signIn(
     }),
     context,
   );
-  const { session, refusal } = receipt.result as { session: unknown; refusal?: string };
+  const { session, refusal } = commandResult.result as { session: unknown; refusal?: string };
   if (refusal === 'locked')
     throw new ApplicationError('FORBIDDEN', 'This badge is locked after too many wrong PINs');
   if (!session) throw notRecognized();
@@ -118,12 +118,12 @@ async function signOut(request: Request, caller: StationCaller, options: RouteOp
   const body = await readJsonBody(request);
   const token = text(body.token, 64);
   if (!token) throw invalid('token is required');
-  const receipt = await caller.application.invokeRaw(
+  const commandResult = await caller.application.invokeRaw(
     command(ops.sessionEnd.id, { tokenDigest: digestOf(token) }),
     { ...caller.context, channel: 'http' },
   );
   options.signals.end(digestOf(token));
-  return jsonResponse(receipt.result);
+  return jsonResponse(commandResult.result);
 }
 
 /**
@@ -164,7 +164,7 @@ async function enroll(request: Request, admin: ExecutionContext, caller: Station
   if (!badge) throw invalid('badge is required');
   if (typeof body.pin !== 'string' || !pinPattern.test(body.pin))
     throw invalid('pin must be 4 to 8 digits');
-  const receipt = await caller.application.invokeRaw(
+  const commandResult = await caller.application.invokeRaw(
     command(ops.badgeEnroll.id, {
       principalId: body.principalId,
       label: body.label,
@@ -173,7 +173,7 @@ async function enroll(request: Request, admin: ExecutionContext, caller: Station
     }),
     admin,
   );
-  return jsonResponse(receipt.result, 201);
+  return jsonResponse(commandResult.result, 201);
 }
 
 /** The plugin's authenticated routes; undefined for every other request. */

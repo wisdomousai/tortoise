@@ -19,16 +19,16 @@ export interface MesFaults {
  * Deterministic stand-in for a homebrew MES. Like many in-house systems its booking endpoint is
  * not idempotent: every call creates a new booking. It does store the caller's reference with
  * each booking, so the dispatcher's lookup can find a booking whose response was lost before
- * sending again. It publishes orders and stop reasons as an ordered feed. Not a protocol adapter.
+ * sending again. It publishes orders and stop reasons as an ordered list. Not a protocol adapter.
  */
 export class FakeMes implements SystemOfRecordPort<MesItem> {
   readonly bookings: { ref: string; effectId: string; type: string; payload: unknown }[] = [];
   faults: MesFaults = {};
-  private readonly feed: MesItem[] = [];
+  private readonly published: MesItem[] = [];
   private readonly orders = new Map<string, MesOrder>();
 
   constructor(seed: { orders: MesOrder[]; reasons: Reason[] } = demoSeed()) {
-    for (const reason of seed.reasons) this.feed.push({ kind: 'reason', reason });
+    for (const reason of seed.reasons) this.published.push({ kind: 'reason', reason });
     for (const order of seed.orders) this.publishOrder(order);
   }
   describe() {
@@ -36,7 +36,7 @@ export class FakeMes implements SystemOfRecordPort<MesItem> {
   }
   publishOrder(order: MesOrder): void {
     this.orders.set(order.id, structuredClone(order));
-    this.feed.push({ kind: 'order', order: structuredClone(order) });
+    this.published.push({ kind: 'order', order: structuredClone(order) });
   }
   closeOrder(id: string): void {
     const order = this.orders.get(id);
@@ -44,11 +44,11 @@ export class FakeMes implements SystemOfRecordPort<MesItem> {
   }
   async pull(cursor: string | undefined): Promise<PullBatch<MesItem>> {
     const start = cursor === undefined ? 0 : Number(cursor);
-    const items = this.feed.slice(start, start + 50);
+    const items = this.published.slice(start, start + 50);
     return {
       items: structuredClone(items),
       cursor: String(start + items.length),
-      more: start + items.length < this.feed.length,
+      more: start + items.length < this.published.length,
     };
   }
   async deliver(effect: Readonly<Effect>): Promise<EffectOutcome> {

@@ -11,7 +11,7 @@ import { createDriverConnector, type DriverConnectorOptions } from './connector'
 import { createDriverObserver, type DriverObserverOptions } from './observer';
 
 export interface DriverIntegrationOptions {
-  /** The outbox target, declared with `defineTarget` and no feed: a driver has nothing to pull. */
+  /** The outbox target, declared with `defineTarget` and no inbound: a driver has nothing to pull. */
   readonly target: Target;
   readonly application: DispatcherApplication & DriverObserverOptions['application'];
   readonly workspaceId: string;
@@ -29,7 +29,7 @@ export interface DriverIntegrationOptions {
 
 /**
  * One driver wired as an outbox target, and optionally observed. Like `connectTarget` for a
- * system of record, but with no inbound sync: delivery completes through the target's fenced complete
+ * system of record, but with no inbound: delivery completes through the target's fenced complete
  * command, and the observer reports state through the application's ingest command. The
  * principal's grant names only those operations, so a misbehaving driver cannot reach business
  * commands. `start` runs the loops (delivery every second, observation every 2 s by default).

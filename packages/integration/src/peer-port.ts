@@ -34,10 +34,10 @@ export interface PeerPortOptions {
     digest: string,
   ) => Promise<{ readonly ref: BlobRef; readonly data: Uint8Array } | undefined>;
   /**
-   * The peer's feed query for inbound sync. It takes `{ cursor? }` and returns a `PullBatch`:
+   * The peer's query for inbound sync. It takes `{ cursor? }` and returns a `PullBatch`:
    * `{ items, cursor, more? }`. Without it the port does not pull.
    */
-  readonly feed?: string;
+  readonly inbound?: string;
   /**
    * The external reference of an accepted delivery, read from the peer command's result, such as
    * the ID of the record it created. Without it an accepted outcome carries none.
@@ -174,13 +174,13 @@ const rejection = (error: ErrorEnvelope): EffectOutcome => ({
  *
  * - `deliver` uploads the blobs the effect's payload references, then invokes the peer command
  *   named by the effect's `type` with the payload as input and the effect id as idempotency key.
- *   The peer's receipts make a repeated delivery after a lost response return the first result,
+ *   The peer's command results make a repeated delivery after a lost response return the first result,
  *   so delivery is idempotent. `reference` names the external reference from that result.
  * - A business refusal from the peer (invalid input, not found, conflict, denied) completes the
  *   effect as `rejected` with the peer's code and message. A refused credential or assertion, an
  *   unreachable peer or a server error is a `DeliveryFailure` and is retried. An idempotency
  *   conflict holds the effect for reconciliation.
- * - `pull` reads the peer's feed query from the stored cursor.
+ * - `pull` reads the peer's inbound sync query from the stored cursor.
  * - `search` serves a remote query with the peer query of the same ID, which returns
  *   `{ items, next? }`.
  */
@@ -228,13 +228,13 @@ export function createPeerPort<Item = unknown>(options: PeerPortOptions): System
         return failureOf(options, error);
       }
     },
-    ...(options.feed
+    ...(options.inbound
       ? {
           async pull(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>> {
-            await current(options.feed!);
+            await current(options.inbound!);
             try {
               return await service.query<PullBatch<Item>>(
-                options.feed!,
+                options.inbound!,
                 cursor === undefined ? {} : { cursor },
                 signal,
               );

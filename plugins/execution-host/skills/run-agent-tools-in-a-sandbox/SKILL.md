@@ -24,7 +24,7 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 4. Add `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun' } })` to the definition's `plugins`, in the same order.
 5. Bind bubblewrap in the deployment policy under `processes`, with its digest pinned: `"<id>": { "executable": "/usr/bin/bwrap", "sha256": "…" }`. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) covers the policy.
 6. Run tasks from trusted host code with `services['execution-host'].run({ sandbox, command: ['bun', script, ...args], context, workdir, readOnly, limits })`. Inside, `TORTOISE_CONNECTION` points at the connection file. The application CLI (`packages/adapters/src/cli.ts`) and MCP server (`packages/adapters/src/mcp.ts`) attach with it and need no arguments.
-7. Read the task's effects from the command receipts and the host's state, never from the task's narration.
+7. Read the task's effects from the command results and the host's state, never from the task's narration.
 8. Stop a task by passing a `signal`, or use `start` for a handle with `cancel()` and `revoke()`.
 9. Set `limits` for wall time and output that fit the task.
 
@@ -34,7 +34,7 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 2. Call `availability(sandbox)` to learn why a sandbox cannot run: not Linux, no bubblewrap binding, or no serving host.
 3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`. Add test paths to run an application's own sandbox tests in the same container, such as `bun run test:execution-host:linux showcase/patterns/sandbox`.
 4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
-5. Assert the receipts, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
+5. Assert the command results, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
 
 Record a run in a container separately from a run on a deployed host in [implementation status](../../../../docs/implementation-status.md#execution-host).
 

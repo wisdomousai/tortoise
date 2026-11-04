@@ -30,7 +30,7 @@ const options = (
   rejections: [{ status: [422], code: '/error/code', message: '/error/detail' }],
   externalRef: '/id',
   lookup: { path: (id) => `/orders/by-key/${encodeURIComponent(id)}` },
-  feed: {
+  inbound: {
     path: (cursor) => `/changes?after=${cursor ?? 0}`,
     items: '/data',
     cursor: '/next',

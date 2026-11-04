@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { WorklistList } from '@tortoise/frame-native/components/worklist-list';
 import { useFrameNavigation } from '@tortoise/frame-native/frame';
 import { useSession } from '@tortoise/frame-native/session';
-import type { SurveyBrief } from './brief';
+import type { SurveyInstructions } from './instructions';
 import { fieldOperations as ops } from '../contracts';
 import { ErrorText, Screen } from './shared';
 
@@ -12,7 +12,8 @@ export function AssignmentsScreen() {
   const { open } = useFrameNavigation();
   const assignments = useQuery(live.liveQueryOptions(ops.assignmentList, {}));
   const items = assignments.data?.items ?? [];
-  const brief = (id: string) => items.find((item) => item.id === id)?.brief as SurveyBrief;
+  const instructions = (id: string) =>
+    items.find((item) => item.id === id)?.instructions as SurveyInstructions;
   return (
     <Screen>
       <ErrorText error={assignments.error} />
@@ -20,7 +21,7 @@ export function AssignmentsScreen() {
         items={items}
         issuer="the hub"
         detail={(item) =>
-          `${brief(item.id).nodes.length} nodes · ${item.reports} captures · ${brief(item.id).kinds.join(', ')}`
+          `${instructions(item.id).nodes.length} nodes · ${item.reports} captures · ${instructions(item.id).kinds.join(', ')}`
         }
         onOpen={(item) => open('/assignment', { assignmentId: item.id })}
         empty={

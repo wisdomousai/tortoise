@@ -79,7 +79,7 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
       operations: [operations.instrumentIngest.id],
       events: () => false,
     },
-    // Peer applications, as their service principals: create inspection requests and read their feed.
+    // Peer applications, as their service principals: create inspection requests and read their inbound sync.
     peerAllowlist(qualityPeerApi),
   ],
   operations: {
@@ -108,7 +108,7 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
     },
     [operations.plantSetMember.id]: membershipRule(plantMembership),
     [operations.inspectionRequestCreate.id]: 'integration',
-    [operations.inspectionRequestFeed.id]: 'integration',
+    [operations.inspectionRequestOutcomes.id]: 'integration',
     // Scoped in the handler to people who capture at some plant.
     [operations.inspectionRequestList.id]: 'open',
     [operations.inspectionRequestGet.id]: 'open',

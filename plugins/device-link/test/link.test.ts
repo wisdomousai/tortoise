@@ -18,13 +18,13 @@ afterEach(async () => {
 const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const jpeg = new Uint8Array([255, 216, 255, 224, 1, 2, 3]);
 
-/** A hub on loopback whose field devices may ingest captures and read the assignment feed. */
+/** A hub on loopback whose field devices may ingest captures and read the assignment inbound query. */
 async function startHub(clock = { now: Date.now() }) {
   const directory = await mkdtemp(join(tmpdir(), 'hub-'));
   const hub = await startHost(hubApplication({ now: () => clock.now }), {
     workspacePath: directory,
     integration: false,
-    settings: { 'device-link-sync-operations': 'captures.ingest,assignments.feed' },
+    settings: { 'device-link-sync-operations': 'captures.ingest,assignments.inbound' },
   });
   cleanups.push(async () => {
     await hub.close();
@@ -103,7 +103,7 @@ async function capture(field: MobileInstance, id: string, note = 'nameplate') {
   return photo;
 }
 
-test('a paired phone delivers captures with photos exactly once, and reads the assignment feed', async () => {
+test('a paired phone delivers captures with photos exactly once, and reads the assignment inbound query', async () => {
   const { hub, query, command, enrollment } = await startHub();
   const { field, link, pairing } = await openField();
 
@@ -134,7 +134,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
   expect(await query('captures.list')).toEqual({
     captures: [{ id: 'c1', note: 'nameplate', by: `device:${paired.deviceId}` }],
   });
-  // Delivering again returns the hub's first receipt; the hub still holds one capture.
+  // Delivering again returns the hub's first command result; the hub still holds one capture.
   expect(await deliver(field)).toMatchObject({ accepted: 1 });
   expect((await query('captures.list')).captures).toHaveLength(1);
   expect((await captures(field)).captures).toEqual([{ id: 'c1', sync: 'accepted' }]);
@@ -159,7 +159,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
     code: 'INVALID_INPUT',
   });
 
-  // Assignments flow the other way through the hub's feed.
+  // Assignments flow the other way through the hub's inbound sync.
   await command('assignments.add', { title: 'Nameplates under =G1' });
   await field.instance.integrations.sync();
   expect((await captures(field)).assignments).toEqual(['Nameplates under =G1']);
@@ -173,8 +173,8 @@ test('a phone acts only through the sync operations, and not at all once revoked
     code: (await enrollment('field-sync')).code,
   });
 
-  const feed = await api(token(), '/api/v1/queries/assignments.feed', { input: {} });
-  expect(feed.status).toBe(200);
+  const inbound = await api(token(), '/api/v1/queries/assignments.inbound', { input: {} });
+  expect(inbound.status).toBe(200);
   const add = await api(token(), '/api/v1/commands/assignments.add', {
     input: { title: 'Not from a phone' },
     idempotencyKey: 'phone-add',
@@ -184,7 +184,7 @@ test('a phone acts only through the sync operations, and not at all once revoked
   expect(list.status).toBe(403);
 
   await command('link.device.revoke', { deviceId: paired.deviceId });
-  const refused = await api(token(), '/api/v1/queries/assignments.feed', { input: {} });
+  const refused = await api(token(), '/api/v1/queries/assignments.inbound', { input: {} });
   expect(refused.status).toBe(403);
   expect(((await refused.json()) as { error: { details?: unknown } }).error.details).toEqual({
     credential: 'rejected',

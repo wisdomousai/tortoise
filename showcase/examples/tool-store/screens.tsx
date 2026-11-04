@@ -62,7 +62,7 @@ export default defineScreens({
     { prefix: 'assignment.cycle-count.', to: '/assignments/cycle-counts' },
     { prefix: 'assignment.cycle-count.report', to: '/assignments/my-cycle-counts' },
     { prefix: 'assignment.', to: '/assignments/cycle-counts' },
-    { prefix: 'assignment.feed', to: '/assignments/my-cycle-counts' },
+    { prefix: 'assignment.inbound', to: '/assignments/my-cycle-counts' },
     { prefix: 'assignment.complete', to: '/assignments/my-cycle-counts' },
     { prefix: 'assignee.', to: '/assignments/cycle-counts' },
     // scaffold:capability-screens

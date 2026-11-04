@@ -231,7 +231,7 @@ export const controls: readonly Control[] = [
     implementation:
       'With `audit.forwardTo`, sealed events are forwarded as RFC 5424 syslog with octet-counted framing to a declared, bound collector through the network guard. The zero-trust profile requires it.',
     limits:
-      'Delivery is at-most-once with a bounded queue; drops are counted and reported in posture checks.',
+      'Delivery is at-most-once with a bounded queue; drops are counted and reported in compliance checks.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.15', 'A.8.16'],
@@ -242,7 +242,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: ['packages/event-log/test/event-log.test.ts'],
       artifacts: [],
-      events: ['posture.checked'],
+      events: ['compliance.checked'],
     },
   },
   {
@@ -287,9 +287,9 @@ export const controls: readonly Control[] = [
   },
   {
     id: 'AN-MON-01',
-    title: 'Continuous posture monitoring',
+    title: 'Continuous compliance monitoring',
     implementation:
-      'The running instance re-checks policy findings, chain integrity, forwarding health and denied connections on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.',
+      'The running instance re-checks policy findings, chain integrity, forwarding health and denied connections on startup and on an interval, records `compliance.checked`, and serves the result to authorized auditors through the compliance capabilities.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.16'],
@@ -300,7 +300,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: ['plugins/compliance/test/compliance.test.ts'],
       artifacts: ['compliance report --log <dir>'],
-      events: ['posture.checked'],
+      events: ['compliance.checked'],
     },
   },
   {

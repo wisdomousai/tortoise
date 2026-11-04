@@ -1,6 +1,6 @@
 import { ApplicationError, errorEnvelope, type Catalog } from '@tortoise/contracts';
 import type {
-  CommandReceipt,
+  CommandResult,
   ExecutionContext,
   Invocation,
   QueryResult,

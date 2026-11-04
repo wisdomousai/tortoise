@@ -13,7 +13,7 @@ export interface WorklistSyncReport {
   sync: Sync;
   rejection?: { code: string; message: string };
 }
-/** A worklist target's status: deliveries waiting, taken and refused, and the last feed. */
+/** A worklist target's status: deliveries waiting, taken and refused, and the last inbound sync. */
 export interface WorklistStatus {
   pending: number;
   accepted: number;

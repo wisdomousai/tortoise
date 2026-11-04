@@ -74,7 +74,7 @@ describe('peer calls', () => {
       by: 'ann',
       count: 1,
     });
-    // A retry for the same person replays the receipt.
+    // A retry for the same person replays the command result.
     expect((await application.invokeRaw(request, onBehalf('ann'))).result).toEqual({
       by: 'ann',
       count: 1,

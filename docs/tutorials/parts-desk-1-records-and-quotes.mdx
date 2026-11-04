@@ -58,7 +58,7 @@ report what passed.
 
 **Goal:** the records the desk looks up, plus seed data. Two serials share a prefix, so `TR-404` is ambiguous. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
 
-Each collection declares its record and generates its reads and writes; a query such as `transformer.find` adds its own input and output schemas and a handler that filters the rows before it pages them. A handler refuses what it cannot answer with an application error code the surfaces and the model read alike, such as `NOT_FOUND`. The seed script opens the workspace as an embedded instance and creates the records through the commands with fixed idempotency keys, so a second launch returns the stored receipts and adds nothing. [Capability authoring](../capability-authoring.md) covers collections and queries.
+Each collection declares its record and generates its reads and writes; a query such as `transformer.find` adds its own input and output schemas and a handler that filters the rows before it pages them. A handler refuses what it cannot answer with an application error code the channels and the model read alike, such as `NOT_FOUND`. The seed script opens the workspace as an embedded instance and creates the records through the commands with fixed idempotency keys, so a second launch returns the stored command results and adds nothing. [Capability authoring](../capability-authoring.md) covers collections and queries.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the

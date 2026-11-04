@@ -6,7 +6,7 @@ import {
   type ObservationBase,
   type Reading,
 } from '@tortoise/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { OpcUaClient, type OpcUaClientOptions } from './client';
 import { isBad, isUncertain, parseNodeId, type NodeId, type Scalar } from './types';
 
@@ -27,7 +27,7 @@ export interface OpcUaObserverOptions {
   readonly client: OpcUaClientOptions;
   readonly fields: readonly OpcUaField[];
   readonly application: {
-    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   };
   /** The observing principal, granted the ingest operation only. */
   readonly context: ExecutionContext;

@@ -76,7 +76,7 @@ describe.skipIf(!supported)('bubblewrap sandbox', () => {
     await rm(directory, { recursive: true, force: true });
   });
 
-  test('a two-step task by CLI commits what its grant covers, and the receipt shows it', async () => {
+  test('a two-step task by CLI commits what its grant covers, and the command result shows it', async () => {
     const context = grant(['note.list', 'note.add'], { resources: ['note:c1'] });
     const result = await sandboxes.run(
       task('cli', [join(repo, 'packages/adapters/src/cli.ts')], { context }),

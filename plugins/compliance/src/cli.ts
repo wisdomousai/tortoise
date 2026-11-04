@@ -7,13 +7,13 @@ import { readEvents, verifyEventLog } from '@tortoise/event-log';
 import type { ApplicationManifest } from '@tortoise/host/manifest';
 import type { PluginCommand } from '@tortoise/host/plugin';
 import { deploymentPolicyFor } from '@tortoise/deployment/policy-file';
-import { accumulateNetworkUsage, assessPosture, postureMarkdown } from './posture';
+import { accumulateNetworkUsage, assessCompliance, complianceMarkdown } from './status';
 
 export const complianceUsage = (
   program: string,
 ) => `Compliance (offline; no instance or workspace needed):
   ${program} compliance report --log dir [--policy file] [--format markdown|json] [--out file]
-      posture, destinations and recent denials from a log (exit ${AUDIT_INVALID_EXIT_CODE} if failing)
+      compliance, destinations and recent denials from a log (exit ${AUDIT_INVALID_EXIT_CODE} if failing)
 `;
 
 const usage = (message: string) => new ApplicationError('INVALID_INPUT', message);
@@ -43,7 +43,7 @@ async function complianceReport(manifest: ApplicationManifest, args: string[]) {
     readEvents(directory),
   ]);
   const attested = events.findLast((event) => event.kind === 'config.loaded')?.data ?? {};
-  const posture = assessPosture({
+  const compliance = assessCompliance({
     policy,
     verification,
     usage: accumulateNetworkUsage(new Map(), events),
@@ -55,15 +55,15 @@ async function complianceReport(manifest: ApplicationManifest, args: string[]) {
   const denials = events.filter((event) => event.outcome === 'denied').slice(-50);
   const text =
     format === 'json'
-      ? `${JSON.stringify({ posture, denials }, null, 2)}\n`
-      : postureMarkdown(posture, { application: manifest.id, denials });
+      ? `${JSON.stringify({ compliance, denials }, null, 2)}\n`
+      : complianceMarkdown(compliance, { application: manifest.id, denials });
   if (out) await writeFile(resolve(out), text, { mode: 0o644 });
   else process.stdout.write(text);
-  return posture.status === 'failing' ? AUDIT_INVALID_EXIT_CODE : 0;
+  return compliance.status === 'failing' ? AUDIT_INVALID_EXIT_CODE : 0;
 }
 
 /**
- * `compliance report` for one application's manifest: the posture an auditor reads at runtime,
+ * `compliance report` for one application's manifest: the compliance status an auditor reads at runtime,
  * computed offline from a log directory (possibly a copy) and a policy file. Returns undefined
  * when `args` is not a `compliance` verb.
  */

@@ -18,7 +18,7 @@ export interface ForwardingEventLog extends EventLogPort {
 /**
  * Forward after the local append resolves, never inside it: the local, fsynced log is the
  * fail-closed record, and a slow or unreachable collector must not hold a storage transaction.
- * The queue is bounded; overflow and sink failures are counted and surface in posture checks.
+ * The queue is bounded; overflow and sink failures are counted and surface in compliance checks.
  * Forwarded copies let an auditor compare the local chain head with an off-host one.
  */
 export function forwardingEventLog(

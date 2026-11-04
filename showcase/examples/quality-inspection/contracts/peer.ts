@@ -13,7 +13,7 @@ import { queryOperations } from './queries';
 export const qualityPeerApi = definePeerApi({
   application: 'quality-inspection',
   commands: [inspectionRequestOperations.inspectionRequestCreate],
-  queries: [inspectionRequestOperations.inspectionRequestFeed],
+  queries: [inspectionRequestOperations.inspectionRequestOutcomes],
   onBehalfOf: { queries: [queryOperations.lotList, queryOperations.lotGet] },
 });
 

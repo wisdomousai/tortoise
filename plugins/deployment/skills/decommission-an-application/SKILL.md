@@ -1,6 +1,6 @@
 ---
 name: decommission-an-application
-description: Remove an agent-native application from a machine without losing records, or give an application a shelf life. Use when retiring or uninstalling an application, purging its data directory with app uninstall --purge, a purge refused because the outbox still contains effects, deciding held effects before removal, removing an instance from a fleet with instance.remove, or setting shelfLifeDays and reading the best-before date in app status, posture or fleet health. Covers plugins/deployment, packages/kernel/src/build.ts and showcase/examples/fleet.
+description: Remove an agent-native application from a machine without losing records, or give an application a shelf life. Use when retiring or uninstalling an application, purging its data directory with app uninstall --purge, a purge refused because the outbox still contains effects, deciding held effects before removal, removing an instance from a fleet with instance.remove, or setting shelfLifeDays and reading the best-before date in app status, compliance status or fleet health. Covers plugins/deployment, packages/kernel/src/build.ts and showcase/examples/fleet.
 ---
 
 # Decommission an application

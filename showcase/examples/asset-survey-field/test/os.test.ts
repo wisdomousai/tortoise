@@ -6,7 +6,7 @@ import { connectMobileShell, type MobileOsBindings } from '@tortoise/mobile';
 import type { AndroidIntent } from '@tortoise/shell/intents';
 import type { ShellNotification } from '@tortoise/shell/notifications';
 import { findTagAction } from '../os';
-import type { BriefNode } from '../ui-native/brief';
+import type { InstructionsNode } from '../ui-native/instructions';
 import { captureSummary, tagScreen, workRequest } from '../ui-native/os-requests';
 import { cleanUp, openPhone, startHub, type Rows } from './fixtures';
 
@@ -150,10 +150,13 @@ test('a node raises a work request in the maintenance app, and a capture is shar
   const { field, phone, connection, q1, send } = await surveyed();
   const assignment = await send();
   await field.sync();
-  const held = await field.query<{ brief: { nodes: BriefNode[] } }>('field.assignment.get', {
-    id: assignment.id,
-  });
-  const node = held.brief.nodes.find((item) => item.id === q1.id);
+  const held = await field.query<{ instructions: { nodes: InstructionsNode[] } }>(
+    'field.assignment.get',
+    {
+      id: assignment.id,
+    },
+  );
+  const node = held.instructions.nodes.find((item) => item.id === q1.id);
   const perform = (action: string, params: Record<string, string>) =>
     connection.perform({ action, params });
 

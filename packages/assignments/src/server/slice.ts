@@ -18,7 +18,7 @@ export interface StoredAssignment {
   note?: string;
   scope: StoredBody;
   /** Computed from the scope when it is sent. */
-  brief?: StoredBody;
+  instructions?: StoredBody;
   assignee?: Assignee;
   status: AssignmentStatus;
   readonly createdBy: string;
@@ -100,7 +100,7 @@ export function present(
 export const presentReport = (report: StoredReport): Record<string, unknown> =>
   compact({ ...report });
 
-/** The blobs a brief or a report body references: its top-level blob and blob-list values. */
+/** The blobs instructions or a report body references: its top-level blob and blob-list values. */
 export function blobRefsOf(body: StoredBody): BlobRef[] {
   return Object.values(body).flatMap((value) =>
     isBlobRef(value)
@@ -111,6 +111,6 @@ export function blobRefsOf(body: StoredBody): BlobRef[] {
   );
 }
 
-/** A digest of a feed's items: unchanged items give an unchanged cursor. */
-export const feedCursor = (items: unknown): string =>
+/** A digest of inbound sync's items: unchanged items give an unchanged cursor. */
+export const inboundCursor = (items: unknown): string =>
   bytesToHex(sha256(utf8ToBytes(canonicalJson(items)))).slice(0, 32);

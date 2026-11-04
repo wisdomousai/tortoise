@@ -62,7 +62,7 @@ export function PublishSection({ id }: { id: string }) {
 const clock = (at: number) =>
   new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-/** Delivery counts and when the change feed last ran. */
+/** Delivery counts and when the change list last ran. */
 function LimsStatus() {
   const { data } = useQuery(live.liveQueryOptions(publishingOperations.limsStatus, {}));
   if (!data) return null;

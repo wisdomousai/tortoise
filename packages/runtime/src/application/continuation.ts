@@ -1,5 +1,5 @@
 import { ApplicationError } from '@tortoise/contracts';
-import type { CommandReceipt, Invocation, StoredReceipt, WorkspaceSnapshot } from '../types.js';
+import type { CommandResult, Invocation, StoredResult, WorkspaceSnapshot } from '../types.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { runFrame } from './frame.js';
 import { authorize, project, type Kernel } from './kernel.js';
@@ -9,7 +9,7 @@ import { enter, type FrameScope } from './nested.js';
  * Run the command a handler continued with as a tail frame of the handler's frame: after the
  * handler's own frame finished, in the same transaction, under the same context and the same
  * call limits, so the caller must declare it in `invokes`. It has no idempotency key of its own;
- * the top-level receipt covers it, so a retry never runs it twice. Any refusal throws and rolls
+ * the top-level command result covers it, so a retry never runs it twice. Any refusal throws and rolls
  * back the caller too.
  */
 export async function runContinuation<State, Services>(
@@ -30,17 +30,17 @@ export async function runContinuation<State, Services>(
 }
 
 /**
- * A replayed receipt's continuation, reprojected for the caller's current grants: the
+ * A replayed command result's continuation, reprojected for the caller's current grants: the
  * continued operation is authorized for replay with the input it ran with, like the parent.
  */
 export async function replayContinuation<State, Services>(
   kernel: Kernel<State, Services>,
   parent: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
-  stored: StoredReceipt,
-): Promise<CommandReceipt['continuation']> {
+  stored: StoredResult,
+): Promise<CommandResult['continuation']> {
   const continued = stored.continuation;
-  const recorded = stored.receipt.continuation;
+  const recorded = stored.commandResult.continuation;
   if (!continued || !recorded) return undefined;
   const capability = kernel.capabilities.get(continued.operation);
   if (!capability) throw new ApplicationError('NOT_FOUND', 'Unknown command');

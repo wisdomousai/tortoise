@@ -30,19 +30,25 @@ describe('assignment lifecycle', () => {
       assignee: toWes,
     });
     expect(created).toMatchObject({ id: 'a1', status: 'sent', stage: 'sent', reports: 0 });
-    expect(created.brief).toEqual({
+    expect(created.instructions).toEqual({
       notes: [
         { id: 'n1', title: 'Pumps', body: 'Check the seals.' },
         { id: 'n2', title: 'Valves', body: 'Replace two.' },
       ],
     });
 
-    const feed = await read(fixture, worker, 'assignment.feed', {});
-    expect(feed.items).toEqual([
-      { id: 'a1', kind: 'review', title: 'Week 3', brief: created.brief, sentAt: 1_000 },
+    const inbound = await read(fixture, worker, 'assignment.inbound', {});
+    expect(inbound.items).toEqual([
+      {
+        id: 'a1',
+        kind: 'review',
+        title: 'Week 3',
+        instructions: created.instructions,
+        sentAt: 1_000,
+      },
     ]);
-    const again = await read(fixture, worker, 'assignment.feed', { cursor: feed.cursor });
-    expect(again).toEqual({ items: [], cursor: feed.cursor, more: false });
+    const again = await read(fixture, worker, 'assignment.inbound', { cursor: inbound.cursor });
+    expect(again).toEqual({ items: [], cursor: inbound.cursor, more: false });
 
     const reported = await run(fixture, worker, 'assignment.review.report', {
       id: 'r1',
@@ -58,9 +64,9 @@ describe('assignment lifecycle', () => {
     });
 
     await run(fixture, worker, 'assignment.complete', { id: 'a1' });
-    expect((await read(fixture, worker, 'assignment.feed', { cursor: feed.cursor })).items).toEqual(
-      [],
-    );
+    expect(
+      (await read(fixture, worker, 'assignment.inbound', { cursor: inbound.cursor })).items,
+    ).toEqual([]);
     expect(await read(fixture, planner, 'assignment.get', { id: 'a1' })).toMatchObject({
       stage: 'done',
     });
@@ -96,15 +102,15 @@ describe('assignment lifecycle', () => {
     expect(await read(fixture, worker, 'assignment.get', { id: 'a1' })).toMatchObject({ id: 'a1' });
   });
 
-  test('a draft is sent later, to an assignee type its kind takes, with a brief from its scope', async () => {
+  test('a draft is sent later, to an assignee type its kind takes, with instructions from its scope', async () => {
     const fixture = createFixture();
     await expect(
       run(fixture, planner, 'assignment.review.create', { ...review, scope: { notes: ['n9'] } }),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
     const draft = await run(fixture, planner, 'assignment.review.create', review);
     expect(draft).toMatchObject({ status: 'draft', stage: 'draft' });
-    expect(draft.brief).toBeUndefined();
-    expect((await read(fixture, worker, 'assignment.feed', {})).items).toEqual([]);
+    expect(draft.instructions).toBeUndefined();
+    expect((await read(fixture, worker, 'assignment.inbound', {})).items).toEqual([]);
     await expect(
       run(fixture, planner, 'assignment.review.send', {
         id: draft.id,
@@ -115,7 +121,7 @@ describe('assignment lifecycle', () => {
       run(fixture, planner, 'assignment.field-survey.send', { id: draft.id, assignee: toWes }),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
     await run(fixture, planner, 'assignment.review.send', { id: draft.id, assignee: toWes });
-    expect((await read(fixture, worker, 'assignment.feed', {})).items).toHaveLength(1);
+    expect((await read(fixture, worker, 'assignment.inbound', {})).items).toHaveLength(1);
     await expect(
       run(fixture, planner, 'assignment.review.send', { id: draft.id, assignee: toWes }),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
@@ -179,7 +185,7 @@ describe('assignment lifecycle', () => {
     expect(await run(fixture, worker, 'assignment.review.report', report)).toEqual(first);
   });
 
-  test('withdrawing takes an assignment out of the feed; discarded reports are not accepted', async () => {
+  test('withdrawing takes an assignment out of inbound sync; discarded reports are not accepted', async () => {
     const fixture = createFixture();
     await run(fixture, planner, 'assignment.review.create', { ...review, assignee: toWes });
     await run(fixture, worker, 'assignment.review.report', {
@@ -188,14 +194,14 @@ describe('assignment lifecycle', () => {
       subject: 'n1',
       body: body('Leaks.'),
     });
-    const before = await read(fixture, worker, 'assignment.feed', {});
+    const before = await read(fixture, worker, 'assignment.inbound', {});
     await expect(run(fixture, worker, 'assignment.withdraw', { id: 'a1' })).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     expect(
       await run(fixture, planner, 'assignment.withdraw', { id: 'a1', reason: 'Wrong week.' }),
     ).toMatchObject({ status: 'withdrawn', reason: 'Wrong week.' });
-    const after = await read(fixture, worker, 'assignment.feed', { cursor: before.cursor });
+    const after = await read(fixture, worker, 'assignment.inbound', { cursor: before.cursor });
     expect(after.items).toEqual([]);
     expect(after.cursor).not.toBe(before.cursor);
     await expect(

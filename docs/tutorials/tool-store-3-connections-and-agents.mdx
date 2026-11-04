@@ -52,11 +52,11 @@ attendant who took the tool back. The EAM accepts it with a repair order number,
 screen shows; it rejects an asset tag it does not know with ASSET_UNKNOWN, which the tool screen
 shows as needing attention. The outbox holds a delivery whose outcome is unknown, and a
 reconciliation screen resolves it. Inbound sync takes description, category, bin and calibration due date
-from the EAM's feed by asset tag, and never changes status.
+from the EAM's inbound sync by asset tag, and never changes status.
 
 Keep the in-memory fake EAM port, make its behavior deterministic, and let
 DEMO_EAM_UNKNOWN_TAGS name asset tags it rejects in the demo. Test an accepted order, a rejection,
-a lost reply the dispatcher holds and a person resolves, and a stale feed item. Run the checks the
+a lost reply the dispatcher holds and a person resolves, and a stale inbound item. Run the checks the
 connect-system-of-record skill names and report what passed.
 ```
 
@@ -71,9 +71,9 @@ The target names the records each direction changes and the status it reports:
 <FileTree>
 
 - showcase/examples/tool-store/
-  - contracts/eam-target.ts the target, the repair order payload and the feed item
+  - contracts/eam-target.ts the target, the repair order payload and the inbound item
   - eam-port.ts the fake EAM
-  - handlers/eam-target.ts completion, the feed and the reconciliation hook
+  - handlers/eam-target.ts completion, inbound sync and the reconciliation hook
   - handlers/tool-return.ts enqueues the repair order
   - ui/eam-target.tsx the EAM screen
   - test/eam-port.test.ts
@@ -132,7 +132,7 @@ The agent lists `tool.retire` among its operations, and `output: 'request-approv
 
 **Goal:** hand a bin count to an attendant and accept the report. **Skill:** [assign-work](../../packages/assignments/skills/assign-work/SKILL.md).
 
-An assignment hands work to an assignee with a brief and takes structured reports back. A person reviews each report and accepts it into the records or discards it, so the count itself changes nothing: accepting the report runs the application's own tool commands. The kind declares its scope, brief and report as schemas, and the assignment feature generates the plan, work, report and review operations from it. [Assignments](../assignments.md) describes kinds, the lifecycle and the assignee types.
+An assignment hands work to an assignee with instructions and takes structured reports back. A person reviews each report and accepts it into the records or discards it, so the count itself changes nothing: accepting the report runs the application's own tool commands. The kind declares its scope, instructions and report as schemas, and the assignment feature generates the plan, work, report and review operations from it. [Assignments](../assignments.md) describes kinds, the lifecycle and the assignee types.
 
 ```text prompt
 Use the assign-work skill. For the application in showcase/examples/tool-store, run
@@ -140,7 +140,7 @@ from the repository root:
 
 bun run scaffold add assignment-kind cycle-count --collection tool
 
-Shape it into a bin count. The scope is one bin; the brief lists the bin and the asset tags
+Shape it into a bin count. The scope is one bin; the instructions list the bin and the asset tags
 expected there with their status. The report lists the tags found and the tags missing.
 Accepting the report sets each missing tool to missing and each found tool that was missing back
 to available, through tool commands. Attendants plan, work and review counts; viewers read them.
@@ -149,7 +149,7 @@ refuses a checked-out tool reported missing. Run the checks the assign-work skil
 what passed.
 ```
 
-The assignment kind declares the scope, the brief and the report, and the commands accepting a report may run:
+The assignment kind declares the scope, the instructions and the report, and the commands accepting a report may run:
 
 <Code code={region(cycleCount, 'kind')} lang="ts" title="contracts/cycle-count-assignment.ts" />
 
@@ -158,7 +158,7 @@ The assignment kind declares the scope, the brief and the report, and the comman
 - showcase/examples/tool-store/
   - contracts/cycle-count-assignment.ts
   - contracts/tool-missing.ts tool.mark-missing and tool.mark-found
-  - handlers/assignments.ts the brief and the accept hook
+  - handlers/assignments.ts the instructions and the accept hook
   - ui/cycle-count-assignments.tsx the Cycle counts and My cycle counts screens
   - test/cycle-count-assignment.test.ts
 
@@ -172,7 +172,7 @@ The assignment kind declares the scope, the brief and the report, and the comman
 
 **Goal:** Claude Code uses the app over MCP while the CLI shows the records change. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
 
-The host generates the MCP tools, the CLI subcommands and the HTTP API from the catalog, so a capability's description is what a model reads when it picks a tool, and the input property descriptions are its arguments' help. Workflow text is an MCP resource the model reads before it acts. A command carries the revision a read returned as an expected revision, and the instance refuses a stale one with `CONFLICT` inside the transaction, so two callers cannot overwrite each other's change. [Adapters](../adapters.md) covers the generated surfaces and [Agents](../agents.md#application-tools) the tools a model sees.
+The host generates the MCP tools, the CLI subcommands and the HTTP API from the catalog, so a capability's description is what a model reads when it picks a tool, and the input property descriptions are its arguments' help. Workflow text is an MCP resource the model reads before it acts. A command carries the revision a read returned as an expected revision, and the instance refuses a stale one with `CONFLICT` inside the transaction, so two callers cannot overwrite each other's change. [Adapters](../adapters.md) covers the generated channels and [Agents](../agents.md#application-tools) the tools a model sees.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -197,7 +197,7 @@ revision a tool.get returned, and gets CONFLICT for a stale revision. Run the ch
 add-capability skill names and report what passed.
 ```
 
-The workflow text names operation IDs only; each surface shows them under its own tool names:
+The workflow text names operation IDs only; each channel shows them under its own tool names:
 
 <Code code={region(calibration, 'workflow')} lang="ts" title="contracts/tool-calibration-due.ts" />
 
@@ -258,12 +258,12 @@ open a tool at the counter and ask the attendant to review a change.
   selects it. The work area shares the selected tools as the UI session context, each as
   tool:<id> with the revision the row shows. Add the tool kind to the application's selectable
   resources if it is missing.
-- An agent panel under the list holds the Accounts component for the harness, a brief, a Start
+- An agent panel under the list holds the Accounts component for the harness, instructions, a Start
   run button and the RunPanel, and shows the tools the latest run captured. The deterministic
   demo harness gets a script that reads each selected tool with tool.get.
 - A Pull for calibration action starts a demo run that sends ui.open for the first selected tool
   and ui.request-review with the title "Pull <assetTag> for calibration", the operation
-  tool.update and that tool. A provider harness gets the brief with an instruction to use
+  tool.update and that tool. A provider harness gets the instructions with an instruction to use
   ui.open and ui.request-review and to leave the change to the attendant.
 - The work area handles the intents through useUiSession. An open shows the tool at the counter
   instead of navigating, since leaving the terminal ends the session. A review that names

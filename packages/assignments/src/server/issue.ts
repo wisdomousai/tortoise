@@ -9,7 +9,7 @@ import { canSee, isAssignee } from './policy';
 import {
   assignmentResource,
   blobRefsOf,
-  feedCursor,
+  inboundCursor,
   present,
   reportCounts,
   type AssignmentSlice,
@@ -45,7 +45,7 @@ const shown = (ctx: Ctx, assignment: StoredAssignment) =>
 const sameAssignee = (a: Assignee | undefined, b: Assignee) => a?.type === b.type && a.id === b.id;
 
 /**
- * Send an assignment: compute and check its brief, attach the brief's blobs, and for an
+ * Send an assignment: compute and check its instructions, attach the instructions' blobs, and for an
  * assignment target enqueue the offer. An agent's offer carries its own event type, which a trigger filters on.
  */
 function send(kind: AnyAssignmentKind, assignment: StoredAssignment, assignee: Assignee, ctx: Ctx) {
@@ -59,12 +59,15 @@ function send(kind: AnyAssignmentKind, assignment: StoredAssignment, assignee: A
   ).length;
   if (open >= MAX_OPEN) throw conflict(`The assignee already holds ${MAX_OPEN} open assignments`);
   assignment.assignee = assignee;
-  const parsed = kind.brief.safeParse(ctx.hooks.brief?.(kind.id, assignment) ?? assignment.scope);
-  if (!parsed.success) throw invalid(`The scope does not make a ${kind.title} brief`, 'scope');
-  const brief = parsed.data as StoredBody;
+  const parsed = kind.instructions.safeParse(
+    ctx.hooks.instructions?.(kind.id, assignment) ?? assignment.scope,
+  );
+  if (!parsed.success)
+    throw invalid(`The scope does not make a ${kind.title} instructions`, 'scope');
+  const instructions = parsed.data as StoredBody;
   const resource = assignmentResource(assignment.id);
-  for (const ref of blobRefsOf(brief)) ctx.attach(resource, ref);
-  assignment.brief = brief;
+  for (const ref of blobRefsOf(instructions)) ctx.attach(resource, ref);
+  assignment.instructions = instructions;
   assignment.status = 'sent';
   assignment.sentAt = now(ctx);
   ctx.change(resource, assignee.type === 'agent' ? offerEventType(assignee.id) : 'sent');
@@ -78,7 +81,7 @@ function send(kind: AnyAssignmentKind, assignment: StoredAssignment, assignee: A
       kind: kind.id,
       title: assignment.title,
       ...(assignment.note === undefined ? {} : { note: assignment.note }),
-      brief,
+      instructions,
     },
   });
   assignment.delivery = 'pending';
@@ -126,7 +129,7 @@ export function kindIssueHandlers(assignments: Assignments, kind: AnyAssignmentK
 const newestFirst = (a: StoredAssignment, b: StoredAssignment) =>
   b.createdAt - a.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
-/** Withdraw, complete, close, list, get and the feed. */
+/** Withdraw, complete, close, list, get and inbound sync. */
 export function genericIssueHandlers(assignments: Assignments): Handler[] {
   const ops = assignments.operations;
   return [
@@ -149,7 +152,7 @@ export function genericIssueHandlers(assignments: Assignments): Handler[] {
     }),
     handler<{ id: string }>(ops.complete, (input, ctx) => {
       const assignment = visible(ctx, input.id);
-      // Marking done twice is harmless, as a device that lost the receipt does.
+      // Marking done twice is harmless, as a device that lost the command result does.
       if (assignment.status === 'done') return shown(ctx, assignment);
       if (assignment.status !== 'sent') throw conflict(`The assignment is ${assignment.status}`);
       assignment.status = 'done';
@@ -195,7 +198,7 @@ export function genericIssueHandlers(assignments: Assignments): Handler[] {
       return { items: items.slice(offset, offset + (input.limit ?? 50)), total: items.length };
     }),
     handler<{ id: string }>(ops.get, (input, ctx) => shown(ctx, visible(ctx, input.id))),
-    handler<{ cursor?: string }>(ops.feed, (input, ctx) => {
+    handler<{ cursor?: string }>(ops.inbound, (input, ctx) => {
       const items = Object.values(ctx.state.assignments)
         .filter(
           (assignment) =>
@@ -209,11 +212,11 @@ export function genericIssueHandlers(assignments: Assignments): Handler[] {
           kind: assignment.kind,
           title: assignment.title,
           ...(assignment.note === undefined ? {} : { note: assignment.note }),
-          brief: assignment.brief!,
+          instructions: assignment.instructions!,
           sentAt: assignment.sentAt!,
         }));
       // The whole open set each time: an assignee drops what is absent, so a withdrawal reaches it.
-      const cursor = feedCursor(items);
+      const cursor = inboundCursor(items);
       return { items: input.cursor === cursor ? [] : items, cursor, more: false };
     }),
   ];

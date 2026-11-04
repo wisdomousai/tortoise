@@ -11,7 +11,7 @@ bun run cli audit verify --log .workspace/audit
 bun run cli compliance report --log .workspace/audit --policy apps/desktop/deployment-policy.json --format markdown
 ```
 
-You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultNetwork": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Security posture: field-service" report with a checks table.
+You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultNetwork": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Compliance status: field-service" report with a checks table.
 
 ## Controls and plugins
 
@@ -25,7 +25,7 @@ You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` 
 | `deployment` | Loads the deployment policy; enforces profile floors and identity | `policy check` |
 | `network`    | Network guard, proxy for child processes, TLS/mTLS ingress  | `network export`    |
 | `audit`      | Hash-chained audit log, forwarding, crash recovery         | `audit verify`      |
-| `compliance` | Auditor queries, posture monitor, Compliance screen        | `compliance report` |
+| `compliance` | Auditor queries, compliance monitor, Compliance screen        | `compliance report` |
 
 Without `network`, nothing leaves the host. Startup refuses a policy setting that no composed plugin would enforce.
 
@@ -198,9 +198,9 @@ At startup the log records the executable, catalog and policy digests. `audit.fo
 | `app policy check --policy <file>`                                  | exit 2 on any error finding     |
 | `app network export --policy <file> --format nftables --resolver 10.20.0.53` | exit 2 on policy errors |
 | `app audit verify --log <dir>`                                  | exit 10 if the chain is damaged |
-| `app compliance report --log <dir> --policy <file> --format markdown` | exit 10 if posture fails    |
+| `app compliance report --log <dir> --policy <file> --format markdown` | exit 10 if compliance status fails    |
 
-From the repo, `app` is `bun run cli`. While running, the posture monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the local user) may read the log.
+From the repo, `app` is `bun run cli`. While running, the compliance monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the local user) may read the log.
 
 ## Isolated operation
 

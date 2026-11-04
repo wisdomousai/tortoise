@@ -22,7 +22,7 @@ export function limsPort(network: NetworkPort) {
       path: (effectId) => `/requests/by-key/${encodeURIComponent(effectId)}`,
       pendingWhen: (body) => (body as { state?: unknown } | undefined)?.state === 'review',
     },
-    feed: {
+    inbound: {
       path: (cursor) => `/changes?after=${cursor ?? ''}`,
       items: '/items',
       cursor: '/cursor',

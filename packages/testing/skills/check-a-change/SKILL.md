@@ -19,10 +19,10 @@ description: Choose and run the checks for a change in this repository and repor
 3. Edit the area's entry in `docs/implementation-status.md` when the change adds or invalidates browser, native, live or by-hand evidence, or closes or opens a known gap. Do not restate what tests prove.
 4. Update the entry in `docs/primitives.md` when a building block's meaning, status or location changes.
 5. Keep the relevant README's purpose, entrypoints, trust boundaries, failure behavior and test instructions accurate.
-6. When `bun run check:skills` reports a changed surface, read each skill it names. Update it for what changed: new or renamed entrypoints, exports, steps, commands and checks.
-7. Review the skills the same way for a changed behavior with an unchanged surface, such as a new rule, a changed default or a new limit. The check does not prompt for it.
+6. When `bun run check:skills` reports a changed public API, read each skill it names. Update it for what changed: new or renamed entrypoints, exports, steps, commands and checks.
+7. Review the skills the same way for a changed behavior with an unchanged public API, such as a new rule, a changed default or a new limit. The check does not prompt for it.
 8. Run `bun run skills:stamp <workspace>` once the skills are reviewed.
-9. Commit the skill and `scripts/reviewed-surface.json` with the code.
+9. Commit the skill and `scripts/reviewed-api.json` with the code.
 10. Leave generated references out of the commit. `bun run generate` writes them to `dist/reference/`.
 11. Report each kind of evidence separately:
     - **Deterministic:** what `bun run check` and the focused suites showed.

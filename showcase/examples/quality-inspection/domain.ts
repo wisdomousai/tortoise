@@ -136,7 +136,7 @@ export interface QualityState {
   instrumentReadings: Record<string, InstrumentReading>;
   /** Goods other applications sent for incoming inspection, through the peer link. */
   inspectionRequests: Record<string, InspectionRequest>;
-  /** The feed position of the inspection request closed last. */
+  /** The inbound position of the inspection request closed last. */
   requestSequence: number;
   /** SoR watermark of the last applied sync batch. */
   watermark?: string;

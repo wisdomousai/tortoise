@@ -32,7 +32,7 @@ export async function enroll(
   const body = await readJsonBody(request);
   const token = newCredential();
   try {
-    const receipt = await caller.application.invokeRaw(
+    const commandResult = await caller.application.invokeRaw(
       {
         operation: ops.enrollmentRedeem.id,
         input: {
@@ -46,7 +46,7 @@ export async function enroll(
       },
       { ...caller.context, channel: 'http' },
     );
-    const { peer } = receipt.result as { peer: { id: string; audience: string } };
+    const { peer } = commandResult.result as { peer: { id: string; audience: string } };
     return jsonResponse(
       {
         token,

@@ -27,7 +27,7 @@ export const ASSIGNMENT_FEATURE = 'assignment';
  */
 export const offerEventType = (agentId: string) => `offer.${agentId}`;
 
-/** An assignment target: the target whose feed carries offer results, with its complete, sync and status. */
+/** An assignment target: the target whose inbound sync carries offer results, with its complete, sync and status. */
 export function assignmentTarget(name: string) {
   return defineTarget({
     target: targetOf(name),
@@ -38,7 +38,7 @@ export function assignmentTarget(name: string) {
       status: `assignment.${name}.status`,
     },
     changes: ['assignment'],
-    feed: {
+    inbound: {
       item: targetResultSchema,
       max: 50,
       changes: ['assignment', 'assignment-report'],
@@ -83,8 +83,8 @@ export interface AssigneeOperations {
  *
  * - `manifest`: the `assignment` feature manifest, for `defineManifest({ features })`;
  * - `operations`: every kind's create, send, report and accept, keyed `<kind>Create` and so on,
- *   and the generic withdraw, complete, close, list, get, feed and report operations;
- * - `targets`: one target per assignment target, named `assignment-<name>`, whose feed carries results;
+ *   and the generic withdraw, complete, close, list, get, inbound sync and report operations;
+ * - `targets`: one target per assignment target, named `assignment-<name>`, whose inbound sync carries results;
  * - `assignees`: what a device and a peer may call, to merge into the device link's sync operations
  *   and the application's peer API.
  *
@@ -123,7 +123,7 @@ export function defineAssignments<const K extends AnyAssignmentKind>(spec: {
       .filter((kind) => kind.assigneeTypes.includes(type))
       .map((kind) => perKind.get(kind.id)!.report);
     const commands = reports.length ? [...reports, generic.complete] : [];
-    const queries = reports.length ? [generic.feed] : [];
+    const queries = reports.length ? [generic.inbound] : [];
     return Object.freeze({
       commands,
       queries,

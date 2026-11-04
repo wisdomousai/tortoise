@@ -200,7 +200,7 @@ test('a run started without a UI session has no ui tools', async () => {
   expect(demo.context.uiContext).toBeUndefined();
   expect(demo.failure?.message).toContain('not started from a UI session');
 
-  // A provider gets the brief with the instruction, and the ui tools only with a session.
+  // A provider gets the instructions with the instruction, and the ui tools only with a session.
   const prompt = calibrationPullPrompt('Calibration is due this week.', wrench);
   expect(prompt).toStartWith('Calibration is due this week.');
   expect(prompt).toContain('ui.open');

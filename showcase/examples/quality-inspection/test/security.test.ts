@@ -32,7 +32,7 @@ const cli = async (directory: string, ...args: string[]) => {
   return { stdout, exitCode };
 };
 
-test('auditors read posture over HTTP and the CLI verifies, reports and detects tampering', async () => {
+test('auditors read compliance status over HTTP and the CLI verifies, reports and detects tampering', async () => {
   await withWorkspace(async (directory) => {
     const host = await startHost(qualityInspection, {
       workspacePath: directory,
@@ -40,17 +40,17 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
     });
     const auditLog = auditServiceOf(host.services).logDirectory;
     try {
-      // The local user is the default auditor; posture is a read-only query like any other.
+      // The local user is the default auditor; compliance status is a read-only query like any other.
       const localUser = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' });
-      const response = await fetch(`${host.url}/api/v1/queries/compliance.posture.get`, {
+      const response = await fetch(`${host.url}/api/v1/queries/compliance.status.get`, {
         method: 'POST',
         headers: { authorization: `Bearer ${localUser.token}`, 'content-type': 'application/json' },
         body: JSON.stringify({ input: {} }),
       });
       expect(response.status).toBe(200);
-      const posture = (await response.json()) as { data: Record<string, any> };
-      expect(posture.data).toMatchObject({ networkMode: 'isolated', log: { verified: true } });
-      expect(posture.data.catalogDigest).toMatch(/^[0-9a-f]{64}$/);
+      const compliance = (await response.json()) as { data: Record<string, any> };
+      expect(compliance.data).toMatchObject({ networkMode: 'isolated', log: { verified: true } });
+      expect(compliance.data.catalogDigest).toMatch(/^[0-9a-f]{64}$/);
     } finally {
       await host.close();
     }
@@ -68,7 +68,7 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
       'json',
     );
     expect(report.exitCode).toBe(0);
-    expect(JSON.parse(report.stdout).posture.log.verified).toBe(true);
+    expect(JSON.parse(report.stdout).compliance.log.verified).toBe(true);
 
     const sample = join(import.meta.dir, '..', 'deployment-policy.sandbox.json');
     expect((await cli(directory, 'policy', 'check', '--policy', sample)).exitCode).toBe(0);

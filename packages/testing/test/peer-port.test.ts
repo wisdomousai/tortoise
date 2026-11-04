@@ -26,8 +26,8 @@ const receive = defineCapability({
   permission: { action: 'create', resourceType: 'parcel' },
   ui: { exception: 'test fixture' },
 });
-const feed = defineCapability({
-  id: 'parcel.feed',
+const inbound = defineCapability({
+  id: 'parcel.inbound',
   kind: 'query',
   input: jsonSchema(z.strictObject({ cursor: z.string().optional() })),
   output: jsonSchema(
@@ -53,7 +53,7 @@ type State = { parcels: string[] };
 function peer() {
   const bind = createHandlerFactory<State, {}>();
   const application = createApplication({
-    modules: [defineModule({ id: 'parcels', capabilities: [receive, feed, search] })],
+    modules: [defineModule({ id: 'parcels', capabilities: [receive, inbound, search] })],
     storage: createMemoryStorage<State>({ parcels: [] }),
     services: {},
     authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
@@ -64,7 +64,7 @@ function peer() {
         ctx.change(`parcel:${input.ref}`);
         return { id: `P-${ctx.state.parcels.length}` };
       }),
-      bind(feed, (input, ctx) => {
+      bind(inbound, (input, ctx) => {
         const from = Number(input.cursor ?? 0);
         const items = ctx.state.parcels.slice(from, from + 2);
         const cursor = from + items.length;
@@ -108,12 +108,12 @@ const effect = (id: string, payload: { ref: string; refuse?: boolean }) =>
   conformanceEffect({ id, target: 'peer', type: 'parcel.receive', payload });
 const signal = () => new AbortController().signal;
 
-/** Every parcel the peer recorded, read through its own feed. */
+/** Every parcel the peer recorded, read through its own inbound sync. */
 async function received(application: ReturnType<typeof peer>['application']) {
   const all: string[] = [];
   for (let cursor: string | undefined, more = true; more;) {
     const { data } = await application.queryRaw(
-      { operation: feed.id, input: cursor === undefined ? {} : { cursor } },
+      { operation: inbound.id, input: cursor === undefined ? {} : { cursor } },
       { workspaceId: 'w', principalId: 'device' },
     );
     const page = data as { items: string[]; cursor: string; more: boolean };
@@ -130,7 +130,7 @@ function harness(): ConnectorHarness<string> {
     target: 'peer',
     client: () => client,
     readBlob: async () => undefined,
-    feed: feed.id,
+    inbound: inbound.id,
   });
   return {
     port,

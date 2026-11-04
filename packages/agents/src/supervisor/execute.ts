@@ -18,7 +18,7 @@ import {
 type Outcome = { resources?: string[]; code?: string };
 type Calls = Map<string, { fingerprint: string; result: Promise<unknown> }>;
 
-/** The records a command receipt names in its revisions, or the code of a refusal. */
+/** The records a command result names in its revisions, or the code of a refusal. */
 function outcomeOf(settled: PromiseSettledResult<unknown>): Outcome {
   if (settled.status === 'rejected') {
     const code = (settled.reason as { code?: unknown } | undefined)?.code;

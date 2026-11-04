@@ -1,6 +1,6 @@
 import type { JsonValue } from '@tortoise/contracts';
 import type { DeviceIdentity } from '@tortoise/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import type { DriverContract } from '../contracts/define';
 import type { DriverService } from '../open';
 import type { EventNotification, InitializeResult } from '../protocol';
@@ -22,7 +22,7 @@ export interface DriverEventIngestOptions {
   readonly contract: DriverContract;
   readonly service: Pick<DriverService, 'onEvent' | 'supervisor'>;
   readonly application: {
-    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   };
   /** The observing principal, granted the ingest operation only. */
   readonly context: ExecutionContext;

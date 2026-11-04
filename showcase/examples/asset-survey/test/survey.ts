@@ -68,7 +68,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
   ) =>
     (await application.invokeRaw({ operation, input, idempotencyKey: `k${++key}` }, as))
       .result as T;
-  /** One outbox pass and one feed pass per target: what the background loops do. */
+  /** One outbox pass and one inbound pass per target: what the background loops do. */
   const complete = async () => {
     await integrations.target('assignment-model').dispatcher.runOnce();
     await integrations.target('eam').dispatcher.runOnce();

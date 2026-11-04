@@ -338,7 +338,7 @@ export function CounterTerminal() {
   const [tab, setTab] = useState('counter');
   const [toolId, setToolId] = useState<string>();
   const [agent, setAgent] = useState<AgentSelection>({ harnessId: 'deterministic' });
-  const [brief, setBrief] = useState('');
+  const [instructions, setInstructions] = useState('');
   const selection = useToolSelection();
   const open = (id: string) => {
     setToolId(id);
@@ -425,8 +425,8 @@ export function CounterTerminal() {
             selected={selection.selected}
             agent={agent}
             onAgent={setAgent}
-            brief={brief}
-            onBrief={setBrief}
+            instructions={instructions}
+            onInstructions={setInstructions}
             prepareSession={session.prepare}
           />
         </TabsContent>

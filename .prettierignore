@@ -9,5 +9,5 @@ bun.lock
 scaffold.manifest.json
 plugins/network/test/golden
 .claude
-scripts/reviewed-surface.json
+scripts/reviewed-api.json
 *.mdx

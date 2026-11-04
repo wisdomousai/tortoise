@@ -58,7 +58,7 @@ const compact = (text: string) => text.replaceAll(' ', '').toUpperCase();
 /**
  * Deterministic in-memory EAM for the demo and tests. It refuses to create an asset without a
  * serial number or with the designation of an active asset, attaches the photos it is sent as
- * evidence, and reports every created or updated asset on its feed. Delivery is idempotent by
+ * evidence, and reports every created or updated asset on its inbound sync. Delivery is idempotent by
  * effect ID. A withdrawal retires the asset a filing created, or restores what a filing replaced
  * on an asset it updated. Searches use the integration's service account. `unavailable` makes
  * every call fail transiently.
@@ -201,7 +201,7 @@ export class FakeEam implements SystemOfRecordPort<AssetChange, string> {
     };
   }
 
-  /** Retire an asset in the EAM, as its own users would; the feed reports it. */
+  /** Retire an asset in the EAM, as its own users would; inbound sync reports it. */
   retire(externalId: string) {
     const asset = this.assets.get(externalId)!;
     asset.status = 'retired';

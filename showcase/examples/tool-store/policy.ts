@@ -55,7 +55,7 @@ export const appPolicy = definePolicy<AppState, Role>({
     // scaffold:rules
   },
   events: {
-    // Feed and delivery state is visible to every member.
+    // Inbound sync and delivery state is visible to every member.
     sync: () => true,
     tool: () => true,
     loan: () => true,

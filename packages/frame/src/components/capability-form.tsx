@@ -7,7 +7,7 @@ import type {
   JsonObject,
   OutputOf,
 } from '@tortoise/contracts';
-import type { Receipt } from '@tortoise/client';
+import type { CommandResult } from '@tortoise/client';
 import { useCapabilityForm } from '@tortoise/react/form';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -339,7 +339,7 @@ interface FormProps<C extends AnyCapability> {
   initial?: Record<string, unknown>;
   /** The button text; the capability's display label, else "Submit". */
   submitLabel?: string;
-  onCommitted?: (receipt: Receipt<OutputOf<C>>) => void;
+  onCommitted?: (commandResult: CommandResult<OutputOf<C>>) => void;
   /**
    * Values the screen puts into rendered fields while the person edits the form, such as a
    * scanned badge. Each new `key` sets them once; the other fields keep what the person typed,
@@ -367,11 +367,11 @@ function FormBody<C extends AnyCapability>({
     // A prefill overrides the fields it names; the record fills the rest.
     defaultValues: stringValues(fields, { ...initial, ...prepared?.input }),
     toInput: (values) => ({ ...toTyped(fields, values, initial), ...fixed }) as InputOf<C>,
-    onCommitted: (receipt) => {
+    onCommitted: (commandResult) => {
       setSaved('Saved');
       dismiss();
       form.reset();
-      onCommitted?.(receipt);
+      onCommitted?.(commandResult);
     },
   });
   const filled = useRef<string | number>(undefined);

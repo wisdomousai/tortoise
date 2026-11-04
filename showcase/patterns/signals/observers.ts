@@ -1,6 +1,6 @@
 import type { NetworkPort } from '@tortoise/host/plugin';
 import type { ObservationBase } from '@tortoise/observation';
-import type { CommandReceipt, ExecutionContext, Invocation } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation } from '@tortoise/runtime';
 import { createMqttObserver } from '@tortoise/connector-mqtt/observe';
 import { createOpcUaObserver } from '@tortoise/connector-opcua/observe';
 import { CHAMBER_BROKER, CHAMBER_GATEWAY, chamberOperations } from './contracts';
@@ -8,7 +8,7 @@ import { OBSERVER_PRINCIPAL, fieldId, type ChamberDefinition } from './domain';
 
 export interface ChamberObserverOptions {
   readonly application: {
-    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+    invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   };
   readonly workspaceId: string;
   readonly network: NetworkPort;

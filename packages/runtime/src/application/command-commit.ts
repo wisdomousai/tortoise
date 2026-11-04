@@ -5,7 +5,7 @@ import {
   type JsonObject,
   type JsonValue,
 } from '@tortoise/contracts';
-import type { CommandReceipt, Effect, WorkspaceSnapshot } from '../types.js';
+import type { CommandResult, Effect, WorkspaceSnapshot } from '../types.js';
 import { actorOf, describeInput } from './audit.js';
 import type { Command } from './command-request.js';
 import type { Kernel } from './kernel.js';
@@ -41,13 +41,13 @@ export function journalChanges<State>(
   return revisions;
 }
 
-export function receiptOf<State>(
+export function commandResultOf<State>(
   snapshot: WorkspaceSnapshot<State>,
   operation: string,
   result: unknown,
   revisions: Record<string, number>,
   touched: readonly Effect[],
-): CommandReceipt {
+): CommandResult {
   const pending = touched.filter((effect) => effect.status === 'pending');
   return {
     operation,
@@ -59,7 +59,7 @@ export function receiptOf<State>(
   };
 }
 
-/** The nested commands of a call tree, as a stored receipt records them for replay. */
+/** The nested commands of a call tree, as a stored command result records them for replay. */
 function callsOf(tree: CallTree) {
   return tree.calls
     .filter((call) => call.kind === 'command')
@@ -73,10 +73,10 @@ function callsOf(tree: CallTree) {
     });
 }
 
-export function storeReceipt<State, Services>(
+export function storeCommandResult<State, Services>(
   snapshot: WorkspaceSnapshot<State>,
   command: Command<State, Services>,
-  receipt: CommandReceipt,
+  commandResult: CommandResult,
   tree: CallTree,
   continued?: Command<State, Services>,
 ) {
@@ -84,9 +84,9 @@ export function storeReceipt<State, Services>(
   assertJson(command.input);
   if (continued) assertJson(continued.input);
   const calls = callsOf(tree);
-  snapshot.receipts[command.key] = {
+  snapshot.commandResults[command.key] = {
     fingerprint: command.fingerprint,
-    receipt: structuredClone(receipt),
+    commandResult: structuredClone(commandResult),
     principalId: command.context.principalId,
     input: command.input as JsonValue,
     // Replay reauthorizes and reprojects the continued command with the input it ran with.

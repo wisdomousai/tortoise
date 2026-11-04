@@ -9,7 +9,7 @@ import { fieldOs } from './os';
 /**
  * The surveys the hub sends this device, and the captures recorded here for them. Operations are
  * `field.*`. A capture or a done mark goes out through the outbox to the hub's own
- * `assignment.survey.report` or `assignment.complete`, and the hub's `assignment.feed` brings the
+ * `assignment.survey.report` or `assignment.complete`, and the hub's `assignment.inbound` brings the
  * surveys open for this device with their structure slices. Hub-link declares the `hub`
  * destination and carries the device credential, so the manifest lists no peer component.
  */

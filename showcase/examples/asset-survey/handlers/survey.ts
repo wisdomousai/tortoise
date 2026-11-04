@@ -12,7 +12,7 @@ import {
   proposedValues,
   readingOf,
   roleOf,
-  surveyBrief,
+  surveyInstructions,
   surveyScope,
   type ProposedField,
   type SurveyState,
@@ -69,10 +69,10 @@ function checkAssignee(assignee: Assignee, ctx: Context) {
 /**
  * The hooks of the survey's two assignment kinds.
  *
- * - A survey covers the active subtrees under its roots; its brief is that slice of the
+ * - A survey covers the active subtrees under its roots; its instructions are that slice of the
  *   structure as it stands when sent. Accepting a capture writes the reviewer's values onto its
  *   node, each recording the capture and whether the reviewer changed what the model read.
- * - An extraction reads one capture not yet reviewed; its brief is the capture's photos, which
+ * - An extraction reads one capture not yet reviewed; its instructions are the capture's photos, which
  *   the model's offer carries. Accepting the reading accepts the capture with those values.
  */
 export const surveyHooks = {
@@ -89,7 +89,8 @@ export const surveyHooks = {
               `${own(ctx.state.nodes, root)?.designation ?? root} is not an active node`,
             );
       },
-      brief: (assignment, ctx) => surveyBrief(ctx.state.nodes, surveyScope(assignment)),
+      instructions: (assignment, ctx) =>
+        surveyInstructions(ctx.state.nodes, surveyScope(assignment)),
       subject: (subject, assignment, ctx) =>
         inScope(ctx.state.nodes, surveyScope(assignment), subject),
       accept(report, input, _assignment, ctx) {
@@ -117,7 +118,7 @@ export const surveyHooks = {
         const capture = existingCapture(ctx, (scope as { reportId: string }).reportId);
         if (capture.review !== 'new') conflict(`Capture is ${capture.review}`);
       },
-      brief(assignment, ctx) {
+      instructions(assignment, ctx) {
         const reportId = (assignment.scope as { reportId: string }).reportId;
         const body = captureBody(existingCapture(ctx, reportId));
         return { reportId, kind: body.kind, photos: body.photos };

@@ -10,12 +10,12 @@ import { inspectionRequests, type InspectionRequest } from '../contracts/inspect
 import { capturesAnywhere, type QualityState } from '../domain';
 import { byCodePoint, compact, newId, now, handler, type QualityServices } from '../server/context';
 
-/** Closed requests the feed returns in one page. */
-const FEED_PAGE = 100;
+/** Closed requests inbound sync returns in one page. */
+const OUTCOMES_PAGE = 100;
 
 /**
  * Inspection requests: a peer creates them as its service principal, an inspector closes them, and the
- * peer reads the outcomes of its own from the feed.
+ * peer reads the outcomes of its own from inbound sync.
  */
 export const inspectionRequestHandlers = (): HandlerContribution<
   QualityState,
@@ -86,17 +86,17 @@ export const inspectionRequestHandlers = (): HandlerContribution<
       );
     });
   }),
-  handler(operations.inspectionRequestFeed, (input, ctx) => {
+  handler(operations.inspectionRequestOutcomes, (input, ctx) => {
     const after = input.cursor === undefined ? 0 : Number(input.cursor);
     if (!Number.isInteger(after) || after < 0)
-      throw new ApplicationError('INVALID_INPUT', 'Unknown feed cursor', { field: 'cursor' });
+      throw new ApplicationError('INVALID_INPUT', 'Unknown inbound cursor', { field: 'cursor' });
     // Only the calling peer's requests, so one peer never learns of another's deliveries.
     const closed = Object.values(ctx.state.inspectionRequests)
       .filter(
         (request) => request.requestedBy === ctx.context.principalId && (request.seq ?? 0) > after,
       )
       .sort((a, b) => a.seq! - b.seq!);
-    const page = closed.slice(0, FEED_PAGE);
+    const page = closed.slice(0, OUTCOMES_PAGE);
     return {
       items: page.map((request) =>
         compact({

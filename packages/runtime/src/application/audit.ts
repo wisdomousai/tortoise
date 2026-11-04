@@ -54,9 +54,9 @@ export const actorOf = (context: ExecutionContext) => ({
 /**
  * Whose idempotency keys a call uses: its principal's, or the peer's for a call on behalf of a
  * peer's person. A peer keeps its key when the person it maps to changes, so a retry after a
- * mapping change meets the first receipt and conflicts instead of running the command again.
+ * mapping change meets the first command result and conflicts instead of running the command again.
  */
-export const receiptScope = (actor: {
+export const commandResultScope = (actor: {
   readonly principalId: string;
   readonly peer?: string;
   readonly subject?: string;

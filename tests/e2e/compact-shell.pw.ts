@@ -23,7 +23,7 @@ test('on a tablet the sidebar becomes a bar and a menu sheet that closes on navi
     await expect(sheet).toBeVisible();
     await sheet.getByRole('link', { name: 'Compliance', exact: true }).tap();
     await expect(sheet).toBeHidden();
-    await expect(page.getByRole('heading', { name: 'Security posture' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compliance status' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Find an action' }).tap();
     await expect(page.getByRole('dialog').getByRole('combobox')).toBeVisible();

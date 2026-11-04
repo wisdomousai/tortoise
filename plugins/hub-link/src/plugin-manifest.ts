@@ -8,7 +8,7 @@ import { hubLinkModule } from './contracts';
  */
 export const hubDestinationComponent = defineHostComponent({
   id: 'hub-connection',
-  description: 'Delivers records to the paired hub and reads its feed.',
+  description: 'Delivers records to the paired hub and reads its inbound sync.',
   requirements: {
     network: [
       {

@@ -1,9 +1,9 @@
 import { canonicalJson } from '@tortoise/contracts';
-import type { CommandReceipt, ExecutionContext, Invocation, QueryResult } from '@tortoise/runtime';
+import type { CommandResult, ExecutionContext, Invocation, QueryResult } from '@tortoise/runtime';
 
 /** Transport drivers implement this interface so the same business scenario runs everywhere. */
 export interface ScenarioDriver {
-  command(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
+  command(request: Invocation, context: ExecutionContext): Promise<CommandResult>;
   query(request: Invocation, context: ExecutionContext): Promise<QueryResult>;
 }
 export interface BehavioralScenario {

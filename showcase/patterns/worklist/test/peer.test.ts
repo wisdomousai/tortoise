@@ -88,7 +88,7 @@ test('a round sent to the field crew arrives in its worklist, and its samples an
       id: sent.id,
       kind: 'sampling',
       open: true,
-      brief: {
+      instructions: {
         substation: 'Northfield 110 kV',
         transformers: [
           {

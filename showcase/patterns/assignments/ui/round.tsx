@@ -9,12 +9,12 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import type { sampling } from '../contracts';
 
-export type RoundBrief = z.output<typeof sampling.brief>;
+export type RoundInstructions = z.output<typeof sampling.instructions>;
 export type Sample = z.output<typeof sampling.report>;
 
 /** The substation and its transformers, with each one's last sample in the lab when sent. */
-export function BriefRound({ brief }: { brief: Record<string, unknown> }) {
-  const { substation, transformers } = brief as RoundBrief;
+export function InstructionsRound({ instructions }: { instructions: Record<string, unknown> }) {
+  const { substation, transformers } = instructions as RoundInstructions;
   return (
     <div className="space-y-2">
       <p className="text-sm">Substation {substation}</p>
@@ -43,10 +43,10 @@ export function SampleForm({
   item,
   submit,
 }: {
-  item: { id: string; title: string; brief: Record<string, unknown> };
+  item: { id: string; title: string; instructions: Record<string, unknown> };
   submit: SubmitReport;
 }) {
-  const { transformers } = item.brief as RoundBrief;
+  const { transformers } = item.instructions as RoundInstructions;
   const [transformer, setTransformer] = useState(transformers[0]?.transformer ?? '');
   const [sample, setSample] = useState('');
   const [description, setDescription] = useState('');

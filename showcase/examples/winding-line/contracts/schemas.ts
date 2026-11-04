@@ -117,7 +117,7 @@ export const orderSchema = z.strictObject({
   quantity: z.number().min(0),
   status: z.enum(['released', 'active', 'completed']),
 });
-/** An MES order as its feed delivers it: `closed` instead of the local status. */
+/** An MES order as its inbound sync delivers it: `closed` instead of the local status. */
 export const orderSnapshotSchema = orderSchema
   .omit({ status: true })
   .extend({ closed: z.boolean() });

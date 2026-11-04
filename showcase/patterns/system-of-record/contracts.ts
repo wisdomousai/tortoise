@@ -41,7 +41,7 @@ export const publications = defineCollection({
   ],
 });
 
-/** A test request registered at another plant's LIMS front desk, as the LIMS feed reports it. */
+/** A test request registered at another plant's LIMS front desk, as the LIMS inbound sync reports it. */
 export const registeredRequestSchema = z.strictObject({
   id: recordKeySchema,
   sample: z.string().min(1).max(64),
@@ -52,14 +52,14 @@ export const registeredRequestSchema = z.strictObject({
 export type RegisteredRequest = z.output<typeof registeredRequestSchema>;
 
 /**
- * The enterprise LIMS as a system of record: test requests are registered there, and its feed
+ * The enterprise LIMS as a system of record: test requests are registered there, and its inbound sync
  * delivers requests registered at other plants, which become test requests here.
  */
 export const limsTarget = defineTarget({
   target: 'lims',
   resourceType: 'Publication',
   changes: ['publication'],
-  feed: { item: registeredRequestSchema, max: 50, changes: ['test-request'] },
+  inbound: { item: registeredRequestSchema, max: 50, changes: ['test-request'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
     complete: 'Integration principal only: record the LIMS outcome for a published test request.',

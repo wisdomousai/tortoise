@@ -69,18 +69,18 @@ const loan = async (app: App) =>
 test('an ok return closes the loan and makes the tool available', async () => {
   const app = await open();
   clock = 3_000;
-  const receipt = await app.invokeRaw(
+  const commandResult = await app.invokeRaw(
     { operation: 'tool.return', input: { toolId: 'id-1', condition: 'ok' }, idempotencyKey: 'in' },
     clerk,
   );
-  expect(receipt.result).toMatchObject({
+  expect(commandResult.result).toMatchObject({
     id: 'id-2',
     condition: 'ok',
     returnedAt: 3_000,
     returnedBy: 'clerk',
     checkedOutBy: 'local-user',
   });
-  expect(receipt.result).not.toHaveProperty('note');
+  expect(commandResult.result).not.toHaveProperty('note');
   expect(await statusOf(app)).toMatchObject({ status: 'available' });
   expect(await loan(app)).toMatchObject({ condition: 'ok', returnedAt: 3_000 });
 });
@@ -128,7 +128,7 @@ test('a stale tool revision is refused and the loan stays open', async () => {
   expect(await loan(app)).not.toHaveProperty('returnedAt');
 });
 
-test('a repeated idempotency key returns the same receipt and closes the loan once', async () => {
+test('a repeated idempotency key returns the same command result and closes the loan once', async () => {
   const app = await open();
   const request = {
     operation: 'tool.return',

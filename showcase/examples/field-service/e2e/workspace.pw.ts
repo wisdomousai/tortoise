@@ -71,9 +71,9 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       'My unsaved draft',
     );
     await page
-      .getByLabel('Work order brief')
+      .getByLabel('Work order instructions')
       .fill('Isolate the pump\nReplace the seal\nTest under pressure');
-    await page.getByRole('button', { name: /Create tasks from brief/ }).click();
+    await page.getByRole('button', { name: /Create tasks from instructions/ }).click();
     await expect(
       page.getByRole('button', { name: 'Test under pressure', exact: true }),
     ).toBeVisible();

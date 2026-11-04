@@ -42,11 +42,11 @@ const definition = defineApplication<{ counter: { count: number } }>({
 async function bumpOnce(workspacePath: string, key: string) {
   const instance = await openEmbeddedInstance(definition, { workspacePath });
   try {
-    const receipt = await instance.application.invokeRaw(
+    const commandResult = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
       { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
     );
-    return (receipt.result as { count: number }).count;
+    return (commandResult.result as { count: number }).count;
   } finally {
     await instance.close();
   }

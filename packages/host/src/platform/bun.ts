@@ -14,7 +14,7 @@ export const JOURNAL_RETENTION = 50_000;
 
 /**
  * Workspace storage shared by the HTTP host and embedded instances: one row per record, with
- * the journal capped at `JOURNAL_RETENTION` entries. Receipts are all kept, so a retry is never
+ * the journal capped at `JOURNAL_RETENTION` entries. Command results are all kept, so a retry is never
  * run twice. A new workspace starts from the definition's state; a stored one passes through its
  * upgrade on load.
  */

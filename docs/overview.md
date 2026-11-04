@@ -33,7 +33,7 @@ A committed effect starts **queued**. The dispatcher claims it for delivery.
 | Instrument or controller | A driver process reports readings and runs declared actions |
 | Workstation application | The screen bridge reads the station screen and runs procedures |
 | Plant signals | MQTT, Sparkplug B or OPC UA readings pass an observation gate into a command |
-| Files | An inbox folder feeds inbound sync; delivery files complete effects |
+| Files | An inbox folder supplies inbound sync; delivery files complete effects |
 | Phone | A paired phone takes assignments, captures offline, delivers reports |
 | OS integration | Links, shares, intents, shortcuts and notification replies open screens or prefill forms |
 

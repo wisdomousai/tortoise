@@ -67,8 +67,11 @@ function fixture(
 describe('authorized atomic command runtime', () => {
   test('two modules preserve command/query literals and inferred results', async () => {
     const { app } = fixture();
-    const receipt = await app.invoke({ operation: 'counter.add', input: { amount: 2 } }, localUser);
-    const result: number = receipt.result;
+    const commandResult = await app.invoke(
+      { operation: 'counter.add', input: { amount: 2 } },
+      localUser,
+    );
+    const result: number = commandResult.result;
     expect(result).toBe(2);
     expect(await app.query({ operation: 'counter.get', input: {} }, localUser)).toEqual({
       data: 2,
@@ -86,7 +89,7 @@ describe('authorized atomic command runtime', () => {
       createHandlerFactory<State, {}>()(add, () => 'invalid');
     }
   });
-  test('output schema failures roll back data, receipt and journal together', async () => {
+  test('output schema failures roll back data, command result and journal together', async () => {
     const { app, storage } = fixture({
       handle: (input, ctx) => {
         ctx.state.count += input.amount;
@@ -104,7 +107,7 @@ describe('authorized atomic command runtime', () => {
       state: { count: 0 },
       cursor: 0,
       journal: [],
-      receipts: {},
+      commandResults: {},
     });
   });
   test('commit authorization and cancellation are rechecked after handler work', async () => {
@@ -338,7 +341,7 @@ describe('authorized atomic command runtime', () => {
     ).rejects.toMatchObject({ code: 'INTERNAL' });
     expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(0);
   });
-  test('grant bindings are enforced on command, event and discovery surfaces', async () => {
+  test('grant bindings are enforced on command, event and discovery channels', async () => {
     const { app } = fixture();
     const context = {
       ...localUser,

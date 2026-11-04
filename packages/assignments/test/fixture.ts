@@ -18,12 +18,12 @@ import { defineAssignmentKind, defineAssignments } from '../src';
 export const review = defineAssignmentKind({
   id: 'review',
   title: 'Review',
-  description: 'Read the notes in the brief and give one verdict per note.',
+  description: 'Read the notes in the instructions and give one verdict per note.',
   scope: z.strictObject({
     notes: z.array(recordKeySchema).min(1).max(20),
     attachments: z.array(blobRefSchema).max(4).optional(),
   }),
-  brief: z.strictObject({
+  instructions: z.strictObject({
     notes: z.array(z.strictObject({ id: recordKeySchema, title: z.string(), body: z.string() })),
     attachments: z.array(blobRefSchema).max(4).optional(),
   }),
@@ -33,7 +33,7 @@ export const review = defineAssignmentKind({
   }),
   accept: z.strictObject({ comment: z.string().max(2000).optional() }),
   subject: 'note',
-  blobs: { brief: { maxBytes: 100_000, mediaTypes: ['text/plain'] } },
+  blobs: { instructions: { maxBytes: 100_000, mediaTypes: ['text/plain'] } },
   assigneeTypes: ['person', 'agent', 'target'],
   target: 'checker',
   invokes: ['notes.note.update'],
@@ -44,9 +44,9 @@ export const review = defineAssignmentKind({
 export const survey = defineAssignmentKind({
   id: 'field-survey',
   title: 'Field survey',
-  description: 'Photograph each node in the brief and note its condition.',
+  description: 'Photograph each node in the instructions and note its condition.',
   scope: z.strictObject({ roots: z.array(recordKeySchema).min(1).max(10) }),
-  brief: z.strictObject({
+  instructions: z.strictObject({
     nodes: z.array(z.strictObject({ id: recordKeySchema, designation: z.string() })),
   }),
   report: z.strictObject({
@@ -107,7 +107,7 @@ const reviewerOf = (id: string) =>
   defineAgent({
     id,
     title: 'Note reviewer',
-    instructions: 'Read the notes in the brief, report one verdict per note, then complete.',
+    instructions: 'Read the notes in the instructions, report one verdict per note, then complete.',
     operations: ['assignment.get', 'assignment.review.report', 'assignment.complete'],
     resourceTypes: ['assignment'],
     creates: ['assignment-report'],

@@ -8,7 +8,7 @@ const owns = (state: FieldState, context: { principalId: string }) =>
 
 /**
  * The device has one person, its local user. The integration principal delivers to the hub and
- * applies its feed and nothing else. The hub decides again on every capture it receives, as the
+ * applies its inbound sync and nothing else. The hub decides again on every capture it receives, as the
  * device's own principal, so nothing here widens what the device may do there.
  */
 export const fieldPolicy = definePolicy<FieldState, 'local-user'>({

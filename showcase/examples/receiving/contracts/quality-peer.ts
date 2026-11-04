@@ -9,15 +9,15 @@ import {
 /**
  * The quality-inspection application, called as a peer through its published API. Posting a
  * line the ERP marked for inspection creates an inspection request there as this application's service
- * principal; the feed brings back the outcomes once an inspector closed them.
+ * principal; inbound sync brings back the outcomes once an inspector closed them.
  */
 export const qualityPeer = definePeerTarget({
   target: 'quality',
   resourceType: 'QualitySync',
   api: qualityPeerApi,
   changes: ['delivery'],
-  feed: {
-    query: inspectionRequestOperations.inspectionRequestFeed,
+  inbound: {
+    query: inspectionRequestOperations.inspectionRequestOutcomes,
     item: closedInspectionRequestSchema,
     max: 100,
     changes: ['delivery'],

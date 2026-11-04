@@ -34,7 +34,7 @@ type App = Awaited<ReturnType<typeof open>>;
 
 /** Add tool TC-0060<n>, due for calibration on `due` when given; returns its key. */
 async function add(app: App, n: number, due?: string) {
-  const receipt = await app.invokeRaw(
+  const commandResult = await app.invokeRaw(
     {
       operation: 'tool.create',
       input: {
@@ -48,7 +48,7 @@ async function add(app: App, n: number, due?: string) {
     },
     localUser,
   );
-  return (receipt.result as { id: string }).id;
+  return (commandResult.result as { id: string }).id;
 }
 
 async function run(app: App, operation: string, input: object, key: string) {

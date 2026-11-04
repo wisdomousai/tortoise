@@ -370,7 +370,7 @@ test('no credential or private key is kept in the workspace', async () => {
   await resultOf(signed);
   await q.host.close();
   for (const bytes of await files(q.directory))
-    // The one-use code stays in the receipt of peer.enrollment.create, as device-link's does;
+    // The one-use code stays in the command result of peer.enrollment.create, as device-link's does;
     // it is worthless once redeemed or expired.
     for (const [name, secret] of Object.entries({ token: reply.token, key: key.privateKey }))
       expect(bytes.includes(secret) ? name : undefined).toBeUndefined();
