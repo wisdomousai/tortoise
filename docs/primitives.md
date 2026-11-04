@@ -207,9 +207,9 @@ implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/
 
 ### Agent run
 
-_An agent acting as one more caller on the catalog, under a grant narrowed from its issuer's._
+_An agent acting as one more caller on the catalog, under a grant narrowed from its issuer's. A run keeps what the person asked and their answers; the runs of one conversation share its ID, and the frame's assistant panel shows them._
 
-implemented · [`packages/agents`](../packages/agents/README.md)
+implemented · [`packages/agents`](../packages/agents/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md)
 
 ### Agent definition
 

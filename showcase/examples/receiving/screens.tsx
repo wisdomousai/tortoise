@@ -1,5 +1,6 @@
 import { ClipboardCheck, Inbox, List, Network, TriangleAlert } from 'lucide-react';
 import { defineScreens } from '@tortoise/frame/screens';
+import { AssistantButton, AssistantPanel } from '@/components/assistant-panel';
 import { complianceScreens } from '@tortoise/compliance/plugin-screens';
 import { peerLinkScreens } from '@tortoise/peer-link/plugin-screens';
 import manifest from './manifest';
@@ -12,7 +13,8 @@ import { ReconcileScreen } from './ui/reconcile';
 
 /**
  * The Goods receiving screens: delivery lines, open approval requests, held receipts, the ERP
- * exchange, quality inspection and peers.
+ * exchange, quality inspection and peers, with the assistant panel that runs the discrepancy
+ * classifier beside them.
  */
 export default defineScreens({
   manifest,
@@ -42,5 +44,11 @@ export default defineScreens({
     { prefix: 'quality.', to: '/quality' },
     // scaffold:capability-screens
   ],
+  resources: {
+    delivery: (id) => `/deliveries/${id}`,
+    'approval-request': () => '/approvals',
+  },
   plugins: [complianceScreens, peerLinkScreens],
+  aside: AssistantPanel,
+  asideButton: AssistantButton,
 });

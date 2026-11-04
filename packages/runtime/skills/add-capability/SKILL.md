@@ -55,7 +55,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
     - the calls that must be refused;
     - for a run that asks the person, the `answers` and the number of `questions` expected; a deterministic `script` asks with `question`.
 
-    Scenarios judge the receipts, never the agent's text.
+    Scenarios judge the receipts, never the agent's text. Pass `harness: scenarioHarness()` from `@tortoise/testing` and give the test `scenarioTimeout()`, as the generated test does, so `AGENT_SCENARIOS=live` runs them against a local model.
 
     A `direct` agent that must ask before some changes lists those commands in `requests`, such as a cancellation, or a command it runs itself whose policy refuses it some input, such as a discount above its limit. Its grant then holds `approval.request` and its instructions list those commands. The policy decides which input needs approval: refuse it to a delegated caller (`context.grant?.agent`) and allow it to the approver.
 

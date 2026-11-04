@@ -2,15 +2,19 @@ import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@tortoise/agents';
 import { openEmbeddedInstance } from '@tortoise/host';
-import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
+import {
+  runAgentScenarios,
+  scenarioHarness,
+  scenarioTimeout,
+  type AgentScenario,
+} from '@tortoise/testing/agent-scenarios';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 
 // The discrepancy agent judged by what it commits and what it requests approval for. The deterministic harness plays
-// a scripted run; the same scenarios run against a model only when a test is given a configured
-// harness and `AGENT_SCENARIOS=live`, never in `bun run check`.
+// a scripted run; with `AGENT_SCENARIOS=live` the same scenarios run on a model
+// (`scenarioHarness`), never in `bun run check`.
 const owner = { workspaceId: 'local', principalId: 'owner' };
 const notice = [
   'id,purchaseOrder,supplier,sku,description,expected',
@@ -106,12 +110,16 @@ const scenarios: AgentScenario[] = [
   },
 ];
 
-test('the discrepancy agent requests approval for classifications and never commits them', async () => {
-  const results = await runAgentScenarios(scenarios, {
-    application: instance.application,
-    harness: deterministicHarness,
-  });
-  expect(results.map((result) => [result.scenario, result.failures])).toEqual(
-    scenarios.map((scenario) => [scenario.name, []]),
-  );
-});
+test(
+  'the discrepancy agent requests approval for classifications and never commits them',
+  async () => {
+    const results = await runAgentScenarios(scenarios, {
+      application: instance.application,
+      harness: scenarioHarness(),
+    });
+    expect(results.map((result) => [result.scenario, result.failures])).toEqual(
+      scenarios.map((scenario) => [scenario.name, []]),
+    );
+  },
+  scenarioTimeout(),
+);

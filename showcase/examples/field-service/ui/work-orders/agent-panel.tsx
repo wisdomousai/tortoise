@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { operations } from '../../contracts';
+import { operations, workOrderPlannerModule } from '../../contracts';
 import { Accounts, type AgentSelection } from '@/components/accounts';
 import { RunPanel } from '@/components/run-panel';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,14 @@ import type { WorkOrder } from './shared';
 
 type UiSession = ReturnType<typeof useUiSession>;
 
+/** The planner definition a provider run executes under. */
+const planner = workOrderPlannerModule.agents![0]!.id;
+
 /**
  * Start a run over this work order. The offline demo gets the brief as explicit task commands; a
- * provider agent gets a prompt. Either way the run carries the captured UI session, so it sees
- * this work order and acts only through the catalog.
+ * provider run executes under the work order planner, with its instructions and narrowed grant,
+ * and requests approval for the tasks. Either way the run carries the captured UI session, so it
+ * sees this work order and acts only through the catalog.
  */
 async function startRun(workOrder: WorkOrder, brief: string, agent: AgentSelection, ui: UiSession) {
   const demo = agent.harnessId === 'deterministic';
@@ -35,6 +39,7 @@ async function startRun(workOrder: WorkOrder, brief: string, agent: AgentSelecti
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...agent,
+      ...(demo ? {} : { agentId: planner }),
       uiSessionId: capturedUi.sessionId,
       uiContextVersion: capturedUi.version,
       prompt,
@@ -132,7 +137,7 @@ export function AgentPanel({
         <p className="text-sm text-muted-foreground">
           {demo
             ? 'Each line becomes a task, through the same commands you use.'
-            : 'The agent sees this work order and uses the same actions you do.'}
+            : 'The planner sees this work order and asks for approval of each task it proposes.'}
         </p>
         <Textarea
           id="brief"

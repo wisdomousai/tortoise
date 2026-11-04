@@ -1,4 +1,4 @@
-import { createRunSupervisor } from '@tortoise/agents';
+import { createRunSupervisor, deterministicHarness, localHarness } from '@tortoise/agents';
 import type { Harness, ModelIdentity, ToolPort } from '@tortoise/agents/types';
 import {
   agentInstructions,
@@ -441,3 +441,31 @@ export function scenarioRegressions(
 export function liveScenariosRequested(env: Record<string, string | undefined> = process.env) {
   return env.AGENT_SCENARIOS === 'live';
 }
+
+const loopback = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
+/**
+ * The harness agent scenarios run on: the deterministic harness, which plays each scenario's
+ * script, or with `AGENT_SCENARIOS=live` a model on an OpenAI-compatible server the person
+ * started on this machine (llama.cpp `llama-server`, Ollama, vLLM): `AGENT_SCENARIOS_URL`, such
+ * as `http://127.0.0.1:8080/`, and the model ID it lists, `AGENT_SCENARIOS_MODEL`. It sends no
+ * key and reaches no other address. A live request without both throws, so it never passes on
+ * the script.
+ */
+export function scenarioHarness(env: Record<string, string | undefined> = process.env): Harness {
+  if (!liveScenariosRequested(env)) return deterministicHarness;
+  const { AGENT_SCENARIOS_URL: address, AGENT_SCENARIOS_MODEL: model } = env;
+  if (!address || !model)
+    throw new Error('AGENT_SCENARIOS=live needs AGENT_SCENARIOS_URL and AGENT_SCENARIOS_MODEL');
+  const base = new URL(address);
+  if (!loopback.has(base.hostname))
+    throw new Error('AGENT_SCENARIOS_URL must be a loopback address');
+  return localHarness({
+    model,
+    client: () => ({ fetch: (path, init) => fetch(new URL(path, base), init) }),
+  });
+}
+
+/** How long a scenario test may take: a model takes minutes per scenario, a script moments. */
+export const scenarioTimeout = (env: Record<string, string | undefined> = process.env) =>
+  liveScenariosRequested(env) ? 15 * 60_000 : undefined;

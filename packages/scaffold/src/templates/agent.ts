@@ -53,13 +53,17 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deterministicHarness } from '@tortoise/agents';
 import { openEmbeddedInstance } from '@tortoise/host';
-import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
+import {
+  runAgentScenarios,
+  scenarioHarness,
+  scenarioTimeout,
+  type AgentScenario,
+} from '@tortoise/testing/agent-scenarios';
 import { create${app.app.pascal}Application } from '../application';
 
 // The ${agent.words} agent judged by what it commits and what it requests approval for. The deterministic harness
-// plays a scripted run; a model runs the same scenarios only when a test is given one.
+// plays a scripted run; with \`AGENT_SCENARIOS=live\` the first test runs them on a model (\`scenarioHarness\`).
 const owner = { workspaceId: 'local', principalId: 'owner' };
 let ids = 0;
 let directory: string;
@@ -138,12 +142,12 @@ const scenarios: AgentScenario[] = [
 test('the ${agent.words} agent requests approval for updates and never commits them', async () => {
   const results = await runAgentScenarios(scenarios, {
     application: instance.application,
-    harness: deterministicHarness,
+    harness: scenarioHarness(),
   });
   expect(results.map((result) => [result.scenario, result.failures])).toEqual(
     scenarios.map((scenario) => [scenario.name, []]),
   );
-});
+}, scenarioTimeout());
 
 test('a person approves an approval, and the update commits as that person', async () => {
   const app = instance.application;

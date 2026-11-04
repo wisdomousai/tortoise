@@ -149,13 +149,6 @@ export function notesByCall(run: PanelRun, notes: readonly UiNote[]): Map<string
   return byCall;
 }
 
-/** The assistant's whole text in the run, for the earlier turns of a follow-up's prompt. */
-export const runText = (run: PanelRun) =>
-  run.events
-    .filter((event) => event.type === 'text')
-    .map((event) => event.text ?? '')
-    .join('');
-
 /** A transformer serial or a quote number in the assistant's text, which the panel links. */
 export const RECORD_NAME = /\b(TR-\d{5}|Q-\d{5})\b/g;
 

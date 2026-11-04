@@ -2,7 +2,6 @@ import { toolName } from '@tortoise/agents/types';
 import { agentInstructions } from '@tortoise/contracts';
 import { deploymentCatalog } from '@tortoise/host/components';
 import type { StandInMessage, StandInResponder } from '@tortoise/model-server/testing';
-import { currentRequest } from './conversation';
 import { assistantAgent } from './contracts/assistant-agent';
 import type { Part } from './contracts/part';
 import { DESK_DISCOUNT_LIMIT } from './contracts/quote';
@@ -60,20 +59,18 @@ function parse(value: string): unknown {
   }
 }
 
+/**
+ * The request asked now: the last user message. A follow-up's earlier turns come before it as
+ * messages of their own (`conversationMessages` in `@tortoise/agents`), so a serial from an
+ * earlier turn does not steer the stand-in. The host appends what the screen offers
+ * (`modelPrompt`), which is not the person's request either.
+ */
 const promptOf = (messages: readonly StandInMessage[]) =>
-  messages
-    .filter((message) => message.role === 'user')
-    .map((message) => text(message.content))
-    .join('\n\n');
+  text(messages.findLast((message) => message.role === 'user')?.content);
 
 function requestOf(messages: readonly StandInMessage[]): string {
   const prompt = promptOf(messages);
-  // A follow-up from the panel carries the earlier turns first; the stand-in reads only the
-  // request asked now, so a serial from an earlier turn does not steer it. The host appends what
-  // the screen offers (`modelPrompt`), which is not the person's request either.
-  const request = currentRequest(
-    prompt.startsWith(instructions) ? prompt.slice(instructions.length) : prompt,
-  );
+  const request = prompt.startsWith(instructions) ? prompt.slice(instructions.length) : prompt;
   return request.split(SCREEN_CONTEXT)[0]!;
 }
 
@@ -164,8 +161,7 @@ function prepareQuote(
  *   quote.discount.
  * - Anything else gets a short answer that it cannot help with that yet.
  *
- * In a follow-up it reads only the request asked now, not the earlier turns the panel puts
- * before it (`conversation.ts`).
+ * In a follow-up it reads only the request asked now, not the earlier turns before it.
  *
  * A refused call ends the run with the refusal in the answer. A real model gets the same tools
  * and messages.

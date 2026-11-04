@@ -38,7 +38,8 @@ export type HarnessEvent =
 export interface RunEvent {
   sequence: number;
   at: string;
-  type: HarnessEvent['type'] | 'state' | 'question' | 'approval';
+  /** `answer`: the person's response to the question or approval `requestId` names. */
+  type: HarnessEvent['type'] | 'state' | 'question' | 'approval' | 'answer';
   state?: RunState;
   text?: string;
   message?: string;
@@ -53,6 +54,8 @@ export interface RunEvent {
   code?: string;
   requestId?: string;
   choices?: readonly string[];
+  /** On `answer` to an approval: whether the person approved. A question's answer is `text`. */
+  approved?: boolean;
 }
 export interface RunSnapshot {
   id: string;
@@ -63,6 +66,11 @@ export interface RunSnapshot {
   updatedAt: string;
   /** Captured, server-approved UI/resource context; later selections cannot retarget it. */
   context: Record<string, unknown>;
+  /**
+   * What the person asked, scrubbed like event text, so a conversation shows it after a reload.
+   * The prompt the harness read also held the agent's instructions; the run keeps only this.
+   */
+  request?: string;
   events: RunEvent[];
   nextSequence: number;
   resumeData?: Record<string, string>;
@@ -82,7 +90,10 @@ export interface RunBudget {
   toolCalls?: number;
   wallTimeMs?: number;
 }
-/** Persist atomically per snapshot. Stores must not contain credentials or prompts. */
+/**
+ * Persist atomically per snapshot. Stores must not contain credentials or the prompt a harness
+ * reads; they hold the person's scrubbed request.
+ */
 export interface RunStore {
   get(id: string): Promise<RunSnapshot | undefined>;
   list(): Promise<RunSnapshot[]>;
@@ -96,9 +107,19 @@ export interface HarnessTurn {
   signal: AbortSignal;
   tools: ToolPort;
   resumeData?: Record<string, string>;
+  /**
+   * The conversation's earlier turns, oldest first, for a harness that cannot resume a native
+   * session (`features.resume` false). A harness that resumes gets none.
+   */
+  earlier?: readonly ConversationTurn[];
   budget?: RunBudget;
   question(message: string, choices?: readonly string[]): Promise<string>;
   approve(message: string): Promise<boolean>;
+}
+/** One earlier run of a conversation: what the person asked and the text the agent replied. */
+export interface ConversationTurn {
+  readonly request: string;
+  readonly reply: string;
 }
 /**
  * Where a harness sends prompts. `local`: a model on this host, over a loopback destination.

@@ -36,7 +36,6 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 ### Catalog, runtime and storage
 
 - **Proven:** 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms. A triggered agent requested approval on a real local model.
-- **Not yet:** no host route starts an agent run from an agent definition.
 - **Limits:** row storage serializes every row to find the change, so commit CPU grows with state. The instance keeps receipts by default. The phone's snapshot storage has no rows or retention. No encryption at rest.
 
 ### Hosted instance
@@ -117,6 +116,8 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Not yet:** a model following the `calibration-pull` workflow of `showcase/examples/tool-store` over MCP. Its test reads the workflow resource and calls the tools it names through the MCP adapter, with no model.
 - **Proven (browser):** at the counter terminal of `showcase/examples/tool-store`, a run on the deterministic harness, started from the ticked tools, opened a tool on the Counter tab and asked for a review above its edit form. The attendant saved the bin and acknowledged the review. The run acts as the terminal's session, the owner.
 - **Not yet:** a provider model at that terminal. Without an agent definition such a run holds the owner's whole grant, and only its instruction keeps it from `tool.update`.
+- **Proven (browser, 4 Nov):** the frame's assistant panel in `showcase/patterns/agents` ran two turns with the method suggester on the deterministic harness, from the request screen's record. The person answered its question in the panel, and after a reload the panel showed the request, the answer and the reply again (`e2e/assistant.pw.ts`).
+- **Not yet:** the frame's panel on a model, and the discrepancy classifier started from the receiving panel on a model. The work order planner starts from the field-service agent panel only with a provider account. The parts desk keeps its own panel, with dictation and record links; the assistant tutorial still has each application write its panel.
 
 ### Execution host
 

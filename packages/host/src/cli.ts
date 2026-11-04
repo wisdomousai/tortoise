@@ -7,6 +7,7 @@ import { mcpCommand } from './cli/mcp';
 import { operationCommand } from './cli/operation';
 import { serveCommand } from './cli/serve';
 import { migrateCommand } from './cli/migrate-command';
+import { runsCommand, runsUsage } from './cli/runs-command';
 import { backupCommand, restoreCommand } from './cli/workspace-commands';
 import type { ApplicationManifest } from './manifest';
 import { settingsUsage } from './plugins/settings';
@@ -55,6 +56,7 @@ export function createCli(definition: AnyApplicationDefinition, options: { progr
       if (verb === 'backup') return await backupCommand(definition, args.slice(1));
       if (verb === 'restore') return await restoreCommand(definition, args.slice(1));
       if (verb === 'migrate') return await migrateCommand(definition, args.slice(1));
+      if (verb === 'runs') return await runsCommand(args.slice(1));
       // Plugin verbs touch no workspace, for example policy checks or log audits.
       const commands = (definition.plugins ?? []).flatMap((plugin) => plugin.commands ?? []);
       for (const command of commands) {
@@ -63,7 +65,9 @@ export function createCli(definition: AnyApplicationDefinition, options: { progr
       }
       if (verb === undefined || (verb === 'help' && args.length === 1) || verb === '--help') {
         const usages = commands.map((command) => command.usage(program) + '\n');
-        process.stdout.write([instanceUsage(program, definition.manifest), ...usages].join('\n'));
+        process.stdout.write(
+          [instanceUsage(program, definition.manifest), runsUsage(program), ...usages].join('\n'),
+        );
         return await operationCommand(definition, program, ['help']);
       }
       return await operationCommand(definition, program, args);

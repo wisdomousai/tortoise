@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import type { Harness, ToolPort } from '../types';
+import type { ConversationTurn, Harness, ToolPort } from '../types';
 import { terminalStates } from '../types';
+import { earlierTurns } from './conversation';
 import {
   abortCheck,
   emit,
@@ -79,6 +80,7 @@ async function streamTurn(
   harness: Harness,
   prompt: string,
   calls: Calls,
+  earlier: readonly ConversationTurn[],
 ) {
   for await (const event of harness.run({
     runId: run.snapshot.id,
@@ -87,6 +89,7 @@ async function streamTurn(
     context: Object.freeze(structuredClone(run.snapshot.context)),
     signal: run.controller.signal,
     resumeData: run.snapshot.resumeData,
+    ...(earlier.length ? { earlier } : {}),
     ...(run.snapshot.budget ? { budget: structuredClone(run.snapshot.budget) } : {}),
     tools: runTools(kernel, run, calls),
     question: async (message, choices) =>
@@ -158,7 +161,12 @@ export async function execute(
     abortCheck(run);
     await setState(kernel, run, 'running');
     const calls: Calls = new Map();
-    await streamTurn(kernel, run, harness, prompt, calls);
+    // A harness that resumes its native session already holds the earlier turns.
+    const earlier =
+      harness.features.resume || run.snapshot.conversationId === run.snapshot.id
+        ? []
+        : await earlierTurns(kernel, run.snapshot);
+    await streamTurn(kernel, run, harness, prompt, calls, earlier);
     // A native terminal event cannot overtake an application call still in flight. A refusal
     // the harness handed back to its model does not fail the run; the harness decides that.
     await Promise.allSettled([...calls.values()].map((call) => call.result));

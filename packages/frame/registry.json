@@ -270,10 +270,57 @@
       ]
     },
     {
+      "name": "assistant-panel",
+      "type": "registry:component",
+      "title": "Assistant panel",
+      "description": "A panel beside every screen that talks to the application's agent definitions through the run route, with the conversation the host keeps, questions, approvals, review requests and the records of the current screen.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "lucide-react",
+        "@tortoise/contracts"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "native-select",
+        "textarea",
+        "@tortoise/native-dialog",
+        "@tortoise/accounts",
+        "@tortoise/run-panel",
+        "@tortoise/ui-session",
+        "@tortoise/session",
+        "@tortoise/capability-form",
+        "@tortoise/frame"
+      ],
+      "files": [
+        {
+          "path": "src/components/assistant-panel.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/assistant-transcript.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/lib/assistant-conversation.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/assistant-context.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/assistant-run.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "command-palette",
       "type": "registry:component",
       "title": "Capability palette",
-      "description": "⌘K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
       "registryDependencies": [
         "command",
@@ -385,7 +432,7 @@
       "name": "app-shell",
       "type": "registry:component",
       "title": "App shell",
-      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (⌘K); a bar and menu sheet on a narrow viewport. Shows the build's best-before date, and a notice once it has passed. Exports NavigationCount, SidebarSection and SidebarLink.",
+      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K); a bar and menu sheet on a narrow viewport. Shows the build's best-before date, and a notice once it has passed. Exports NavigationCount, SidebarSection and SidebarLink.",
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "lucide-react"],
       "registryDependencies": [
         "alert",

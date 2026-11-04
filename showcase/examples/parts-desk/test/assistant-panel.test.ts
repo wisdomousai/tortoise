@@ -1,48 +1,14 @@
 import { expect, test } from 'bun:test';
-import { conversationPrompt, currentRequest, MAX_EARLIER } from '../conversation';
 import {
   notesByCall,
   recordNames,
   runItems,
-  runText,
   type PanelEvent,
   type UiNote,
 } from '../ui/assistant-run';
 import { draftFromPrepared, preparedQuote, type QuoteDraft } from '../ui/quote-drafts';
 
-// What the assistant panel sends and shows, without a browser: the prompt of a follow-up and the
-// items of a run. The browser test (`e2e/assistant.pw.ts`) shows them in the panel.
-
-test('a follow-up carries the earlier turns before the request, and the stand-in reads the request', () => {
-  expect(conversationPrompt([], 'Which transformer is TR-40417?')).toBe(
-    'Which transformer is TR-40417?',
-  );
-  const prompt = conversationPrompt(
-    [{ request: 'Which transformer is TR-40417?', answer: 'TR-40417 is a PTX-40.' }],
-    'Which HV bushings fit it?',
-  );
-  expect(prompt).toBe(
-    'Earlier in this conversation:\n\nPerson: Which transformer is TR-40417?\nAssistant: TR-40417 is a PTX-40.\n\nThe request now:\nWhich HV bushings fit it?',
-  );
-  expect(currentRequest(prompt)).toBe('Which HV bushings fit it?');
-  expect(currentRequest('Which transformer is TR-404?')).toBe('Which transformer is TR-404?');
-});
-
-test('the oldest turns are left out first once the earlier turns grow too long', () => {
-  const long = 'x'.repeat(MAX_EARLIER / 2);
-  const prompt = conversationPrompt(
-    [
-      { request: 'first', answer: long },
-      { request: 'second', answer: long },
-      { request: 'third', answer: '' },
-    ],
-    'now',
-  );
-  expect(prompt).not.toContain('Person: first');
-  expect(prompt).toContain('Person: second');
-  expect(prompt).toContain('Person: third\nAssistant: (no text)');
-  expect(conversationPrompt([{ request: 'first', answer: long + long }], 'now')).toBe('now');
-});
+// What the assistant panel shows, without a browser: the items of a run. The browser test (`e2e/assistant.pw.ts`) shows them in the panel.
 
 const event = (sequence: number, fields: Omit<PanelEvent, 'sequence'>): PanelEvent => ({
   sequence,
@@ -96,7 +62,6 @@ test('a run shows its calls by callId, its text joined and the question it waits
     { kind: 'question', requestId: 'r1', message: 'Which?', choices: ['TR-40417'], open: true },
     { kind: 'call', callId: 'd', operation: 'part.search', state: 'running', resources: [] },
   ]);
-  expect(runText(run)).toBe('TR-404 matches two.');
   // Once the run goes on, the question is no longer open.
   expect(runItems({ ...run, state: 'running' })[4]).toMatchObject({ open: false });
 });

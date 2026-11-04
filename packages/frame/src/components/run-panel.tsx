@@ -11,6 +11,8 @@ export type Run = {
   /** Runs that continue one conversation share it; a new conversation's ID is its first run's. */
   conversationId: string;
   createdAt: string;
+  /** What the person asked; absent for a run no person asked for. */
+  request?: string;
   /** The agent definition the run executes under, when it was started with one. */
   context?: { agentId?: string };
   events: {
@@ -26,6 +28,8 @@ export type Run = {
     code?: string;
     requestId?: string;
     choices?: string[];
+    /** On `answer` to an approval: whether the person approved; a question's answer is `text`. */
+    approved?: boolean;
   }[];
   failure?: { message: string };
 };

@@ -154,12 +154,17 @@ const dateTimeFormat = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
+const timeFormat = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
+const formats = { date: dateFormat, 'date-time': dateTimeFormat, time: timeFormat };
 
-/** A date or date-time in the person's locale; the raw value when it is not a date. */
-export function formatDate(value: unknown, kind: 'date' | 'date-time' = 'date-time'): string {
+/** A date, date-time or time of day in the person's locale; the raw value when it is not a date. */
+export function formatDate(
+  value: unknown,
+  kind: 'date' | 'date-time' | 'time' = 'date-time',
+): string {
   const date = toDate(value);
   if (!date) return String(value ?? '');
-  return (kind === 'date' ? dateFormat : dateTimeFormat).format(date);
+  return formats[kind].format(date);
 }
 
 const units = ['B', 'KB', 'MB', 'GB'];

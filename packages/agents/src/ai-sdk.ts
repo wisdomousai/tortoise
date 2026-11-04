@@ -1,6 +1,6 @@
 import { isStepCount, jsonSchema, streamText, tool, type LanguageModel, type ToolSet } from 'ai';
 import { ApplicationError, errorEnvelope } from '@tortoise/contracts';
-import type { Harness, HarnessEvent, HarnessTurn } from './types';
+import type { ConversationTurn, Harness, HarnessEvent, HarnessTurn } from './types';
 import { modelPrompt, toolDescription, toolName } from './types';
 
 /** The tool a model asks the person with; outside the `app_` names catalog tools take. */
@@ -35,6 +35,20 @@ function askTool(turn: HarnessTurn) {
       answer: await turn.question(question, choices?.length ? choices : undefined),
     }),
   });
+}
+
+/**
+ * The conversation as chat messages: each earlier turn's request and reply, then this turn's
+ * prompt. An earlier reply without text, such as one that only called tools, says so.
+ */
+export function conversationMessages(earlier: readonly ConversationTurn[], prompt: string) {
+  return [
+    ...earlier.flatMap((turn) => [
+      { role: 'user' as const, content: turn.request },
+      { role: 'assistant' as const, content: turn.reply.trim() || '(no text)' },
+    ]),
+    { role: 'user' as const, content: prompt },
+  ];
 }
 
 /** The host constructs the model with explicitly chosen credentials. No string model
@@ -86,7 +100,9 @@ export class AiSdkHarness implements Harness {
     );
     const result = streamText({
       model: this.options.model,
-      prompt: modelPrompt(turn),
+      ...(turn.earlier?.length
+        ? { messages: conversationMessages(turn.earlier, modelPrompt(turn)) }
+        : { prompt: modelPrompt(turn) }),
       tools,
       // A run budget can only lower the configured limit.
       stopWhen: isStepCount(Math.min(this.options.maxSteps ?? 12, turn.budget?.turns ?? Infinity)),

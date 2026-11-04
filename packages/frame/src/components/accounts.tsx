@@ -5,10 +5,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 
+/**
+ * How a run is started: the harness and its account, and the agent definition it runs under.
+ * Spread into the body of `POST /api/v1/runs`.
+ */
 export interface AgentSelection {
-  harnessId: 'deterministic' | 'codex' | 'claude' | 'ai-sdk';
+  /** Absent with `local`: the host picks one of its own harnesses (`local`). */
+  harnessId?: 'deterministic' | 'codex' | 'claude' | 'ai-sdk';
   profileId?: string;
   model?: string;
+  /** The agent definition the run executes under, with its instructions, grant and budgets. */
+  agentId?: string;
+  /**
+   * Run on a model the host serves itself, such as a local model, so no account is involved. The
+   * run sends no `harnessId` and the host picks its first harness that meets the agent's model
+   * requirement; it needs `agentId`.
+   */
+  local?: boolean;
+}
+
+/** A harness the host offers for a run without `harnessId`, from `GET /api/v1/harnesses`. */
+export interface HostHarness {
+  readonly id: string;
+  readonly inference: 'local' | 'remote' | 'none';
+  readonly model?: string;
+  readonly available: boolean;
+  readonly reason?: string;
 }
 type Profile = {
   id: string;
@@ -247,21 +269,26 @@ function ApiKeyAccount({ busy, work, onSelect }: { busy: boolean; work: Work; on
 }
 
 const fundingOf = (selection: AgentSelection) =>
-  selection.harnessId === 'deterministic'
-    ? 'Demo'
-    : selection.harnessId === 'codex'
-      ? 'ChatGPT plan'
-      : 'API key';
+  selection.local
+    ? 'Model on this host'
+    : selection.harnessId === 'deterministic'
+      ? 'Demo'
+      : selection.harnessId === 'codex'
+        ? 'ChatGPT plan'
+        : 'API key';
 
 /** Account access is deliberate. Rendering this component never reads the OS vault. */
 export function Accounts({
   selection,
   onSelect,
   onError,
+  host = [],
 }: {
   selection: AgentSelection;
   onSelect: (value: AgentSelection) => void;
   onError: (message: string) => void;
+  /** The host's own harnesses; with one, the person may run on it instead of an account. */
+  host?: readonly HostHarness[];
 }) {
   const { busy, work } = useAccountWork(onError);
   const chatGpt = useChatGptAccounts(work, onSelect);
@@ -278,6 +305,17 @@ export function Accounts({
         <ChatGptProfilePicker accounts={chatGpt} selection={selection} busy={busy} />
       )}
       <ApiKeyAccount busy={busy} work={work} onSelect={onSelect} />
+      {host.length > 0 && (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!host.some((harness) => harness.available)}
+          title={host.map((harness) => harness.reason ?? harness.model ?? harness.id).join('\n')}
+          onClick={() => onSelect({ local: true })}
+        >
+          Use the model on this host
+        </Button>
+      )}
       <Button size="sm" variant="outline" onClick={() => onSelect({ harnessId: 'deterministic' })}>
         Use deterministic demo
       </Button>
