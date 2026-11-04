@@ -6,7 +6,7 @@ import type { ExecutionContext } from '@tortoise/runtime';
  * Credentials for sandboxes. Each run gets one random bearer token that stands for the run's
  * delegated context and nothing else; the host asks `authenticate` on every request, so a
  * revoked or expired token stops working at the next call. The token is the only credential a
- * sandbox ever holds: no provider key, no owner session, no grant file it could reuse elsewhere.
+ * sandbox ever holds: no provider key, no local-user session, no grant file it could reuse elsewhere.
  */
 export interface Broker {
   /** Issue a token for `context`, which must carry a grant, ending at `expiresAt` at the latest. */

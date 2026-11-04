@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { draftQuote, owner, supervisor, testWorkspaces, viewer } from './support';
+import { draftQuote, localUser, supervisor, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('quote-discount');
 
@@ -19,7 +19,7 @@ const maraAgentRun = {
 async function withDraft() {
   const app = await open({ trialRecords: true });
   const quote = (await draftQuote(app)).result;
-  const discount = (percent: number, caller: typeof owner, key: string) =>
+  const discount = (percent: number, caller: typeof localUser, key: string) =>
     app.invokeRaw(
       {
         operation: 'quote.discount',
@@ -33,15 +33,15 @@ async function withDraft() {
 
 test('the desk sets 10 percent and is refused 12 percent with FORBIDDEN', async () => {
   const { app, quote, discount } = await withDraft();
-  const ten = await discount(10, owner, 'ten');
+  const ten = await discount(10, localUser, 'ten');
   expect(ten.result).toMatchObject({
     discountPercent: 10,
     discountReason: 'Framework agreement',
     total: 1_456_200,
   });
-  await expect(discount(12, owner, 'twelve')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  await expect(discount(12, localUser, 'twelve')).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(discount(5, viewer, 'viewer')).rejects.toMatchObject({ code: 'FORBIDDEN' });
-  const read = await app.queryRaw({ operation: 'quote.get', input: { id: quote.id } }, owner);
+  const read = await app.queryRaw({ operation: 'quote.get', input: { id: quote.id } }, localUser);
   expect(read.data).toMatchObject({ discountPercent: 10, total: 1_456_200 });
 });
 
@@ -66,9 +66,9 @@ test('a submitted or cancelled quote refuses a discount with CONFLICT', async ()
   const { app, quote, discount } = await withDraft();
   await app.invokeRaw(
     { operation: 'quote.submit', input: { id: quote.id }, idempotencyKey: 'submit' },
-    owner,
+    localUser,
   );
-  await expect(discount(5, owner, 'submitted')).rejects.toMatchObject({ code: 'CONFLICT' });
+  await expect(discount(5, localUser, 'submitted')).rejects.toMatchObject({ code: 'CONFLICT' });
   // A supervisor passes the policy, and the quote still takes no discount once submitted.
   await expect(discount(12, supervisor, 'submitted-supervisor')).rejects.toMatchObject({
     code: 'CONFLICT',
@@ -79,7 +79,7 @@ test('a submitted or cancelled quote refuses a discount with CONFLICT', async ()
       input: { id: quote.id, reason: 'Ordered elsewhere' },
       idempotencyKey: 'cancel',
     },
-    owner,
+    localUser,
   );
-  await expect(discount(5, owner, 'cancelled')).rejects.toMatchObject({ code: 'CONFLICT' });
+  await expect(discount(5, localUser, 'cancelled')).rejects.toMatchObject({ code: 'CONFLICT' });
 });

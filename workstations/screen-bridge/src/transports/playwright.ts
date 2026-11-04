@@ -24,7 +24,7 @@ export interface PlaywrightTransportOptions {
   readonly pixels?: boolean;
   /**
    * How the station reports local input, when it can (a simulator endpoint, an input hook on the
-   * station PC). Without it the control holder is the only guard against a person at the station.
+   * station PC). Without it, who has control is the only guard against a person at the station.
    */
   readonly localInputSince?: (since: number, signal: AbortSignal) => Promise<boolean>;
   readonly now?: () => number;

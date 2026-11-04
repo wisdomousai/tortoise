@@ -19,14 +19,14 @@ const withoutFetchTime = (data: { items: unknown[]; source: { fetchedAt: number 
 
 test('one provider serves the screen, HTTP, the CLI and MCP with the same result', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-crm-'));
-  const crm = new FakeCrm({ logins: { owner: 'ann' } });
+  const crm = new FakeCrm({ logins: { 'local-user': 'ann' } });
   const host = await startHost(createCrmCaptureApplication({ crm }), {
     workspacePath: join(directory, 'workspace'),
     integration: false,
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const localUser = createHttpTransport({ baseUrl: host.url, token });
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
@@ -36,7 +36,7 @@ test('one provider serves the screen, HTTP, the CLI and MCP with the same result
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     return { exitCode, value: JSON.parse(stdout) };
   };
-  const server = createMcpServer(owner);
+  const server = createMcpServer(localUser);
   const mcp = new Client({ name: 'crm-conformance', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
@@ -47,9 +47,9 @@ test('one provider serves the screen, HTTP, the CLI and MCP with the same result
     const input = { q: 'acme' };
     const direct = await host.application.queryRaw(
       { operation: 'crm.account.search', input },
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: 'local', principalId: 'local-user' },
     );
-    const http = await owner.query('crm.account.search', input);
+    const http = await localUser.query('crm.account.search', input);
     const commandLine = await cli(['crm.account.search', '--json', JSON.stringify(input)]);
     const tool = decode(await mcp.callTool({ name: 'crm_account_search', arguments: { input } }));
     const expected = withoutFetchTime(direct.data as never);
@@ -60,9 +60,9 @@ test('one provider serves the screen, HTTP, the CLI and MCP with the same result
     expect(withoutFetchTime(tool.data)).toEqual(expected);
 
     // Paging is part of the contract: a cursor from one surface continues on another.
-    const page1 = await owner.query<{ next?: string }>('crm.account.search', { q: '' });
+    const page1 = await localUser.query<{ next?: string }>('crm.account.search', { q: '' });
     const page2 = { q: '', cursor: page1.data.next };
-    const viaHttp = await owner.query('crm.account.search', page2);
+    const viaHttp = await localUser.query('crm.account.search', page2);
     const viaTool = decode(
       await mcp.callTool({ name: 'crm_account_search', arguments: { input: page2 } }),
     );
@@ -88,7 +88,7 @@ test('one provider serves the screen, HTTP, the CLI and MCP with the same result
     expect(followed.result).toEqual({ id: '001A1', status: 'requested' });
     await host.integrations.target('crm').dispatcher.runOnce();
     await host.integrations.sync();
-    const list = await owner.query<{ items: { id: string; status: string }[] }>(
+    const list = await localUser.query<{ items: { id: string; status: string }[] }>(
       'crm.account.list',
       {},
     );

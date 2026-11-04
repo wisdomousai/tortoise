@@ -114,7 +114,7 @@ export function demoAutomationStation(
 }
 
 /** A new workspace's line: one demo station whose creator is its supervisor. */
-const freshLine = (ownerId: string) =>
+const freshLine = (localUserId: string) =>
   createLineState({
     mesPrincipalId: MES_PRINCIPAL,
     stations: [
@@ -122,7 +122,7 @@ const freshLine = (ownerId: string) =>
         id: 'winder-1',
         name: 'Winder 1',
         line: 'Winding line 1',
-        members: { [ownerId]: 'supervisor' },
+        members: { [localUserId]: 'supervisor' },
       },
     ],
   });
@@ -226,11 +226,11 @@ export function createWindingLineApplication(
 ) {
   return defineApplication<WindingLineState, LineServices>({
     manifest,
-    createState: (ownerId) => ({ windingLine: freshLine(ownerId) }),
+    createState: (localUserId) => ({ windingLine: freshLine(localUserId) }),
     migrations,
-    upgradeState(state, ownerId) {
+    upgradeState(state, localUserId) {
       const value = (state ?? {}) as Partial<WindingLineState>;
-      return { windingLine: value.windingLine ?? freshLine(ownerId) };
+      return { windingLine: value.windingLine ?? freshLine(localUserId) };
     },
     features: windingLineFeatures(),
     plugins: [

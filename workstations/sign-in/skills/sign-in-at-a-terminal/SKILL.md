@@ -9,7 +9,7 @@ A terminal is a principal whose screen may sign people in. An operator scans a b
 
 ## Before writing
 
-- Decide which principals are terminals. The local owner always is. A tablet's principal is listed in `station-sign-in-terminals`.
+- Decide which principals are terminals. The local user always is. A tablet's principal is listed in `station-sign-in-terminals`.
 - Decide how long a session lasts (`station-sign-in-minutes`, 15 by default) and how long the terminal may sit idle before it signs the operator out (`idleMs`, two minutes by default).
 - Make every person who signs in a member under the application's policy, with the role their work needs. The operator acts with their own permissions, never the terminal's. A scaffolded application sets members only when its workspace is created, so give the application a default member list, as `benchMembers` does in the sign-in pattern. For an existing workspace, use a new development workspace or migrate its members; preserve any data needed from the original.
 - A badge value that is also a business identifier, such as an employee number stored on a record, is no secret, so the PIN and the lockout are the secret parts of sign-in.
@@ -23,7 +23,7 @@ A terminal is a principal whose screen may sign people in. An operator scans a b
 3. Write the screen an operator works on as a component without props. It is mounted at `/terminal` alone, and leaving that route ends the session, so several views behind sign-in are tabs inside the component, not routes. Read the operator's `client` and `live` bindings with `useOperatorSession()` from `@tortoise/workstation-sign-in/plugin-screens`.
 4. Use only that client in this component, never `@/lib/session`, which acts as the terminal. Frame components such as `collection-screen` and `CapabilityForm` read `@/lib/session`, so the work component uses its own hooks and forms that send through the operator client's `transport`. `useUiSession`, `Accounts` and `RunPanel` call the host with the terminal's session instead: a run started in the work component acts as the terminal's principal, and the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers handling its intents without leaving the terminal. An application-wide scanner listener must stop on `/terminal`, or it reads the badge burst too.
 5. Pass `stationSignInScreens({ terminal, work, idleMs, badgePattern })` to `defineScreens({ plugins })`, with the application's `manifest`. The terminal screen is at `/terminal` and the badge screen at `/badges`.
-6. Enroll badges on the badge screen as the local owner, who is the plugin's admin. Enrollment posts to `stationPaths.enroll`, which hashes the PIN, so neither the badge value nor the PIN becomes a stored command input.
+6. Enroll badges on the badge screen as the local user, who is the plugin's admin. Enrollment posts to `stationPaths.enroll`, which hashes the PIN, so neither the badge value nor the PIN becomes a stored command input.
 
 For a PIN entry of your own, pass `code` and `masked` to the operator registry's `numeric-pad`. `code` keeps leading zeros and offers no separator. `masked` shows a dot per digit. `onSubmit` gets the entry as typed as its second argument.
 

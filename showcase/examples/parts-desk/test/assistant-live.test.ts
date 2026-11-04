@@ -10,7 +10,7 @@ import { composePartsDesk } from '../application';
 import { ASSISTANT_MODEL_PROCESS, assistantAgent } from '../contracts/assistant-agent';
 import { ASSISTANT_CONTEXT_TOKENS, assistantModelEntry } from '../model';
 import { seedTrialRecords } from '../trial-records';
-import { owner, supervisor, utilityIds } from './support';
+import { localUser, supervisor, utilityIds } from './support';
 
 /**
  * Turns 1 and 4 of the desk's conversation on a real model, skipped unless LOCAL_MODEL_GGUF names
@@ -90,7 +90,7 @@ beforeAll(async () => {
     await Bun.sleep(250);
   }
   expect(models.status()).toMatchObject({ state: 'ready' });
-  token = host.sessions.create(owner).token;
+  token = host.sessions.create(localUser).token;
 }, 600_000);
 
 afterAll(async () => {
@@ -116,7 +116,7 @@ async function uiSession(records: readonly string[] = []) {
   return session.body.sessionId;
 }
 
-/** Start a run of the assistant as the owner from the panel, without naming a harness. */
+/** Start a run of the assistant as the local user from the panel, without naming a harness. */
 async function start(prompt: string, uiSessionId: string, conversationId?: string) {
   const started = await post<RunSnapshot>('/api/v1/runs', {
     agentId: assistantAgent.id,
@@ -177,7 +177,7 @@ const text = (run: RunSnapshot) =>
     .join('');
 
 async function query<T>(operation: string, input: unknown) {
-  return (await host!.application.queryRaw({ operation, input }, owner)).data as T;
+  return (await host!.application.queryRaw({ operation, input }, localUser)).data as T;
 }
 const totals = async () => ({
   quotes: (await query<{ total: number }>('quote.list', { limit: 1 })).total,
@@ -253,7 +253,7 @@ live(
         },
         idempotencyKey: 'live-draft',
       },
-      owner,
+      localUser,
     );
     const quote = created.result as { id: string; number: string };
     const resource = `quote:${quote.id}`;

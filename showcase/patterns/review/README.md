@@ -9,7 +9,7 @@ bun run dev:web
 
 ## What to try
 
-- On a new workspace (port 4355) the launch adds a request from a second technician, `lena`; open it and sign as the local owner.
+- On a new workspace (port 4355) the launch adds a request from a second technician, `lena`; open it and sign as the local user.
 - Sign your own request, or sign the same revision twice: both return a conflict.
 - Change the request and sign the new revision.
 - An older workspace without `lena` needs a new `WORKSPACE_PATH`.

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const outsider = { workspaceId: 'local', principalId: 'outsider' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -46,16 +46,16 @@ async function add(app: App, n: number, due?: string) {
       },
       idempotencyKey: `create-${n}`,
     },
-    owner,
+    localUser,
   );
   return (receipt.result as { id: string }).id;
 }
 
 async function run(app: App, operation: string, input: object, key: string) {
-  await app.invokeRaw({ operation, input, idempotencyKey: key }, owner);
+  await app.invokeRaw({ operation, input, idempotencyKey: key }, localUser);
 }
 
-const due = async (app: App, input: object = {}, caller = owner) =>
+const due = async (app: App, input: object = {}, caller = localUser) =>
   (await app.queryRaw({ operation: 'tool.calibration-due', input }, caller)).data as {
     items: { assetTag: string; status: string; calibrationDue: string }[];
     total: number;
@@ -86,7 +86,7 @@ test('days sets the window; 0 and 91 are refused', async () => {
   expect(await due(app, { days: 90 })).toMatchObject({ through: '2027-02-03', total: 3 });
   for (const days of [0, 91, 1.5])
     await expect(
-      app.queryRaw({ operation: 'tool.calibration-due', input: { days } }, owner),
+      app.queryRaw({ operation: 'tool.calibration-due', input: { days } }, localUser),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });
 

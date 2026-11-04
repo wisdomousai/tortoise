@@ -7,4 +7,4 @@ Turns scanner input (keyboard wedge, serial, HID POS, camera) into the same comm
 ## References
 
 - [add-scanner-input](skills/add-scanner-input/SKILL.md)
-- [Point-of-work input](../../docs/point-of-work-input.md)
+- [Operator input](../../docs/operator-input.md)

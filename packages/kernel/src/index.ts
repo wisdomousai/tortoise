@@ -73,7 +73,7 @@ export { defaultPorts, isolatedNetwork, latePorts, noIngress, resolvePorts } fro
 export { assertClaimed, mergeSettings, settingsFor, type PluginSettings } from './plugins/settings';
 export { openPlugins, type OpenedPlugins, type PluginPlatform } from './plugins/lifecycle';
 export {
-  LOCAL_OWNER,
+  LOCAL_USER,
   LOCAL_WORKSPACE,
   openInstance,
   type Instance,

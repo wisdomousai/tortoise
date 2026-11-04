@@ -36,8 +36,8 @@ export function createTestRequestsHostedApplication(
   const members = options.members ?? labStaff;
   return defineApplication<TestRequestsHostedRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, { ...members }),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, { ...members }),
     }),
     handlers: sliceHandlers<TestRequestsHostedRoot, 'testRequests', TestRequestsServices>(
       'testRequests',

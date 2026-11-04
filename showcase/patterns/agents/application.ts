@@ -32,8 +32,8 @@ export interface TestRequestsAgentsOptions {
 export function createTestRequestsAgentsApplication(options: TestRequestsAgentsOptions = {}) {
   return defineApplication<TestRequestsAgentsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
       suggestions: { approvals: {} },
     }),
     handlers: [

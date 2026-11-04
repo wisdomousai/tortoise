@@ -5,7 +5,7 @@ import { startHost, type StartHostOptions } from '@tortoise/host/host';
 import { definePluginManifest } from '@tortoise/host/plugin-manifest';
 import { defaultPorts } from '@tortoise/kernel';
 import type { ApplicationDefinition } from '@tortoise/kernel/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { defineHostPlugin, type NetworkPort } from '@tortoise/kernel/plugin';
 import { peerLinkOperations as ops } from './contracts';
 import { peerLinkServiceOf } from './service';
@@ -67,13 +67,13 @@ export interface PeerPairOptions {
 }
 
 /**
- * Two hosts on loopback, connected the way people connect them: the callee's owner creates an
- * enrollment code, the caller's owner connects with it, and the callee maps the subjects. Neither
+ * Two hosts on loopback, connected the way people connect them: the callee's local user creates an
+ * enrollment code, the caller's local user connects with it, and the callee maps the subjects. Neither
  * host runs its integration loops; a test drives delivery through `caller.integrations`.
  */
 export async function startPeerPair(options: PeerPairOptions) {
   const directory = await mkdtemp(join(tmpdir(), 'peer-pair-'));
-  const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+  const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
   const callee = await startHost(options.callee, {
     ...options.hosts?.callee,
     workspacePath: join(directory, 'callee'),
@@ -101,13 +101,13 @@ export async function startPeerPair(options: PeerPairOptions) {
         input: { label: definition.manifest.title },
         idempotencyKey: `pair:${crypto.randomUUID()}`,
       },
-      owner,
+      localUser,
     );
     const linked = peerLinkServiceOf(caller.services);
     if (!linked) throw new Error('The caller composes no peer link');
     const { connection } = await linked.connect(
       { target: options.target, code: (result as { code: string }).code },
-      owner,
+      localUser,
     );
     const peerId = connection.peerId as string;
     for (const [subject, principalId] of Object.entries(options.subjects ?? {}))
@@ -117,14 +117,14 @@ export async function startPeerPair(options: PeerPairOptions) {
           input: { peerId, subject, principalId },
           idempotencyKey: `pair-map:${crypto.randomUUID()}`,
         },
-        owner,
+        localUser,
       );
     const started = caller;
     return {
       callee,
       caller: started,
       peerId,
-      owner,
+      localUser,
       async close() {
         await started.close();
         await callee.close();

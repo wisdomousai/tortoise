@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SitePolicyInput } from '@tortoise/site/policy';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { openMobileInstance } from '@tortoise/mobile';
 import { hubLinkServiceOf } from '@tortoise/hub-link/plugin';
 import { devicePlatform, fieldApplication, hubApplication } from './fixtures';
@@ -114,14 +114,14 @@ test.skipIf(!Bun.which('openssl'))(
           platform,
         });
         try {
-          const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+          const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
           const { result } = await hub.application.invokeRaw(
             {
               operation: 'link.enrollment.create',
               input: { label: 'Phone', kind: 'field-sync' },
               idempotencyKey: 'enroll-phone',
             },
-            owner,
+            localUser,
           );
           const pairing = hubLinkServiceOf(field.instance.services)!;
           await pairing.pair({ origin: hub.url, code: (result as { code: string }).code });
@@ -142,7 +142,7 @@ test.skipIf(!Bun.which('openssl'))(
           ).toMatchObject({ accepted: 1 });
           const { data } = await hub.application.queryRaw(
             { operation: 'captures.list', input: {} },
-            owner,
+            localUser,
           );
           expect((data as { captures: unknown[] }).captures).toHaveLength(1);
         } finally {

@@ -127,14 +127,14 @@ test('only the notified principal can reply, only through the shell, and only be
   await call('reminder.create', { title: 'Two' });
   await until(() => phone.shown.length === 2);
   const [one, two] = phone.shown.map((shown) => shown.buttons[0]!);
-  const reply = (button: typeof one, principalId = 'owner') =>
+  const reply = (button: typeof one, principalId = 'local-user') =>
     instance.instance.ports.shell.receive(
       { workspaceId: 'local', principalId },
       { kind: 'reply', handler: button!.handler, nonce: button!.nonce, action: button!.id },
       'ios',
     );
 
-  // Someone else on the same instance presents the owner's nonce: consumed, but nothing runs.
+  // Someone else on the same instance presents the local user's nonce: consumed, but nothing runs.
   expect(await reply(one, 'visitor')).toEqual({ status: 'consumed', handler: 'reminder.reply' });
   // The commands the consumer uses refuse every other channel, so no page or agent can call them.
   await expect(

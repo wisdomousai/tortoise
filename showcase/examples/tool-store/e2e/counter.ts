@@ -27,8 +27,8 @@ export const blur = (page: Page) =>
 export const sections = (page: Page) => page.getByRole('navigation', { name: 'Sections' });
 
 /**
- * Enroll a badge on the Badges screen. The launch link signs the browser in as the workspace
- * owner, who enrolls badges; the person must be one of the application's default members.
+ * Enroll a badge on the Badges screen. The launch link signs the browser in as the
+ * local user, who enrolls badges; the person must be one of the application's default members.
  */
 export async function enroll(page: Page, person: string, badge: string, pin: string) {
   await sections(page).getByRole('link', { name: 'Badges' }).click();
@@ -50,7 +50,7 @@ export async function signIn(page: Page, badge: string, pin: string) {
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 
-/** Add a tool on the Tools screen as the owner. */
+/** Add a tool on the Tools screen as the local user. */
 export async function addTool(
   page: Page,
   assetTag: string,

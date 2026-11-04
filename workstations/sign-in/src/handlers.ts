@@ -212,8 +212,8 @@ export const stationSignInHandlers: HandlerContribution<
 const known = new Set<string>(stationSignInModule.capabilities.map((capability) => capability.id));
 
 /**
- * Only admins (the local owner, or a caller acting for them under a grant that lists the
- * operation) call these operations. The sign-in routes and credential checks run as the owner
+ * Only admins (the local user, or a caller acting for them under a grant that lists the
+ * operation) call these operations. The sign-in routes and credential checks run as the local user
  * narrowed to the verifier and session operations. Badge and session events are visible to admins.
  */
 export const stationSignInPolicy: AuthorizationPort<StationSignInState> = {

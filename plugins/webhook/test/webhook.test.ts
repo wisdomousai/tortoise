@@ -87,7 +87,7 @@ function notesApplication(network?: Provider | readonly Provider[]) {
   });
 }
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const settings = { 'webhook-operations': 'notes.add' };
 
 async function withDirectory<T>(use: (directory: string) => Promise<T>) {
@@ -110,7 +110,10 @@ async function until(check: () => Promise<boolean>) {
 type Status = { cursor: number; delivered: number; failures: number; lastError?: string };
 const status = async (host: { application: { queryRaw: Function } }) =>
   (
-    (await host.application.queryRaw({ operation: 'webhook.status.get', input: {} }, owner)) as {
+    (await host.application.queryRaw(
+      { operation: 'webhook.status.get', input: {} },
+      localUser,
+    )) as {
       data: Status;
     }
   ).data;
@@ -128,8 +131,8 @@ test('observed changes are posted through the network port and the cursor surviv
       settings,
     };
     let host = await startHost(notesApplication(network), options);
-    await host.application.invokeRaw({ operation: 'notes.pin', input: {} }, owner);
-    await host.application.invokeRaw({ operation: 'notes.add', input: {} }, owner);
+    await host.application.invokeRaw({ operation: 'notes.pin', input: {} }, localUser);
+    await host.application.invokeRaw({ operation: 'notes.add', input: {} }, localUser);
     await until(async () => (await status(host)).delivered === 1);
     expect(posts).toHaveLength(1);
     // Only the observed operation, and only ids: no business data leaves.
@@ -140,7 +143,7 @@ test('observed changes are posted through the network port and the cursor surviv
     await host.close();
 
     host = await startHost(notesApplication(network), options);
-    await host.application.invokeRaw({ operation: 'notes.add', input: {} }, owner);
+    await host.application.invokeRaw({ operation: 'notes.add', input: {} }, localUser);
     await until(async () => (await status(host)).delivered === 2);
     // The restarted loop resumed from the recorded cursor and posted only the new change.
     expect(posts.map((post) => post.changes.map((change) => change.resource))).toEqual([
@@ -159,7 +162,7 @@ test('without a network provider every post is refused and recorded once', async
       settings,
     });
     try {
-      await host.application.invokeRaw({ operation: 'notes.add', input: {} }, owner);
+      await host.application.invokeRaw({ operation: 'notes.add', input: {} }, localUser);
       await until(async () => (await status(host)).failures === 1);
       await Bun.sleep(50);
       const after = await status(host);
@@ -179,7 +182,7 @@ test('under the network plugin an unbound webhook destination is refused by the 
       settings,
     });
     try {
-      await host.application.invokeRaw({ operation: 'notes.add', input: {} }, owner);
+      await host.application.invokeRaw({ operation: 'notes.add', input: {} }, localUser);
       await until(async () => (await status(host)).failures === 1);
       // Isolated by default: the guard refuses the destination it has no binding for.
       expect((await status(host)).lastError).toMatch(/webhook-target/);
@@ -207,11 +210,11 @@ const scenarios: BehavioralScenario[] = [
     async run(driver) {
       await driver.command(
         { operation: webhookOperations.deliveryRecord.id, input: { cursor: 4, delivered: 2 } },
-        owner,
+        localUser,
       );
       const read = await driver.query(
         { operation: webhookOperations.statusGet.id, input: {} },
-        owner,
+        localUser,
       );
       expect(read.data).toEqual({
         cursor: 4,
@@ -223,7 +226,7 @@ const scenarios: BehavioralScenario[] = [
       await expect(
         driver.query(
           { operation: webhookOperations.statusGet.id, input: {} },
-          { ...owner, principalId: 'guest' },
+          { ...localUser, principalId: 'guest' },
         ),
       ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     },
@@ -233,7 +236,7 @@ const scenarios: BehavioralScenario[] = [
 test('behavioural scenarios through the direct driver', async () => {
   const definition = notesApplication();
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState('owner')),
+    storage: createMemoryStorage(definition.createState('local-user')),
     services: { webhook: { observing: [], now: () => 1_000 } },
   });
   await runScenarios(scenarios, directDriver(application));

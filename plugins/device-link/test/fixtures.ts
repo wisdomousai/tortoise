@@ -14,7 +14,7 @@ import {
 } from '@tortoise/contracts';
 import { createPeerPort, createTargetIntegration } from '@tortoise/integration';
 import { defineApplication } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { defineManifest } from '@tortoise/kernel/manifest';
 import type { SecretStore } from '@tortoise/kernel/platform';
 import { createMobilePlatform } from '@tortoise/mobile';
@@ -43,7 +43,7 @@ const outcomeSchema = z.union([
 const empty = jsonSchema(z.strictObject({}));
 const fixture = { ui: { exception: 'test fixture' } } as const;
 
-// The hub: field devices deliver captures; the owner adds assignments that devices read.
+// The hub: field devices deliver captures; the local user adds assignments that devices read.
 const ingest = defineCapability({
   id: 'captures.ingest',
   kind: 'command',
@@ -142,16 +142,16 @@ export function hubApplication(options: { now?: () => number; site?: boolean } =
         };
       }),
     ],
-    // The owner may do everything; a field device only what its grant lists, which the
+    // The local user may do everything; a field device only what its grant lists, which the
     // device-link plugin narrows to the sync operations.
     authorization: {
       authorize: ({ capability, context }) => ({
         allowed:
-          context.principalId === LOCAL_OWNER ||
+          context.principalId === LOCAL_USER ||
           (context.principalId.startsWith('device:') && deviceOperations.has(capability.id)),
         reason: 'RESOURCE_DENIED',
       }),
-      canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
+      canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [...site.map((entry) => entry.plugin), createDeviceLinkPlugin(now ? { now } : {})],
   });

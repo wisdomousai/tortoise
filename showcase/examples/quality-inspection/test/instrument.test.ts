@@ -151,9 +151,9 @@ describe('the measuring instrument', () => {
 
   test('state saved before readings existed is upgraded with an empty set', () => {
     const application = createQualityInspectionApplication();
-    const { quality } = application.createState('owner');
+    const { quality } = application.createState('local-user');
     const { instrumentReadings: _readings, instrumentPrincipalId: _principal, ...older } = quality;
-    expect(application.upgradeState!({ quality: older } as unknown, 'owner').quality).toEqual(
+    expect(application.upgradeState!({ quality: older } as unknown, 'local-user').quality).toEqual(
       quality,
     );
   });

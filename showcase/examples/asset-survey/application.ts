@@ -48,7 +48,7 @@ export const FIELD_SYNC_OPERATIONS = assignments.assignees.device.operations;
  * in-memory EAM, so the reference needs no account. Exports go to the directory the site binds
  * the `filing-export` process to; unbound, they wait. A deploying application passes its own
  * extractor and EAM port. `members` are the people of a new workspace and their roles; by
- * default the owner is the only manager.
+ * default the local user is the only manager.
  */
 export function createAssetSurveyApplication(
   options: {
@@ -63,9 +63,9 @@ export function createAssetSurveyApplication(
     onConnect?: (ports: { eam: FakeEam; model: ExtractionPort }) => void;
   } = {},
 ) {
-  const state = (ownerId: string) =>
+  const state = (localUserId: string) =>
     createSurveyState({
-      ownerId,
+      localUserId,
       integrationPrincipalId: INTEGRATION_PRINCIPAL,
       ...(options.members ? { members: options.members } : {}),
     });
@@ -79,8 +79,8 @@ export function createAssetSurveyApplication(
     manifest,
     createState: state,
     migrations,
-    upgradeState: (stored, ownerId) => ({
-      ...state(ownerId),
+    upgradeState: (stored, localUserId) => ({
+      ...state(localUserId),
       ...(stored as Partial<SurveyState> | undefined),
     }),
     handlers: createSurveyHandlers(),

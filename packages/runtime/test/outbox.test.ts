@@ -57,7 +57,7 @@ const module = defineModule({
   },
 });
 type State = { results: Record<string, { value: number; sync: string; effectId: string }> };
-const owner = { workspaceId: 'w', principalId: 'inspector' };
+const localUser = { workspaceId: 'w', principalId: 'inspector' };
 const integration = { workspaceId: 'w', principalId: 'integration' };
 
 function fixture(options: { declareChange?: boolean; invalidOutput?: boolean } = {}) {
@@ -105,7 +105,7 @@ describe('transactional outbox', () => {
     const { app } = fixture();
     const receipt = await app.invoke(
       { operation: 'result.record', input: { id: 'r1', value: 10.02 }, idempotencyKey: 'k1' },
-      owner,
+      localUser,
     );
     expect(receipt.effects).toEqual(['effect-1']);
     const pending = await app.pendingEffects(integration, { target: 'sor' });
@@ -119,7 +119,9 @@ describe('transactional outbox', () => {
       attempts: 0,
       payload: { id: 'r1', value: 10.02 },
     });
-    expect((await app.query({ operation: 'result.sync-status', input: {} }, owner)).data).toEqual({
+    expect(
+      (await app.query({ operation: 'result.sync-status', input: {} }, localUser)).data,
+    ).toEqual({
       pending: 1,
       rejected: 0,
     });
@@ -129,11 +131,11 @@ describe('transactional outbox', () => {
     const { app } = fixture();
     await app.invoke(
       { operation: 'result.record', input: { id: 'r1', value: 1 }, idempotencyKey: 'k1' },
-      { ...owner, runId: 'run-1' },
+      { ...localUser, runId: 'run-1' },
     );
     await app.invoke(
       { operation: 'result.record', input: { id: 'r2', value: 2 }, idempotencyKey: 'k2' },
-      owner,
+      localUser,
     );
     const pending = await app.pendingEffects(integration, { target: 'sor' });
     expect(pending.map((effect) => effect.runId)).toEqual(['run-1', undefined]);
@@ -146,15 +148,15 @@ describe('transactional outbox', () => {
       input: { id: 'r1', value: 1 },
       idempotencyKey: 'scanner-double-send',
     };
-    const first = await app.invoke(request, owner);
-    expect(await app.invoke(request, owner)).toEqual(first);
+    const first = await app.invoke(request, localUser);
+    expect(await app.invoke(request, localUser)).toEqual(first);
     expect(await app.pendingEffects(integration)).toHaveLength(1);
   });
 
   test('a rolled-back command commits no effect', async () => {
     const { app, storage } = fixture({ invalidOutput: true });
     await expect(
-      app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, owner),
+      app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, localUser),
     ).rejects.toMatchObject({ code: 'INVALID_OUTPUT' });
     expect(await storage.read('w', async (snapshot) => snapshot.effects)).toEqual({});
   });
@@ -162,15 +164,15 @@ describe('transactional outbox', () => {
   test('effects must ride on a declared changed resource', async () => {
     const { app, storage } = fixture({ declareChange: false });
     await expect(
-      app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, owner),
+      app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, localUser),
     ).rejects.toMatchObject({ code: 'INTERNAL' });
     expect(await storage.read('w', async (snapshot) => snapshot.effects)).toEqual({});
   });
 
   test('completion commits the outcome with its domain update exactly once', async () => {
     const { app } = fixture();
-    await app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, owner);
-    await app.invoke({ operation: 'result.record', input: { id: 'r2', value: 2 } }, owner);
+    await app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, localUser);
+    await app.invoke({ operation: 'result.record', input: { id: 'r2', value: 2 } }, localUser);
     const accepted = await app.invoke(
       {
         operation: 'result.complete',
@@ -191,7 +193,9 @@ describe('transactional outbox', () => {
       },
       integration,
     );
-    expect((await app.query({ operation: 'result.sync-status', input: {} }, owner)).data).toEqual({
+    expect(
+      (await app.query({ operation: 'result.sync-status', input: {} }, localUser)).data,
+    ).toEqual({
       pending: 0,
       rejected: 1,
     });
@@ -218,7 +222,7 @@ describe('transactional outbox', () => {
 
   test('malformed outcomes are rejected before commit', async () => {
     const { app } = fixture();
-    await app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, owner);
+    await app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, localUser);
     await expect(
       app.invoke(
         {
@@ -235,11 +239,11 @@ describe('transactional outbox', () => {
     const { app } = fixture();
     const receipt = await app.invoke(
       { operation: 'result.record', input: { id: 'r1', value: 1 } },
-      owner,
+      localUser,
     );
     const attempted = await app.recordAttempt(integration, 'effect-1', 'Target unavailable');
     expect(attempted).toMatchObject({ attempts: 1, lastFailure: 'Target unavailable' });
-    const batch = await app.events(receipt.cursor, owner);
+    const batch = await app.events(receipt.cursor, localUser);
     expect(batch.events).toEqual([
       {
         cursor: receipt.cursor + 1,

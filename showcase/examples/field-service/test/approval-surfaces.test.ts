@@ -36,8 +36,8 @@ const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
 test('approving an approval runs its command as the approver on every surface, once', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-approvals-'));
   const host = await startHost(fieldService, { workspacePath: join(directory, 'workspace') });
-  const ownerToken = ((await Bun.file(host.connectionFile!).json()) as { token: string }).token;
-  const owner = createHttpTransport({ baseUrl: host.url, token: ownerToken });
+  const localUserToken = ((await Bun.file(host.connectionFile!).json()) as { token: string }).token;
+  const localUser = createHttpTransport({ baseUrl: host.url, token: localUserToken });
   const customerSession = host.sessions.create({ workspaceId: 'local', principalId: 'customer' });
   const customer = createHttpTransport({ baseUrl: host.url, token: customerSession.token });
   const customerFile = join(directory, 'customer-connection.json');
@@ -48,19 +48,19 @@ test('approving an approval runs its command as the approver on every surface, o
       mode: 0o600,
     },
   );
-  const ownerMcp = await mcpClient(owner, 'owner-approvals');
+  const localUserMcp = await mcpClient(localUser, 'local-user-approvals');
   const customerMcp = await mcpClient(customer, 'customer-approvals');
   try {
-    const workOrder = await owner.command<{ id: string; members: Record<string, string> }>(
+    const workOrder = await localUser.command<{ id: string; members: Record<string, string> }>(
       'work-order.create',
       { name: 'Planned' },
       { idempotencyKey: 'work-order' },
     );
-    const ownerContext = {
+    const localUserContext = {
       workspaceId: 'local',
       principalId: Object.keys(workOrder.result.members)[0]!,
     };
-    await owner.command(
+    await localUser.command(
       'work-order.set-member',
       { id: workOrder.result.id, principalId: 'customer', role: 'customer' },
       { idempotencyKey: 'membership' },
@@ -111,13 +111,13 @@ test('approving an approval runs its command as the approver on every surface, o
       (await customer.query<{ total: number }>('approval.list', { status: 'pending' })).data.total,
     ).toBe(4);
 
-    // The owner approves one approval request per surface; each creates its task as the owner.
+    // The local user approves one approval request per surface; each creates its task as the local user.
     const approved = [
       await host.application.invokeRaw(
         { operation: 'approval.approve', input: { id: direct }, idempotencyKey: 'o-direct' },
-        ownerContext,
+        localUserContext,
       ),
-      await owner.command('approval.approve', { id: http }, { idempotencyKey: 'o-http' }),
+      await localUser.command('approval.approve', { id: http }, { idempotencyKey: 'o-http' }),
       (
         await cli(host.connectionFile!, [
           'approval.approve',
@@ -128,7 +128,7 @@ test('approving an approval runs its command as the approver on every surface, o
         ])
       ).value,
       decode(
-        await ownerMcp.client.callTool({
+        await localUserMcp.client.callTool({
           name: 'approval_approve',
           arguments: { input: { id: mcp }, idempotencyKey: 'o-mcp' },
         }),
@@ -141,13 +141,13 @@ test('approving an approval runs its command as the approver on every surface, o
       'MCP',
     ]);
     // A retry over another surface with the same key returns the same continuation.
-    const retried = await owner.command(
+    const retried = await localUser.command(
       'approval.approve',
       { id: mcp },
       { idempotencyKey: 'o-mcp' },
     );
     expect(retried.continuation).toEqual(approved[3].continuation);
-    const tasks = await owner.query<{ items: { title: string }[] }>('task.list', {});
+    const tasks = await localUser.query<{ items: { title: string }[] }>('task.list', {});
     expect(tasks.data.items.map((task) => task.title).sort()).toEqual([
       'CLI',
       'Direct',
@@ -155,7 +155,7 @@ test('approving an approval runs its command as the approver on every surface, o
       'MCP',
     ]);
   } finally {
-    await Promise.all([ownerMcp.close(), customerMcp.close()]);
+    await Promise.all([localUserMcp.close(), customerMcp.close()]);
     await host.close();
     await rm(directory, { recursive: true, force: true });
   }

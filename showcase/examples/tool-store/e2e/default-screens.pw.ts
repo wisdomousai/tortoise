@@ -350,9 +350,9 @@ test('an attendant approves one request to retire a tool and rejects another on 
   const workspace = await mkdtemp(join(tmpdir(), 'tool-store-approvals-'));
   const host = await startService('@tortoise/tool-store', workspace);
   try {
-    // The owner's connection token sets up two tools in repair over HTTP and requests their
+    // The local user's connection token sets up two tools in repair over HTTP and requests their
     // retirement as the repair triage agent would; the launch link signs the browser in as the
-    // owner, an attendant.
+    // local user, an attendant.
     const { token } = JSON.parse(await readFile(host.connectionFile, 'utf8')) as { token: string };
     let keys = 0;
     const command = async (operation: string, input: unknown) => {

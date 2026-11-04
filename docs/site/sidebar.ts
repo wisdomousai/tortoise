@@ -51,7 +51,7 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
     [
       ['systems-of-record', 'Systems of record'],
       ['operator-workstations', 'Operator workstations'],
-      ['point-of-work-input', 'Point-of-work input'],
+      ['operator-input', 'Operator input'],
       ['hardware-drivers', 'Hardware drivers'],
       ['agents', 'Agents'],
       ['assignments', 'Assignments'],

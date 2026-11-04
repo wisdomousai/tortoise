@@ -10,7 +10,7 @@ import { gateModel } from '@tortoise/testing/activation';
 import type { AgentScenario } from '@tortoise/testing/agent-scenarios';
 import { methodSuggester, METHOD_MODEL } from '../contracts';
 import { standInEntry, standInModel } from '../model';
-import { owner, refused, startLab, until, viewer } from './fixtures';
+import { localUser, refused, startLab, until, viewer } from './fixtures';
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -24,14 +24,14 @@ async function lab(options: Parameters<typeof startLab>[0] = {}) {
 
 type Application = Awaited<ReturnType<typeof startLab>>['host']['application'];
 let key = 0;
-const command = (application: Application, operation: string, input: unknown, as = owner) =>
+const command = (application: Application, operation: string, input: unknown, as = localUser) =>
   application.invokeRaw({ operation, input, idempotencyKey: `k${++key}` }, as);
 const pending = async (application: Application) =>
   (
     (
       await application.queryRaw(
         { operation: approvalOperations.approvalList.id, input: { status: 'pending' } },
-        owner,
+        localUser,
       )
     ).data as { items: ApprovalRequest[] }
   ).items;
@@ -45,7 +45,7 @@ const submit = async (application: Application, sample: string, description: str
     })
   ).result as { id: string };
 
-/** Enable the trigger as the owner and wait until its loop has started the grant. */
+/** Enable the trigger as the local user and wait until its loop has started the grant. */
 async function enableTrigger(application: Application) {
   await command(application, 'automation.grant.issue', {
     trigger: 'suggest-methods-on-local-model',
@@ -54,7 +54,7 @@ async function enableTrigger(application: Application) {
   await until(async () => {
     const { data } = await application.queryRaw(
       { operation: 'automation.trigger.list', input: {} },
-      owner,
+      localUser,
     );
     return (data as { items: { cursor?: number }[] }).items[0]?.cursor !== undefined;
   });
@@ -88,9 +88,9 @@ test('the trigger runs the method suggester on the measured local model, and a t
   expect(suggestion).toMatchObject({
     operation: requestOperations.requestUpdate.id,
     input: { id: request.id, method: 'IEC 60247 dissipation factor' },
-    requestedBy: 'owner',
+    requestedBy: 'local-user',
   });
-  // The run only requested approval; a viewer cannot approve, and the owner's approval updates.
+  // The run only requested approval; a viewer cannot approve, and the local user's approval updates.
   expect(
     await refused(
       command(application, approvalOperations.approvalApprove.id, { id: suggestion.id }, viewer),
@@ -99,7 +99,7 @@ test('the trigger runs the method suggester on the measured local model, and a t
   await command(application, approvalOperations.approvalApprove.id, { id: suggestion.id });
   const updated = await application.queryRaw(
     { operation: requestOperations.requestGet.id, input: { id: request.id } },
-    owner,
+    localUser,
   );
   expect(updated.data).toMatchObject({ method: 'IEC 60247 dissipation factor' });
 
@@ -147,7 +147,7 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
   await decide('OS-24-0417', 'Gas alarm after a load increase', true);
   await decide('OS-24-0420', 'Breakdown voltage before re-energizing', true);
   await decide('OS-24-0418', 'Dissolved gas after a through-fault', false);
-  const dataset = await exportApprovalDataset(application, owner, {
+  const dataset = await exportApprovalDataset(application, localUser, {
     operations: [requestOperations.requestUpdate.id],
     redact: { rationale: true },
   });
@@ -184,7 +184,7 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
     name: 'suggests dissolved gas analysis after a tap changer fault',
     agent: methodSuggester.id,
     task: 'Suggest the test method for test-request:r1.',
-    issuer: owner,
+    issuer: localUser,
     resources: ['test-request:r1'],
     setup: [
       {

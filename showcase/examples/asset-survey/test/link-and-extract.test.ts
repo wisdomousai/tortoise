@@ -11,7 +11,7 @@ import type { ExecutionContext } from '@tortoise/runtime';
 import { createAssetSurveyApplication } from '../application';
 import { nameplatePhoto } from '../connectors/nameplate-photo';
 
-const owner: ExecutionContext = { workspaceId: 'local', principalId: 'owner' };
+const localUser: ExecutionContext = { workspaceId: 'local', principalId: 'local-user' };
 const device: ExecutionContext = { workspaceId: 'local', principalId: 'device:d1' };
 const composite = 'capture.link-and-extract';
 
@@ -23,7 +23,7 @@ test('linking and extracting in one command commits both or neither on every sur
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const http = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
@@ -39,17 +39,26 @@ test('linking and extracting in one command commits both or neither on every sur
   const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
     response.structuredContent ?? JSON.parse((response.content as { text: string }[])[0]!.text);
   const { application } = host;
-  const direct = (operation: string, input: unknown, context = owner, idempotencyKey?: string) =>
+  const direct = (
+    operation: string,
+    input: unknown,
+    context = localUser,
+    idempotencyKey?: string,
+  ) =>
     application.invokeRaw(
       { operation, input, ...(idempotencyKey ? { idempotencyKey } : {}) },
       context,
     );
-  const created = async (operation: string, input: unknown, context = owner) =>
+  const created = async (operation: string, input: unknown, context = localUser) =>
     (await direct(operation, input, context)).result as { id: string };
   const unlinked = async () =>
     (
-      (await application.queryRaw({ operation: 'capture.list', input: { unlinked: true } }, owner))
-        .data as { items: { id: string }[] }
+      (
+        await application.queryRaw(
+          { operation: 'capture.list', input: { unlinked: true } },
+          localUser,
+        )
+      ).data as { items: { id: string }[] }
     ).items
       .map((item) => item.id)
       .sort();
@@ -96,7 +105,7 @@ test('linking and extracting in one command commits both or neither on every sur
     const scoped = (operations: string[]) =>
       createHttpTransport({
         baseUrl: host.url,
-        token: host.sessions.create({ ...owner, grant: { operations } }).token,
+        token: host.sessions.create({ ...localUser, grant: { operations } }).token,
       });
     for (const operations of [
       [composite, 'assignment.report.link'],
@@ -107,14 +116,14 @@ test('linking and extracting in one command commits both or neither on every sur
         scoped(operations).command(composite, input('cap-http'), { idempotencyKey: 'scoped' }),
       ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(
-      direct(composite, input('cap-http'), { ...owner, principalId: 'vic' }),
+      direct(composite, input('cap-http'), { ...localUser, principalId: 'vic' }),
     ).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     expect(await unlinked()).toEqual([...ids].sort());
 
     // Each surface links one capture and sends it to the model in one commit.
-    const viaDirect = await direct(composite, input('cap-direct'), owner, 'k-direct');
+    const viaDirect = await direct(composite, input('cap-direct'), localUser, 'k-direct');
     const viaHttp = await http.command(composite, input('cap-http'), { idempotencyKey: 'k-http' });
     const viaCli = await cli([
       composite,
@@ -159,7 +168,7 @@ test('linking and extracting in one command commits both or neither on every sur
     expect(retried.value.revisions).toEqual(viaHttp.revisions);
     const status = await application.queryRaw(
       { operation: 'assignment.model.status', input: {} },
-      owner,
+      localUser,
     );
     expect(status.data).toMatchObject({ waiting: 4 });
   } finally {

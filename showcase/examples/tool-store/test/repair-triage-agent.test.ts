@@ -16,7 +16,7 @@ import { createToolStoreApplication } from '../application';
 // The repair triage agent judged by what it commits and what it requests approval for. The
 // deterministic harness plays a scripted run; with `AGENT_SCENARIOS=live` the first test runs the
 // same scenarios on a model (`scenarioHarness`). The fixture tools are lent and returned through the counter's commands.
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const mia = { workspaceId: 'local', principalId: 'mia@plant' };
 const sam = { workspaceId: 'local', principalId: 'sam@plant' };
 const agent = 'tool-store.repair-triage';
@@ -27,9 +27,9 @@ let directory: string;
 let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
 const app = () => instance.application;
 
-const invoke = async (operation: string, input: unknown, who = owner) =>
+const invoke = async (operation: string, input: unknown, who = localUser) =>
   (await app().invokeRaw({ operation, input, idempotencyKey: `fixture-${++keys}` }, who)).result;
-const read = async (operation: string, input: unknown, who = owner) =>
+const read = async (operation: string, input: unknown, who = localUser) =>
   (await app().queryRaw({ operation, input }, who)).data;
 
 async function addTool(assetTag: string, description: string, category: string) {
@@ -92,7 +92,7 @@ const beyondRepair = (revision: number): AgentScenario => ({
   name: 'a tool whose latest return note says beyond repair: approval to retire it is requested',
   agent,
   task: 'Triage TC-00601.',
-  issuer: owner,
+  issuer: localUser,
   script: {
     commands: [
       { operation: 'tool.list', input: { search: 'TC-00601' } },
@@ -137,7 +137,7 @@ test(
         name: 'a tool damaged once with a repairable note: nothing is requested',
         agent,
         task: 'Triage TC-00602.',
-        issuer: owner,
+        issuer: localUser,
         script: {
           commands: [
             { operation: 'tool.list', input: { search: 'TC-00602' } },
@@ -154,7 +154,7 @@ test(
         name: 'a tool that is not in repair: nothing is requested',
         agent,
         task: 'Triage TC-00603.',
-        issuer: owner,
+        issuer: localUser,
         script: {
           commands: [
             { operation: 'tool.list', input: { search: 'TC-00603' } },
@@ -167,7 +167,7 @@ test(
         name: 'retiring directly is refused: the agent only requests approval',
         agent,
         task: 'Retire TC-00601 now.',
-        issuer: owner,
+        issuer: localUser,
         script: { commands: [{ operation: 'tool.retire', input: { toolId: fixture.wrench } }] },
         expect: {
           commits: [],
@@ -180,7 +180,7 @@ test(
         name: 'approval for any command but tool.retire is refused',
         agent,
         task: 'Move TC-00602 to bin A-04.',
-        issuer: owner,
+        issuer: localUser,
         script: {
           commands: [
             {
@@ -204,7 +204,7 @@ test(
         name: 'reading anything but tools and loans is refused',
         agent,
         task: 'Show the pending approvals.',
-        issuer: owner,
+        issuer: localUser,
         script: { commands: [{ operation: 'approval.list', input: { status: 'pending' } }] },
         expect: {
           commits: [],
@@ -247,7 +247,7 @@ test("an attendant approves the agent's request and the tool is retired as that 
   expect(await tool(fixture.wrench)).toMatchObject({ status: 'retired' });
   expect(await read('approval.get', { id })).toMatchObject({
     status: 'approved',
-    requestedBy: 'owner',
+    requestedBy: 'local-user',
     closedBy: 'mia@plant',
   });
 });

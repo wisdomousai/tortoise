@@ -5,7 +5,7 @@ import { openInstance } from '@tortoise/kernel/instance';
 import type { PluginSettings } from '@tortoise/kernel/plugins/settings';
 import { bunPlatform } from './platform/bun';
 
-export { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+export { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 export { workspaceStorage } from './platform/bun';
 
 /**

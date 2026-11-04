@@ -363,7 +363,7 @@ _A reading an ingest command submits from a source that answers no query._
 
 implemented · [`packages/observation`](../packages/observation/README.md) [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md) [`plugins/connector-opcua`](../plugins/connector-opcua/README.md)
 
-### Interlock
+### Action checks
 
 _The checks a connector passes before it acts on a screen or on equipment. A model may suggest an action. Deterministic code checks, executes and verifies it._
 

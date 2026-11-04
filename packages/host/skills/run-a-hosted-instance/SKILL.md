@@ -23,7 +23,7 @@ A hosted instance is the same host on another host platform. `hostedPlatform` ke
 3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held. A development launch takes the same flag: `bun ../../scripts/dev-example.ts --port <n> --hosted-workspace <name>` from the application's directory.
 4. Supervise the instance and restart it when it exits. An instance that loses its lease logs a `lease-lost` record on stderr and exits with code 1. A restarted instance does not wait for the lease. It is refused until the lease expires after 30 seconds without renewal, or is released.
 5. Set a `tls` listener with the public certificate in the site plugin's policy, as for a site. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
-6. Set `identity: external` in the same policy, with `workforce` naming the OpenID Connect provider. People sign in with the workforce account, and no local owner session exists.
+6. Set `identity: external` in the same policy, with `workforce` naming the OpenID Connect provider. People sign in with the workforce account, and no local user session exists.
 7. Back up with the database's own tools, such as `pg_dump` or point-in-time recovery. The CLI's `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` verbs open a local workspace only.
 
 ### Storage adapter

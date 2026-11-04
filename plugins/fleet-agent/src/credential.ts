@@ -10,7 +10,7 @@ export interface CredentialStore {
 
 /**
  * The platform's secret store when it keeps one, otherwise a file only the host's OS account can
- * read, inside the workspace directory: the same protection as the owner's connection file.
+ * read, inside the workspace directory: the same protection as the local user's connection file.
  */
 export function credentialStore(
   secrets: SecretStore | undefined,

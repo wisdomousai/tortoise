@@ -46,10 +46,10 @@ export interface FieldServiceState {
 export function createFieldServiceApplication(options: { services?: WorkOrderServices } = {}) {
   return defineApplication<FieldServiceState, WorkOrderServices>({
     manifest,
-    createState: (ownerId) => ({ fieldService: createServiceState(ownerId) }),
+    createState: (localUserId) => ({ fieldService: createServiceState(localUserId) }),
     migrations,
-    upgradeState(state, ownerId) {
-      const slice = (storedSlice(state) ?? createServiceState(ownerId)) as ServiceState;
+    upgradeState(state, localUserId) {
+      const slice = (storedSlice(state) ?? createServiceState(localUserId)) as ServiceState;
       // Workspaces from before reminders get an empty map for them.
       return { fieldService: { ...slice, reminderEffects: slice.reminderEffects ?? {} } };
     },

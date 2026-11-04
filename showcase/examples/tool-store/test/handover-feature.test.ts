@@ -7,7 +7,7 @@ import { featureConformance } from '@tortoise/testing/features';
 import { createToolStoreApplication } from '../application';
 import { handoverFeature } from '../features/handover/feature';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
@@ -81,10 +81,10 @@ test('attendants record entries, every member reads them latest first, non-membe
     recordedBy: 'clerk',
     recordedAt: 2_000,
   });
-  await app.invokeRaw(record('late', 'Bin B-07 is full'), owner);
+  await app.invokeRaw(record('late', 'Bin B-07 is full'), localUser);
   await app.invokeRaw(record('night', 'Door code changed'), clerk);
 
-  for (const caller of [owner, clerk, viewer]) {
+  for (const caller of [localUser, clerk, viewer]) {
     const listed = await app.queryRaw(list, caller);
     expect((listed.data as { items: { text: string }[] }).items.map((item) => item.text)).toEqual([
       'Door code changed',

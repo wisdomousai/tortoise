@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { agentInstructions } from '@tortoise/contracts';
 import { agentGrant } from '@tortoise/runtime';
 import { operations } from '../contracts';
-import { owner, testWorkspaces } from './support';
+import { localUser, testWorkspaces } from './support';
 
 // What the desk's assistant may call and what its instructions tell a model. Its scripted runs are
 // in agent-scenarios.test.ts.
@@ -11,7 +11,7 @@ const assistant = 'parts-desk.assistant';
 
 test("the assistant's grant holds approval.request and not quote.cancel", async () => {
   const app = await open();
-  const { operations: granted } = agentGrant(app.catalog, assistant, owner, { now: 0 });
+  const { operations: granted } = agentGrant(app.catalog, assistant, localUser, { now: 0 });
   expect(granted).toContain('approval.request');
   expect(granted).not.toContain('quote.cancel');
   // Every query of the desk, and quote.create's inquiry.update, which it runs in its transaction.

@@ -33,8 +33,8 @@ export function createTestRequestsOperationsApplication(
 ) {
   return defineApplication<TestRequestsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
     }),
     migrations: testRequestsMigrations,
     handlers: sliceHandlers<TestRequestsRoot, 'testRequests', TestRequestsServices>(

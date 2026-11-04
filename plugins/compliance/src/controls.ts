@@ -328,7 +328,7 @@ export const controls: readonly Control[] = [
     id: 'AN-IAC-02',
     title: 'Identity and ingress floors for sandbox and zero-trust profiles',
     implementation:
-      'Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-owner session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the site client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.',
+      'Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-user session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the site client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.',
     limits:
       'Workforce sign-in is OpenID Connect only and has not been run against a real provider; SAML, LDAP and certificate issuance are not part of this framework. External identity refuses to start without a bound provider instead of falling back.',
     status: 'partial',

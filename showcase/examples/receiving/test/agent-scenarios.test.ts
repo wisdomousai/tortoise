@@ -15,7 +15,7 @@ import { erpFolders } from '../contracts/erp-target';
 // The discrepancy agent judged by what it commits and what it requests approval for. The deterministic harness plays
 // a scripted run; with `AGENT_SCENARIOS=live` the same scenarios run on a model
 // (`scenarioHarness`), never in `bun run check`.
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const notice = [
   'id,purchaseOrder,supplier,sku,description,expected',
   'ASN-1001-1,PO-4711,Acme Fasteners,M8-40,"Hex bolt M8x40, zinc",500',
@@ -58,7 +58,7 @@ const scenarios: AgentScenario[] = [
     name: 'approval is requested to classify a short count as short, and the line is not classified until approved',
     agent: 'receiving.discrepancy',
     task: 'Classify the discrepancies in today’s deliveries.',
-    issuer: owner,
+    issuer: localUser,
     setup: [counted('ASN-1001-1', 500, 'count-1'), counted('ASN-1001-2', 540, 'count-2')],
     script: {
       commands: [
@@ -89,7 +89,7 @@ const scenarios: AgentScenario[] = [
     async check(_result, application) {
       const line = await application.queryRaw(
         { operation: 'delivery.get', input: { id: 'ASN-1001-2' } },
-        owner,
+        localUser,
       );
       expect(line.data).not.toHaveProperty('reason');
     },
@@ -98,7 +98,7 @@ const scenarios: AgentScenario[] = [
     name: 'classifying directly is refused: the agent only requests approval',
     agent: 'receiving.discrepancy',
     task: 'Classify ASN-1001-2.',
-    issuer: owner,
+    issuer: localUser,
     script: {
       commands: [{ operation: 'delivery.classify', input: { id: 'ASN-1001-2', reason: 'short' } }],
     },

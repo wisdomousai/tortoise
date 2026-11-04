@@ -94,7 +94,7 @@ const items = defineModule({
 
 type State = { items: Record<string, number> };
 type Compose = (input: { id?: string }, ctx: HandlerContext<State, {}>) => unknown;
-const owner: ExecutionContext = { workspaceId: 'w', principalId: 'owner' };
+const localUser: ExecutionContext = { workspaceId: 'w', principalId: 'local-user' };
 
 function setup(options: { log?: ReturnType<typeof createMemoryEventLog> } = {}) {
   const storage = createMemoryStorage<State>({ items: {} });
@@ -163,7 +163,7 @@ function setup(options: { log?: ReturnType<typeof createMemoryEventLog> } = {}) 
       ),
     ],
   });
-  const invoke = (input: { id?: string } = {}, context = owner, idempotencyKey?: string) =>
+  const invoke = (input: { id?: string } = {}, context = localUser, idempotencyKey?: string) =>
     app.invoke(
       { operation: 'item.compose', input, ...(idempotencyKey ? { idempotencyKey } : {}) },
       context,
@@ -274,10 +274,10 @@ describe('nested call', () => {
   test('the grant must name the child operation and cover its resources', async () => {
     const { control, invoke, refused } = setup();
     control.compose = async (input, ctx) => ctx.invoke(set, { id: input.id ?? 'a', value: 1 });
-    const narrow = { ...owner, grant: { operations: ['item.compose'] } };
+    const narrow = { ...localUser, grant: { operations: ['item.compose'] } };
     expect((await refused(invoke({}, narrow))).code).toBe('FORBIDDEN');
     const scoped = {
-      ...owner,
+      ...localUser,
       grant: { operations: ['item.compose', 'item.set'], resources: ['item:a'] },
     };
     expect((await invoke({ id: 'a' }, scoped)).revisions).toEqual({ 'item:a': 1 });
@@ -339,25 +339,25 @@ describe('nested call', () => {
         return {};
       }),
     ).toBe('A nested call must finish before its handler returns');
-    const recursion = await refused(app.invoke({ operation: 'item.loop', input: {} }, owner));
+    const recursion = await refused(app.invoke({ operation: 'item.loop', input: {} }, localUser));
     expect(recursion.message).toBe('A nested call cannot reach a running operation');
-    const deep = await refused(app.invokeRaw({ operation: 'chain.1', input: {} }, owner));
+    const deep = await refused(app.invokeRaw({ operation: 'chain.1', input: {} }, localUser));
     expect(deep.message).toBe('Nested calls go at most 4 levels deep');
-    expect((await app.invokeRaw({ operation: 'chain.2', input: {} }, owner)).result).toBe(4);
+    expect((await app.invokeRaw({ operation: 'chain.2', input: {} }, localUser)).result).toBe(4);
   });
 
   test('a retry replays the receipt only while every nested command is still allowed', async () => {
     const { control, invoke, refused, runs } = setup();
     control.compose = async (_input, ctx) => ctx.invoke(set, { id: 'a', value: 1 });
-    const first = await invoke({}, owner, 'k1');
-    expect((await invoke({}, owner, 'k1')).result).toEqual(first.result);
+    const first = await invoke({}, localUser, 'k1');
+    expect((await invoke({}, localUser, 'k1')).result).toEqual(first.result);
     expect(runs()).toBe(1);
     const replays: unknown[] = [];
     control.deny = (request) => {
       if (request.phase === 'replay') replays.push([request.capability.id, request.via ?? null]);
       return request.phase === 'replay' && request.capability.id === 'item.set';
     };
-    expect((await refused(invoke({}, owner, 'k1'))).code).toBe('FORBIDDEN');
+    expect((await refused(invoke({}, localUser, 'k1'))).code).toBe('FORBIDDEN');
     expect(replays).toEqual([
       ['item.compose', null],
       ['item.set', ['item.compose']],
@@ -438,9 +438,9 @@ describe('continuation as a tail frame', () => {
   test('replay authorizes the continued command again', async () => {
     const { control, invoke, refused } = setup();
     control.compose = (_input, ctx) => (ctx.continueWith('item.set', { id: 'a', value: 1 }), {});
-    await invoke({}, owner, 'k1');
+    await invoke({}, localUser, 'k1');
     control.deny = (request) => request.phase === 'replay' && request.capability.id === 'item.set';
-    expect((await refused(invoke({}, owner, 'k1'))).code).toBe('FORBIDDEN');
+    expect((await refused(invoke({}, localUser, 'k1'))).code).toBe('FORBIDDEN');
   });
 });
 
@@ -527,7 +527,7 @@ describe('nested call across slices', () => {
 
   test('a child runs on its own slice under its own policy', async () => {
     const { app, seen } = crossing(false);
-    const receipt = await app.invoke({ operation: 'note.add', input: { id: 'n1' } }, owner);
+    const receipt = await app.invoke({ operation: 'note.add', input: { id: 'n1' } }, localUser);
     expect(receipt.result).toEqual({ keys: ['notes'], counter: 1 });
     expect(receipt.revisions).toEqual({ 'counter:n1': 1, 'note:n1': 1 });
     expect(seen).toContainEqual(['counters', 'counters', 'frozen']);
@@ -538,7 +538,7 @@ describe('nested call across slices', () => {
     ).toBe(true);
     const frozen = crossing(true);
     const error = await frozen.app
-      .invoke({ operation: 'note.add', input: { id: 'n1' } }, owner)
+      .invoke({ operation: 'note.add', input: { id: 'n1' } }, localUser)
       .catch((caught: unknown) => caught);
     expect((error as ApplicationError).code).toBe('FORBIDDEN');
   });

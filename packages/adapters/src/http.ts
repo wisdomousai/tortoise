@@ -126,7 +126,7 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
 }
 
 /**
- * Loopback adapter with Host/Origin checks, one-use launch key exchange and bounded pull-based SSE.
+ * Loopback adapter with Host/Origin checks, one-use launch link sign-in and bounded pull-based SSE.
  * Cursor/event authorization is evaluated immediately before enqueue. Each enqueue is one batch;
  * slow readers are disconnected instead of accumulating sensitive snapshots in a host queue.
  */

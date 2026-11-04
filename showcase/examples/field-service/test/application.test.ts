@@ -13,7 +13,7 @@ import {
   fieldServiceModule,
 } from '../server';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 
 test('a workspace written before module composition keeps its work orders after upgrade', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-upgrade-'));
@@ -21,7 +21,7 @@ test('a workspace written before module composition keeps its work orders after 
   try {
     // Persist a pre-composition workspace with the original single-module runtime: work order and
     // task state at the root.
-    const seed = new SQLiteStorage(path, () => createServiceState('owner'));
+    const seed = new SQLiteStorage(path, () => createServiceState('local-user'));
     await createApplication({
       modules: [fieldServiceModule],
       handlers: createServiceHandlers(),
@@ -30,7 +30,7 @@ test('a workspace written before module composition keeps its work orders after 
       services: {},
     }).invokeRaw(
       { operation: 'work-order.create', input: { name: 'Legacy' }, idempotencyKey: 'legacy' },
-      owner,
+      localUser,
     );
     await seed.close();
 
@@ -38,7 +38,7 @@ test('a workspace written before module composition keeps its work orders after 
     const application = createApplicationRuntime(fieldService, { storage });
     const workOrders = await application.queryRaw(
       { operation: 'work-order.list', input: {} },
-      owner,
+      localUser,
     );
     expect(JSON.stringify(workOrders.data)).toContain('Legacy');
     await storage.close();
@@ -48,9 +48,9 @@ test('a workspace written before module composition keeps its work orders after 
 });
 
 test('upgrade is idempotent and keeps only this application slice of a composed workspace', () => {
-  const state = fieldService.createState('owner');
-  expect(fieldService.upgradeState!(structuredClone(state), 'owner')).toEqual(state);
+  const state = fieldService.createState('local-user');
+  expect(fieldService.upgradeState!(structuredClone(state), 'local-user')).toEqual(state);
   expect(
-    fieldService.upgradeState!({ ...structuredClone(state), quality: { lots: {} } }, 'owner'),
+    fieldService.upgradeState!({ ...structuredClone(state), quality: { lots: {} } }, 'local-user'),
   ).toEqual(state);
 });

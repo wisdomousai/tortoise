@@ -4,7 +4,7 @@ import { contains, findNode, type Procedure, type StationProfile } from '../prof
 
 /** Why the bridge state forbids running `procedure` now, or undefined when it may run. */
 export function blockedBy(control: BridgeControl, procedure: Procedure): string | undefined {
-  if (control.holder === 'operator') return 'The operator has the station';
+  if (control.controlledBy === 'operator') return 'The operator has the station';
   if (control.mode === 'monitor-only') return 'The bridge is in monitor-only mode';
   if (control.mode === 'assist' && procedure.risk !== 'none')
     return `The bridge is in assist mode; ${procedure.title} needs actuate mode`;

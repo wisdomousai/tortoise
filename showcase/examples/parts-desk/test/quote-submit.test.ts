@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test';
-import { draftQuote, owner, supervisor, testWorkspaces, viewer } from './support';
+import { draftQuote, localUser, supervisor, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('quote-submit');
 
 test('the desk submits a draft once; a submitted or cancelled quote is CONFLICT', async () => {
   const app = await open({ trialRecords: true });
-  const submit = (id: string, key: string, caller = owner) =>
+  const submit = (id: string, key: string, caller = localUser) =>
     app.invokeRaw({ operation: 'quote.submit', input: { id }, idempotencyKey: key }, caller);
   const first = (await draftQuote(app, 'first')).result;
   expect((await submit(first.id, 'submit')).result).toMatchObject({ status: 'submitted' });
@@ -42,7 +42,7 @@ test('viewers cannot submit and a missing quote is NOT_FOUND', async () => {
   await expect(
     app.invokeRaw(
       { operation: 'quote.submit', input: { id: 'missing' }, idempotencyKey: 'missing' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

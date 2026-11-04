@@ -6,7 +6,7 @@ import { chooseModel, profileCredentials } from './profiles';
 import { connectionOf, liveScope, scopedVault, type ProviderState } from './state';
 import { readProviderBody, safeProfile, validModel, validProfileId } from './validation';
 
-/** One provider request, already bound to a live owner scope. */
+/** One provider request, already bound to a live local-user scope. */
 interface ProviderRequest {
   readonly state: ProviderState;
   readonly harnesses: readonly Harness[];
@@ -97,7 +97,7 @@ async function loadModels({ state, request, url, session, key }: ProviderRequest
   return jsonResponse({ models: listed, inferenceVerified: false });
 }
 
-/** Save, load or remove an API key; saving or loading marks it usable for this owner scope. */
+/** Save, load or remove an API key; saving or loading marks it usable for this local-user scope. */
 async function apiKey(
   { state, request, session, key }: ProviderRequest,
   provider: 'claude' | 'ai-sdk',
@@ -154,7 +154,7 @@ function matchRoute(input: ProviderRequest): (() => Promise<Response>) | undefin
 }
 
 /**
- * The owner's provider account API. The session must be a live owner session before anything
+ * The local user's provider account API. The session must be a live local-user session before anything
  * else runs. Provider failures reach the client as one generic message; details never do.
  */
 export async function routeProviders(

@@ -49,9 +49,9 @@ export const qualityPeerLinkPlugin = createPeerLinkPlugin({
   reserved: [INTEGRATION_PRINCIPAL, INSTRUMENT_PRINCIPAL],
 });
 
-const qualityState = (ownerId: string) =>
+const qualityState = (localUserId: string) =>
   createQualityState({
-    supervisorId: ownerId,
+    supervisorId: localUserId,
     integrationPrincipalId: INTEGRATION_PRINCIPAL,
     instrumentPrincipalId: INSTRUMENT_PRINCIPAL,
   });
@@ -113,8 +113,8 @@ export function createQualityInspectionApplication(
 ) {
   return defineApplication<QualityInspectionState, QualityServices>({
     manifest,
-    createState: (ownerId) => ({ quality: qualityState(ownerId) }),
-    upgradeState: (state, ownerId) => {
+    createState: (localUserId) => ({ quality: qualityState(localUserId) }),
+    upgradeState: (state, localUserId) => {
       const value = (state ?? {}) as Partial<QualityInspectionState>;
       // State saved before instrument readings or inspection requests existed gains the empty sets and
       // the instrument principal.
@@ -127,7 +127,7 @@ export function createQualityInspectionApplication(
               inspectionRequests: value.quality.inspectionRequests ?? {},
               requestSequence: value.quality.requestSequence ?? 0,
             }
-          : qualityState(ownerId),
+          : qualityState(localUserId),
       };
     },
     handlers: sliceHandlers<QualityInspectionState, 'quality', QualityServices>(
@@ -142,7 +142,7 @@ export function createQualityInspectionApplication(
         qualityPolicy,
       ),
     ]),
-    // The workspace owner (the supervisor) is the compliance plugin's first auditor.
+    // The local user (the supervisor) is the compliance plugin's first auditor.
     plugins: [
       sitePlugin,
       networkPlugin,

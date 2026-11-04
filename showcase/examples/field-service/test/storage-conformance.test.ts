@@ -15,8 +15,8 @@ import type { ServiceState } from '../domain';
 import { assertEquivalent, directDriver, type ScenarioDriver } from '@tortoise/testing';
 
 async function scenario(driver: ScenarioDriver) {
-  const owner = { workspaceId: 'conformance', principalId: 'owner' };
-  const technician = { ...owner, principalId: 'technician' };
+  const localUser = { workspaceId: 'conformance', principalId: 'local-user' };
+  const technician = { ...localUser, principalId: 'technician' };
   const outcomes: unknown[] = [];
   outcomes.push(
     await driver.command(
@@ -25,7 +25,7 @@ async function scenario(driver: ScenarioDriver) {
         input: { name: 'Independent' },
         idempotencyKey: 'work-order',
       },
-      owner,
+      localUser,
     ),
   );
   outcomes.push(
@@ -35,7 +35,7 @@ async function scenario(driver: ScenarioDriver) {
         input: { id: 'id-1', principalId: 'technician', role: 'technician' },
         idempotencyKey: 'membership',
       },
-      owner,
+      localUser,
     ),
   );
   outcomes.push(
@@ -45,7 +45,7 @@ async function scenario(driver: ScenarioDriver) {
         input: { workOrderId: 'id-1', title: 'Shared', internalNote: 'hidden' },
         idempotencyKey: 'task',
       },
-      owner,
+      localUser,
     ),
   );
   outcomes.push(await driver.query({ operation: 'task.list', input: {} }, technician));
@@ -64,7 +64,7 @@ async function scenario(driver: ScenarioDriver) {
         input: { id: 'id-1', principalId: 'technician', role: null },
         idempotencyKey: 'revoke',
       },
-      owner,
+      localUser,
     ),
   );
   try {

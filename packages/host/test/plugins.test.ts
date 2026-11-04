@@ -89,7 +89,7 @@ const counterPolicy: AuthorizationPort<CounterSlice> = {
 function counterPlugin(open?: () => Promise<PluginInstance>) {
   return defineHostPlugin<CounterSlice>({
     manifest: counterManifest,
-    state: { create: (ownerId) => ({ owners: [ownerId], count: 0 }) },
+    state: { create: (localUserId) => ({ owners: [localUserId], count: 0 }) },
     handlers: [
       {
         capability: counterBump,
@@ -195,39 +195,42 @@ test('the definition must list the manifest plugins in requires order', () => {
 
 test('plugin slices are created, kept across upgrades and owned only by the plugin', () => {
   const definition = application();
-  expect(definition.createState('owner') as unknown).toEqual({
+  expect(definition.createState('local-user') as unknown).toEqual({
     notes: { count: 0 },
-    counter: { owners: ['owner'], count: 0 },
+    counter: { owners: ['local-user'], count: 0 },
   });
   const stored = { notes: { count: 2 }, counter: { owners: ['someone'], count: 7 } };
-  expect(definition.upgradeState!(stored, 'owner') as unknown).toEqual(stored);
+  expect(definition.upgradeState!(stored, 'local-user') as unknown).toEqual(stored);
   // A workspace from before the plugin was composed gets a fresh slice.
-  expect(definition.upgradeState!({ notes: { count: 2 } }, 'owner') as unknown).toEqual({
+  expect(definition.upgradeState!({ notes: { count: 2 } }, 'local-user') as unknown).toEqual({
     notes: { count: 2 },
-    counter: { owners: ['owner'], count: 0 },
+    counter: { owners: ['local-user'], count: 0 },
   });
 });
 
 test('plugin operations are decided by the plugin policy over its own slice', async () => {
   const definition = application();
   const runtime = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState('owner')),
+    storage: createMemoryStorage(definition.createState('local-user')),
   });
-  const owner = { workspaceId: 'w', principalId: 'owner' };
-  expect((await runtime.invokeRaw({ operation: 'counter.bump', input: {} }, owner)).result).toEqual(
-    {
-      count: 1,
-    },
-  );
+  const localUser = { workspaceId: 'w', principalId: 'local-user' };
+  expect(
+    (await runtime.invokeRaw({ operation: 'counter.bump', input: {} }, localUser)).result,
+  ).toEqual({
+    count: 1,
+  });
   await expect(
-    runtime.invokeRaw({ operation: 'counter.bump', input: {} }, { ...owner, principalId: 'guest' }),
+    runtime.invokeRaw(
+      { operation: 'counter.bump', input: {} },
+      { ...localUser, principalId: 'guest' },
+    ),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   // The application's policy still decides its own operations.
   expect(
     (
       await runtime.queryRaw(
         { operation: 'notes.get', input: {} },
-        { ...owner, principalId: 'guest' },
+        { ...localUser, principalId: 'guest' },
       )
     ).data,
   ).toEqual({ count: 0 });
@@ -282,7 +285,7 @@ test('a failed open closes the plugins already opened', async () => {
 
 test('two providers of one port are refused', async () => {
   const calls: string[] = [];
-  const identity = { admit: () => undefined, localOwnerSessions: false };
+  const identity = { admit: () => undefined, localUserSessions: false };
   const definition = application([
     recorder('first', calls, { ports: { identity } }),
     recorder('second', calls, { ports: { identity } }),
@@ -310,7 +313,7 @@ test('a port a plugin needs must be provided by a composed plugin', async () => 
 test('plugins see the composed ports once every plugin has opened', async () => {
   let early: unknown;
   let late: unknown;
-  const identity = { admit: () => undefined, localOwnerSessions: false };
+  const identity = { admit: () => undefined, localUserSessions: false };
   const consumerManifest = definePluginManifest({ id: 'consumer', title: 'consumer' });
   const consumer = defineHostPlugin({
     manifest: consumerManifest,
@@ -346,7 +349,7 @@ test('without providers the kernel reaches nothing and keeps no audit log', asyn
     code: 'UNAVAILABLE',
   });
   expect(() => plugins.ports.network.childEnvironment!('child')).toThrow('unreachable');
-  expect(plugins.ports.identity.localOwnerSessions).toBe(true);
+  expect(plugins.ports.identity.localUserSessions).toBe(true);
   expect(() => plugins.ports.identity.admit(undefined)).not.toThrow();
 });
 
@@ -424,7 +427,7 @@ test('a serving host starts plugins as a delegated caller and stops their observ
       workspacePath: join(directory, 'workspace'),
       integration: false,
     });
-    expect(principal).toBe('owner');
+    expect(principal).toBe('local-user');
     expect(host.url).toStartWith('http://127.0.0.1:');
     expect(host.plugins).toEqual({ counter: {}, first: {} });
     await host.close();

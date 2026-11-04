@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createFileBlobStore } from '@tortoise/adapters/blob-files';
 import { bunSqlDriver } from '@tortoise/adapters/sqlite';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import type { SecretStore } from '@tortoise/kernel/platform';
 import { startHost } from '@tortoise/host/host';
 import { createMobilePlatform, openMobileInstance } from '@tortoise/mobile';
@@ -20,7 +20,7 @@ export async function cleanUp() {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 }
 
-export const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+export const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 export type Rows<T = Record<string, any>> = { items: T[] };
 
 /** The hub on loopback, as the desktop runs it, with the outbox and feed passes driven here. */
@@ -40,10 +40,14 @@ export async function startHub() {
   });
   let key = 0;
   const command = async <T = Record<string, any>>(operation: string, input: unknown) =>
-    (await hub.application.invokeRaw({ operation, input, idempotencyKey: `hub-${++key}` }, owner))
-      .result as T;
+    (
+      await hub.application.invokeRaw(
+        { operation, input, idempotencyKey: `hub-${++key}` },
+        localUser,
+      )
+    ).result as T;
   const query = async <T = Record<string, any>>(operation: string, input: unknown = {}) =>
-    (await hub.application.queryRaw({ operation, input }, owner)).data as T;
+    (await hub.application.queryRaw({ operation, input }, localUser)).data as T;
   const node = (parentId: string | undefined, designation: string, name: string) =>
     command<{ id: string }>('structure.node.create', {
       ...(parentId ? { parentId } : {}),

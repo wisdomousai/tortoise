@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { owner, stranger, testWorkspaces, viewer } from './support';
+import { localUser, stranger, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('transformer-find');
 type Found = { items: { serial: string; customerName?: string }[]; total: number };
@@ -21,12 +21,12 @@ test('a partial serial finds every transformer that starts with it, with its uti
   // Case does not matter, and a serial matches only from its start.
   const lower = await app.queryRaw(
     { operation: 'transformer.find', input: { serial: ' tr-4047 ' } },
-    owner,
+    localUser,
   );
   expect(serials(lower.data)).toEqual(['TR-40471']);
   const middle = await app.queryRaw(
     { operation: 'transformer.find', input: { serial: '40417' } },
-    owner,
+    localUser,
   );
   expect(middle.data).toEqual({ items: [], total: 0 });
 });
@@ -35,12 +35,12 @@ test('a whole serial comes first, and a find returns at most ten with the total'
   const app = await open({ trialRecords: true });
   const exact = await app.queryRaw(
     { operation: 'transformer.find', input: { serial: 'tr-40417' } },
-    owner,
+    localUser,
   );
   expect(serials(exact.data)).toEqual(['TR-40417']);
   const { data: customers } = await app.queryRaw(
     { operation: 'customer.list', input: { limit: 1 } },
-    owner,
+    localUser,
   );
   const customerId = (customers as { items: { id: string }[] }).items[0]!.id;
   for (let n = 0; n < 6; n++)
@@ -59,9 +59,12 @@ test('a whole serial comes first, and a find returns at most ten with the total'
         },
         idempotencyKey: `extra-${n}`,
       },
-      owner,
+      localUser,
     );
-  const all = await app.queryRaw({ operation: 'transformer.find', input: { serial: 'TR' } }, owner);
+  const all = await app.queryRaw(
+    { operation: 'transformer.find', input: { serial: 'TR' } },
+    localUser,
+  );
   expect((all.data as Found).total).toBe(12);
   expect(serials(all.data)).toHaveLength(10);
   expect(serials(all.data)).toEqual([...serials(all.data)].sort());

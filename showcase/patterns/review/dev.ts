@@ -1,6 +1,6 @@
 /**
  * Development launch: before the host opens the workspace, add `lena` as a second technician and
- * submit one test request as her through the embedded instance, so the local owner has a request
+ * submit one test request as her through the embedded instance, so the local user has a request
  * someone else wrote to review. The submission has a fixed idempotency key, so a relaunch adds
  * nothing. A workspace created before this script has no `lena`; delete `.workspace` to reseed.
  */

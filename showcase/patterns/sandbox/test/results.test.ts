@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { ExecutionHost } from '@tortoise/execution-host/run';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createTestRequestsSandboxApplication } from '../application';
 import { analysisReadOnly } from '../plugins/result-analysis/plugin';
 import { ANALYSIS_SANDBOX, resultAnalysisPaths } from '../plugins/result-analysis/plugin-manifest';
@@ -31,7 +31,7 @@ async function serve() {
       { operation, input, idempotencyKey: crypto.randomUUID() },
       as(principalId),
     );
-  const owner = (path: string, body?: unknown) =>
+  const localUser = (path: string, body?: unknown) =>
     fetch(new URL(path, host.url), {
       method: body === undefined ? 'GET' : 'POST',
       headers: {
@@ -40,7 +40,7 @@ async function serve() {
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
-  return { host, command, owner };
+  return { host, command, localUser };
 }
 
 test('the statistics are the count, mean, range and sample standard deviation', () => {
@@ -86,19 +86,19 @@ test('technicians record readings for a submitted request and enter statistics b
 });
 
 test('without bubblewrap the status route says why, and a run is refused as unavailable', async () => {
-  const { host, owner } = await serve();
+  const { host, localUser } = await serve();
   const sandboxes = host.services['execution-host'] as ExecutionHost;
-  const status = await (await owner(resultAnalysisPaths.status)).json();
+  const status = await (await localUser(resultAnalysisPaths.status)).json();
   expect(status).toEqual(sandboxes.availability(ANALYSIS_SANDBOX));
   expect(status.available).toBe(false);
   if (process.platform !== 'linux') expect(status.reason).toContain('Linux bubblewrap');
 
-  const refused = await owner(resultAnalysisPaths.run, { result: 'any' });
+  const refused = await localUser(resultAnalysisPaths.run, { result: 'any' });
   expect(refused.status).toBe(503);
   expect(await refused.json()).toMatchObject({ error: { code: 'UNAVAILABLE' } });
 });
 
-test('the sandbox sees no workspace of the checkout, so no owner connection file', () => {
+test('the sandbox sees no workspace of the checkout, so no local-user connection file', () => {
   const pattern = resolve(import.meta.dir, '..');
   const checkout = resolve(pattern, '../..');
   for (const workspace of [

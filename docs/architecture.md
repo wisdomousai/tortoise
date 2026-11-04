@@ -37,11 +37,11 @@ A generated `application.ts`:
 
 ```ts
 export function createInspectionDeskApplication(options: InspectionDeskOptions = {}) {
-  const state = (ownerId: string) => createState(ownerId, options.members);
+  const state = (localUserId: string) => createState(localUserId, options.members);
   return defineApplication<AppState, Services>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     handlers: createHandlers(),
     authorization: appPolicy,
     plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
@@ -102,7 +102,7 @@ A host plugin adds a cross-cutting concern. It provides ports; without it, the s
 | --------- | --------------------------- | ----------------------------------- |
 | Network   | refuse every destination    | `plugins/network` (network guard) |
 | Ingress   | loopback only               | `plugins/network` (TLS, mTLS)       |
-| Identity  | trust the local owner       | `plugins/site`                      |
+| Identity  | trust the local user       | `plugins/site`                      |
 | Audit log | none                        | `plugins/audit`                     |
 | Shell     | no OS integration           | `plugins/os`                        |
 | Processes | refuse every child process  | `plugins/process`                   |

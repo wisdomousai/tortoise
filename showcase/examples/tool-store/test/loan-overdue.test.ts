@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const outsider = { workspaceId: 'local', principalId: 'outsider' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -43,7 +43,7 @@ async function lend(app: App, n: number, borrower: string, dueAt: string) {
       input: { assetTag: tag, description: `Tool ${n}`, category: 'hand-tool', bin: 'A-01' },
       idempotencyKey: `create-${n}`,
     },
-    owner,
+    localUser,
   );
   const toolId = (created.result as { id: string }).id;
   await app.invokeRaw(
@@ -52,12 +52,12 @@ async function lend(app: App, n: number, borrower: string, dueAt: string) {
       input: { toolId, borrower, workOrder: `WO-${n}`, dueAt },
       idempotencyKey: `out-${n}`,
     },
-    owner,
+    localUser,
   );
   return toolId;
 }
 
-const overdue = async (app: App, input: object = {}, caller = owner) =>
+const overdue = async (app: App, input: object = {}, caller = localUser) =>
   (await app.queryRaw({ operation: 'loan.overdue', input }, caller)).data as {
     items: { assetTag: string; description: string; borrower: string }[];
     total: number;
@@ -74,7 +74,7 @@ test('lists a loan due one minute ago, leaves out one due in a minute and a retu
       input: { toolId: returned, condition: 'ok' },
       idempotencyKey: 'in-3',
     },
-    owner,
+    localUser,
   );
   const page = await overdue(app);
   expect(page.total).toBe(1);
@@ -126,6 +126,6 @@ test('a viewer can call it; a caller who is not a member and bad input are refus
     app.queryRaw({ operation: 'loan.overdue', input: {} }, outsider),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    app.queryRaw({ operation: 'loan.overdue', input: { borrower: 'E42' } }, owner),
+    app.queryRaw({ operation: 'loan.overdue', input: { borrower: 'E42' } }, localUser),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });

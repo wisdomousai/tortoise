@@ -90,7 +90,7 @@ describe('counter scan routes', () => {
   });
 });
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
@@ -143,11 +143,11 @@ describe('counter scanner configuration', () => {
 
   test('the counter is the only station', async () => {
     const app = await open();
-    await expect(app.queryRaw(get('receiving'), owner)).rejects.toMatchObject({
+    await expect(app.queryRaw(get('receiving'), localUser)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     await expect(
-      app.invokeRaw(save(defaultWedgeProfile(), 'receiving'), owner),
+      app.invokeRaw(save(defaultWedgeProfile(), 'receiving'), localUser),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
@@ -160,7 +160,7 @@ describe('counter scanner configuration', () => {
         input: { station: counterStation, routes },
         idempotencyKey: 'routes-1',
       },
-      owner,
+      localUser,
     );
     const read = await app.queryRaw(get(), clerk);
     expect((read.data as { routes: unknown[] }).routes).toEqual(routes);
@@ -172,7 +172,7 @@ describe('counter scanner configuration', () => {
           idempotencyKey: 'routes-2',
           expectedRevisions: { 'device:counter': 0 },
         },
-        owner,
+        localUser,
       ),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
   });

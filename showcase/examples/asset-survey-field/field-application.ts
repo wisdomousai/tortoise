@@ -41,7 +41,7 @@ export function createFieldApplication(
   ];
   return defineApplication<FieldState, FieldServices>({
     manifest: fieldManifest(plugins.map((plugin) => plugin.manifest)),
-    createState: (ownerId) => createFieldState(ownerId, INTEGRATION_PRINCIPAL),
+    createState: (localUserId) => createFieldState(localUserId, INTEGRATION_PRINCIPAL),
     migrations,
     handlers: [
       ...worklistHandlers<FieldState, FieldServices, (typeof worklist.kinds)[number]>(worklist, {
@@ -52,7 +52,7 @@ export function createFieldApplication(
       }),
       ...createFieldHandlers(),
     ],
-    // An OS request opens `tag:<tag>` once the owner may read it with this query.
+    // An OS request opens `tag:<tag>` once the local user may read it with this query.
     selectableResources: { tag: fieldOperations.tagGet.id },
     authorization: fieldPolicy,
     ...(options.services ? { services: options.services } : {}),

@@ -13,7 +13,7 @@ import { peerAllowlist } from '@tortoise/integration';
 import { defineApplication } from '@tortoise/kernel/application';
 import type { AnyHostPlugin } from '@tortoise/kernel/plugin';
 import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { defineManifest } from '@tortoise/kernel/manifest';
 import { startHost } from '@tortoise/host/host';
 import { createHandlerFactory, definePolicy } from '@tortoise/runtime';
@@ -125,7 +125,7 @@ export const qualityPolicy = definePolicy<QualityState, Role>({
 });
 
 /**
- * The called application: Ann inspects, Bob views, the owner is a member; the peer link serves
+ * The called application: Ann inspects, Bob views, the local user is a member; the peer link serves
  * `api`, and `erp-integration` is reserved.
  */
 export function qualityApplication(
@@ -145,7 +145,7 @@ export function qualityApplication(
       plugins: [...before.map((entry) => entry.manifest), peerLinkPluginManifest],
     }),
     createState: () => ({
-      members: { [LOCAL_OWNER]: 'inspector', ann: 'inspector', bob: 'viewer' },
+      members: { [LOCAL_USER]: 'inspector', ann: 'inspector', bob: 'viewer' },
       log: [],
     }),
     handlers: [
@@ -167,7 +167,7 @@ export function qualityApplication(
   });
 }
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 
 /** One enrolled caller: its credential, the audience it signs for, and its key. */
 export interface Enrolled {
@@ -211,11 +211,11 @@ export async function startQuality(
     (
       await host.application.invokeRaw(
         { operation, input, idempotencyKey: crypto.randomUUID() },
-        owner,
+        localUser,
       )
     ).result as Record<string, any>;
   const query = async (operation: string, input: unknown = {}) =>
-    (await host.application.queryRaw({ operation, input }, owner)).data as Record<string, any>;
+    (await host.application.queryRaw({ operation, input }, localUser)).data as Record<string, any>;
 
   const redeem = (body: unknown) =>
     send(host.url + enrollPath, {
@@ -224,7 +224,7 @@ export async function startQuality(
       body: JSON.stringify(body),
     });
 
-  /** Create an enrollment as the owner and redeem it as the calling application would. */
+  /** Create an enrollment as the local user and redeem it as the calling application would. */
   async function enroll(
     enrollment: { subjects?: 'mapped' | 'same'; operations?: string[] } = {},
   ): Promise<Enrolled> {

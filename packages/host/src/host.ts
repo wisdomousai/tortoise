@@ -9,7 +9,7 @@ import {
   type TokenAuthenticator,
 } from '@tortoise/adapters/http';
 import type { AnyApplicationDefinition } from './application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from './embedded';
+import { LOCAL_USER, LOCAL_WORKSPACE } from './embedded';
 import { startAgents } from './host/agents';
 import { openInstance, type Instance } from './host/instance';
 import { issueAgentConnection, writeConnectionFile } from './host/connection-files';
@@ -76,20 +76,20 @@ function createClose(running: () => Running) {
 }
 
 /**
- * Write the connection files clients attach with. The owner's file exists only where the local
- * owner is a trusted identity; an agent connection gets its own delegated session.
+ * Write the connection files clients attach with. The local user's file exists only where the local
+ * user is a trusted identity; an agent connection gets its own delegated session.
  */
 async function publishConnections(
-  host: { sessions: Sessions; ownerSession?: HostSession; origin: string; running: Running },
+  host: { sessions: Sessions; localUserSession?: HostSession; origin: string; running: Running },
   options: StartHostOptions,
   cleanup: CleanupStack,
 ) {
-  const { sessions, ownerSession, origin, running } = host;
-  const connectionFile = ownerSession
+  const { sessions, localUserSession, origin, running } = host;
+  const connectionFile = localUserSession
     ? join(running.ownership.canonicalPath, '.connection.json')
     : undefined;
   if (connectionFile) {
-    await writeConnectionFile(connectionFile, origin, ownerSession!.token);
+    await writeConnectionFile(connectionFile, origin, localUserSession!.token);
     running.connectionFile = connectionFile;
   }
   const agentConnection = options.agentConnection;
@@ -115,8 +115,8 @@ async function startBackground(instance: Instance, options: StartHostOptions, or
       origin,
       delegate: (grant) => ({
         workspaceId: LOCAL_WORKSPACE,
-        principalId: LOCAL_OWNER,
-        grant: { ...grant, principalId: LOCAL_OWNER, workspaceId: LOCAL_WORKSPACE },
+        principalId: LOCAL_USER,
+        grant: { ...grant, principalId: LOCAL_USER, workspaceId: LOCAL_WORKSPACE },
       }),
       onError,
     })),
@@ -165,7 +165,7 @@ function uiRoutes(
  * The application's plugins provide the ports. The listener is loopback unless a plugin
  * provides the ingress port, and every API call still needs a session. The identity port decides
  * who the first session belongs to: the OS account that started the host when it admits the
- * local owner, otherwise only the launcher's delegated grant, with no owner credential file.
+ * local user, otherwise only the launcher's delegated grant, with no local-user credential file.
  */
 export async function startHost(definition: AnyApplicationDefinition, options: StartHostOptions) {
   await mkdir(options.workspacePath, { recursive: true });
@@ -185,11 +185,8 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       { sessions, origin: () => origin, uiSessions: ui.uiSessions },
       cleanup,
     );
-    const ownerSession: HostSession | undefined = instance.localOwner
-      ? sessions.create(
-          { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
-          365 * 86_400_000,
-        )
+    const localUserSession: HostSession | undefined = instance.localUser
+      ? sessions.create({ workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER }, 365 * 86_400_000)
       : undefined;
     let running: Running | undefined;
     const close = createClose(() => running!);
@@ -198,7 +195,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       ...ui,
       ...agents,
       ...(build ? { build } : {}),
-      shutdown: { ownerSession, instance: ownership.instance, close },
+      shutdown: { localUserSession, instance: ownership.instance, close },
     };
     const handler = createHttpHandler({
       application,
@@ -223,18 +220,18 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     running = { instance, agents, server, ownership };
     await ownership.publish(origin);
     const { connectionFile, agentSession } = await publishConnections(
-      { sessions, ownerSession, origin, running },
+      { sessions, localUserSession, origin, running },
       options,
       cleanup,
     );
     await startBackground(instance, options, origin);
-    const launching = ownerSession ?? agentSession;
+    const launching = localUserSession ?? agentSession;
     return {
       url: origin,
       workspacePath: ownership.canonicalPath,
       connectionFile,
       instance: ownership.instance,
-      // The browser opens as whoever the identity floor admits: the owner, or the delegate. With
+      // The browser opens as whoever the identity floor admits: the local user, or the delegate. With
       // neither, as under external identity, people sign in through the identity plugin's routes.
       ...(launching ? { launchUrl: `${origin}/#launch=${sessions.launch(launching)}` } : {}),
       sessions,

@@ -46,7 +46,7 @@ export { readPluginSettings, type PluginSettings } from './plugins/settings';
 export { defaultPorts } from './plugins/ports';
 export { combineIntegrations, type Integrations } from './integrations';
 export {
-  LOCAL_OWNER,
+  LOCAL_USER,
   LOCAL_WORKSPACE,
   openEmbeddedInstance,
   workspaceStorage,

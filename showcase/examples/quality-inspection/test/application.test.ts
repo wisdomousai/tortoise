@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createQualityInspectionApplication, demoSystemOfRecord } from '../application';
 
-test('a fresh workspace makes the owner supervisor of the default plant', () => {
+test('a fresh workspace makes the local user supervisor of the default plant', () => {
   const application = createQualityInspectionApplication();
-  const state = application.createState('owner');
-  expect(application.upgradeState!(structuredClone(state), 'owner')).toEqual(state);
+  const state = application.createState('local-user');
+  expect(application.upgradeState!(structuredClone(state), 'local-user')).toEqual(state);
 });
 
 test('the embedded instance syncs and drains the quality system it declares', async () => {
@@ -21,13 +21,13 @@ test('the embedded instance syncs and drains the quality system it declares', as
     expect((await instance.integrations.sync()).map((report) => report.target)).toEqual([
       'quality-system',
     ]);
-    const owner = { workspaceId: 'local', principalId: 'owner' };
+    const localUser = { workspaceId: 'local', principalId: 'local-user' };
     const plants = await instance.application.queryRaw(
       { operation: 'inspection.plant.list', input: {} },
-      owner,
+      localUser,
     );
     expect((plants.data as { items: unknown[] }).items).toEqual([
-      { plant: 'P100', role: 'supervisor', members: { owner: 'supervisor' } },
+      { plant: 'P100', role: 'supervisor', members: { 'local-user': 'supervisor' } },
     ]);
     expect(await instance.integrations.drain(0)).toEqual({
       pending: 0,

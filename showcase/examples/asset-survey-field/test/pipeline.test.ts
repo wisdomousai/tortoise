@@ -2,7 +2,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { nameplatePhoto } from '@tortoise/asset-survey/connectors/nameplate-photo';
 import { matches, tree, type BriefNode } from '../ui-native/brief';
-import { cleanUp, openPhone, owner, startHub, type Rows } from './fixtures';
+import { cleanUp, openPhone, localUser, startHub, type Rows } from './fixtures';
 
 afterEach(cleanUp);
 
@@ -77,7 +77,7 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
     ]),
   );
   const plate = (await survey.query('capture.get', { id: linked.id })).photos[0];
-  expect((await survey.hub.application.readBlob(plate.digest, owner))?.data).toEqual(
+  expect((await survey.hub.application.readBlob(plate.digest, localUser))?.data).toEqual(
     nameplatePhoto(lines),
   );
   expect((await survey.query<Rows>('assignment.list', { kind: 'survey' })).items[0]!.stage).toBe(

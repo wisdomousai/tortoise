@@ -10,8 +10,8 @@ import {
   fieldServiceModule,
 } from '../server';
 
-const owner = { workspaceId: 'direct', principalId: 'owner' };
-const customer = { ...owner, principalId: 'customer' };
+const localUser = { workspaceId: 'direct', principalId: 'local-user' };
+const customer = { ...localUser, principalId: 'customer' };
 
 async function serviceApp() {
   let id = 0;
@@ -24,7 +24,7 @@ async function serviceApp() {
   });
   await app.invokeRaw(
     { operation: 'work-order.create', input: { name: 'Shared' }, idempotencyKey: 'p' },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     {
@@ -32,7 +32,7 @@ async function serviceApp() {
       input: { id: 'id-1', principalId: 'customer', role: 'customer' },
       idempotencyKey: 'grant',
     },
-    owner,
+    localUser,
   );
   return app;
 }
@@ -65,7 +65,7 @@ test('a subscription from a snapshot cursor resets when access changed in betwee
       input: { id: 'id-1', principalId: 'customer', role: null },
       idempotencyKey: 'revoke',
     },
-    owner,
+    localUser,
   );
   const controller = new AbortController();
   for await (const batch of transport.events(snapshot.cursor, controller.signal)) {
@@ -85,7 +85,7 @@ test('a subscription from a current snapshot cursor resumes without a reset', as
       input: { workOrderId: 'id-1', title: 'New' },
       idempotencyKey: 'task',
     },
-    owner,
+    localUser,
   );
   const controller = new AbortController();
   for await (const batch of transport.events(snapshot.cursor, controller.signal)) {
@@ -147,7 +147,7 @@ test('direct receipts carry committed outbox effects like HTTP receipts', async 
       }),
     ],
   });
-  const receipt = await createDirectTransport(app, owner).command(
+  const receipt = await createDirectTransport(app, localUser).command(
     'note.post',
     { id: 'n1' },
     { idempotencyKey: 'post-n1' },

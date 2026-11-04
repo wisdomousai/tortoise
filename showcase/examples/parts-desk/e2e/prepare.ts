@@ -8,13 +8,13 @@
  * In `<directory>` it writes the site policy that `dev.ts` writes for the llama-server stand-in,
  * on a free loopback port, with `responder.ts` as the model's `FIXTURE_RESPONDER`. It creates the
  * workspace `<directory>/workspace` with the trial records, mara as a supervisor and the draft
- * quote Q-00001 for TR-40417, through the commands as the owner. The model server writes the
+ * quote Q-00001 for TR-40417, through the commands as the local user. The model server writes the
  * stand-in weights itself (`model.ts`). The last line it prints is the service's environment as
  * JSON: `WORKSPACE_PATH` and `TORTOISE_SITE_POLICY`.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import { LOCAL_USER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
 import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { createPartsDeskApplication } from '../application';
 import { ASSISTANT_MODEL_PROCESS } from '../contracts/assistant-agent';
@@ -54,10 +54,10 @@ const instance = await openEmbeddedInstance(
 );
 try {
   await seedTrialRecords(instance.application);
-  const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+  const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
   const { data } = await instance.application.queryRaw(
     { operation: 'customer.list', input: { search: 'U1042' } },
-    owner,
+    localUser,
   );
   const nordhafen = (data as { items: { id: string; account: string }[] }).items.find(
     (customer) => customer.account === 'U1042',
@@ -75,7 +75,7 @@ try {
       },
       idempotencyKey: 'e2e-draft',
     },
-    owner,
+    localUser,
   );
 } finally {
   await instance.close();

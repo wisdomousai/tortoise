@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
 import { createApplicationRuntime } from '@tortoise/host/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createMemoryStorage } from '@tortoise/runtime';
 import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
 import { stationSignInOperations as ops } from '../src/contracts';
 import { stationApplication } from './fixtures';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
-const operator = { ...owner, principalId: 'ada@plant' };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
+const operator = { ...localUser, principalId: 'ada@plant' };
 let key = 0;
 const command = (operation: string, input: unknown) => ({
   operation,
@@ -19,7 +19,7 @@ const attempt = (badgeId: string, verified: boolean, tokenDigest = 'c'.repeat(64
   command(ops.sessionStart.id, {
     badgeId,
     verified,
-    terminalPrincipal: LOCAL_OWNER,
+    terminalPrincipal: LOCAL_USER,
     terminal: 'press-1',
     tokenDigest,
   });
@@ -35,27 +35,27 @@ const scenarios: BehavioralScenario[] = [
           badgeDigest: 'b'.repeat(64),
           ...verifier,
         }),
-        owner,
+        localUser,
       );
       const { badge } = enrolled.result as { badge: { id: string } };
       await expect(
         driver.query({ operation: ops.badgeList.id, input: {} }, operator),
       ).rejects.toMatchObject({ code: 'FORBIDDEN' });
       for (let failure = 1; failure < 5; failure++)
-        expect((await driver.command(attempt(badge.id, false), owner)).result).toEqual({
+        expect((await driver.command(attempt(badge.id, false), localUser)).result).toEqual({
           session: null,
           refusal: 'pin',
         });
-      expect((await driver.command(attempt(badge.id, false), owner)).result).toEqual({
+      expect((await driver.command(attempt(badge.id, false), localUser)).result).toEqual({
         session: null,
         refusal: 'locked',
       });
-      expect((await driver.command(attempt(badge.id, true), owner)).result).toEqual({
+      expect((await driver.command(attempt(badge.id, true), localUser)).result).toEqual({
         session: null,
         refusal: 'locked',
       });
-      await driver.command(command(ops.badgeRevoke.id, { badgeId: badge.id }), owner);
-      const listed = await driver.query({ operation: ops.badgeList.id, input: {} }, owner);
+      await driver.command(command(ops.badgeRevoke.id, { badgeId: badge.id }), localUser);
+      const listed = await driver.query({ operation: ops.badgeList.id, input: {} }, localUser);
       expect(
         (listed.data as { badges: { revokedAt?: number }[] }).badges[0]!.revokedAt,
       ).toBeDefined();
@@ -63,7 +63,7 @@ const scenarios: BehavioralScenario[] = [
         (
           await driver.query(
             { operation: ops.badgeVerifier.id, input: { badgeDigest: 'b'.repeat(64) } },
-            owner,
+            localUser,
           )
         ).data,
       ).toEqual({ badge: null });
@@ -74,7 +74,7 @@ const scenarios: BehavioralScenario[] = [
 test('station sign-in scenarios run through the direct driver', async () => {
   const definition = stationApplication();
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState(LOCAL_OWNER)),
+    storage: createMemoryStorage(definition.createState(LOCAL_USER)),
     services: { 'station-sign-in': { now: () => 1_000, sessionMinutes: 15 } },
   });
   await runScenarios(scenarios, directDriver(application));

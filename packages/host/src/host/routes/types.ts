@@ -26,8 +26,8 @@ export interface HostRouteContext {
   /** When the running binary was built and its best-before date; absent for a run from source. */
   readonly build?: BuildFacts;
   readonly shutdown: {
-    /** Present only when the local owner is a trusted identity. */
-    readonly ownerSession?: HostSession;
+    /** Present only when the local user is a trusted identity. */
+    readonly localUserSession?: HostSession;
     readonly instance: string;
     close(): Promise<void>;
   };

@@ -110,9 +110,9 @@ Use `site-hub` for a hub that paired phones reach (see [device-link](../plugins/
 
 | `identity`    | Who gets in                                                                   |
 | ------------- | ----------------------------------------------------------------------------- |
-| `local-owner` | The local owner gets a session.                                               |
-| `grant-file`  | Only a launcher's delegated grant. No owner session.     |
-| `external`    | People sign in through OpenID Connect (workforce sign-in). Never falls back to the owner. |
+| `local-user` | The local user gets a session.                                               |
+| `grant-file`  | Only a launcher's delegated grant. No local-user session.     |
+| `external`    | People sign in through OpenID Connect (workforce sign-in). Never falls back to the local user. |
 
 ### Ingress and certificates
 
@@ -200,7 +200,7 @@ At startup the log records the executable, catalog and policy digests. `audit.fo
 | `app audit verify --log <dir>`                                  | exit 10 if the chain is damaged |
 | `app compliance report --log <dir> --site <file> --format markdown` | exit 10 if posture fails    |
 
-From the repo, `app` is `bun run cli`. While running, the posture monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the owner) may read the log.
+From the repo, `app` is `bun run cli`. While running, the posture monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the local user) may read the log.
 
 ## Isolated operation
 
@@ -209,7 +209,7 @@ Without a policy, the app listens on loopback only, outbox targets queue, and mo
 ## Limits
 
 - The guard is in-process. Real containment needs the exported rules or an OS sandbox.
-- The workspace owner's OS user can read and delete the log. Forward it off the host.
+- The local user's OS account can read and delete the log. Forward it off the host.
 - Workforce sign-in is OpenID Connect only.
 - The isolated-test trap doesn't cover child processes.
 - Apps declare devices; the host does not mediate access to them.

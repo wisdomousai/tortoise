@@ -10,7 +10,7 @@ import { measure } from '@tortoise/model-server/measure';
 import { requestOperations } from '@tortoise/pattern-base/contracts';
 import { composeTestRequestsLocalModel } from '../application';
 import { METHOD_MODEL, methodSuggester } from '../contracts';
-import { owner } from './fixtures';
+import { localUser } from './fixtures';
 
 /**
  * A live run, skipped unless LOCAL_MODEL_GGUF names a GGUF file: the model server starts the real
@@ -83,7 +83,7 @@ live(
     });
 
     const run = (operation: string, input: unknown, key: string) =>
-      host.application.invokeRaw({ operation, input, idempotencyKey: key }, owner);
+      host.application.invokeRaw({ operation, input, idempotencyKey: key }, localUser);
     await run(
       'automation.grant.issue',
       { trigger: 'suggest-methods-on-local-model', expiresInMs: 3_600_000 },
@@ -106,7 +106,7 @@ live(
     for (let tries = 0; tries < 1_200 && !suggestion; tries++) {
       const { data } = await host.application.queryRaw(
         { operation: approvalOperations.approvalList.id, input: { status: 'pending' } },
-        owner,
+        localUser,
       );
       suggestion = (data as { items: ApprovalRequest[] }).items[0];
       if (!suggestion) await Bun.sleep(250);

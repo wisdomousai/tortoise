@@ -120,7 +120,7 @@ function ModeCard({ bridge, onMode }: { bridge: Bridge; onMode: (mode: Bridge['m
           </Button>
         ))}
         <p className="w-full text-sm text-muted-foreground">
-          Screen held by <strong>{bridge.controlHolder}</strong>
+          Screen controlled by <strong>{bridge.controlledBy}</strong>
           {bridge.controlChangedBy ? ` (set by ${bridge.controlChangedBy})` : ''}
           {bridge.localInputAt
             ? ` · last local input ${new Date(bridge.localInputAt).toLocaleTimeString()}`

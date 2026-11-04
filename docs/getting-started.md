@@ -117,7 +117,7 @@ test('an inspection without an equipment ID is refused', async () => {
   await expect(
     app.invokeRaw(
       { operation: 'inspection.create', input: { title: 'No ID', equipmentId: '' }, idempotencyKey: 'no-id' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });
@@ -198,7 +198,7 @@ export function inspectionCloseHandlers(): HandlerContribution<AppState, Service
 
 `ctx.change` marks the record as changed, so open screens refresh it.
 
-**14. Write the test.** `bun test showcase/examples/inspection-desk` now fails in `inspection-close.test.ts`, because the generated test still sends `{}`. Replace its test body so it creates an inspection, then checks that a viewer gets `FORBIDDEN`, the owner gets `status: 'done'`, and a second close gets `CONFLICT`:
+**14. Write the test.** `bun test showcase/examples/inspection-desk` now fails in `inspection-close.test.ts`, because the generated test still sends `{}`. Replace its test body so it creates an inspection, then checks that a viewer gets `FORBIDDEN`, the local user gets `status: 'done'`, and a second close gets `CONFLICT`:
 
 ```ts
 test('editors close an open inspection once; viewers cannot', async () => {
@@ -213,16 +213,16 @@ test('editors close an open inspection once; viewers cannot', async () => {
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
   cleanup.push(() => instance.close());
   const app = instance.application;
-  const close = (key: string, who: typeof owner) =>
+  const close = (key: string, who: typeof localUser) =>
     app.invokeRaw({ operation: 'inspection.close', input: { id: 'i-1' }, idempotencyKey: key }, who);
 
   await app.invokeRaw(
     { operation: 'inspection.create', input: { title: 'Pump 4', equipmentId: 'PUMP-4' }, idempotencyKey: 'c' },
-    owner,
+    localUser,
   );
   await expect(close('v', viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
-  expect((await close('close', owner)).result).toMatchObject({ id: 'i-1', status: 'done' });
-  await expect(close('again', owner)).rejects.toMatchObject({ code: 'CONFLICT' });
+  expect((await close('close', localUser)).result).toMatchObject({ id: 'i-1', status: 'done' });
+  await expect(close('again', localUser)).rejects.toMatchObject({ code: 'CONFLICT' });
 });
 ```
 

@@ -125,7 +125,7 @@ async function ready(env: Awaited<ReturnType<typeof setup>>) {
   env.sim.stopMachine();
   await env.observe();
   await env.command('line.bridge.set-mode', { station: 'winder-1', mode: 'actuate' }, supervisor);
-  await env.command('line.control.request', { station: 'winder-1', holder: 'agent' });
+  await env.command('line.control.request', { station: 'winder-1', controlledBy: 'agent' });
 }
 
 describe('winding line: observe, annotate, actuate', () => {
@@ -148,7 +148,7 @@ describe('winding line: observe, annotate, actuate', () => {
     expect(station.bridge).toMatchObject({
       screen: 'main',
       mode: 'monitor-only',
-      controlHolder: 'idle',
+      controlledBy: 'idle',
       profile: { id: 'winder-hmi' },
     });
 
@@ -255,12 +255,12 @@ describe('winding line: observe, annotate, actuate', () => {
     await command('line.order.start', { station: 'winder-1', orderId: 'ORD-7002' });
     expect(await deliver()).toMatchObject({ retried: 1, accepted: 0 });
     await command('line.bridge.set-mode', { station: 'winder-1', mode: 'actuate' }, supervisor);
-    await command('line.control.request', { station: 'winder-1', holder: 'operator' });
+    await command('line.control.request', { station: 'winder-1', controlledBy: 'operator' });
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
     expect(sim.state.screen).toBe('main');
     expect(sim.state.recipe).toBe('R-250');
     // Blocked attempts never touched the screen, so handing back delivers instead of holding.
-    await command('line.control.request', { station: 'winder-1', holder: 'agent' });
+    await command('line.control.request', { station: 'winder-1', controlledBy: 'agent' });
     expect(await deliver()).toMatchObject({ accepted: 1 });
     expect((await query('line.sync.status', {})).targets).toContainEqual(
       expect.objectContaining({ target: 'legacy-hmi:winder-1', accepted: 1, held: 0 }),
@@ -314,7 +314,7 @@ describe('winding line: observe, annotate, actuate', () => {
     sim.press = (control) => {
       press(control);
       if (control === 'load')
-        void command('line.control.request', { station: 'winder-1', holder: 'operator' });
+        void command('line.control.request', { station: 'winder-1', controlledBy: 'operator' });
     };
     expect(await deliver()).toMatchObject({ held: 1 });
     expect(sim.state.screen).toBe('recipe');
@@ -492,7 +492,10 @@ describe('winding line: observe, annotate, actuate', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(
       app.invokeRaw(
-        { operation: 'line.control.request', input: { station: 'winder-1', holder: 'operator' } },
+        {
+          operation: 'line.control.request',
+          input: { station: 'winder-1', controlledBy: 'operator' },
+        },
         as('mes-integration'),
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });

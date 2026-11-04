@@ -220,10 +220,10 @@ test('a session revoked or ended by its credential during a request stops the co
         body: JSON.stringify({ input: {}, idempotencyKey: crypto.randomUUID() }),
       }),
     );
-  const owner = { workspaceId: 'w', principalId: 'owner' };
+  const localUser = { workspaceId: 'w', principalId: 'local-user' };
   const count = async () =>
-    (await application.query({ operation: 'counter.get', input: {} }, owner)).data;
-  const session = sessions.create({ workspaceId: 'w', principalId: 'owner' });
+    (await application.query({ operation: 'counter.get', input: {} }, localUser)).data;
+  const session = sessions.create({ workspaceId: 'w', principalId: 'local-user' });
   expect((await add1(session.token)).status).toBe(200);
   expect(await count()).toBe(1);
 

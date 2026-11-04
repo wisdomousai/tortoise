@@ -10,10 +10,10 @@ export interface TestRequestsState {
   requests: Record<string, TestRequest>;
 }
 
-/** A new test requests slice. Its owner is always a technician. */
+/** A new test requests slice. The local user is always a technician. */
 export function createTestRequestsState(
-  ownerId: string,
+  localUserId: string,
   members: Record<string, Role> = {},
 ): TestRequestsState {
-  return { members: { ...members, [ownerId]: 'technician' }, requests: {} };
+  return { members: { ...members, [localUserId]: 'technician' }, requests: {} };
 }

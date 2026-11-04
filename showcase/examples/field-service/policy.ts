@@ -19,7 +19,7 @@ export function workOrderRole(
     ? state.workOrders[workOrderId]
     : undefined;
   if (!workOrder) return undefined;
-  return state.workspaceOwnerId === principal
+  return state.localUserId === principal
     ? 'dispatcher'
     : Object.hasOwn(workOrder.members, principal)
       ? workOrder.members[principal]
@@ -148,7 +148,7 @@ export const approvalAccess = (state: ServiceState): ApprovalAccess => ({
     if (resource === undefined)
       return (
         action === 'read' &&
-        (state.workspaceOwnerId === context.principalId ||
+        (state.localUserId === context.principalId ||
           Object.keys(state.workOrders).some((id) => workOrderRole(state, context.principalId, id)))
       );
     const workOrder = workOrderOfResource(state, resource);
@@ -166,7 +166,7 @@ export const servicePolicy = definePolicy<ServiceState, Role>({
   roleOf: workOrderRole,
   operations: {
     [operations.workOrderCreate.id]: {
-      allow: ({ state, context }) => state.workspaceOwnerId === context.principalId,
+      allow: ({ state, context }) => state.localUserId === context.principalId,
     },
     [operations.workOrderList.id]: 'open',
     [operations.taskList.id]: 'open',
@@ -179,10 +179,10 @@ export const servicePolicy = definePolicy<ServiceState, Role>({
     [operations.taskUpdate.id]: onTask(taskWorkOrder),
     [operations.taskSetStatus.id]: onTask(taskWorkOrder),
     [operations.taskRemind.id]: onTask(taskWorkOrder),
-    // The reminder dispatcher: the workspace owner acting under its delegated grant, never a session.
+    // The reminder dispatcher: the local user acting under its delegated grant, never a session.
     [operations.taskRemindersComplete.id]: {
       allow: ({ state, context }) =>
-        state.workspaceOwnerId === context.principalId && context.grant !== undefined,
+        state.localUserId === context.principalId && context.grant !== undefined,
     },
     // Deletes have no proposed object; authorize their original work order and retained tombstone.
     [operations.taskDelete.id]: { ...onTask(taskWorkOrder), commit: 'previous' },

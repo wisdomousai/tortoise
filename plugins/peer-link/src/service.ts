@@ -26,7 +26,7 @@ export interface PeerLinkService {
    */
   link(target: string): PeerLink;
   /**
-   * Connect to a peer target with the code its owner read out, as `context`, which must be
+   * Connect to a peer target with the code its local user read out, as `context`, which must be
    * allowed to record connections. The connect route calls it for a person signed in here.
    */
   connect(

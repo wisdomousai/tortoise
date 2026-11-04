@@ -21,10 +21,10 @@ export interface AppState {
   // scaffold:state
 }
 
-/** A new workspace. Its owner is always an editor. */
-export function createState(ownerId: string, members: Record<string, Role> = {}): AppState {
+/** A new workspace. The local user is always an editor. */
+export function createState(localUserId: string, members: Record<string, Role> = {}): AppState {
   return {
-    members: { ...members, [ownerId]: 'editor' },
+    members: { ...members, [localUserId]: 'editor' },
     sync: {
       erp: {},
       quality: {},

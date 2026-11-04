@@ -7,7 +7,7 @@ import { z } from 'zod';
  */
 /**
  * `desktop-local`: one person's machine, loopback only. `site-hub`: a machine on a site network
- * that paired devices reach over TLS, still run by its local owner. `sandbox`: an agent sandbox
+ * that paired devices reach over TLS, still run by its local user. `sandbox`: an agent sandbox
  * run under launcher grants. `zero-trust`: external identity, mutual TLS, forwarded audit.
  */
 export const hardeningProfiles = ['desktop-local', 'site-hub', 'sandbox', 'zero-trust'] as const;
@@ -88,7 +88,7 @@ export const sitePolicySchema = z.strictObject({
       forwardTo: z.string().optional(),
     })
     .default({ mode: 'fail-closed' }),
-  identity: z.enum(['local-owner', 'grant-file', 'external']).default('local-owner'),
+  identity: z.enum(['local-user', 'grant-file', 'external']).default('local-user'),
   ingress: z
     .strictObject({
       /**

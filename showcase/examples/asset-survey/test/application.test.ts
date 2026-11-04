@@ -1,6 +1,16 @@
 import { describe, expect, test } from 'bun:test';
 import type { ExecutionContext } from '@tortoise/runtime';
-import { at, device, dispatched, open, otherDevice, owner, rita, vic, type Node } from './survey';
+import {
+  at,
+  device,
+  dispatched,
+  open,
+  otherDevice,
+  localUser,
+  rita,
+  vic,
+  type Node,
+} from './survey';
 
 type Tree = { items: { designation: string; depth: number }[]; total: number };
 
@@ -82,9 +92,9 @@ describe('asset survey', () => {
       code: 'FORBIDDEN',
     });
     const delegated: ExecutionContext = {
-      ...owner,
+      ...localUser,
       runId: 'run-2',
-      grant: { operations: ['approval.approve'], runId: 'run-2', principalId: 'owner' },
+      grant: { operations: ['approval.approve'], runId: 'run-2', principalId: 'local-user' },
     };
     await expect(command('approval.approve', { id: request.id }, delegated)).rejects.toMatchObject({
       code: 'FORBIDDEN',
@@ -126,7 +136,7 @@ describe('asset survey', () => {
     );
 
     // A manager's own feed holds nothing sent to the device; a viewer takes no work.
-    expect((await query<Feed>('assignment.feed', {}, owner)).items).toEqual([]);
+    expect((await query<Feed>('assignment.feed', {}, localUser)).items).toEqual([]);
     await expect(query('assignment.feed', {}, vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     // The device reads nothing else.
     await expect(query('structure.tree', {}, device)).rejects.toMatchObject({ code: 'FORBIDDEN' });
@@ -169,7 +179,7 @@ describe('asset survey', () => {
       command('assignment.survey.report', { ...report, id: 'cap-2' }, otherDevice),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     await expect(
-      command('assignment.survey.report', { ...report, id: 'cap-3' }, owner),
+      command('assignment.survey.report', { ...report, id: 'cap-3' }, localUser),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     // A capture of a node outside the survey is recorded unlinked, for a reviewer to link within the survey.
     const g2 = await survey.node(undefined, '=G2', 'Generator 2');
@@ -327,7 +337,7 @@ describe('asset survey', () => {
         scope: { reportId: 'desk-1' },
         assignee: { type: 'person', id: 'rita' },
       },
-      owner,
+      localUser,
     );
     const { digest } = (
       await query<{ photos: { digest: string }[] }>('capture.get', { id: 'desk-1' })

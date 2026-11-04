@@ -12,7 +12,7 @@ import { createTestRequestsHostPluginApplication } from '../application';
 import { activityOperations } from '../plugins/activity/contracts';
 import { activityPolicy, createActivityState } from '../plugins/activity/server';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 
 const cleanup: (() => Promise<unknown>)[] = [];
@@ -37,7 +37,7 @@ const summary = async (host: Awaited<ReturnType<typeof startHost>>) =>
   (
     await host.application.queryRaw(
       { operation: activityOperations.summaryGet.id, input: {} },
-      owner,
+      localUser,
     )
   ).data as Summary;
 
@@ -78,7 +78,7 @@ test('the loop counts committed test request commands and resumes from its curso
         operation: requestOperations.requestSubmit.id,
         input: { sample, transformer: 'TR-40517', description: '' },
       },
-      owner,
+      localUser,
     );
   const { result } = await submit('OS-24-0417');
   await submit('OS-24-0418');
@@ -87,7 +87,7 @@ test('the loop counts committed test request commands and resumes from its curso
       operation: requestOperations.requestUpdate.id,
       input: { id: (result as { id: string }).id, method: 'IEC 60567 dissolved gas analysis' },
     },
-    owner,
+    localUser,
   );
   await until(async () => (await summary(host)).operations.length === 2);
   expect((await summary(host)).operations).toEqual([
@@ -128,8 +128,8 @@ test('the plugin policy decides its own operations only', async () => {
   expect(
     activityPolicy.authorize({
       capability: requestOperations.requestSubmit,
-      context: owner,
-      state: createActivityState('owner'),
+      context: localUser,
+      state: createActivityState('local-user'),
     } as Parameters<typeof activityPolicy.authorize>[0]),
   ).toEqual({ allowed: false, reason: 'NO_POLICY' });
 });
@@ -144,13 +144,13 @@ const scenarios: BehavioralScenario[] = [
             operation: activityOperations.passRecord.id,
             input: { cursor, counted: [{ operation: 'test-request.submit', count: 2 }] },
           },
-          owner,
+          localUser,
         );
       await pass(4);
       await pass(4);
       const read = await driver.query(
         { operation: activityOperations.summaryGet.id, input: {} },
-        owner,
+        localUser,
       );
       expect(read.data).toEqual({
         cursor: 4,
@@ -164,7 +164,7 @@ const scenarios: BehavioralScenario[] = [
 test('behavioural scenarios through the direct driver', async () => {
   const definition = application();
   const runtime = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState('owner')),
+    storage: createMemoryStorage(definition.createState('local-user')),
     services: { activity: { modules: ['test-requests'] } },
   });
   await runScenarios(scenarios, directDriver(runtime));

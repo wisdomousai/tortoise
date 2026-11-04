@@ -38,8 +38,8 @@ export function createTestRequestsAssignmentsApplication(
 ) {
   return defineApplication<TestRequestsAssignmentsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
     }),
     handlers: [
       ...sliceHandlers<TestRequestsAssignmentsRoot, 'testRequests', TestRequestsServices>(

@@ -68,7 +68,7 @@ const module = defineModule({
   },
 });
 type State = { readings: Record<string, number> };
-const owner = { workspaceId: 'w', principalId: 'inspector', channel: 'http' as const };
+const localUser = { workspaceId: 'w', principalId: 'inspector', channel: 'http' as const };
 const input = { id: 'r1', value: 10.5, note: 'operator remark' };
 const mode = (queries: 'required' | 'best-effort' = 'required'): AuditMode => ({
   commands: 'required',
@@ -138,7 +138,7 @@ describe('audited runtime', () => {
     const { app } = fixture(log);
     const receipt = await app.invoke(
       { operation: 'reading.record', input, idempotencyKey: 'k1' },
-      owner,
+      localUser,
     );
     const events = log.events();
     expect(events.map((event) => event.kind)).toEqual([
@@ -164,7 +164,7 @@ describe('audited runtime', () => {
     const { log } = failingLog(['command.accepted']);
     const { app, storage } = fixture(log);
     await expect(
-      app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, owner),
+      app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, localUser),
     ).rejects.toMatchObject({ code: 'UNAVAILABLE' });
     expect(await readings(storage)).toBe(0);
   });
@@ -172,7 +172,7 @@ describe('audited runtime', () => {
   test('best-effort: the command commits and the gap is left for verification', async () => {
     const { log } = failingLog(['command.accepted'], { ...mode(), commands: 'best-effort' });
     const { app, storage } = fixture(log);
-    await app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, owner);
+    await app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, localUser);
     expect(await readings(storage)).toBe(1);
   });
 
@@ -180,9 +180,9 @@ describe('audited runtime', () => {
     const log = createMemoryEventLog();
     const { app } = fixture(log, { deny: true });
     await expect(
-      app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, owner),
+      app.invoke({ operation: 'reading.record', input, idempotencyKey: 'k1' }, localUser),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await expect(app.query({ operation: 'reading.count', input: {} }, owner)).rejects.toThrow();
+    await expect(app.query({ operation: 'reading.count', input: {} }, localUser)).rejects.toThrow();
     expect(log.events().map((event) => [event.kind, event.reason])).toEqual([
       ['command.denied', 'FORBIDDEN'],
       ['query.denied', 'FORBIDDEN'],
@@ -191,24 +191,24 @@ describe('audited runtime', () => {
 
   test('queries are recorded, and a required query log withholds data when unwritable', async () => {
     const log = createMemoryEventLog();
-    await fixture(log).app.query({ operation: 'reading.count', input: {} }, owner);
+    await fixture(log).app.query({ operation: 'reading.count', input: {} }, localUser);
     expect(log.events()[0]).toMatchObject({ kind: 'query.executed', operation: 'reading.count' });
     const { app } = fixture(failingLog(['query.executed']).log);
-    await expect(app.query({ operation: 'reading.count', input: {} }, owner)).rejects.toMatchObject(
-      { code: 'UNAVAILABLE' },
-    );
+    await expect(
+      app.query({ operation: 'reading.count', input: {} }, localUser),
+    ).rejects.toMatchObject({ code: 'UNAVAILABLE' });
     const relaxed = fixture(failingLog(['query.executed'], mode('best-effort')).log);
-    expect((await relaxed.app.query({ operation: 'reading.count', input: {} }, owner)).data).toBe(
-      0,
-    );
+    expect(
+      (await relaxed.app.query({ operation: 'reading.count', input: {} }, localUser)).data,
+    ).toBe(0);
   });
 
   test('replays, completions and delivery attempts are recorded', async () => {
     const log = createMemoryEventLog();
     const { app } = fixture(log);
     const request = { operation: 'reading.record' as const, input, idempotencyKey: 'k1' };
-    const receipt = await app.invoke(request, owner);
-    await app.invoke(request, owner);
+    const receipt = await app.invoke(request, localUser);
+    await app.invoke(request, localUser);
     const integration = { workspaceId: 'w', principalId: 'integration' };
     await app.recordAttempt(integration, receipt.effects![0]!, 'timeout');
     await app.recordAttempt(integration, receipt.effects![0]!, 'lost reply', { hold: true });
@@ -235,7 +235,7 @@ describe('audited runtime', () => {
     const storage = createMemoryStorage<State>({ readings: {} });
     await fixture(crashed.log, { storage }).app.invoke(
       { operation: 'reading.record', input, idempotencyKey: 'k1' },
-      owner,
+      localUser,
     );
     // Accepted, then the storage commit itself failed and the failure record was lost too.
     const lost = failingLog(['command.failed']);
@@ -250,7 +250,7 @@ describe('audited runtime', () => {
     await expect(
       fixture(lost.log, { storage: failingStorage }).app.invoke(
         { operation: 'reading.record', input: { ...input, id: 'r2' }, idempotencyKey: 'k2' },
-        owner,
+        localUser,
       ),
     ).rejects.toThrow('commit failed');
 

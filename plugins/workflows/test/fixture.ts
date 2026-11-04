@@ -292,7 +292,7 @@ export function inProcess() {
   let ids = 0;
   const log = createMemoryEventLog();
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState('owner')),
+    storage: createMemoryStorage(definition.createState('local-user')),
     services: { workflow: { definitions, now, newId: () => `w${++ids}` } },
     eventLog: log,
     now,
@@ -304,8 +304,8 @@ export function inProcess() {
     ports: defaultPorts,
     delegate: (grant) => ({
       workspaceId: 'local',
-      principalId: 'owner',
-      grant: { ...grant, principalId: 'owner', workspaceId: 'local' },
+      principalId: 'local-user',
+      grant: { ...grant, principalId: 'local-user', workspaceId: 'local' },
     }),
     onError: (_scope, error) => errors.push(error),
   };
@@ -318,7 +318,8 @@ export function inProcess() {
     (await application.queryRaw({ operation, input }, as)).data;
   const instance = (id: string, as = person('ann')) => query('workflow.get', { id }, as);
   /** Pending effects, held ones included. */
-  const pending = async () => application.pendingEffects(person('owner'), { includeHeld: true });
+  const pending = async () =>
+    application.pendingEffects(person('local-user'), { includeHeld: true });
   return {
     application,
     definitions,

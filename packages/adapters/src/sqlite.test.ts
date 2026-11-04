@@ -20,7 +20,7 @@ test('snapshot transaction persists journal and receipts together, rolls back, a
       });
       snapshot.receipts.k = {
         fingerprint: 'f',
-        principalId: 'owner',
+        principalId: 'local-user',
         input: {},
         receipt: {
           operation: 'task.update',
@@ -85,7 +85,7 @@ test('process death before commit rolls back, and death after commit retains rec
   const directory = await mkdtemp(join(tmpdir(), 'agent-storage-crash-'));
   const databasePath = join(directory, 'workspace.sqlite');
   const runUntilReady = async (commit: boolean) => {
-    const source = `import { SQLiteStorage } from ${JSON.stringify(import.meta.dir + '/sqlite.ts')}; const store = new SQLiteStorage(process.argv[1], () => ({ count: 0 })); ${commit ? 'await' : 'void'} store.transact('w', async s => { s.state.count = 7; s.cursor = 1; s.journal.push({cursor:1,resource:'task:1',revision:1,type:'changed',operation:'task.update'}); s.receipts.key = {fingerprint:'f',principalId:'owner',input:{},receipt:{operation:'task.update',result:{},cursor:1,authorizationRevision:0,revisions:{'task:1':1}}}; ${commit ? '' : "console.log('ready'); await new Promise(() => {});"} }); ${commit ? "console.log('ready');" : ''} setInterval(() => {}, 1000);`;
+    const source = `import { SQLiteStorage } from ${JSON.stringify(import.meta.dir + '/sqlite.ts')}; const store = new SQLiteStorage(process.argv[1], () => ({ count: 0 })); ${commit ? 'await' : 'void'} store.transact('w', async s => { s.state.count = 7; s.cursor = 1; s.journal.push({cursor:1,resource:'task:1',revision:1,type:'changed',operation:'task.update'}); s.receipts.key = {fingerprint:'f',principalId:'local-user',input:{},receipt:{operation:'task.update',result:{},cursor:1,authorizationRevision:0,revisions:{'task:1':1}}}; ${commit ? '' : "console.log('ready'); await new Promise(() => {});"} }); ${commit ? "console.log('ready');" : ''} setInterval(() => {}, 1000);`;
     const child = Bun.spawn([process.execPath, '-e', source, databasePath], {
       stdout: 'pipe',
       stderr: 'pipe',

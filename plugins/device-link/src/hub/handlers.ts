@@ -167,8 +167,8 @@ export const deviceLinkHandlers: HandlerContribution<DeviceLinkState, DeviceLink
 const known = new Set<string>(deviceLinkModule.capabilities.map((capability) => capability.id));
 
 /**
- * Only admins (the local owner, or a caller acting for them under a grant that lists the
- * operation) manage devices. The enrollment route and credential lookups run as the owner
+ * Only admins (the local user, or a caller acting for them under a grant that lists the
+ * operation) manage devices. The enrollment route and credential lookups run as the local user
  * narrowed to exactly those two operations. Device and enrollment events are visible to admins.
  */
 export const deviceLinkPolicy: AuthorizationPort<DeviceLinkState> = {

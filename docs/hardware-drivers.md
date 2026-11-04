@@ -111,9 +111,9 @@ JSON-RPC 2.0, one message per line on stdin and stdout. The host drops lines ove
 
 A crash, timeout, cancel or malformed reply mid-action is transient; the delivery mode decides what happens before the resend.
 
-## Interlock
+## Action checks
 
-Driver actions pass the same interlock as [screen procedures](operator-workstations.md#interlock). For each effect the connector:
+Driver actions pass the same action checks as [screen procedures](operator-workstations.md#action-checks). For each effect the connector:
 
 1. rejects an unknown action, invalid input, or an `operator-present` action without presence confirmation;
 2. waits unless the bridge mode allows the risk level (`monitor-only` none, `assist` only `none`, `actuate` all);

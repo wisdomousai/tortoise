@@ -40,8 +40,8 @@ export function createTestRequestsSignalsApplication(options: TestRequestsSignal
   const chambers = options.chambers ?? defaultChambers;
   return defineApplication<LabSignalsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
       chambers: createChambersState(),
     }),
     handlers: [

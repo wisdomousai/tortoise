@@ -9,7 +9,7 @@ import { featureConformance } from '@tortoise/testing/features';
 import { createTestRequestsReviewApplication } from '../application';
 import { reviewFeature, type ReviewAccess } from '../features/review/feature';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const lena = { workspaceId: 'local', principalId: 'lena' };
 const mia = { workspaceId: 'local', principalId: 'mia' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
@@ -102,7 +102,7 @@ const scenarios: BehavioralScenario[] = [
             method: 'IEC 60567 dissolved gas analysis',
           },
         },
-        owner,
+        localUser,
       );
       const signed = await driver.command(sign('approved', 1, 'Method fits the gas alarm'), lena);
       expect(signed.result).toMatchObject({
@@ -124,7 +124,7 @@ const scenarios: BehavioralScenario[] = [
   {
     name: 'the requester cannot sign their own request, and a reviewer signs a revision once',
     async run(driver) {
-      expect(await refused(driver.command(sign('approved', 1), owner))).toBe(
+      expect(await refused(driver.command(sign('approved', 1), localUser))).toBe(
         'FORBIDDEN SELF_REVIEW',
       );
       expect(await refused(driver.command(sign('rejected', 1), lena))).toStartWith('CONFLICT');
@@ -139,7 +139,7 @@ const scenarios: BehavioralScenario[] = [
           input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
           expectedRevisions: { 'test-request:r1': 1 },
         },
-        owner,
+        localUser,
       );
       expect(await refused(driver.command(sign('approved', 1), mia))).toStartWith('CONFLICT');
       const signed = await driver.command(

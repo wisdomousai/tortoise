@@ -2,7 +2,7 @@ import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@to
 import { driverModule, driverOperations } from './contracts/status';
 import { driverServiceOf } from './open';
 
-/** Who may read driver status. Created with the workspace owner. */
+/** Who may read driver status. Created with the local user. */
 export interface DriverState {
   readers: string[];
 }

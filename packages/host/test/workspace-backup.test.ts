@@ -7,7 +7,7 @@ import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts'
 import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
 import { defineApplication } from '../src/application';
 import { createCli } from '../src/cli';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
+import { LOCAL_USER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineManifest } from '../src/manifest';
 
 const count = jsonSchema(z.strictObject({ count: z.number() }));
@@ -44,7 +44,7 @@ async function bumpOnce(workspacePath: string, key: string) {
   try {
     const receipt = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
-      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
+      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
     );
     return (receipt.result as { count: number }).count;
   } finally {

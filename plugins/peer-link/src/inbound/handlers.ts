@@ -220,8 +220,8 @@ export const peerLinkHandlers: HandlerContribution<PeerLinkState, PeerLinkServic
 const known = new Set<string>(peerLinkModule.capabilities.map((capability) => capability.id));
 
 /**
- * Only admins (the local owner, or a caller acting for them under a grant that lists the
- * operation) manage peers. The enrollment route and credential lookups run as the owner narrowed
+ * Only admins (the local user, or a caller acting for them under a grant that lists the
+ * operation) manage peers. The enrollment route and credential lookups run as the local user narrowed
  * to exactly those two operations. Peer and enrollment events are visible to admins.
  */
 export const peerLinkPolicy: AuthorizationPort<PeerLinkState> = {

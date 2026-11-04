@@ -57,11 +57,11 @@ async function run(args: string[], extra: Record<string, string> = {}) {
 test('an agent captures over embedded MCP, teardown drains, and metrics separate agent from human', async () => {
   const workspace = join(directory, 'workspace');
   const grantFile = join(directory, 'grant.json');
-  // Written by the orchestrator, not the agent: the owner delegates capture at their plant only.
+  // Written by the orchestrator, not the agent: the local user delegates capture at their plant only.
   await writeFile(
     grantFile,
     JSON.stringify({
-      principalId: 'owner',
+      principalId: 'local-user',
       operations: ['inspection.worklist', 'inspection.lot.get', 'inspection.result.record'],
       expiresAt: Date.now() + 3_600_000,
     }),
@@ -90,7 +90,7 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
     const tools = (await agent.listTools()).tools.map((tool) => tool.name);
     expect(tools).toContain('inspection_result_record');
 
-    // The grant narrows the owner's instance: integration-only commands stay out of reach.
+    // The grant narrows the local user's instance: integration-only commands stay out of reach.
     const forbidden = await agent.callTool({
       name: 'inspection_sync_status',
       arguments: { input: {} },
@@ -234,7 +234,7 @@ test('serve issues a grant-bound connection for an agent running as another OS u
   const agentConnection = join(directory, 'agent-connection.json');
   await writeFile(
     grantFile,
-    JSON.stringify({ principalId: 'owner', operations: ['inspection.lot.list'] }),
+    JSON.stringify({ principalId: 'local-user', operations: ['inspection.lot.list'] }),
   );
   const server = Bun.spawn(
     [

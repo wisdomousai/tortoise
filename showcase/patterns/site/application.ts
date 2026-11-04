@@ -20,7 +20,7 @@ export interface TestRequestsSiteRoot {
 }
 
 export interface TestRequestsSiteOptions {
-  /** People who work in a new workspace besides its owner, with their roles. */
+  /** People who work in a new workspace besides the local user, with their roles. */
   members?: Record<string, Role>;
   /** Between fleet cycles; one minute by default. Tests run cycles with the agent's `sync()`. */
   intervalMs?: number;
@@ -35,8 +35,8 @@ export interface TestRequestsSiteOptions {
 export function createTestRequestsSiteApplication(options: TestRequestsSiteOptions = {}) {
   return defineApplication<TestRequestsSiteRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
     }),
     handlers: sliceHandlers<TestRequestsSiteRoot, 'testRequests', TestRequestsServices>(
       'testRequests',

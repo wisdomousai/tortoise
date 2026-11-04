@@ -19,7 +19,7 @@ async function serve(application: ReturnType<typeof notesApplication>) {
     integration: false,
     settings: { 'os-scheme': scheme },
   });
-  const token = host.sessions.create({ workspaceId: 'local', principalId: 'owner' }).token;
+  const token = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' }).token;
   const call = (path: string, body?: unknown) =>
     fetch(`${host.url}/api/v1/${path}`, {
       method: body === undefined ? 'GET' : 'POST',

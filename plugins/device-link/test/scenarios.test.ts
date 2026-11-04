@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createApplicationRuntime } from '@tortoise/host/application';
 import { createMemoryStorage } from '@tortoise/runtime';
 import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
 import { deviceLinkOperations as ops } from '../src/contracts';
 import { hubApplication } from './fixtures';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
-const guest = { ...owner, principalId: 'guest' };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
+const guest = { ...localUser, principalId: 'guest' };
 const tokenDigest = 'a'.repeat(64);
 let key = 0;
 const command = (operation: string, input: unknown) => ({
@@ -22,7 +22,7 @@ const scenarios: BehavioralScenario[] = [
     async run(driver) {
       const created = await driver.command(
         command(ops.enrollmentCreate.id, { label: 'Phone', kind: 'field-sync' }),
-        owner,
+        localUser,
       );
       const { code } = created.result as { code: string };
       await expect(
@@ -33,35 +33,43 @@ const scenarios: BehavioralScenario[] = [
       const spaced = `${code.slice(0, 5)}-${code.slice(5)}`.toLowerCase();
       const redeemed = await driver.command(
         command(ops.enrollmentRedeem.id, { code: spaced, tokenDigest }),
-        owner,
+        localUser,
       );
       const { device } = redeemed.result as { device: { id: string; principalId: string } };
-      expect(device).toMatchObject({ kind: 'field-sync', label: 'Phone', enrolledBy: LOCAL_OWNER });
+      expect(device).toMatchObject({ kind: 'field-sync', label: 'Phone', enrolledBy: LOCAL_USER });
       await expect(
         driver.command(
           command(ops.enrollmentRedeem.id, { code, tokenDigest: 'b'.repeat(64) }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
       await driver.command(
         command(ops.deviceRename.id, { deviceId: device.id, label: 'Phone 2' }),
-        owner,
+        localUser,
       );
-      const listed = await driver.query({ operation: ops.deviceList.id, input: {} }, owner);
+      const listed = await driver.query({ operation: ops.deviceList.id, input: {} }, localUser);
       expect((listed.data as { devices: { label: string }[] }).devices).toMatchObject([
         { label: 'Phone 2' },
       ]);
       expect(
-        (await driver.query({ operation: ops.credentialResolve.id, input: { tokenDigest } }, owner))
-          .data,
+        (
+          await driver.query(
+            { operation: ops.credentialResolve.id, input: { tokenDigest } },
+            localUser,
+          )
+        ).data,
       ).toMatchObject({ device: { id: device.id } });
 
-      await driver.command(command(ops.deviceRevoke.id, { deviceId: device.id }), owner);
-      await driver.command(command(ops.deviceRevoke.id, { deviceId: device.id }), owner);
+      await driver.command(command(ops.deviceRevoke.id, { deviceId: device.id }), localUser);
+      await driver.command(command(ops.deviceRevoke.id, { deviceId: device.id }), localUser);
       expect(
-        (await driver.query({ operation: ops.credentialResolve.id, input: { tokenDigest } }, owner))
-          .data,
+        (
+          await driver.query(
+            { operation: ops.credentialResolve.id, input: { tokenDigest } },
+            localUser,
+          )
+        ).data,
       ).toEqual({ device: null });
       await expect(
         driver.query({ operation: ops.deviceList.id, input: {} }, guest),
@@ -78,7 +86,7 @@ const scenarios: BehavioralScenario[] = [
             kind: 'field-sync',
             operations: ['captures.list'],
           }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
       await expect(
@@ -88,7 +96,7 @@ const scenarios: BehavioralScenario[] = [
             kind: 'attached',
             operations: ['captures.delete'],
           }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
       await expect(
@@ -98,7 +106,7 @@ const scenarios: BehavioralScenario[] = [
             kind: 'attached',
             operations: ['captures.list', ops.deviceRevoke.id],
           }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({
         code: 'INVALID_INPUT',
@@ -110,7 +118,7 @@ const scenarios: BehavioralScenario[] = [
           kind: 'attached',
           operations: ['captures.list'],
         }),
-        owner,
+        localUser,
       );
       expect(created.result).toMatchObject({ enrollmentId: expect.any(String) });
     },
@@ -120,7 +128,7 @@ const scenarios: BehavioralScenario[] = [
 test('behavioural scenarios through the direct driver', async () => {
   const definition = hubApplication();
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState(LOCAL_OWNER)),
+    storage: createMemoryStorage(definition.createState(LOCAL_USER)),
     services: {
       'device-link': {
         now: () => 1_000,

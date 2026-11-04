@@ -56,10 +56,10 @@ In `winding-line` each bridge runs as `station-bridge:<station>` with three capa
 A screen action can break off midway and is not idempotent, so procedures use convergent [delivery](hardware-drivers.md#delivery-modes). For each effect the connector:
 
 1. rejects a missing presence confirmation (`PRECONDITION`) or input value (`INVALID_PAYLOAD`);
-2. fails transiently if the bridge mode or control holder forbids it;
+2. fails transiently if the bridge mode or who has control forbids it;
 3. accepts at once if the readback already matches, so redelivery is harmless;
 4. fails transiently if the screen is not the start screen or a precondition is unreadable; rejects with `PRECONDITION` if one is unmet;
-5. runs each step through the [interlock](#interlock);
+5. runs each step through the [action checks](#action-checks);
 6. accepts when the readback matches, with a readback digest as the external reference.
 
 An alarm popup, local input, a timeout or an exhausted step budget stops the procedure. If it stopped after its first action, the dispatcher redelivers a `rerunnable` procedure and puts any other effect in [`held`](systems-of-record.md#held-effects) until the operator says, with the reconcile command, whether the change took effect. No procedure for the type: `UNSUPPORTED`. Test: `workstations/screen-bridge/test/controller.test.ts`.
@@ -82,17 +82,17 @@ Drivers use the same modes and levels. In `winding-line` only a supervisor at th
 
 Roll out in three stages: **observe** (state, counters, alarms, stops), **annotate** (people and agents add stop reasons and confirmations, sent to the MES), **actuate** (e.g. load the recipe for a scanned order). In `winding-line` the stop explainer agent proposes a stop reason and the operator approves it with one tap; loading a recipe is `operator-present` and needs a long press (`hold-to-confirm`).
 
-## Interlock
+## Action checks
 
-The bridge has three ports: a **screen transport** (captures frames, reads the accessibility tree, performs one action, reports local input), a **computer-use driver** (turns a target into a screen point, never acts) and a **controller** (performs every action after the interlock).
+The bridge has three ports: a **screen transport** (captures frames, reads the accessibility tree, performs one action, reports local input), a **computer-use driver** (turns a target into a screen point, never acts) and a **controller** (performs every action after the action checks).
 
-Before every click, key or typed text the interlock checks the bridge mode and control holder, local input since the start, the expected screen on a fresh capture, that the point is outside every forbidden region, and the step budget and timeout. Only declared steps and keys from the station profile's allowed list run.
+Before every click, key or typed text the action checks cover the bridge mode and who has control, local input since the start, the expected screen on a fresh capture, that the point is outside every forbidden region, and the step budget and timeout. Only declared steps and keys from the station profile's allowed list run.
 
 The reference transport drives a Playwright page; the reference driver follows a script of locators. VNC, RDP, KVM-over-IP, UI Automation or a local grounding model fit the same ports.
 
-## Control holder
+## Control
 
-The control holder is `operator`, `agent` (the bridge) or `idle`. The bridge does not act while the control holder is `operator`, and only a person can request it. Control never expires: a holder that disappears keeps it until someone changes it. The operator's takeover command changes it, and local input stops a procedure at once where the transport detects it.
+`controlledBy` is `operator`, `agent` (the bridge) or `idle`. The bridge does not act while `controlledBy` is `operator`, and only a person can request it. Control never expires: if whoever has it disappears, it stays with them until someone changes it. The operator's takeover command changes it, and local input stops a procedure at once where the transport detects it.
 
 ## Observation
 
@@ -120,7 +120,7 @@ If the workstation application has an automation interface, reach it through a d
 
 At a shared terminal, an operator scans a badge and enters a 4–8 digit PIN, then works under a short session as themselves. [`workstations/sign-in`](../workstations/sign-in/README.md) provides this; `showcase/patterns/sign-in` composes it.
 
-- A terminal is the local owner or a principal in the `station-sign-in-terminals` setting. Only its own session, never a delegated grant, can sign people in, so an agent cannot.
+- A terminal is the local user or a principal in the `station-sign-in-terminals` setting. Only its own session, never a delegated grant, can sign people in, so an agent cannot.
 - Sessions last 15 minutes by default, 720 at most. A new sign-in ends the previous one.
 - Five wrong PINs lock the badge for 15 minutes. Unknown, revoked and wrong-PIN attempts look the same.
 - Badge and PIN never reach a stored command input. State keeps digests and a salted scrypt PIN hash.
@@ -137,4 +137,4 @@ Test: `workstations/sign-in/test/sign-in.test.ts`.
 
 ## See also
 
-[Implementation status](implementation-status.md#operator-workstation-bridge) · [Point-of-work input](point-of-work-input.md) · [Systems of record](systems-of-record.md) · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) · [bridge-station-screen skill](../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) · [Station bridge demo](development-and-testing.md#station-bridge-demo-and-opt-in-recognition)
+[Implementation status](implementation-status.md#operator-workstation-bridge) · [Operator input](operator-input.md) · [Systems of record](systems-of-record.md) · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) · [bridge-station-screen skill](../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) · [Station bridge demo](development-and-testing.md#station-bridge-demo-and-opt-in-recognition)

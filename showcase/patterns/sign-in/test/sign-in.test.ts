@@ -7,7 +7,7 @@ import { stationPaths } from '@tortoise/workstation-sign-in/contracts';
 import { createTestRequestsSignInApplication } from '../application';
 
 /**
- * The bench over HTTP: the owner's session is the terminal and enrolls badges, and an operator who
+ * The bench over HTTP: the local user's session is the terminal and enrolls badges, and an operator who
  * signs in there works on test requests as themselves until the session ends.
  */
 const cleanups: (() => Promise<void>)[] = [];

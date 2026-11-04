@@ -23,7 +23,7 @@ type Root = Record<string, unknown>;
  */
 export function stateUpgrade(
   definition: AnyApplicationDefinition,
-  ownerId: string,
+  localUserId: string,
 ): StateUpgrade<unknown> {
   const units = statefulUnits(composedUnits(definition));
   const keys = new Set(units.map((unit) => unit.id));
@@ -47,7 +47,7 @@ export function stateUpgrade(
           sliceStamps[unit.stamp] = stamps?.[unit.stamp];
         } else if (unit.adopt && storedVersion < unit.adopt.before) {
           const version = unit.adopt.version ?? 1;
-          slices[unit.id] = unit.adopt.from(own, ownerId);
+          slices[unit.id] = unit.adopt.from(own, localUserId);
           sliceStamps[unit.stamp] = { version, readableFrom: version };
         }
       }
@@ -56,7 +56,7 @@ export function stateUpgrade(
         definition.migrations,
         own,
         stamps?.application,
-        ownerId,
+        localUserId,
       );
       const migrated: Root = { ...(application.value as Root) };
       const next: Record<string, SliceVersion> = { application: application.stamp };
@@ -71,12 +71,14 @@ export function stateUpgrade(
           unit.feature.state!.migrations,
           slices[unit.id],
           sliceStamps[unit.stamp],
-          ownerId,
+          localUserId,
         );
         migrated[unit.id] = result.value;
         next[unit.stamp] = result.stamp;
       }
-      const state = definition.upgradeState ? definition.upgradeState(migrated, ownerId) : migrated;
+      const state = definition.upgradeState
+        ? definition.upgradeState(migrated, localUserId)
+        : migrated;
       return { state, versions: next };
     },
   };

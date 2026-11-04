@@ -23,13 +23,13 @@ function fixture(): ServiceState {
     id: 'p1',
     name: 'Shared',
     closed: false,
-    members: { owner: 'dispatcher', technician: 'technician', customer: 'customer' },
+    members: { 'local-user': 'dispatcher', technician: 'technician', customer: 'customer' },
   };
   state.workOrders.p2 = {
     id: 'p2',
     name: 'Restricted',
     closed: false,
-    members: { owner: 'dispatcher' },
+    members: { 'local-user': 'dispatcher' },
   };
   state.tasks.t1 = {
     id: 't1',
@@ -109,13 +109,13 @@ for (const kind of ['memory', 'sqlite'] as const)
         expect(searched.data).toEqual({ count: 0, items: [] });
         const granted = await app.queryRaw(
           { operation: 'task.list', input: {} },
-          context('owner', ['task:t1']),
+          context('local-user', ['task:t1']),
         );
         expect(granted.data).toMatchObject({ count: 1, items: [{ id: 't1' }] });
         await expect(
           app.queryRaw(
             { operation: 'task.get', input: { id: 't2' } },
-            context('owner', ['task:t1']),
+            context('local-user', ['task:t1']),
           ),
         ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         await expect(
@@ -127,11 +127,11 @@ for (const kind of ['memory', 'sqlite'] as const)
             context('customer'),
           ),
         ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
-        const owner = await app.queryRaw(
+        const localUser = await app.queryRaw(
           { operation: 'task.get', input: { id: 't1' } },
-          context('owner'),
+          context('local-user'),
         );
-        expect(owner.data).toMatchObject({ internalNote: 'SECRET' });
+        expect(localUser.data).toMatchObject({ internalNote: 'SECRET' });
         const customer = await app.queryRaw(
           { operation: 'work-order.get', input: { id: 'p1' } },
           context('customer'),
@@ -174,7 +174,7 @@ for (const kind of ['memory', 'sqlite'] as const)
         expect(receipt.result).not.toHaveProperty('internalNote');
         await app.invokeRaw(
           { operation: 'work-order.close', input: { id: 'p1' } },
-          context('owner'),
+          context('local-user'),
         );
         await expect(
           app.invokeRaw(
@@ -184,7 +184,7 @@ for (const kind of ['memory', 'sqlite'] as const)
         ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         await app.invokeRaw(
           { operation: 'work-order.reopen', input: { id: 'p1' } },
-          context('owner'),
+          context('local-user'),
         );
         await app.invokeRaw(
           { operation: 'task.update', input: { id: 't1', title: 'Allowed' } },
@@ -221,7 +221,7 @@ for (const kind of ['memory', 'sqlite'] as const)
             operation: 'work-order.set-member',
             input: { id: 'p1', principalId: 'technician', role: null },
           },
-          context('owner'),
+          context('local-user'),
         );
         const after = await app.events(0, context('technician'));
         expect(after.events).toHaveLength(0);
@@ -231,14 +231,14 @@ for (const kind of ['memory', 'sqlite'] as const)
         });
         const deleted = await app.invokeRaw(
           { operation: 'task.delete', input: { id: 't1' }, idempotencyKey: 'delete' },
-          context('owner'),
+          context('local-user'),
         );
         expect(deleted.result).toEqual({ id: 't1' });
         expect(
           (
             await app.invokeRaw(
               { operation: 'task.delete', input: { id: 't1' }, idempotencyKey: 'delete' },
-              context('owner'),
+              context('local-user'),
             )
           ).result,
         ).toEqual({ id: 't1' });

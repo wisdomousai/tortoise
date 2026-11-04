@@ -160,11 +160,11 @@ test('real host preserves delegated grants for runs and isolates runs across wor
         input: { name: 'Security work order' },
         idempotencyKey: 'work-order',
       },
-      { principalId: 'owner', workspaceId: 'local' },
+      { principalId: 'local-user', workspaceId: 'local' },
     );
     workOrderId = (created.result as { id: string }).id;
     const narrow = host.sessions.create({
-      principalId: 'owner',
+      principalId: 'local-user',
       workspaceId: 'local',
       grant: { operations: ['task.list'] },
     });
@@ -186,20 +186,23 @@ test('real host preserves delegated grants for runs and isolates runs across wor
       (
         await host.application.queryRaw(
           { operation: 'task.list', input: {} },
-          { principalId: 'owner', workspaceId: 'local' },
+          { principalId: 'local-user', workspaceId: 'local' },
         )
       ).data,
     ).toMatchObject({ count: 0 });
-    const ownerToken = host.sessions.create({ principalId: 'owner', workspaceId: 'local' });
+    const localUserToken = host.sessions.create({
+      principalId: 'local-user',
+      workspaceId: 'local',
+    });
     const selected = `work-order:${workOrderId}`;
     const ui = (await (
-      await call('/api/v1/ui/sessions', ownerToken.token, {
+      await call('/api/v1/ui/sessions', localUserToken.token, {
         selectedResources: [selected],
         observedRevisions: { [selected]: 1 },
       })
     ).json()) as { sessionId: string; version: number };
     expect(typeof ui.sessionId).toBe('string');
-    const otherCredential = host.sessions.create(ownerToken.context);
+    const otherCredential = host.sessions.create(localUserToken.context);
     expect(
       (
         await call('/api/v1/runs', otherCredential.token, {
@@ -210,7 +213,7 @@ test('real host preserves delegated grants for runs and isolates runs across wor
       ).status,
     ).toBe(404);
     const started = (await (
-      await call('/api/v1/runs', ownerToken.token, {
+      await call('/api/v1/runs', localUserToken.token, {
         harnessId: hold.id,
         prompt: 'Hold',
         principalId: 'forged',
@@ -225,12 +228,12 @@ test('real host preserves delegated grants for runs and isolates runs across wor
         uiContext: { selectedResources: string[] };
       };
     };
-    expect(started.context.principalId).toBe('owner');
+    expect(started.context.principalId).toBe('local-user');
     expect(started.context.workspaceId).toBe('local');
     expect(started.context.uiContext.selectedResources).toEqual([selected]);
     expect(
       (
-        await call(`/api/v1/ui/sessions/${ui.sessionId}`, ownerToken.token, {
+        await call(`/api/v1/ui/sessions/${ui.sessionId}`, localUserToken.token, {
           context: { selectedResources: [], observedRevisions: {} },
           expectedVersion: ui.version,
         })
@@ -241,7 +244,7 @@ test('real host preserves delegated grants for runs and isolates runs across wor
     });
     expect(
       (
-        await call('/api/v1/runs', ownerToken.token, {
+        await call('/api/v1/runs', localUserToken.token, {
           harnessId: hold.id,
           prompt: 'Selection changed before start',
           uiSessionId: ui.sessionId,
@@ -250,29 +253,33 @@ test('real host preserves delegated grants for runs and isolates runs across wor
       ).status,
     ).toBe(409);
     const intent = (await (
-      await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, ownerToken.token, {
+      await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, localUserToken.token, {
         type: 'openResource',
         resource: selected,
       })
     ).json()) as { id: string };
     expect(
-      await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, ownerToken.token)).json(),
+      await (
+        await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, localUserToken.token)
+      ).json(),
     ).toMatchObject([{ id: intent.id, intent: { resource: selected } }]);
     expect(
       (
-        await call(`/api/v1/ui/sessions/${ui.sessionId}/ack`, ownerToken.token, {
+        await call(`/api/v1/ui/sessions/${ui.sessionId}/ack`, localUserToken.token, {
           id: intent.id,
           status: 'accepted',
         })
       ).status,
     ).toBe(200);
     expect(
-      await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, ownerToken.token)).json(),
+      await (
+        await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`, localUserToken.token)
+      ).json(),
     ).toEqual([]);
-    const other = host.sessions.create({ principalId: 'owner', workspaceId: 'other' });
+    const other = host.sessions.create({ principalId: 'local-user', workspaceId: 'other' });
     expect(await (await call('/api/v1/runs', other.token)).json()).toEqual([]);
     expect((await call(`/api/v1/runs/${started.id}/cancel`, other.token, {})).status).toBe(404);
-    expect((await call(`/api/v1/runs/${started.id}/cancel`, ownerToken.token, {})).status).toBe(
+    expect((await call(`/api/v1/runs/${started.id}/cancel`, localUserToken.token, {})).status).toBe(
       200,
     );
   } finally {
@@ -286,8 +293,8 @@ test('request fields cannot select identity, browser cookie writes require Origi
   const response = await handler(
     request('/api/v1/queries/test.read', session.token, {
       input: {},
-      principalId: 'owner',
-      roles: ['owner'],
+      principalId: 'local-user',
+      roles: ['local-user'],
       workspaceId: 'other',
     }),
   );
@@ -413,7 +420,7 @@ test('SSE resets after revocation without returning newly forbidden resource ide
       input: { id: 'shared', principalId: 'customer', role: null },
       idempotencyKey: 'revoke',
     },
-    { principalId: 'owner', workspaceId: 'w' },
+    { principalId: 'local-user', workspaceId: 'w' },
   );
   const response = await handler(
     request(`/api/v1/events?cursor=${encodeURIComponent(snapshot.cursor)}`, customer.token),
@@ -454,7 +461,7 @@ test('HTTP projections agree across sessions and SSE replays the query/subscript
     services: {},
   });
   const sessions = new Sessions();
-  const owner = sessions.create({ principalId: 'owner', workspaceId: 'w' });
+  const localUser = sessions.create({ principalId: 'local-user', workspaceId: 'w' });
   const customer = sessions.create({ principalId: 'customer', workspaceId: 'w' });
   const handler = createHttpHandler({
     application: app,
@@ -462,13 +469,13 @@ test('HTTP projections agree across sessions and SSE replays the query/subscript
     origin: () => origin,
     pollMs: 1,
   });
-  const ownerSnapshot = await (
-    await handler(request('/api/v1/queries/task.list', owner.token, { input: {} }))
+  const localUserSnapshot = await (
+    await handler(request('/api/v1/queries/task.list', localUser.token, { input: {} }))
   ).json();
   const customerSnapshot = await (
     await handler(request('/api/v1/queries/task.list', customer.token, { input: {} }))
   ).json();
-  expect(ownerSnapshot.data.items[0].internalNote).toBe('HTTP PRIVATE FIELD');
+  expect(localUserSnapshot.data.items[0].internalNote).toBe('HTTP PRIVATE FIELD');
   expect(customerSnapshot.data.items[0]).not.toHaveProperty('internalNote');
   expect(
     (
@@ -487,7 +494,7 @@ test('HTTP projections agree across sessions and SSE replays the query/subscript
       input: { id: 'one', status: 'doing' },
       idempotencyKey: 'gap-update',
     },
-    owner.context,
+    localUser.context,
   );
   const readFrame = async (token: string, cursor: string) => {
     const response = await handler(
@@ -511,7 +518,7 @@ test('HTTP projections agree across sessions and SSE replays the query/subscript
   expect(resumed.changes).toEqual([]);
   expect(resumed.reset).toBe(false);
   // A different valid session cannot use another session's cursor to infer event history.
-  const stolen = await readFrame(owner.token, customerSnapshot.cursor);
+  const stolen = await readFrame(localUser.token, customerSnapshot.cursor);
   expect(stolen.reset).toBe(true);
   expect(stolen.changes).toEqual([]);
 });
@@ -520,8 +527,8 @@ test('run history is grant-scoped and free-form output disappears after authoriz
   const directory = await mkdtemp(join(tmpdir(), 'run-history-'));
   const host = await startHost(fieldService, { workspacePath: directory });
   try {
-    const context = { workspaceId: 'local', principalId: 'owner' };
-    const owner = host.sessions.create(context);
+    const context = { workspaceId: 'local', principalId: 'local-user' };
+    const localUser = host.sessions.create(context);
     const restricted = host.sessions.create({ ...context, grant: { operations: ['task.list'] } });
     const call = (token: string, path: string, body?: unknown) =>
       fetch(host.url + path, {
@@ -529,7 +536,7 @@ test('run history is grant-scoped and free-form output disappears after authoriz
         headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
-    const response = await call(owner.token, '/api/v1/runs', {
+    const response = await call(localUser.token, '/api/v1/runs', {
       harnessId: 'deterministic',
       prompt: JSON.stringify({ commands: [], text: 'formerly-visible-work-order-detail' }),
     });
@@ -538,7 +545,7 @@ test('run history is grant-scoped and free-form output disappears after authoriz
     for await (const _event of host.supervisor.events(run.id)) {
       /* Await terminal state without sleeps. */
     }
-    expect(await (await call(owner.token, '/api/v1/runs')).text()).toContain(
+    expect(await (await call(localUser.token, '/api/v1/runs')).text()).toContain(
       'formerly-visible-work-order-detail',
     );
     expect(await (await call(restricted.token, '/api/v1/runs')).json()).toEqual([]);
@@ -547,7 +554,7 @@ test('run history is grant-scoped and free-form output disappears after authoriz
       { operation: 'work-order.create', input: { name: 'Permission generation changes' } },
       context,
     );
-    const history = await (await call(owner.token, '/api/v1/runs')).text();
+    const history = await (await call(localUser.token, '/api/v1/runs')).text();
     expect(history).not.toContain('formerly-visible-work-order-detail');
     expect(history).toContain('historyUnavailable');
     const nested = host.sessions.create({ ...context, runId: 'parent-run' });
@@ -596,12 +603,12 @@ test('a run started from a UI session reaches that screen through the ui tools',
     harnesses: [screen],
     pollMs: 1,
   });
-  const owner = host.sessions.create({ principalId: 'owner', workspaceId: 'local' });
+  const localUser = host.sessions.create({ principalId: 'local-user', workspaceId: 'local' });
   const call = async (path: string, body?: unknown) =>
     fetch(host.url + path, {
       method: body === undefined ? 'GET' : 'POST',
       headers: {
-        authorization: `Bearer ${owner.token}`,
+        authorization: `Bearer ${localUser.token}`,
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -616,7 +623,7 @@ test('a run started from a UI session reaches that screen through the ui tools',
   try {
     const created = await host.application.invokeRaw(
       { operation: 'work-order.create', input: { name: 'Screen work order' }, idempotencyKey: 'p' },
-      owner.context,
+      localUser.context,
     );
     target = `work-order:${(created.result as { id: string }).id}`;
     const ui = (await (

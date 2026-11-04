@@ -228,19 +228,19 @@ test('${many.words} form a tree: moves refuse cycles, and retiring needs the chi
   const create = (title: string, parentId: string | undefined, key: string) =>
     app.invokeRaw(
       { operation: '${one.kebab}.create', input: { title, ...(parentId ? { parentId } : {}) }, idempotencyKey: key },
-      owner,
+      localUser,
     );
   await create('Root', undefined, 'root');
   await create('Child', '${one.kebab}-1', 'child');
   const tree = await app.queryRaw({ operation: '${one.kebab}.tree', input: {} }, viewer);
   expect(tree.data).toMatchObject({ total: 2, items: [{ title: 'Root', depth: 0 }, { title: 'Child', depth: 1 }] });
   await expect(
-    app.invokeRaw({ operation: '${one.kebab}.move', input: { id: '${one.kebab}-1', parentId: '${one.kebab}-2' }, idempotencyKey: 'cycle' }, owner),
+    app.invokeRaw({ operation: '${one.kebab}.move', input: { id: '${one.kebab}-1', parentId: '${one.kebab}-2' }, idempotencyKey: 'cycle' }, localUser),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   await expect(
-    app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'early' }, owner),
+    app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'early' }, localUser),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
-  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-2' }, idempotencyKey: 'leaf' }, owner);
+  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-2' }, idempotencyKey: 'leaf' }, localUser);
   const active = await app.queryRaw({ operation: '${one.kebab}.tree', input: {} }, viewer);
   expect(active.data).toMatchObject({ total: 1 });
 });
@@ -251,13 +251,13 @@ test('a retired ${one.words} keeps its record and takes no more changes', async 
   const app = await open();
   await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Old' }, idempotencyKey: 'create-old' },
-    owner,
+    localUser,
   );
-  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'retire-old' }, owner);
+  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'retire-old' }, localUser);
   const retired = await app.queryRaw({ operation: '${one.kebab}.get', input: { id: '${one.kebab}-1' } }, viewer);
   expect(retired.data).toMatchObject({ retired: true });
   await expect(
-    app.invokeRaw({ operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', title: 'Late' }, idempotencyKey: 'late' }, owner),
+    app.invokeRaw({ operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', title: 'Late' }, idempotencyKey: 'late' }, localUser),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
 });
 `;
@@ -274,7 +274,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -301,16 +301,16 @@ test('editors create and update ${many.words}; members list, filter, sort and se
   const app = await open();
   const created = await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'First' }, idempotencyKey: 'create-1' },
-    owner,
+    localUser,
   );
-  expect(created.result).toMatchObject({ id: '${one.kebab}-1', title: 'First', status: 'open', createdBy: 'owner' });
+  expect(created.result).toMatchObject({ id: '${one.kebab}-1', title: 'First', status: 'open', createdBy: 'local-user' });
   await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Another' }, idempotencyKey: 'create-2' },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     { operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', status: 'done' }, idempotencyKey: 'update-1' },
-    owner,
+    localUser,
   );
   const done = await app.queryRaw({ operation: '${one.kebab}.list', input: { status: 'done' } }, viewer);
   expect(done.data).toMatchObject({ total: 1, items: [{ id: '${one.kebab}-1', status: 'done' }] });
@@ -329,7 +329,7 @@ test('viewers cannot write, strangers cannot read, and a missing ${one.words} is
     app.queryRaw({ operation: '${one.kebab}.list', input: {} }, stranger),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    app.queryRaw({ operation: '${one.kebab}.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: '${one.kebab}.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });
 ${tree ? treeTest(one, many) : flatTest(one)}`;

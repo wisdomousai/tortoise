@@ -32,8 +32,8 @@ export interface TestRequestsSandboxOptions {
 export function createTestRequestsSandboxApplication(options: TestRequestsSandboxOptions = {}) {
   return defineApplication<TestRequestsSandboxRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
       testResults: { results: {} },
     }),
     handlers: [

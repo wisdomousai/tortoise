@@ -69,7 +69,7 @@ async function deliverOnce(loop: Loop) {
 }
 
 /**
- * Post observed changes every `intervalMs` as the local owner narrowed to a grant that lists
+ * Post observed changes every `intervalMs` as the local user narrowed to a grant that lists
  * only the observed operations and this plugin's own two. The grant also filters the journal,
  * so the loop never sees other operations' events. Stops after the running pass.
  */

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { ApplicationError, type OsDelivery } from '@tortoise/contracts';
 import { UiDeliveryStore } from './ui-deliveries';
 
-const session = (token: string, principalId = 'owner') => ({
+const session = (token: string, principalId = 'local-user') => ({
   token,
   context: { workspaceId: 'local', principalId },
   expiresAt: Number.MAX_SAFE_INTEGER,

@@ -9,7 +9,7 @@ import type { ExecutionContext } from '@tortoise/runtime';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: 'owner' };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: 'local-user' };
 const viewer = { workspaceId: LOCAL_WORKSPACE, principalId: 'viewer' };
 const erp = { workspaceId: LOCAL_WORKSPACE, principalId: 'erp-integration' };
 const stranger = { workspaceId: LOCAL_WORKSPACE, principalId: 'stranger' };
@@ -28,7 +28,7 @@ const pending: ApprovalRequest = {
   resource: 'delivery:ASN-1',
   baseRevisions: {},
   status: 'pending',
-  requestedBy: 'owner',
+  requestedBy: 'local-user',
   createdAt: 0,
   expiresAt: 4_000_000_000_000,
 };
@@ -85,7 +85,7 @@ const list = async (
 describe('receiving state version 2', () => {
   test('approval requests stored at version 1 move into the approval feature once', async () => {
     const { open, snapshot } = await workspace({
-      members: { owner: 'editor', viewer: 'viewer' },
+      members: { 'local-user': 'editor', viewer: 'viewer' },
       sync: { erp: {} },
       deliveries: {},
       approvals: { a1: pending },
@@ -98,7 +98,7 @@ describe('receiving state version 2', () => {
     expect(await list(second, viewer)).toEqual(['a1']);
     await second.application.invokeRaw(
       { operation: 'approval.reject', input: { id: 'a1', reason: 'Recounted' } },
-      owner,
+      localUser,
     );
     await second.close();
     const stored = await snapshot();
@@ -107,7 +107,7 @@ describe('receiving state version 2', () => {
       a1: {
         ...pending,
         status: 'rejected',
-        closedBy: 'owner',
+        closedBy: 'local-user',
         closedAt: expect.any(Number),
         reason: 'Recounted',
       },
@@ -130,7 +130,7 @@ describe('receiving state version 2', () => {
     };
     const { result } = await instance.application.invokeRaw(
       { operation: 'approval.request', input: request },
-      owner,
+      localUser,
     );
     const id = (result as { id: string }).id;
     for (const caller of [erp, stranger]) {

@@ -5,7 +5,7 @@ import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
 import { SQLiteStorage, bunSqlDriver } from '@tortoise/adapters/sqlite';
 import { restoreBackup, verifyBackup } from '@tortoise/adapters/workspace-backup';
 import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import type { StateVersions } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { WORKSPACE_DATABASE, workspaceDatabase } from '../platform/bun';
@@ -48,7 +48,7 @@ function pendingMigrations(
   definition: AnyApplicationDefinition,
   stored: ReadonlyMap<string, StateVersions | undefined>,
 ): WorkspaceMigration[] {
-  const target = stateUpgrade(definition, LOCAL_OWNER).versions;
+  const target = stateUpgrade(definition, LOCAL_USER).versions;
   return [...stored].flatMap(([workspace, stamps]) => {
     const slices: Record<string, { from: number; to: number }> = {};
     for (const [slice, { version }] of Object.entries(target)) {

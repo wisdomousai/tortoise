@@ -70,7 +70,7 @@ export interface FeatureAdoption {
   /** The feature slice version `from` produces; the feature's migrations run from there. Default 1. */
   readonly version?: number;
   /** Deterministic. Receives the application's state as stored, before its migrations. */
-  from(stored: unknown, ownerId: string): unknown;
+  from(stored: unknown, localUserId: string): unknown;
 }
 
 type HostHooks<Hooks, Root, Services> = {

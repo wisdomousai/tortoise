@@ -245,7 +245,7 @@ describe('site policy', () => {
       grants: { maxTtlSeconds: 600 },
       ingress: { listen: 'tls', host: 'hub.site', port: 8443, cert: 'hub.pem', key: 'hub.key' },
     } as SitePolicyInput;
-    // The local owner still runs a site hub; its audit and network floors are the sandbox's.
+    // The local user still runs a site hub; its audit and network floors are the sandbox's.
     expect(codes(hub)).toEqual([]);
     expect(codes({ ...hub, audit: { mode: 'best-effort' } })).toEqual(['AUDIT_NOT_REQUIRED']);
     expect(codes({ ...hub, profile: 'desktop-local' })).toEqual(['INGRESS_FLOOR']);

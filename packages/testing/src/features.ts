@@ -58,7 +58,7 @@ export function featureConformance<Slice, Access>(
     modules.flatMap((module) => module.capabilities.map((c) => [c.id, c] as const)),
   );
   const slice = () =>
-    structuredClone(options.sampleSlice ?? (feature.state?.create('owner') as Slice));
+    structuredClone(options.sampleSlice ?? (feature.state?.create('local-user') as Slice));
   const port = feature.authorization?.port;
   const capability = (operation: string) => {
     const found = operations.get(operation);
@@ -115,7 +115,7 @@ export function featureConformance<Slice, Access>(
       name: 'a new slice survives storage and normalization unchanged',
       async run() {
         if (!feature.state) return { skipped: `Feature "${id}" keeps no state` };
-        const created = feature.state.create('owner');
+        const created = feature.state.create('local-user');
         const stored = JSON.parse(JSON.stringify(created)) as unknown;
         check(
           isDeepStrictEqual(stored, created),
@@ -123,7 +123,7 @@ export function featureConformance<Slice, Access>(
         );
         if (feature.state.upgrade)
           check(
-            isDeepStrictEqual(feature.state.upgrade(stored, 'owner'), created),
+            isDeepStrictEqual(feature.state.upgrade(stored, 'local-user'), created),
             'upgrade changes a slice that create just made',
           );
         return passed;

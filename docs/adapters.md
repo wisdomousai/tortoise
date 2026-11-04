@@ -8,7 +8,7 @@ The framework reaches storage and serves the HTTP, MCP and CLI surfaces through 
 | --- | --- | --- |
 | Storage | Memory, SQLite, Postgres, snapshot | State, revisions, receipts and journal commit together, and a read sees one snapshot. |
 | Authorization | `definePolicy`; a bounded CASL profile | Operation, object and field checks, scope before paging, current access on replay and events, and denial of unsupported rules. |
-| Identity and session | Local owner, grant file or workforce sign-in, by the deployment policy | Principal, workspace and grant come from trusted context, never from capability input. |
+| Identity and session | Local user, grant file or workforce sign-in, by the deployment policy | Principal, workspace and grant come from trusted context, never from capability input. |
 | Surfaces | Loopback HTTP and SSE; MCP over stdio; the CLI | Calls go through the instance with the error envelope, and events follow current access. |
 | Agent harness | Deterministic fixture; Codex, Claude, AI SDK and local model adapters | Provider types stay private, progress is not a commit, and cancellation and recovery stay explicit. |
 | Audit log | Memory; hash-chained JSONL with one locked writer | Each append goes in order, chained and synced; in required mode a failed append rolls back the command. |
@@ -37,7 +37,7 @@ Each surface adapter calls the instance's command and query entry points with ho
 
 ### HTTP
 
-The HTTP adapter checks Host and Origin headers and refuses cross-origin browser writes. A browser gets its session through the launch key exchange. The adapter refuses a peer application's call for one of its people at `/api/v1/launch` and `/api/v1/events`, limiting it to that person's operations. Errors return the error envelope with a matching status code.
+The HTTP adapter checks Host and Origin headers and refuses cross-origin browser writes. A browser gets its session through launch link sign-in. The adapter refuses a peer application's call for one of its people at `/api/v1/launch` and `/api/v1/events`, limiting it to that person's operations. Errors return the error envelope with a matching status code.
 
 The adapter encrypts cursors and binds them to the session. A restart changes the key, so a live query takes a fresh snapshot. The event stream:
 

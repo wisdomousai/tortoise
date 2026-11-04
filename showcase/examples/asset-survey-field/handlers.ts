@@ -17,7 +17,7 @@ function handler<C extends AnyCapability>(
 const assignmentResource = (id: string) => `${worklist.types.assignment}:${id}`;
 
 /**
- * The device's owner is told of each open survey the first time the hub's feed brings it. The
+ * The device's local user is told of each open survey the first time the hub's feed brings it. The
  * notice waits in the outbox until the app is in the foreground to show it.
  */
 export function notifyNewSurvey(assignment: WorklistAssignment, ctx: Context) {
@@ -26,7 +26,7 @@ export function notifyNewSurvey(assignment: WorklistAssignment, ctx: Context) {
     type: 'assignment.notice',
     resource: assignmentResource(assignment.id),
     payload: {
-      principal: ctx.state.ownerId,
+      principal: ctx.state.localUserId,
       category: 'assignment-new',
       title: 'New assignment',
       body: assignment.title,

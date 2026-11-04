@@ -5,13 +5,13 @@ import type { ExecutionContext } from '@tortoise/runtime';
 /**
  * Enforce the site policy's identity floor before a session or embedded call is created.
  * `context` is the delegated context from launcher configuration, or undefined for the OS
- * account's local owner. `serving` is true for the serving host's own startup check.
+ * account's local user. `serving` is true for the serving host's own startup check.
  *
- * - `local-owner` admits both.
+ * - `local-user` admits both.
  * - `grant-file` admits only a delegated context.
- * - `external` admits a delegated context, and the local owner only as a serving host, which then
+ * - `external` admits a delegated context, and the local user only as a serving host, which then
  *   issues it no session: people sign in through the workforce identity provider instead. An
- *   embedded call as the local owner would bypass that sign-in, so it is refused.
+ *   embedded call as the local user would bypass that sign-in, so it is refused.
  *
  * With `grants.maxTtlSeconds`, a delegated grant must carry an expiry no further away than that.
  * Throws FORBIDDEN.
@@ -31,7 +31,7 @@ export function assertIdentity(
   if (floor === 'grant-file' && !context?.grant)
     throw new ApplicationError(
       'FORBIDDEN',
-      `${policy.profile} admits only delegated grants from launcher configuration, not the local owner`,
+      `${policy.profile} admits only delegated grants from launcher configuration, not the local user`,
     );
   const maxTtlSeconds = policy.policy.grants.maxTtlSeconds;
   const expiresAt = context?.grant?.expiresAt;

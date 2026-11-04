@@ -5,7 +5,7 @@ export const revision = z.number().int().min(0);
 export const timestamp = z.number().int().min(0);
 export const stationRoleSchema = z.enum(['operator', 'supervisor', 'viewer']);
 export const bridgeModeSchema = z.enum(['monitor-only', 'assist', 'actuate']);
-export const controlHolderSchema = z.enum(['operator', 'agent', 'idle']);
+export const controlledBySchema = z.enum(['operator', 'agent', 'idle']);
 /** `held`: a screen procedure was interrupted and a person must say whether it took effect. */
 export const syncSchema = z.enum(['pending', 'held', 'accepted', 'rejected']);
 const rejection = z.strictObject({ code: z.string(), message: z.string() });
@@ -139,7 +139,7 @@ export const desiredSchema = z.strictObject({
 });
 const bridgeSchema = z.strictObject({
   mode: bridgeModeSchema,
-  controlHolder: controlHolderSchema,
+  controlledBy: controlledBySchema,
   controlChangedBy: id.optional(),
   controlChangedAt: timestamp.optional(),
   screen: z.string().nullable().optional(),
@@ -159,7 +159,7 @@ const stationSummaryShape = {
   openStop: z.boolean(),
   attention: z.number().int(),
   mode: bridgeModeSchema,
-  controlHolder: controlHolderSchema,
+  controlledBy: controlledBySchema,
   stale: z.boolean(),
 };
 export const stationSummarySchema = z.strictObject(stationSummaryShape);

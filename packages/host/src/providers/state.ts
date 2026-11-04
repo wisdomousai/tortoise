@@ -17,7 +17,7 @@ export interface ModelSummary {
 export const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 
 /**
- * Everything provider access remembers, keyed by owner scope (`[workspaceId, principalId]`) or
+ * Everything provider access remembers, keyed by local-user scope (`[workspaceId, principalId]`) or
  * by session token. Lives in memory only; `close` clears it and refuses further use.
  */
 export interface ProviderState {
@@ -39,22 +39,22 @@ export interface ProviderState {
 export const originOf = (state: ProviderState) =>
   typeof state.options.origin === 'string' ? state.options.origin : state.options.origin();
 
-/** Only the local owner, acting without a delegation, manages provider access. */
+/** Only the local user, acting without a delegation, manages provider access. */
 export function scopeOf(
   state: ProviderState,
   context: { principalId?: unknown; workspaceId?: unknown; grant?: unknown },
 ): string {
   if (
-    context.principalId !== (state.options.ownerPrincipalId ?? 'owner') ||
+    context.principalId !== (state.options.localUserPrincipalId ?? 'local-user') ||
     typeof context.workspaceId !== 'string' ||
     !context.workspaceId ||
     context.grant !== undefined
   )
-    throw new ApplicationError('FORBIDDEN', 'Only the local owner can manage provider access');
+    throw new ApplicationError('FORBIDDEN', 'Only the local user can manage provider access');
   return canonicalJson([context.workspaceId, context.principalId]);
 }
 
-/** The owner scope of a session that is still active, rechecked after every await. */
+/** The local-user scope of a session that is still active, rechecked after every await. */
 export function liveScope(state: ProviderState, session: HostSession): string {
   const current = state.options.sessions(session.token);
   if (
@@ -63,11 +63,11 @@ export function liveScope(state: ProviderState, session: HostSession): string {
     current.expiresAt <= state.now() ||
     scopeOf(state, current.context) !== scopeOf(state, session.context)
   )
-    throw new ApplicationError('FORBIDDEN', 'Active owner session required');
+    throw new ApplicationError('FORBIDDEN', 'Active local-user session required');
   return scopeOf(state, current.context);
 }
 
-/** The vault namespaced by a digest of the owner scope. */
+/** The vault namespaced by a digest of the local-user scope. */
 export function scopedVault(state: ProviderState, key: string): CredentialVault {
   const prefix = `scope.${digest(key).slice(0, 24)}.`;
   return {
@@ -77,7 +77,7 @@ export function scopedVault(state: ProviderState, key: string): CredentialVault 
   };
 }
 
-/** One ChatGPT account connection per owner scope, created on first use. */
+/** One ChatGPT account connection per local-user scope, created on first use. */
 export function connectionOf(state: ProviderState, key: string): Connection {
   let account = state.connections.get(key);
   if (!account) {

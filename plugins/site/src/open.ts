@@ -50,7 +50,7 @@ export async function openSite(context: PluginOpenContext): Promise<PluginInstan
     ports: {
       identity: {
         admit: (caller) => assertIdentity(policy, caller, context.serving),
-        localOwnerSessions: policy.policy.identity === 'local-owner',
+        localUserSessions: policy.policy.identity === 'local-user',
       },
       folders: {
         folder(folderId) {

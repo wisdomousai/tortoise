@@ -17,7 +17,7 @@ import { defineApplication } from '@tortoise/host/application';
 import { startHost } from '@tortoise/host/host';
 import { defineManifest } from '@tortoise/host/manifest';
 import { stampBuild } from '@tortoise/kernel/build';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createHandlerFactory } from '@tortoise/runtime';
 import { sitePlugin } from '@tortoise/site/plugin';
 import { sitePluginManifest } from '@tortoise/site/plugin-manifest';
@@ -61,7 +61,7 @@ const erp = defineHostComponent({
 type PlantState = { count: number };
 const bind = createHandlerFactory<PlantState, unknown>();
 
-export const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+export const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 
 /** The plant as a built binary would run it: a 30-day shelf life from `builtAt`. */
 function plantApplication(network: ReturnType<typeof fleetNetworkFixture>, builtAt: string) {
@@ -96,10 +96,10 @@ function plantApplication(network: ReturnType<typeof fleetNetworkFixture>, built
     ],
     authorization: {
       authorize: ({ context }) => ({
-        allowed: context.principalId === LOCAL_OWNER,
+        allowed: context.principalId === LOCAL_USER,
         reason: 'RESOURCE_DENIED',
       }),
-      canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
+      canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [
       sitePlugin,
@@ -147,7 +147,7 @@ export async function startPlant(
   const addNote = (text: string) =>
     host.application.invokeRaw(
       { operation: 'notes.add', input: { text }, idempotencyKey: crypto.randomUUID() },
-      owner,
+      localUser,
     );
   /** The plant's fleet credential, as the plugin stored it. */
   const credential = () => Bun.file(join(host.workspacePath, 'fleet-agent', 'credential')).text();

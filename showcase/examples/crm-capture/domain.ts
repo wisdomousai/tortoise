@@ -62,13 +62,13 @@ export interface CrmState {
 export const REGIONS = ['north', 'south', 'west'];
 
 export function createCrmState(options: {
-  ownerId: string;
+  localUserId: string;
   integrationPrincipalId: string;
   members?: Record<string, Member>;
 }): CrmState {
   return {
     integrationPrincipalId: options.integrationPrincipalId,
-    members: options.members ?? { [options.ownerId]: { regions: [...REGIONS] } },
+    members: options.members ?? { [options.localUserId]: { regions: [...REGIONS] } },
     accounts: {},
     activities: {},
   };

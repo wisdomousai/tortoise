@@ -6,7 +6,7 @@ import { startHost } from '@tortoise/host/host';
 import type { ExecutionContext } from '@tortoise/runtime';
 import { createTestRequestsAssignmentsApplication } from '../application';
 
-export const owner = { workspaceId: 'local', principalId: 'owner' };
+export const localUser = { workspaceId: 'local', principalId: 'local-user' };
 export const vera = { workspaceId: 'local', principalId: 'vera' };
 export const olga = { workspaceId: 'local', principalId: 'olga' };
 
@@ -23,10 +23,10 @@ export async function startTestRequestsAssignments() {
   );
   const { application } = host;
   let keys = 0;
-  const run = async (operation: string, input: object, as: ExecutionContext = owner) =>
+  const run = async (operation: string, input: object, as: ExecutionContext = localUser) =>
     (await application.invokeRaw({ operation, input, idempotencyKey: `k${++keys}` }, as))
       .result as Record<string, unknown>;
-  const read = async (operation: string, input: object = {}, as: ExecutionContext = owner) =>
+  const read = async (operation: string, input: object = {}, as: ExecutionContext = localUser) =>
     (await application.queryRaw({ operation, input }, as)).data as Record<string, unknown>;
   return {
     host,

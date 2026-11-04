@@ -31,7 +31,7 @@ const parse = (text: string | undefined): ConnectionSecret | undefined => {
 
 /**
  * The platform's secret store when it keeps one, otherwise one file per target that only the
- * host's OS account can read, inside the workspace directory: the same protection as the owner's
+ * host's OS account can read, inside the workspace directory: the same protection as the local user's
  * connection file. Never in application state, receipts or the journal.
  */
 export function connectionSecrets(

@@ -16,16 +16,16 @@ test('the screen, HTTP, the CLI and MCP read the same tool list', async () => {
     integration: false,
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const localUser = createHttpTransport({ baseUrl: host.url, token });
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
-  const server = createMcpServer(owner);
+  const server = createMcpServer(localUser);
   const mcp = new Client({ name: 'tool-store-conformance', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   try {
     await server.connect(serverTransport);
     await mcp.connect(clientTransport);
-    await owner.command('tool.create', {
+    await localUser.command('tool.create', {
       assetTag: 'TC-00601',
       description: 'From HTTP',
       category: 'gauge',
@@ -33,13 +33,13 @@ test('the screen, HTTP, the CLI and MCP read the same tool list', async () => {
     });
     const direct = await host.application.queryRaw(
       { operation: 'tool.list', input: {} },
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: 'local', principalId: 'local-user' },
     );
     expect(direct.data).toMatchObject({
       total: 1,
       items: [{ assetTag: 'TC-00601', description: 'From HTTP', status: 'available' }],
     });
-    expect((await owner.query('tool.list', {})).data).toEqual(direct.data);
+    expect((await localUser.query('tool.list', {})).data).toEqual(direct.data);
     const child = Bun.spawn(
       [process.execPath, Bun.resolveSync('@tortoise/adapters/cli', import.meta.dir), 'tool.list'],
       { env: { PATH: process.env.PATH, TORTOISE_CONNECTION: connection }, stdout: 'pipe' },

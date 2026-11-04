@@ -37,7 +37,7 @@ const delegated = (expiresAt?: number) => ({
   grant: { operations: ['work-order.list'], ...(expiresAt ? { expiresAt } : {}) },
 });
 
-test('sandbox admits only the launcher grant, never the local owner', async () => {
+test('sandbox admits only the launcher grant, never the local user', async () => {
   await withDirectory(async (directory) => {
     const sitePolicy = await writePolicy(directory, sandbox);
     const workspacePath = join(directory, 'workspace');
@@ -67,7 +67,7 @@ test('sandbox admits only the launcher grant, never the local owner', async () =
       agentConnection: { context: delegated(Date.now() + 1800_000), path: agentPath },
     });
     try {
-      // No owner credential exists on disk; the delegate's connection file is the only one.
+      // No local-user credential exists on disk; the delegate's connection file is the only one.
       expect(host.connectionFile).toBeUndefined();
       expect(existsSync(join(host.workspacePath, '.connection.json'))).toBe(false);
       const { token } = (await Bun.file(agentPath).json()) as { token: string };
@@ -108,7 +108,7 @@ test('an external identity floor needs a workforce provider, then admits only si
       destinations: { 'workforce-idp': { url: 'https://login.corp.example' } },
     });
     try {
-      // No owner session or launch link exists; a cookie the sign-in did not set opens nothing.
+      // No local-user session or launch link exists; a cookie the sign-in did not set opens nothing.
       expect(host.connectionFile).toBeUndefined();
       expect(host.launchUrl).toBeUndefined();
       const list = (cookie?: string) =>
@@ -132,7 +132,7 @@ test('an external identity floor needs a workforce provider, then admits only si
   });
 });
 
-test('embedded CLI calls under a grant-file policy refuse the local owner', async () => {
+test('embedded CLI calls under a grant-file policy refuse the local user', async () => {
   await withDirectory(async (directory) => {
     const sitePolicy = await writePolicy(directory, sandbox);
     const entry = await writeApplicationEntry('cli', directory, resolve(import.meta.dir, '..'));

@@ -4,6 +4,12 @@ One line per term, alphabetical. Two pairs differ in ways that matter: a *target
 
 ## Terms
 
+### Action checks
+
+The checks a connector passes before it acts on a screen or on equipment: the bridge mode, who has control or local control, and a readback that confirms the result. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+
+Do not use: interlock.
+
 ### Adapter
 
 An implementation of a framework port, such as the SQLite storage adapter or the CASL authorization adapter. See [`packages/adapters`](../packages/adapters/README.md).
@@ -132,9 +138,11 @@ A work order, plant, workstation or other unit that people have roles in. See [`
 
 A command a handler asks for with `continueWith`, run after the handler's frame as a [nested call](#nested-call) in the same transaction under the same context. See [`packages/runtime`](../packages/runtime/README.md).
 
-### Control holder
+### Control
 
-Who controls a workstation application's screen: `operator`, `agent` for the screen bridge, or `idle`. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md#control-holder).
+Who controls a workstation application's screen: `operator`, `agent` for the screen bridge, or `idle`. The bridge control reports it as `controlledBy`. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [operator workstations](operator-workstations.md#control).
+
+Do not use: control holder.
 
 ### Credential vault
 
@@ -314,7 +322,7 @@ Importing a system of record's changes as ordinary commands. See [`packages/inte
 
 ### Input source
 
-Device input, such as a scan, normalized into events and routed to a capability without a model turn. See [`packages/devices`](../packages/devices/README.md), [point-of-work input](point-of-work-input.md).
+Device input, such as a scan, normalized into events and routed to a capability without a model turn. See [`packages/devices`](../packages/devices/README.md), [operator input](operator-input.md).
 
 ### Instance
 
@@ -328,21 +336,25 @@ A policy rule that recognizes one integration principal and lists the only capab
 
 The narrow principal the dispatcher and inbound sync run as.
 
-### Interlock
-
-The checks a connector passes before it acts on a screen or on equipment: the bridge mode, the control holder or local control, and a readback that confirms the result. See [`workstations/screen-bridge`](../workstations/screen-bridge/README.md), [`plugins/connector-driver`](../plugins/connector-driver/README.md).
-
 ### Journal
 
 The ordered record of committed changes that live queries follow. See [`packages/runtime`](../packages/runtime/README.md), [state and reactivity](state-and-reactivity.md).
 
-### Launch key exchange
+### Launch link
 
-How a browser gets its session. See [`packages/adapters`](../packages/adapters/README.md), [`packages/frame`](../packages/frame/README.md).
+The URL a host prints as `launchUrl`, with a one-use key after `#launch=`. The page posts the key to `/api/v1/session` and gets the session cookie; this launch link sign-in is how a browser gets its session. See [`packages/adapters`](../packages/adapters/README.md), [`packages/frame`](../packages/frame/README.md).
+
+Do not use: launch key exchange.
 
 ### Live query
 
 A query a screen keeps current by following the journal. See [`packages/client`](../packages/client/README.md), [`packages/react`](../packages/react/README.md).
+
+### Local user
+
+The principal `local-user`: the person who runs the application on their own machine and gets a session and connection file where the identity policy allows it. See [`packages/kernel`](../packages/kernel/README.md).
+
+Do not use: owner (principal).
 
 ### Manifest
 
@@ -376,7 +388,13 @@ A reading an ingest command submits from a source that answers no query: a broke
 
 ### Operator
 
-A person who works at a workstation or a point of work, usually under an `operator` role the application declares.
+A person who works at a workstation, usually under an `operator` role the application declares.
+
+### Operator input
+
+Input from a person at a workstation, such as a scan, a key press or a touch, on the station PC or a phone next to the equipment. See [operator input](operator-input.md), [`packages/operator-ui`](../packages/operator-ui/README.md).
+
+Do not use: point of work.
 
 ### OS action
 
@@ -389,10 +407,6 @@ A declared registration with the operating system, such as a link path, file typ
 ### Outbox
 
 The part of the workspace that stores effects until the dispatcher delivers them. See [`packages/runtime`](../packages/runtime/README.md).
-
-### Owner
-
-The principal `owner`: the local owner, who gets a session and connection file where the identity policy allows it. See [`packages/kernel`](../packages/kernel/README.md).
 
 ### Pattern
 
@@ -416,15 +430,11 @@ A target that is another agent-native application, declared with `definePeerTarg
 
 ### Person
 
-A human caller: an operator, inspector, supervisor, auditor or owner at a screen or a workstation.
+A human caller: an operator, inspector, supervisor, auditor or local user at a screen or a workstation.
 
 ### Plugin service
 
 The object a host plugin exposes to later plugins and to handlers as `services[<plugin id>]`, such as the audit plugin's log directory and forwarder statistics. See [`packages/kernel`](../packages/kernel/README.md).
-
-### Point of work
-
-The place where an operator, a device or station software produces the input an application captures: a station PC, a site server or a phone next to the equipment.
 
 ### Policy
 
@@ -480,7 +490,7 @@ The tool that exports the framework, the starter and content as a standalone app
 
 ### Scanner profile
 
-Schema-validated data describing how one scanner at one workstation reaches the application and how the decoder normalizes its output. See [`packages/devices`](../packages/devices/README.md), [point-of-work input](point-of-work-input.md).
+Schema-validated data describing how one scanner at one workstation reaches the application and how the decoder normalizes its output. See [`packages/devices`](../packages/devices/README.md), [operator input](operator-input.md).
 
 ### Screen
 
@@ -564,7 +574,7 @@ OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and r
 
 ### Terminal
 
-A principal whose session may sign operators in at a workstation: the local owner, or a principal listed in the `station-sign-in-terminals` setting, such as an attached tablet's. See [`workstations/sign-in`](../workstations/sign-in/README.md), [operator workstations](operator-workstations.md#workstation-sign-in).
+A principal whose session may sign operators in at a workstation: the local user, or a principal listed in the `station-sign-in-terminals` setting, such as an attached tablet's. See [`workstations/sign-in`](../workstations/sign-in/README.md), [operator workstations](operator-workstations.md#workstation-sign-in).
 
 ### Tortoise
 

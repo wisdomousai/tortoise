@@ -13,7 +13,7 @@ type Result = {
   next?: string;
   source: { status: string; identity?: string; message?: string };
 };
-const owner: ExecutionContext = { workspaceId: 'local', principalId: 'owner' };
+const localUser: ExecutionContext = { workspaceId: 'local', principalId: 'local-user' };
 /** Pat works the north and has no CRM login, so searches use the service account. */
 const pat: ExecutionContext = { workspaceId: 'local', principalId: 'pat' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -21,21 +21,24 @@ afterEach(async () => {
   for (const step of cleanup.splice(0).reverse()) await step();
 });
 
-async function open(crm = new FakeCrm({ logins: { owner: 'ann' } })) {
+async function open(crm = new FakeCrm({ logins: { 'local-user': 'ann' } })) {
   const workspacePath = await mkdtemp(join(tmpdir(), 'tortoise-crm-'));
   const instance = await openEmbeddedInstance(
     createCrmCaptureApplication({
       crm,
-      members: { owner: { regions: ['north', 'south', 'west'] }, pat: { regions: ['north'] } },
+      members: {
+        'local-user': { regions: ['north', 'south', 'west'] },
+        pat: { regions: ['north'] },
+      },
     }),
     { workspacePath },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
   cleanup.push(() => instance.close());
   const { application, integrations } = instance;
-  const query = async <T = Result>(operation: string, input: unknown, as = owner) =>
+  const query = async <T = Result>(operation: string, input: unknown, as = localUser) =>
     (await application.queryRaw({ operation, input }, as)).data as T;
-  const command = (operation: string, input: unknown, key: string, as = owner) =>
+  const command = (operation: string, input: unknown, key: string, as = localUser) =>
     application.invokeRaw({ operation, input, idempotencyKey: key }, as);
   /** One outbox pass, then one feed pass: what the background loops do every second. */
   const complete = async () => {
@@ -83,8 +86,8 @@ describe('CRM capture', () => {
     const rest = await query('crm.account.search', { q: '', cursor: mine.next });
     expect(ids(rest)).toEqual(['001A9', '001B1']);
     const service = await query('crm.account.search', { q: '' }, pat);
-    // The owner's CRM login cannot continue the service account's search: it would read past
-    // the owner's sharing. Nor does a cursor carry over to another search text.
+    // The local user's CRM login cannot continue the service account's search: it would read past
+    // the local user's sharing. Nor does a cursor carry over to another search text.
     await expect(
       query('crm.account.search', { q: '', cursor: service.next }),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
@@ -159,7 +162,7 @@ describe('CRM capture', () => {
       },
       'call-1',
     );
-    expect(logged.result).toMatchObject({ sync: 'pending', recordedBy: 'owner' });
+    expect(logged.result).toMatchObject({ sync: 'pending', recordedBy: 'local-user' });
     await complete();
     const detail = await query<{
       activities: number;
@@ -195,9 +198,9 @@ describe('CRM capture', () => {
   test('an agent delegated by a person searches with that person’s access, within its grant', async () => {
     const { query } = await open();
     const agent: ExecutionContext = {
-      ...owner,
+      ...localUser,
       runId: 'run-1',
-      grant: { operations: ['crm.account.search'], runId: 'run-1', principalId: 'owner' },
+      grant: { operations: ['crm.account.search'], runId: 'run-1', principalId: 'local-user' },
     };
     const found = await query('crm.account.search', { q: 'acme' }, agent);
     expect(found.source.identity).toBe('caller');

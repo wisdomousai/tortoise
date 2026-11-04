@@ -40,7 +40,7 @@ bun test showcase/examples/field-service/test/security-conformance.test.ts
 
 ## Who the caller is
 
-The host builds the execution context from the session. Capability input can't set the principal, workspace, roles or grant. The local host starts as the local owner. A provider account grants no workspace access, and an approval never allows what the policy denies.
+The host builds the execution context from the session. Capability input can't set the principal, workspace, roles or grant. The local host starts as the local user. A provider account grants no workspace access, and an approval never allows what the policy denies.
 
 ## Command checks
 

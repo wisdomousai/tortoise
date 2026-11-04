@@ -1,6 +1,6 @@
 ---
 name: add-scanner-input
-description: Add or change barcode scanner input at a point of work, so a scan submits the same catalog command a button or tool call would. Use when adding a scanner source or transport (wedge, serial, HID POS, camera, Android broadcast intent), a scanner profile or scan route, per-station device configuration, a rugged Android vendor profile, or a glove-sized operator input part. Covers packages/devices, plugins/intent-scanner, packages/operator-ui and docs/point-of-work-input.md.
+description: Add or change barcode scanner input at a workstation, so a scan submits the same catalog command a button or tool call would. Use when adding a scanner source or transport (wedge, serial, HID POS, camera, Android broadcast intent), a scanner profile or scan route, per-station device configuration, a rugged Android vendor profile, or a glove-sized operator input part. Covers packages/devices, plugins/intent-scanner, packages/operator-ui and docs/operator-input.md.
 ---
 
 # Add scanner input
@@ -52,6 +52,6 @@ No physical scanner has been checked yet. A scanner type counts as supported onl
 
 ## References
 
-- [Point-of-work input](../../../../docs/point-of-work-input.md)
+- [Operator input](../../../../docs/operator-input.md)
 - [`@tortoise/intent-scanner`](../../../../plugins/intent-scanner/README.md)
 - [`showcase/examples/asset-survey-field`](../../../../showcase/examples/asset-survey-field/README.md)

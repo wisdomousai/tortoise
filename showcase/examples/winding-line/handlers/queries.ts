@@ -21,7 +21,7 @@ function stationDetail(
     countersRevision: ctx.getRevision(counters(station.id)),
     bridge: compact({
       mode: station.mode,
-      controlHolder: station.controlHolder,
+      controlledBy: station.controlledBy,
       controlChangedBy: station.controlChangedBy,
       controlChangedAt: station.controlChangedAt,
       screen: station.screen,
@@ -129,7 +129,7 @@ export function queryHandlers(): HandlerContribution<LineState, LineServices>[] 
     })),
     handler(operations.controlGet, (input, ctx) => {
       const station = stationOf(ctx.state, input.station);
-      return { mode: station.mode, holder: station.controlHolder };
+      return { mode: station.mode, controlledBy: station.controlledBy };
     }),
   ];
 }

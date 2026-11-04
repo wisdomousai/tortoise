@@ -54,13 +54,13 @@ export interface Instance {
   resolvedBy?: string;
 }
 
-/** Workspace owners and instances, under `state.workflow`. */
+/** Local users and instances, under `state.workflow`. */
 export interface WorkflowsState {
-  owners: string[];
+  localUsers: string[];
   instances: Record<string, Instance>;
 }
-export const createWorkflowsState = (ownerId: string): WorkflowsState => ({
-  owners: [ownerId],
+export const createWorkflowsState = (localUserId: string): WorkflowsState => ({
+  localUsers: [localUserId],
   instances: {},
 });
 
@@ -92,7 +92,7 @@ export function currentStep(instance: Instance, definition: Definition | undefin
   return isFinished(instance) ? undefined : definition?.workflow.steps[instance.index]?.id;
 }
 
-/** The instance as `viewer` sees it: everything for its starter, status for an owner. */
+/** The instance as `viewer` sees it: everything for its starter, status for a local user. */
 export function view(
   instance: Instance,
   viewer: string,

@@ -276,7 +276,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const worker = { workspaceId: 'local', principalId: 'worker' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -297,19 +297,19 @@ async function open() {
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
   cleanup.push(() => instance.close());
   const app = instance.application;
-  const run = async (operation: string, input: unknown, caller: typeof owner, key: string) =>
+  const run = async (operation: string, input: unknown, caller: typeof localUser, key: string) =>
     (await app.invokeRaw({ operation, input, idempotencyKey: key }, caller)).result as { id: string };
   return { app, run };
 }
 
 test('${kind.a} sent to a member comes back as reports, and accepting one sets its ${one.words}', async () => {
   const { app, run } = await open();
-  const first = (await run('${one.kebab}.create', { title: 'First' }, owner, 'first')).id;
-  const second = (await run('${one.kebab}.create', { title: 'Second' }, owner, 'second')).id;
+  const first = (await run('${one.kebab}.create', { title: 'First' }, localUser, 'first')).id;
+  const second = (await run('${one.kebab}.create', { title: 'Second' }, localUser, 'second')).id;
   const sent = await run(
     'assignment.${kind.kebab}.create',
     { title: 'Week 1', scope: { ${many.camel}: [first] }, assignee: { type: 'person', id: 'worker' } },
-    owner,
+    localUser,
     'send',
   );
   const feed = await app.queryRaw({ operation: 'assignment.feed', input: {} }, worker);
@@ -334,20 +334,20 @@ test('${kind.a} sent to a member comes back as reports, and accepting one sets i
   await expect(
     run('assignment.${kind.kebab}.accept', { id: 'report-1' }, worker, 'worker-accept'),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-  await run('assignment.${kind.kebab}.accept', { id: 'report-1' }, owner, 'accept');
-  const record = await app.queryRaw({ operation: '${one.kebab}.get', input: { id: first } }, owner);
+  await run('assignment.${kind.kebab}.accept', { id: 'report-1' }, localUser, 'accept');
+  const record = await app.queryRaw({ operation: '${one.kebab}.get', input: { id: first } }, localUser);
   expect(record.data).toMatchObject({ status: 'done' });
-  await run('assignment.close', { id: sent.id }, owner, 'close');
+  await run('assignment.close', { id: sent.id }, localUser, 'close');
   const board = await app.queryRaw(
     { operation: 'assignment.list', input: { kind: '${kind.kebab}' } },
-    owner,
+    localUser,
   );
   expect(board.data).toMatchObject({ items: [{ id: sent.id, stage: 'closed' }] });
 });
 
 test('a viewer may not plan, work goes only to members, and a stranger has no feed', async () => {
   const { app, run } = await open();
-  const first = (await run('${one.kebab}.create', { title: 'First' }, owner, 'first')).id;
+  const first = (await run('${one.kebab}.create', { title: 'First' }, localUser, 'first')).id;
   const draft = { title: 'Week 1', scope: { ${many.camel}: [first] } };
   await expect(
     run('assignment.${kind.kebab}.create', draft, worker, 'viewer'),
@@ -356,7 +356,7 @@ test('a viewer may not plan, work goes only to members, and a stranger has no fe
     run(
       'assignment.${kind.kebab}.create',
       { ...draft, assignee: { type: 'person', id: 'stranger' } },
-      owner,
+      localUser,
       'stranger',
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });

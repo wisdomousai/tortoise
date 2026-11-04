@@ -6,7 +6,7 @@ import { createBundle, generateSigningKey } from '@tortoise/bundle';
 import type { BlobRef } from '@tortoise/contracts';
 import { startHost } from '@tortoise/host/host';
 import { createFleetApplication } from '../application';
-import { owner, startPlant } from './site';
+import { localUser, startPlant } from './site';
 
 const cleanups: (() => Promise<unknown> | unknown)[] = [];
 afterEach(async () => {
@@ -37,11 +37,11 @@ async function startFleet() {
     (
       await fleet.application.invokeRaw(
         { operation, input, idempotencyKey: crypto.randomUUID() },
-        owner,
+        localUser,
       )
     ).result as Record<string, any>;
   const query = async (operation: string, input: unknown = {}) =>
-    (await fleet.application.queryRaw({ operation, input }, owner)).data as Record<string, any>;
+    (await fleet.application.queryRaw({ operation, input }, localUser)).data as Record<string, any>;
   const plant = async (settings: { trust?: string; relay?: boolean; builtAt?: string } = {}) => {
     const { code } = await command('link.enrollment.create', {
       label: 'Plant',
@@ -160,7 +160,7 @@ async function publish(
       await fleet.fleet.application.putBlob(
         new Uint8Array(await Bun.file(join(out, 'files', file.path)).arrayBuffer()),
         'application/octet-stream',
-        owner,
+        localUser,
       ),
     );
   const signature = JSON.parse(await Bun.file(join(out, 'bundle.sig')).text());
@@ -223,7 +223,7 @@ test('a release whose blobs are not exactly its files is refused', async () => {
         input: { release: again, files: [file, file] },
         idempotencyKey: crypto.randomUUID(),
       },
-      owner,
+      localUser,
     )
     .catch((error: { code?: string }) => error);
   expect(refused).toMatchObject({ code: 'INVALID_INPUT' });
@@ -326,7 +326,7 @@ test('an operator reaches a site’s API through the relay only with a session t
   };
 
   expect(await ask({})).toMatchObject({ status: 'responded', response: 403 });
-  const session = site.host.sessions.create(owner, 60_000);
+  const session = site.host.sessions.create(localUser, 60_000);
   const responded = await ask({ authorization: `Bearer ${session.token}` });
   expect(responded).toMatchObject({ status: 'responded', response: 200 });
   expect(JSON.parse(Buffer.from(responded.responseBody, 'base64').toString())).toMatchObject({

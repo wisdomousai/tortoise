@@ -10,7 +10,7 @@ import { OBSERVER_PRINCIPAL, defaultChambers } from '../domain';
 import { FakePlant } from '../fake-plant';
 import { createChamberObservers } from '../observers';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 const observer = {
@@ -81,11 +81,11 @@ async function open({ bound = true } = {}) {
 
   const { application } = instance;
   let key = 0;
-  const command = async (operation: string, input: unknown, as: object = owner) =>
+  const command = async (operation: string, input: unknown, as: object = localUser) =>
     (
       await application.invokeRaw(
         { operation, input, idempotencyKey: `k${++key}` },
-        as as typeof owner,
+        as as typeof localUser,
       )
     ).result as Record<string, unknown>;
   const chambers = async (as = viewer) =>

@@ -95,7 +95,7 @@ test('a member reports the samples of a round sent to them, and a technician acc
         transformer: 'TR-40517',
         description: 'Buchholz relay alarmed last week; gas analysis.',
         method: gas,
-        requester: 'owner',
+        requester: 'local-user',
       }),
       expect.objectContaining({ sample: 'OS-24-0418', transformer: 'TR-40522', method: '' }),
       expect.objectContaining({ sample: 'OS-24-0419', transformer: 'TR-40522', method: water }),
@@ -113,7 +113,7 @@ test('the assignee list names the members of the lab', async () => {
   close = pattern.close;
   expect(await pattern.read('sampling.assignee.list', {}, vera)).toEqual({
     items: [
-      { type: 'person', id: 'owner', label: 'owner (technician)' },
+      { type: 'person', id: 'local-user', label: 'local-user (technician)' },
       { type: 'person', id: 'vera', label: 'vera (viewer)' },
     ],
   });

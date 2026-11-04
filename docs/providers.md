@@ -1,6 +1,6 @@
 # Providers and account connections
 
-An agent harness runs on a model provider account that the local owner connects. The provider pays for inference; it never gets workspace access. Agents reach data only through the application's tools ([agents](agents.md#application-tools)).
+An agent harness runs on a model provider account that the local user connects. The provider pays for inference; it never gets workspace access. Agents reach data only through the application's tools ([agents](agents.md#application-tools)).
 
 ## Try it
 
@@ -27,7 +27,7 @@ A run succeeds only when the provider's final result validates and every tool ca
 
 ## Connect an account
 
-Only the local owner, without a delegated grant, can manage provider access. Bind each provider's destination (declared in `packages/agents/src/requirements.ts`) in the deployment policy; without a binding a run says why it can't start.
+Only the local user, without a delegated grant, can manage provider access. Bind each provider's destination (declared in `packages/agents/src/requirements.ts`) in the deployment policy; without a binding a run says why it can't start.
 
 - **ChatGPT (Codex):** open the account screen and sign in. The system browser opens; the host listens on a loopback callback, uses PKCE, one-time state and a nonce, and verifies the ID token on the server. Inference needs the `resource.invoke` and `chatgpt.tokens.use.direct` scopes; without them the host keeps the profile but disables it. Tokens refresh within a minute of expiry. Logout deletes tokens locally, then asks the provider to revoke them and reports whether it did.
 - **Anthropic or OpenAI key (Claude, AI SDK):** paste the key on the account screen. The host saves it in the credential vault; a run can use it only after the running host has saved or loaded it. API-key runs never fall back to ChatGPT credentials.

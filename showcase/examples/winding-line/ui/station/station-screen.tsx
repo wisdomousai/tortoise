@@ -40,12 +40,12 @@ export function StationScreen() {
 function takeover(station: Station, pending: string | undefined, run: Run) {
   const { bridge, desired } = station;
   if (bridge.mode === 'monitor-only') return undefined;
-  const request = (holder: 'operator' | 'agent') => () =>
+  const request = (controlledBy: 'operator' | 'agent') => () =>
     void run('control', () =>
-      client.command(operations.controlRequest, { station: station.id, holder }),
+      client.command(operations.controlRequest, { station: station.id, controlledBy }),
     );
   return {
-    holder: bridge.controlHolder,
+    controlledBy: bridge.controlledBy,
     activity:
       desired?.sync === 'pending'
         ? `Loading recipe ${desired.recipe} for ${desired.orderId}`

@@ -26,10 +26,10 @@ export type StoredRelay = Relay & {
   outgoing?: { headers: Record<string, string>; body?: string };
 };
 
-/** A new workspace. Its owner is always an operator. */
-export function createState(ownerId: string, members: Record<string, Role> = {}): AppState {
+/** A new workspace. The local user is always an operator. */
+export function createState(localUserId: string, members: Record<string, Role> = {}): AppState {
   return {
-    members: { ...members, [ownerId]: 'operator' },
+    members: { ...members, [localUserId]: 'operator' },
     sites: {},
     releases: {},
     channels: {},

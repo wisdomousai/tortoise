@@ -7,7 +7,7 @@ import { openEmbeddedInstance } from '@tortoise/host';
 import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing';
 import { createTestRequestsApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 
@@ -52,9 +52,9 @@ const scenarios: BehavioralScenario[] = [
             description: 'Gas alarm after a load increase',
           },
         },
-        owner,
+        localUser,
       );
-      expect(submitted.result).toMatchObject({ id: 'r1', requester: 'owner', method: '' });
+      expect(submitted.result).toMatchObject({ id: 'r1', requester: 'local-user', method: '' });
       expect(submitted.revisions).toEqual({ 'test-request:r1': 1 });
       await driver.command(
         {
@@ -62,7 +62,7 @@ const scenarios: BehavioralScenario[] = [
           input: { id: 'r1', method: 'IEC 60567 dissolved gas analysis' },
           expectedRevisions: { 'test-request:r1': 1 },
         },
-        owner,
+        localUser,
       );
       const read = await driver.query(
         { operation: 'test-request.get', input: { id: 'r1' } },
@@ -85,7 +85,7 @@ const scenarios: BehavioralScenario[] = [
               input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
               expectedRevisions: { 'test-request:r1': 1 },
             },
-            owner,
+            localUser,
           ),
         ),
       ).toBe('CONFLICT');
@@ -99,12 +99,12 @@ const scenarios: BehavioralScenario[] = [
         input: { sample: 'OS-24-0502', transformer: 'TR-40517', description: 'Water content' },
         idempotencyKey: 'submit-once',
       };
-      const first = await driver.command(request, owner);
-      const second = await driver.command(request, owner);
+      const first = await driver.command(request, localUser);
+      const second = await driver.command(request, localUser);
       expect(second.result).toEqual(first.result);
       const list = await driver.query(
         { operation: 'test-request.list', input: { search: 'water' } },
-        owner,
+        localUser,
       );
       expect(list.data).toMatchObject({ total: 1 });
     },

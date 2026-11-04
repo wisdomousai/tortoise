@@ -20,7 +20,7 @@ function callbackPage(success: boolean) {
 
 /**
  * The public OAuth callback. It is accepted only for a pending attempt on this origin, whose
- * session is still live in the same owner scope before and after the exchange; a profile
+ * session is still live in the same local-user scope before and after the exchange; a profile
  * connected while the session was revoked is logged out again. Every failure shows one page.
  */
 export async function chatGptCallback(

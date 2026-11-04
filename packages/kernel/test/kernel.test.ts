@@ -10,7 +10,7 @@ import {
 } from '@tortoise/contracts';
 import type { AuthorizationPort } from '@tortoise/runtime';
 import { defineApplication } from '../src/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '../src/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE, openInstance } from '../src/instance';
 import { defineManifest } from '../src/manifest';
 import { defineHostPlugin, type HostPlugin, type PluginInstance } from '../src/plugin';
 import { definePluginManifest, type PlatformId, type PluginSetting } from '../src/plugin-manifest';
@@ -39,7 +39,7 @@ const openPolicy: AuthorizationPort<unknown> = {
   authorize: () => ({ allowed: true }),
   canReadEvent: () => true,
 };
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 
 /** A plugin with no modules that runs where `platforms` says and records its lifecycle. */
 function plugin(
@@ -136,7 +136,7 @@ test('an instance opens on a platform without Node or Bun and keeps state across
   const first = await open(definition, fake);
   const receipt = await first.instance.application.invokeRaw(
     { operation: 'score.increment', input: {}, idempotencyKey: 'bump-1' },
-    owner,
+    localUser,
   );
   expect(receipt.result).toEqual({ count: 1 });
   // One writer: the workspace cannot be owned twice while open.
@@ -149,11 +149,11 @@ test('an instance opens on a platform without Node or Bun and keeps state across
   const second = await open(definition, fake);
   const read = await second.instance.application.queryRaw(
     { operation: 'score.get', input: {} },
-    owner,
+    localUser,
   );
   expect(read.data).toEqual({ count: 1 });
   // The runtime's catalog lists only what this platform's host declares, here nothing.
-  expect(second.instance.application.discover(owner).requirements.network).toEqual([]);
+  expect(second.instance.application.discover(localUser).requirements.network).toEqual([]);
   await second.instance.close();
   await second.ownership.release();
 });

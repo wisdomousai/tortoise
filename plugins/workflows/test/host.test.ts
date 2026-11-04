@@ -36,12 +36,12 @@ test('a serving host advances instances and resumes them after a restart', async
     await host.close();
 
     host = await startHost(parcelsApplication(), options);
-    const [effect] = await host.application.pendingEffects(person('owner'));
+    const [effect] = await host.application.pendingEffects(person('local-user'));
     await invoke(
       host,
       'carrier.complete',
       { id: 'p1', effect: effect!.id, accepted: true },
-      person('owner'),
+      person('local-user'),
     );
     await until(async () => (await query(host, 'workflow.get', { id })).status === 'waiting');
     await invoke(host, 'parcel.deliver', { id: 'p1' }, person('vic'));

@@ -12,8 +12,8 @@ import fieldService from '../application';
 test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-transport-'));
   const host = await startHost(fieldService, { workspacePath: join(directory, 'workspace') });
-  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
+  const localUserConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
+  const localUser = createHttpTransport({ baseUrl: host.url, token: localUserConnection.token });
   const customerSession = host.sessions.create({ workspaceId: 'local', principalId: 'customer' });
   const customer = createHttpTransport({ baseUrl: host.url, token: customerSession.token });
   const customerFile = join(directory, 'customer-connection.json');
@@ -42,39 +42,39 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
     return { exitCode, value: JSON.parse(stdout) };
   };
   const customerServer = createMcpServer(customer);
-  const ownerServer = createMcpServer(owner);
+  const localUserServer = createMcpServer(localUser);
   const customerMcp = new Client({ name: 'customer-conformance', version: '1.0.0' });
-  const ownerMcp = new Client({ name: 'owner-conformance', version: '1.0.0' });
+  const localUserMcp = new Client({ name: 'local-user-conformance', version: '1.0.0' });
   const [customerClientTransport, customerServerTransport] = InMemoryTransport.createLinkedPair();
-  const [ownerClientTransport, ownerServerTransport] = InMemoryTransport.createLinkedPair();
+  const [localUserClientTransport, localUserServerTransport] = InMemoryTransport.createLinkedPair();
   const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
     response.structuredContent ?? JSON.parse((response.content as { text: string }[])[0]!.text);
   try {
     await customerServer.connect(customerServerTransport);
     await customerMcp.connect(customerClientTransport);
-    await ownerServer.connect(ownerServerTransport);
-    await ownerMcp.connect(ownerClientTransport);
-    const workOrder = await owner.command<{ id: string }>(
+    await localUserServer.connect(localUserServerTransport);
+    await localUserMcp.connect(localUserClientTransport);
+    const workOrder = await localUser.command<{ id: string }>(
       'work-order.create',
       { name: 'Shared' },
       { idempotencyKey: 'work-order' },
     );
-    const hidden = await owner.command<{ id: string }>(
+    const hidden = await localUser.command<{ id: string }>(
       'work-order.create',
       { name: 'Hidden' },
       { idempotencyKey: 'hidden-workOrder' },
     );
-    await owner.command(
+    await localUser.command(
       'work-order.set-member',
       { id: workOrder.result.id, principalId: 'customer', role: 'customer' },
       { idempotencyKey: 'membership' },
     );
-    const task = await owner.command<{ id: string; revision: number }>(
+    const task = await localUser.command<{ id: string; revision: number }>(
       'task.create',
       { workOrderId: workOrder.result.id, title: 'Shared task', internalNote: 'TRANSPORT SECRET' },
       { idempotencyKey: 'task' },
     );
-    await owner.command(
+    await localUser.command(
       'task.create',
       { workOrderId: hidden.result.id, title: 'Hidden task' },
       { idempotencyKey: 'hidden-task' },
@@ -121,7 +121,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
     expect(decode(deniedMcp).error.code).toBe('FORBIDDEN');
     const input = { id: task.result.id, title: 'One committed edit' };
     const revisions = { [`task:${task.result.id}`]: task.result.revision };
-    const committed = await owner.command('task.update', input, {
+    const committed = await localUser.command('task.update', input, {
       idempotencyKey: 'shared-key',
       expectedRevisions: revisions,
     });
@@ -135,7 +135,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       JSON.stringify(revisions),
     ]);
     const retryMcp = decode(
-      await ownerMcp.callTool({
+      await localUserMcp.callTool({
         name: 'task_update',
         arguments: { input, idempotencyKey: 'shared-key', expectedRevisions: revisions },
       }),
@@ -144,13 +144,13 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
     expect(retryCli.value.result).toEqual(committed.result);
     expect(retryMcp.result).toEqual(committed.result);
     expect(retryMcp.revisions).toEqual(committed.revisions);
-    const final = await owner.query<{ revision: number }>('task.get', { id: task.result.id });
+    const final = await localUser.query<{ revision: number }>('task.get', { id: task.result.id });
     expect(final.data.revision).toBe(task.result.revision + 1);
   } finally {
     await customerMcp.close();
-    await ownerMcp.close();
+    await localUserMcp.close();
     await customerServer.close();
-    await ownerServer.close();
+    await localUserServer.close();
     await host.close();
     await rm(directory, { recursive: true, force: true });
   }

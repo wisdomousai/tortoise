@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -37,10 +37,10 @@ async function open() {
       },
       idempotencyKey: 'seed',
     },
-    owner,
+    localUser,
   );
   const toolId = (created.result as { id: string }).id;
-  const invoke = (operation: string, input: unknown, idempotencyKey: string, who = owner) =>
+  const invoke = (operation: string, input: unknown, idempotencyKey: string, who = localUser) =>
     app.invokeRaw({ operation, input, idempotencyKey }, who);
   const lend = () =>
     invoke(
@@ -50,7 +50,7 @@ async function open() {
     );
   const status = async () =>
     (
-      (await app.queryRaw({ operation: 'tool.get', input: { id: toolId } }, owner)).data as {
+      (await app.queryRaw({ operation: 'tool.get', input: { id: toolId } }, localUser)).data as {
         status: string;
       }
     ).status;
@@ -80,7 +80,7 @@ test('an attendant retires an available tool, and the loans stay as they are', a
   await invoke('tool.return', { toolId, condition: 'ok' }, 'in');
   await invoke('tool.retire', { toolId }, 'retire');
   expect(await status()).toBe('retired');
-  const loans = await app.queryRaw({ operation: 'loan.list', input: { toolId } }, owner);
+  const loans = await app.queryRaw({ operation: 'loan.list', input: { toolId } }, localUser);
   expect(loans.data).toMatchObject({ total: 1, items: [{ condition: 'ok' }] });
 });
 
@@ -96,7 +96,7 @@ test('a stale tool revision is refused', async () => {
   const { app, toolId, status } = await open();
   await app.invokeRaw(
     { operation: 'tool.update', input: { id: toolId, bin: 'A-04' }, idempotencyKey: 'move' },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -106,7 +106,7 @@ test('a stale tool revision is refused', async () => {
         idempotencyKey: 'stale',
         expectedRevisions: { [`tool:${toolId}`]: 1 },
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   expect(await status()).toBe('available');
@@ -162,7 +162,7 @@ test('approval to retire a lent, retired or unknown tool is refused before anyon
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   const pending = await app.queryRaw(
     { operation: 'approval.list', input: { status: 'pending' } },
-    owner,
+    localUser,
   );
   expect(pending.data).toMatchObject({ total: 1 });
 });

@@ -92,20 +92,20 @@ export const notificationsHandlers: HandlerContribution<
 const known = new Set<string>(notificationsModule.capabilities.map((capability) => capability.id));
 
 /**
- * Issuing is for the owner acting under a delegated grant: the dispatcher. Looking up and
+ * Issuing is for the local user acting under a delegated grant: the dispatcher. Looking up and
  * redeeming a reply is for any principal, but only on the shell channel, which the reply consumer
  * sets and no transport does; the handlers then act only on replies issued to the caller.
- * Notification events are visible to the owner.
+ * Notification events are visible to the local user.
  */
 export const notificationsPolicy: AuthorizationPort<NotificationsState> = {
   authorize({ capability, context, state }) {
     if (!known.has(capability.id)) return { allowed: false, reason: 'NO_POLICY' };
     if (capability.id === ops.issue.id)
       return {
-        allowed: context.principalId === state.owner && context.grant !== undefined,
+        allowed: context.principalId === state.localUserId && context.grant !== undefined,
         reason: 'RESOURCE_DENIED',
       };
     return { allowed: context.channel === 'shell', reason: 'RESOURCE_DENIED' };
   },
-  canReadEvent: ({ context, state }) => context.principalId === state.owner,
+  canReadEvent: ({ context, state }) => context.principalId === state.localUserId,
 };

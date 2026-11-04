@@ -8,12 +8,12 @@ import { own, put, type StateMigrations } from '@tortoise/runtime';
  * machine state, the loaded recipe and counters; this application only observes them, with
  * provenance, through the station bridge. This application owns what happens at the station:
  * stops and their classification, count confirmations, operator verifications, the desired
- * recipe, the bridge mode and the control holder. Forwarded records reach the MES through the outbox;
+ * recipe, the bridge mode and who has control. Forwarded records reach the MES through the outbox;
  * desired station state reaches the station software through the outbox and its screen.
  */
 export type StationRole = 'operator' | 'supervisor' | 'viewer';
 export type BridgeMode = 'monitor-only' | 'assist' | 'actuate';
-export type ControlHolder = 'operator' | 'agent' | 'idle';
+export type ControlledBy = 'operator' | 'agent' | 'idle';
 export type SyncStatus = 'pending' | 'accepted' | 'rejected';
 export type FieldValue = string | number | boolean | null;
 
@@ -64,7 +64,7 @@ export interface Station {
   /** The only principal that may report observations and complete screen procedures here. */
   bridgePrincipalId: string;
   mode: BridgeMode;
-  controlHolder: ControlHolder;
+  controlledBy: ControlledBy;
   controlChangedBy?: string;
   controlChangedAt?: number;
   screen?: string | null;
@@ -156,7 +156,12 @@ export function createLineState(
 ): LineState {
   const stations: LineState['stations'] = {};
   for (const station of options.stations ?? [
-    { id: 'winder-1', name: 'Winder 1', line: 'Winding line 1', members: { owner: 'supervisor' } },
+    {
+      id: 'winder-1',
+      name: 'Winder 1',
+      line: 'Winding line 1',
+      members: { 'local-user': 'supervisor' },
+    },
   ])
     put(stations, station.id, {
       ...station,
@@ -164,7 +169,7 @@ export function createLineState(
       bridgePrincipalId: bridgePrincipal(station.id),
       // Observation is the safe default; actuation is switched on per station by a supervisor.
       mode: 'monitor-only',
-      controlHolder: 'idle',
+      controlledBy: 'idle',
       readings: {},
     });
   return {

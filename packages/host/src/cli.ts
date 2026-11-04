@@ -41,7 +41,7 @@ with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workf
  * Trust boundary: identity comes from the launcher, never from operation arguments. Attached
  * calls use the session in a connection file written by the instance. Embedded calls use a
  * grant file prepared by the orchestrator; without one, an embedded call acts as the local
- * workspace owner, which is only appropriate for a human operator on their own machine.
+ * local user, which is only appropriate for a human operator on their own machine.
  */
 export function createCli(definition: AnyApplicationDefinition, options: { program: string }) {
   const { program } = options;

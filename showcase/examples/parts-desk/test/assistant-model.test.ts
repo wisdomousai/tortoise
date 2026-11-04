@@ -14,7 +14,7 @@ import {
 } from '../contracts/assistant-agent';
 import { standInEntry } from '../model';
 import { seedTrialRecords } from '../trial-records';
-import { draftQuote, owner, utilityIds } from './support';
+import { draftQuote, localUser, utilityIds } from './support';
 
 // The assistant on the model server, with the llama-server stand-in playing the model from
 // responder.ts. One serving host holds the trial records, and each run starts as a person's
@@ -67,7 +67,7 @@ beforeAll(async () => {
     if (!['measuring', 'starting', 'stopped'].includes(models.status().state)) break;
     await Bun.sleep(25);
   }
-  token = host.sessions.create(owner).token;
+  token = host.sessions.create(localUser).token;
 });
 
 afterAll(async () => {
@@ -89,7 +89,7 @@ async function get<T>(path: string) {
   return (await response.json()) as T;
 }
 
-/** Start a run of the assistant as the owner, without naming a harness. */
+/** Start a run of the assistant as the local user, without naming a harness. */
 const start = (prompt: string, options: { uiSessionId?: string } = {}) =>
   post<RunSnapshot>('/api/v1/runs', { agentId: assistantAgent.id, prompt, ...options });
 
@@ -181,7 +181,7 @@ test('the stand-in looks up HV bushings, requests approval above 10 percent and 
   expect(calls(discount)).toEqual(['quote.list', 'approval.request']);
   const { data } = await host.application.queryRaw(
     { operation: 'approval.list', input: { status: 'pending' } },
-    owner,
+    localUser,
   );
   expect((data as { items: ApprovalRequest[] }).items).toMatchObject([
     {
@@ -199,7 +199,7 @@ test('the stand-in looks up HV bushings, requests approval above 10 percent and 
 
 test('from a screen, the stand-in prepares a quote of two HV bushings in the quote form and creates nothing', async () => {
   const quotes = async () =>
-    (await host.application.queryRaw({ operation: 'quote.list', input: { limit: 1 } }, owner))
+    (await host.application.queryRaw({ operation: 'quote.list', input: { limit: 1 } }, localUser))
       .data as { total: number };
   const before = (await quotes()).total;
   const ui = await post<{ sessionId: string }>('/api/v1/ui/sessions', {

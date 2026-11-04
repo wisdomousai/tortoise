@@ -11,5 +11,5 @@ Primitives:
 ## References
 
 - [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
-- [Point-of-work input: sources](../../docs/point-of-work-input.md#sources)
+- [Operator input: sources](../../docs/operator-input.md#sources)
 - `bun test plugins/intent-scanner`

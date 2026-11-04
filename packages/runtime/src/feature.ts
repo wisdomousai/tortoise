@@ -28,7 +28,7 @@ export interface MigrationStep {
   readonly from: number;
   readonly to: number;
   readonly compatible?: boolean;
-  up(state: unknown, ownerId: string): unknown;
+  up(state: unknown, localUserId: string): unknown;
 }
 /**
  * The versions of one state slice (an application's own state, a feature's or a plugin's).
@@ -42,11 +42,11 @@ export interface StateMigrations {
 
 /** A feature's state slice, kept under the feature's id in the application's state. */
 export interface FeatureState<Slice> {
-  create(ownerId: string): Slice;
+  create(localUserId: string): Slice;
   /** Versions of this slice; see `StateMigrations`. */
   readonly migrations?: StateMigrations;
   /** Unversioned normalization run on every load after the migrations. */
-  upgrade?(stored: unknown, ownerId: string): Slice;
+  upgrade?(stored: unknown, localUserId: string): Slice;
 }
 
 /**

@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const step of cleanup.splice(0).reverse()) await step();
 });
 
-/** A host with a fixed clock and an MCP client that calls it over HTTP as the owner, an attendant. */
+/** A host with a fixed clock and an MCP client that calls it over HTTP as the local user, an attendant. */
 async function connect() {
   const directory = await mkdtemp(join(tmpdir(), 'tool-store-calibration-mcp-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));

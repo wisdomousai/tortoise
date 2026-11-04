@@ -44,7 +44,7 @@ import {
 
 export interface ReceivingOptions {
   services?: Services;
-  /** People who work in a new workspace besides its owner, who is always an editor. */
+  /** People who work in a new workspace besides the local user, who is always an editor. */
   members?: Record<string, Role>;
   /** The ERP port; the exchange folders the site policy binds when omitted. */
   erp?: SystemOfRecordPort<AsnLine>;
@@ -64,12 +64,12 @@ export const receivingPeerLinkPlugin = createPeerLinkPlugin({ targets: [qualityP
  * in the outbox and lot searches report it unavailable.
  */
 export function createReceivingApplication(options: ReceivingOptions = {}) {
-  const state = (ownerId: string) => createState(ownerId, options.members);
+  const state = (localUserId: string) => createState(localUserId, options.members);
   return defineApplication<AppState, Services>({
     manifest,
     createState: state,
     migrations,
-    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     handlers: createHandlers(),
     authorization: appPolicy,
     features: [

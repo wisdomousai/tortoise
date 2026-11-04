@@ -13,7 +13,7 @@ import {
 } from './server';
 
 /**
- * The compliance plugin. Its slice names who may read the audit trail (the workspace owner at
+ * The compliance plugin. Its slice names who may read the audit trail (the local user at
  * creation); its queries read the site policy and the audit log through a posture monitor,
  * which a serving host re-checks on an interval. It adds `compliance report`.
  *
@@ -23,7 +23,7 @@ import {
 export const compliancePlugin = defineHostPlugin<ComplianceState, ComplianceServices>({
   manifest: compliancePluginManifest,
   requires: ['site', 'audit'],
-  state: { create: (ownerId) => createComplianceState([ownerId]) },
+  state: { create: (localUserId) => createComplianceState([localUserId]) },
   handlers: createComplianceHandlers(),
   authorization: { resourceTypes: ['audit'], port: compliancePolicy },
   commands: [complianceCliCommand],

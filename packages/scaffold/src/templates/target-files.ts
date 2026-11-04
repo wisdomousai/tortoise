@@ -56,7 +56,7 @@ import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 import { Fake${t.pascal} } from '../${t.kebab}-port';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -84,10 +84,10 @@ test('a sent ${one.words} is delivered after commit and completed; the feed adds
   const { port, application, integrations } = await open();
   await application.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Local' }, idempotencyKey: 'create' },
-    owner,
+    localUser,
   );
   const send = (key: string) =>
-    application.invokeRaw({ operation: '${t.kebab}.send', input: { id: '${one.kebab}-1' }, idempotencyKey: key }, owner);
+    application.invokeRaw({ operation: '${t.kebab}.send', input: { id: '${one.kebab}-1' }, idempotencyKey: key }, localUser);
   expect((await send('send')).result).toEqual({ id: '${one.kebab}-1', sync: 'pending' });
   await expect(send('again')).rejects.toMatchObject({ code: 'CONFLICT' });
   expect(await integrations.target('${t.kebab}').dispatcher.runOnce()).toMatchObject({ accepted: 1 });
@@ -106,7 +106,7 @@ test('viewers cannot send, and only the integration principal completes or syncs
     application.invokeRaw({ operation: '${t.kebab}.send', input: { id: 'x' }, idempotencyKey: 'viewer' }, viewer),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    application.invokeRaw({ operation: '${t.kebab}.sync', input: { to: '1', items: [] }, idempotencyKey: 'sync' }, owner),
+    application.invokeRaw({ operation: '${t.kebab}.sync', input: { to: '1', items: [] }, idempotencyKey: 'sync' }, localUser),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 });
 `;

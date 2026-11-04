@@ -43,7 +43,7 @@ const page = {
 };
 const descriptions: Readonly<Record<string, string>> = {
   'work-order.create':
-    'Create a work order for a customer site as workspace owner; the creator becomes its dispatcher. site is the address a technician travels to. Returns the work order and its committed revision.',
+    'Create a work order for a customer site as the local user; the creator becomes its dispatcher. site is the address a technician travels to. Returns the work order and its committed revision.',
   'work-order.get':
     'Read one accessible work order and its current revision. The membership map is included only for its dispatchers.',
   'work-order.list':
@@ -53,7 +53,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'work-order.reopen':
     'Reopen a closed work order as its dispatcher, permitting ordinary task edits again. Supply work-order:<id> in expectedRevisions to detect concurrent edits.',
   'work-order.set-member':
-    'Set or remove a work order membership as its dispatcher: dispatcher, technician or customer. A null role removes access; workspace-owner membership is fixed. Permission changes invalidate affected views. Supply work-order:<id> in expectedRevisions.',
+    'Set or remove a work order membership as its dispatcher: dispatcher, technician or customer. A null role removes access; local-user membership is fixed. Permission changes invalidate affected views. Supply work-order:<id> in expectedRevisions.',
   'task.create':
     'Create a todo task in an accessible, open work order as dispatcher or technician. Only dispatchers may supply internalNote. An attachment is a blob reference uploaded first: a site photo (PNG or JPEG) or a PDF of at most 10 MiB. Returns the task and its committed revision.',
   'task.get':

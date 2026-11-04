@@ -1,5 +1,5 @@
 /**
- * Point-of-work device logic: scanner profiles, sources, decoding, calibration and routing. Pure
+ * Operator input device logic: scanner profiles, sources, decoding, calibration and routing. Pure
  * and browser-safe. User interface for configuring devices ships separately in the operator-ui
  * shadcn registry; host-side vendor SDKs connect through `HostScannerBridge`.
  */

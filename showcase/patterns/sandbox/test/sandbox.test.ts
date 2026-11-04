@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ExecutionHost } from '@tortoise/execution-host/run';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createTestRequestsSandboxApplication } from '../application';
 import { analyzeResult } from '../plugins/result-analysis/plugin';
 import { resultAnalysisPaths } from '../plugins/result-analysis/plugin-manifest';
@@ -23,7 +23,7 @@ let token: string;
 let request: string;
 
 const as = (principalId: string) => ({ workspaceId: LOCAL_WORKSPACE, principalId });
-const command = async (operation: string, input: unknown, principalId = LOCAL_OWNER) =>
+const command = async (operation: string, input: unknown, principalId = LOCAL_USER) =>
   (
     await host.application.invokeRaw(
       { operation, input, idempotencyKey: crypto.randomUUID() },
@@ -31,12 +31,8 @@ const command = async (operation: string, input: unknown, principalId = LOCAL_OW
     )
   ).result as Record<string, any>;
 const result = async (id: string) =>
-  (
-    await host.application.queryRaw(
-      { operation: 'test-result.get', input: { id } },
-      as(LOCAL_OWNER),
-    )
-  ).data as Record<string, any>;
+  (await host.application.queryRaw({ operation: 'test-result.get', input: { id } }, as(LOCAL_USER)))
+    .data as Record<string, any>;
 
 describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
   beforeAll(async () => {
@@ -69,7 +65,7 @@ describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
     await rm(directory, { recursive: true, force: true });
   });
 
-  test('the owner starts a run from the route; its tool reads and records through the CLI', async () => {
+  test('the local user starts a run from the route; its tool reads and records through the CLI', async () => {
     const readings = [62, 55, 68, 59];
     const { id } = await command('test-result.record', { request, readings });
     const response = await fetch(new URL(resultAnalysisPaths.run, host.url), {

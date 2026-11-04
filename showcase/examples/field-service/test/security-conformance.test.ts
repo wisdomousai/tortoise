@@ -19,7 +19,7 @@ import {
   fieldServiceModule,
 } from '../server';
 
-const owner: ExecutionContext = { principalId: 'owner', workspaceId: 'security' };
+const localUser: ExecutionContext = { principalId: 'local-user', workspaceId: 'security' };
 function deferred() {
   let resolve!: () => void;
   const promise = new Promise<void>((done) => {
@@ -68,7 +68,7 @@ for (const kind of ['memory', 'sqlite'] as const)
       });
       try {
         const limited = {
-          ...owner,
+          ...localUser,
           grant: {
             operations: ['task.list', 'task.get', 'task.update'],
             resources: ['task:visible'],
@@ -103,14 +103,14 @@ for (const kind of ['memory', 'sqlite'] as const)
         );
         await app.invokeRaw(
           { operation: 'task.update', input: { id: 'hidden', title: 'Secret changed' } },
-          owner,
+          localUser,
         );
         const events = await app.events(0, limited);
         expect(events.events.map((event) => event.resource)).toEqual([
           'task:visible',
           'task:visible',
         ]);
-        const delegate = { ...owner, principalId: 'delegate' };
+        const delegate = { ...localUser, principalId: 'delegate' };
         const replay = {
           operation: 'task.update',
           input: { id: 'visible', title: 'Delegate edit' },
@@ -125,7 +125,7 @@ for (const kind of ['memory', 'sqlite'] as const)
             operation: 'work-order.set-member',
             input: { id: 'alpha', principalId: 'delegate', role: 'technician' },
           },
-          owner,
+          localUser,
         );
         expect((await app.invokeRaw(replay, delegate)).result).not.toHaveProperty('internalNote');
         await app.invokeRaw(
@@ -133,19 +133,23 @@ for (const kind of ['memory', 'sqlite'] as const)
             operation: 'work-order.set-member',
             input: { id: 'alpha', principalId: 'observer', role: null },
           },
-          owner,
+          localUser,
         );
-        expect((await app.events(0, { ...owner, principalId: 'observer' })).events).toEqual([]);
+        expect((await app.events(0, { ...localUser, principalId: 'observer' })).events).toEqual([]);
         // Object prototype keys must never become accidental work order membership.
         for (const principalId of ['__proto__', 'constructor', 'toString']) {
           expect(
-            (await app.queryRaw({ operation: 'task.list', input: {} }, { ...owner, principalId }))
-              .data,
+            (
+              await app.queryRaw(
+                { operation: 'task.list', input: {} },
+                { ...localUser, principalId },
+              )
+            ).data,
           ).toEqual({ items: [], count: 0 });
           await expect(
             app.queryRaw(
               { operation: 'task.get', input: { id: 'visible' } },
-              { ...owner, principalId },
+              { ...localUser, principalId },
             ),
           ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         }
@@ -204,21 +208,23 @@ for (const kind of ['memory', 'sqlite'] as const)
       });
       const request = { operation: batch.id, input: { value: 3 }, idempotencyKey: 'nested' };
       const untouched = () =>
-        storage.read(owner.workspaceId, async (snapshot) => {
+        storage.read(localUser.workspaceId, async (snapshot) => {
           expect(snapshot.state.value).toBe(0);
           expect(snapshot.journal).toEqual([]);
           expect(snapshot.receipts).toEqual({});
         });
       try {
         await expect(
-          app.invokeRaw(request, { ...owner, grant: { operations: [batch.id] } }),
+          app.invokeRaw(request, { ...localUser, grant: { operations: [batch.id] } }),
         ).rejects.toMatchObject({ code: 'FORBIDDEN' });
         denied = write.id;
-        await expect(app.invokeRaw(request, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        await expect(app.invokeRaw(request, localUser)).rejects.toMatchObject({
+          code: 'FORBIDDEN',
+        });
         await untouched();
         denied = undefined;
-        const first = await app.invokeRaw(request, owner);
-        await storage.read(owner.workspaceId, async (snapshot) => {
+        const first = await app.invokeRaw(request, localUser);
+        await storage.read(localUser.workspaceId, async (snapshot) => {
           expect(snapshot.journal.map(({ resource, operation }) => [resource, operation])).toEqual([
             ['counter:batch', 'security.batch'],
             ['counter:one', 'security.write'],
@@ -227,10 +233,12 @@ for (const kind of ['memory', 'sqlite'] as const)
             { operation: 'security.write', input: { value: 3 }, via: ['security.batch'] },
           ]);
         });
-        expect((await app.invokeRaw(request, owner)).revisions).toEqual(first.revisions);
+        expect((await app.invokeRaw(request, localUser)).revisions).toEqual(first.revisions);
         // Losing the nested operation refuses the retry, though the caller's own rule allows it.
         denied = write.id;
-        await expect(app.invokeRaw(request, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        await expect(app.invokeRaw(request, localUser)).rejects.toMatchObject({
+          code: 'FORBIDDEN',
+        });
       } finally {
         if (storage instanceof SQLiteStorage) await storage.close();
         await rm(directory, { recursive: true, force: true });
@@ -291,7 +299,7 @@ for (const kind of ['memory', 'sqlite'] as const)
         });
         const controller = new AbortController();
         const context: ExecutionContext = {
-          ...owner,
+          ...localUser,
           signal: controller.signal,
           grant: { operations: ['security.write', 'security.read'], expiresAt: 5 },
         };
@@ -308,7 +316,7 @@ for (const kind of ['memory', 'sqlite'] as const)
           await expect(writing).rejects.toMatchObject({
             code: interruption === 'cancel' ? 'CANCELLED' : 'FORBIDDEN',
           });
-          await storage.read(owner.workspaceId, async (snapshot) => {
+          await storage.read(localUser.workspaceId, async (snapshot) => {
             expect(snapshot.state.value).toBe(0);
             expect(snapshot.cursor).toBe(0);
             expect(snapshot.journal).toEqual([]);

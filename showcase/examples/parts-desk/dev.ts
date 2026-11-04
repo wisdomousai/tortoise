@@ -21,7 +21,7 @@
  * already running on the workspace holds the lock, so the launch fails with CONFLICT instead of
  * writing beside it.
  *
- * A workspace this launch creates has the member mara, a supervisor, besides the owner. Members
+ * A workspace this launch creates has the member mara, a supervisor, besides the local user. Members
  * are set only when the workspace is created, so a workspace from an earlier launch keeps the
  * members it has; remove `.workspace` to start again with mara.
  */

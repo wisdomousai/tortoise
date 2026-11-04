@@ -17,7 +17,7 @@ export interface StartHostOptions {
   integration?: { deliverMs?: number; syncMs?: number } | false;
   /**
    * Issue a second connection file bound to a delegated context, for an agent that runs as a
-   * different OS user and must not read the owner's credential. The context comes from trusted
+   * different OS user and must not read the local user's credential. The context comes from trusted
    * launcher configuration (see `readGrantFile`); the session expires with the grant.
    */
   agentConnection?: { context: ExecutionContext; path: string };

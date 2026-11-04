@@ -33,7 +33,7 @@
   "audit": {
     "mode": "fail-closed"
   },
-  "identity": "local-owner",
+  "identity": "local-user",
   "ingress": {
     "listen": "loopback"
   },

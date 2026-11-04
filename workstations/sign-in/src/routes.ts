@@ -9,7 +9,7 @@ import { digestOf, newOperatorToken, pinMatches, pinVerifier } from './state';
 export interface StationCaller {
   readonly application: HostedApplication;
   readonly workspaceId: string;
-  /** The local owner narrowed to the verifier and session operations. */
+  /** The local user narrowed to the verifier and session operations. */
   readonly context: ExecutionContext;
 }
 
@@ -37,7 +37,7 @@ export class OperatorSignals {
 }
 
 export interface RouteOptions {
-  /** Principals whose screens are station terminals; the local owner always is. */
+  /** Principals whose screens are station terminals; the local user always is. */
   readonly terminals: ReadonlySet<string>;
   readonly signals: OperatorSignals;
 }

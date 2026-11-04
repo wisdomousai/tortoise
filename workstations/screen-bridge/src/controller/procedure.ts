@@ -29,7 +29,7 @@ interface Run {
 const stop = (run: Run, message: string) =>
   interruption(run.acted, run.procedure.rerunnable ?? false, message);
 
-/** Re-checked before every action: control holder, mode, local input, budget and deadline. */
+/** Re-checked before every action: who has control, mode, local input, budget and deadline. */
 async function guard(run: Run) {
   const { kernel, procedure, signal } = run;
   if (signal.aborted) throw stop(run, 'Delivery was cancelled');

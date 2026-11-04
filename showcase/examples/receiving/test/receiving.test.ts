@@ -10,16 +10,16 @@ import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 import manifest from '../manifest';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
-/** The discrepancy agent, run on the owner's behalf: it may read and request approval, nothing else. */
+/** The discrepancy agent, run on the local user's behalf: it may read and request approval, nothing else. */
 const agent: ExecutionContext = {
-  ...owner,
+  ...localUser,
   runId: 'run-1',
   grant: agentGrant(
     buildCatalog(manifest.modules, { components: manifest.components }),
     'receiving.discrepancy',
-    owner,
+    localUser,
     {
       now: Date.now(),
       runId: 'run-1',
@@ -77,7 +77,7 @@ async function site() {
     );
     cleanup.push(() => instance.close());
     let keys = 0;
-    const command = (operation: string, input: unknown, context: ExecutionContext = owner) =>
+    const command = (operation: string, input: unknown, context: ExecutionContext = localUser) =>
       instance.application.invokeRaw(
         { operation, input, idempotencyKey: `${operation}-${++keys}` },
         context,

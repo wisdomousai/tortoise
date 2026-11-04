@@ -64,7 +64,7 @@ Skills are task guides for Claude Code and Codex, in `<workspace>/skills/<name>/
 | Build screens and registry components | [build-screens](packages/frame/skills/build-screens/SKILL.md) |
 | Bridge a workstation application through its screen | [bridge-station-screen](workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) |
 | Sign operators in at a shared terminal: badge, PIN, operator session, badge enrollment | [sign-in-at-a-terminal](workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md) |
-| Add scanner and point-of-work input | [add-scanner-input](packages/devices/skills/add-scanner-input/SKILL.md) |
+| Add scanner and operator input | [add-scanner-input](packages/devices/skills/add-scanner-input/SKILL.md) |
 | Add OS handlers, actions and native registrations | [add-os-integration](packages/shell/skills/add-os-integration/SKILL.md) |
 | Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
 | Read plant signals from MQTT, Sparkplug B or OPC UA | [observe-plant-signals](packages/observation/skills/observe-plant-signals/SKILL.md) |

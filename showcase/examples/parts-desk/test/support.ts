@@ -6,13 +6,13 @@ import { openEmbeddedInstance, type EmbeddedInstance } from '@tortoise/host';
 import { createPartsDeskApplication } from '../application';
 import { seedTrialRecords } from '../trial-records';
 
-export const owner = { workspaceId: 'local', principalId: 'owner' };
+export const localUser = { workspaceId: 'local', principalId: 'local-user' };
 export const viewer = { workspaceId: 'local', principalId: 'viewer' };
 export const supervisor = { workspaceId: 'local', principalId: 'mara' };
 export const stranger = { workspaceId: 'local', principalId: 'stranger' };
 
 /**
- * A Parts Desk workspace for one test: the owner at the desk, a viewer, mara as a supervisor,
+ * A Parts Desk workspace for one test: the local user at the desk, a viewer, mara as a supervisor,
  * sequential IDs and a fixed clock.
  */
 export function testWorkspaces(name: string) {
@@ -41,14 +41,14 @@ type Application = EmbeddedInstance['application'];
 
 /** The IDs of the trial utilities by account: U1042 runs TR-40417, U2117 runs TR-40471. */
 export async function utilityIds(app: Application): Promise<Record<string, string>> {
-  const { data } = await app.queryRaw({ operation: 'customer.list', input: {} }, owner);
+  const { data } = await app.queryRaw({ operation: 'customer.list', input: {} }, localUser);
   return Object.fromEntries(
     (data as { items: { id: string; account: string }[] }).items.map((c) => [c.account, c.id]),
   );
 }
 
 /**
- * The receipt of a draft quote by the owner for TR-40417, a PTX-40 at Stadtwerke Nordhafen, in a workspace
+ * The receipt of a draft quote by the local user for TR-40417, a PTX-40 at Stadtwerke Nordhafen, in a workspace
  * with the trial records: one HV bushing at 14,800.00 and two tank cover gaskets at 690.00, so
  * 1,618,000 cents before a discount.
  */
@@ -67,7 +67,7 @@ export async function draftQuote(app: Application, key = 'draft') {
       },
       idempotencyKey: key,
     },
-    owner,
+    localUser,
   );
   return { ...receipt, result: receipt.result as { id: string; number: string; total: number } };
 }

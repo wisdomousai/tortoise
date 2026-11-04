@@ -14,7 +14,7 @@ import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { createDeviceLinkPlugin } from '@tortoise/device-link/plugin';
 import { deviceLinkPluginManifest } from '@tortoise/device-link/plugin-manifest';
 import { defineApplication } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { defineManifest } from '@tortoise/kernel/manifest';
 import type { HostPlugin } from '@tortoise/kernel/plugin';
 import type { PluginManifest } from '@tortoise/kernel/plugin-manifest';
@@ -150,13 +150,13 @@ export function fleetApplication() {
     authorization: {
       authorize: ({ capability, context }) => ({
         allowed:
-          context.principalId === LOCAL_OWNER ||
+          context.principalId === LOCAL_USER ||
           (context.principalId.startsWith('device:') && protocol.has(capability.id)),
         reason: 'RESOURCE_DENIED',
       }),
       // A site reads the release blobs; nothing else of the fleet.
       canReadEvent: ({ context, event }) =>
-        context.principalId === LOCAL_OWNER ||
+        context.principalId === LOCAL_USER ||
         (context.principalId.startsWith('device:') && event.resource.startsWith('release:')),
     },
     plugins: [createDeviceLinkPlugin({ syncOperations: [...protocol] })],
@@ -264,10 +264,10 @@ export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
     ],
     authorization: {
       authorize: ({ context }) => ({
-        allowed: context.principalId === LOCAL_OWNER,
+        allowed: context.principalId === LOCAL_USER,
         reason: 'RESOURCE_DENIED',
       }),
-      canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
+      canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [
       sitePlugin,

@@ -33,10 +33,10 @@ test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same 
     settings: { 'site-policy': policy },
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const localUser = createHttpTransport({ baseUrl: host.url, token });
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
-  const server = createMcpServer(owner);
+  const server = createMcpServer(localUser);
   const mcp = new Client({ name: 'receiving-conformance', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   try {
@@ -44,13 +44,13 @@ test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same 
     await mcp.connect(clientTransport);
     // The ERP's notices only: quality inspection is not connected here.
     await host.integrations.target('erp').inbound.runOnce();
-    await owner.command('delivery.receive', { id: 'ASN-1-1', counted: 9 });
+    await localUser.command('delivery.receive', { id: 'ASN-1-1', counted: 9 });
     const direct = await host.application.queryRaw(
       { operation: 'delivery.list', input: {} },
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: 'local', principalId: 'local-user' },
     );
     expect(direct.data).toMatchObject({ total: 1, items: [{ id: 'ASN-1-1', counted: 9 }] });
-    expect((await owner.query('delivery.list', {})).data).toEqual(direct.data);
+    expect((await localUser.query('delivery.list', {})).data).toEqual(direct.data);
     const child = Bun.spawn(
       [
         process.execPath,

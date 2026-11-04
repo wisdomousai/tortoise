@@ -54,7 +54,7 @@ const bufferLimit = 16;
 
 /**
  * An opened resource must be readable now, as on the Bun host: its kind names a selectable
- * resource and the device's owner may run that kind's read query for it.
+ * resource and the device's local user may run that kind's read query for it.
  */
 async function assertReadable(
   opened: MobileInstance,
@@ -91,10 +91,10 @@ function listenForIntents(shell: MobileShell, bindings: MobileOsBindings) {
 
 /**
  * Connect the device's OS integration to the instance: links and files the OS opens the app
- * with are submitted to the shell port as the device's owner, what the port delivers waits for
+ * with are submitted to the shell port as the device's local user, what the port delivers waits for
  * the frame's subscription once an opened resource is checked readable, and the port's actions
  * run through this device. The OS runs in this process, so the adapter attaches directly
- * instead of over HTTP. `perform` asks for a declared OS action as the device's owner, as a
+ * instead of over HTTP. `perform` asks for a declared OS action as the device's local user, as a
  * screen does through `useOsAction`.
  *
  * Without a plugin that provides the shell port, nothing is attached or submitted: the returned
@@ -160,7 +160,7 @@ export function connectMobileShell(
     };
   }
   const unsubscribe = bindings.subscribe((uri) => void shell.receive(uri));
-  // A reply is submitted as the device's owner; the notifications plugin checks its nonce.
+  // A reply is submitted as the device's local user; the notifications plugin checks its nonce.
   const unreplies = bindings.replies?.((buttons, button) => void shell.replied(buttons, button));
   const unintents = listenForIntents(shell, bindings);
   void bindings

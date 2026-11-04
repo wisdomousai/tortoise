@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { defaultPorts, latePorts, resolvePorts } from '../src/index';
 
-const context = { workspaceId: 'local', principalId: 'owner' };
+const context = { workspaceId: 'local', principalId: 'local-user' };
 
 describe('shell port', () => {
   test('without a provider every call is refused as unavailable', async () => {

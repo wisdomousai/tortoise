@@ -18,8 +18,8 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     integration: false,
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const localUser = createHttpTransport({ baseUrl: host.url, token });
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
   const cli = async (args: string[]) => {
     const child = Bun.spawn(
@@ -29,14 +29,14 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     const [stdout, exitCode] = await Promise.all([new Response(child.stdout).text(), child.exited]);
     return { exitCode, value: JSON.parse(stdout) };
   };
-  const server = createMcpServer(owner);
+  const server = createMcpServer(localUser);
   const mcp = new Client({ name: 'survey-conformance', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const decode = (response: Awaited<ReturnType<Client['callTool']>>): any =>
     response.structuredContent ?? JSON.parse((response.content as { text: string }[])[0]!.text);
   let key = 0;
   const command = async <T>(operation: string, input: unknown) =>
-    (await owner.command<T>(operation, input, { idempotencyKey: `k${++key}` })).result;
+    (await localUser.command<T>(operation, input, { idempotencyKey: `k${++key}` })).result;
   try {
     await server.connect(serverTransport);
     await mcp.connect(clientTransport);
@@ -116,7 +116,7 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     const input = { id: 'cap-1' };
     const direct = await host.application.queryRaw(
       { operation: 'capture.get', input },
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: 'local', principalId: 'local-user' },
     );
     expect(direct.data).toMatchObject({
       ...body,
@@ -126,7 +126,7 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
       reportedBy: `device:${paired.device.id}`,
       review: 'new',
     });
-    expect((await owner.query('capture.get', input)).data).toEqual(direct.data);
+    expect((await localUser.query('capture.get', input)).data).toEqual(direct.data);
     const commandLine = await cli(['capture.get', '--json', JSON.stringify(input)]);
     expect(commandLine.exitCode).toBe(0);
     expect(commandLine.value.data).toEqual(direct.data);

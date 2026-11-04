@@ -49,7 +49,7 @@ export async function publishRelease(
 
 /**
  * `bun publish-release.ts <bundle dir> [--channel <id>]`, with `TORTOISE_CONNECTION` naming
- * the fleet's connection file, which holds the fleet owner's token on this machine.
+ * the fleet's connection file, which holds the fleet's local-user token on this machine.
  */
 if (import.meta.main) {
   const args = process.argv.slice(2);

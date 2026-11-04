@@ -11,8 +11,8 @@ export interface WebhookState {
   lastDeliveredAt?: number;
   lastError?: string;
 }
-export const createWebhookState = (ownerId: string): WebhookState => ({
-  readers: [ownerId],
+export const createWebhookState = (localUserId: string): WebhookState => ({
+  readers: [localUserId],
   cursor: 0,
   delivered: 0,
   failures: 0,
@@ -70,7 +70,7 @@ const known = new Set<string>(webhookModule.capabilities.map((capability) => cap
 
 /**
  * Listed readers read the status and record deliveries. The record command is for the delivery
- * loop, which acts as the local owner narrowed to a grant; a delegated grant must list it.
+ * loop, which acts as the local user narrowed to a grant; a delegated grant must list it.
  * Delivery events are not disclosed: nothing needs to follow them.
  */
 export const webhookPolicy: AuthorizationPort<WebhookState> = {

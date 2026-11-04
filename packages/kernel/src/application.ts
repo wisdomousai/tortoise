@@ -38,8 +38,8 @@ import type { StateMigrations } from './migrations';
  */
 export interface ApplicationDefinition<State, Services = unknown> {
   readonly manifest: ApplicationManifest;
-  /** Fresh workspace state; `ownerId` is the local owner principal. */
-  readonly createState: (ownerId: string) => State;
+  /** Fresh workspace state; `localUserId` is the local user principal. */
+  readonly createState: (localUserId: string) => State;
   /**
    * Versions of the application's own state and the steps between them. Storage stamps each
    * workspace with the version it holds; see `stateUpgrade` and the `migrate` command.
@@ -49,7 +49,7 @@ export interface ApplicationDefinition<State, Services = unknown> {
    * Unversioned normalization of persisted state, run on every load after the migrations, such
    * as filling a field older workspaces lack. Defaults to keeping the stored value.
    */
-  readonly upgradeState?: (state: unknown, ownerId: string) => State;
+  readonly upgradeState?: (state: unknown, localUserId: string) => State;
   /**
    * The version of the effect payloads its handlers enqueue. Each effect records it, so a pending
    * effect keeps the version it was recorded under across an upgrade and its target can map it.
@@ -162,10 +162,12 @@ export function defineApplication<State, Services = unknown>(
   const services = composeServices(definition.services, units);
   return Object.freeze({
     ...definition,
-    createState: composeCreateState(definition.createState, units) as (ownerId: string) => State,
+    createState: composeCreateState(definition.createState, units) as (
+      localUserId: string,
+    ) => State,
     upgradeState: composeUpgradeState(definition.upgradeState, units) as (
       state: unknown,
-      ownerId: string,
+      localUserId: string,
     ) => State,
     handlers: composeHandlers(
       definition.handlers,

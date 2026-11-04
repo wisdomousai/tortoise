@@ -31,14 +31,14 @@ export interface EnrollmentRecord {
 
 /** The hub side's slice, under `state['device-link']`. */
 export interface DeviceLinkState {
-  /** Principals who enroll, list, rename and revoke devices: the local owner. */
+  /** Principals who enroll, list, rename and revoke devices: the local user. */
   admins: string[];
   devices: Record<string, DeviceRecord>;
   enrollments: Record<string, EnrollmentRecord>;
 }
 
-export const createDeviceLinkState = (ownerId: string): DeviceLinkState => ({
-  admins: [ownerId],
+export const createDeviceLinkState = (localUserId: string): DeviceLinkState => ({
+  admins: [localUserId],
   devices: {},
   enrollments: {},
 });

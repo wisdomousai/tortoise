@@ -6,14 +6,17 @@ import type { ExecutionContext } from '@tortoise/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { deploymentCatalog } from '../components';
 import {
-  LOCAL_OWNER,
+  LOCAL_USER,
   LOCAL_WORKSPACE,
   openEmbeddedInstance,
   type EmbeddedInstance,
 } from '../embedded';
 import { settingsOf, workspaceOf } from './args';
 
-const OWNER: ExecutionContext = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const LOCAL_USER_CONTEXT: ExecutionContext = {
+  workspaceId: LOCAL_WORKSPACE,
+  principalId: LOCAL_USER,
+};
 const offlineVerbs = new Set(['help', 'list', 'schema', 'workflows']);
 
 /** The published contract, for discovery without any instance. Executing is refused. */
@@ -58,7 +61,7 @@ function attachedOperation(
   );
 }
 
-/** An operation in-process, as the grant file's delegate or else the local owner. */
+/** An operation in-process, as the grant file's delegate or else the local user. */
 async function embeddedOperation(
   definition: AnyApplicationDefinition,
   program: string,
@@ -73,11 +76,11 @@ async function embeddedOperation(
       args,
       async () => {
         const context: ExecutionContext = {
-          ...(grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : OWNER),
+          ...(grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : LOCAL_USER_CONTEXT),
           channel: 'cli',
         };
         instance = await openEmbeddedInstance(definition, { workspacePath, settings });
-        // The local owner acts only where the identity port admits it; otherwise a grant is required.
+        // The local user acts only where the identity port admits it; otherwise a grant is required.
         instance.ports.identity.admit(context);
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
         return createDirectTransport(instance.application, context);

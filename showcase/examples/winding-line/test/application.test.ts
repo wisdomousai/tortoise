@@ -7,8 +7,8 @@ import { createWindingLineApplication, demoAutomationStation, demoStations } fro
 
 test('upgrade is idempotent for winding-line state', () => {
   const application = createWindingLineApplication({ stations: [] });
-  const state = application.createState('owner');
-  expect(application.upgradeState!(structuredClone(state), 'owner')).toEqual(state);
+  const state = application.createState('local-user');
+  expect(application.upgradeState!(structuredClone(state), 'local-user')).toEqual(state);
 });
 
 test('the demo bridges a station only when its screen is named explicitly', () => {

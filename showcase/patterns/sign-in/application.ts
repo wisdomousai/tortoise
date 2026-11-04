@@ -20,22 +20,22 @@ export interface TestRequestsSignInRoot {
 export const benchMembers: Record<string, Role> = { ana: 'technician', ben: 'viewer' };
 
 export interface TestRequestsSignInOptions {
-  /** People who work in a new workspace besides its owner; `benchMembers` by default. */
+  /** People who work in a new workspace besides the local user; `benchMembers` by default. */
   members?: Record<string, Role>;
   /** The clock for operator sessions and badge lockouts, for tests. */
   now?: () => number;
 }
 
 /**
- * The test requests pattern with workstation sign-in. The owner's screen is the bench terminal and
+ * The test requests pattern with workstation sign-in. The local user's screen is the bench terminal and
  * the badge admin. An operator who signs in there acts as themselves under the test requests
  * policy, so a viewer reads requests but cannot submit one.
  */
 export function createTestRequestsSignInApplication(options: TestRequestsSignInOptions = {}) {
   return defineApplication<TestRequestsSignInRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members ?? benchMembers),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members ?? benchMembers),
     }),
     handlers: sliceHandlers<TestRequestsSignInRoot, 'testRequests', TestRequestsServices>(
       'testRequests',

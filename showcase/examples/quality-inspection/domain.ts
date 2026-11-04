@@ -153,7 +153,7 @@ export function createQualityState(
 ): QualityState {
   const plants: QualityState['plants'] = {};
   for (const plant of options.plants ?? ['P100'])
-    plants[plant] = { members: { [options.supervisorId ?? 'owner']: 'supervisor' } };
+    plants[plant] = { members: { [options.supervisorId ?? 'local-user']: 'supervisor' } };
   return {
     integrationPrincipalId: options.integrationPrincipalId ?? 'integration',
     instrumentPrincipalId: options.instrumentPrincipalId ?? 'instrument',

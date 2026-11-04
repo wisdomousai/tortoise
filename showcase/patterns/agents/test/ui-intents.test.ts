@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test';
-import { owner, startTestRequestsAgents, until } from './fixtures';
+import { localUser, startTestRequestsAgents, until } from './fixtures';
 
 let close: (() => Promise<void>) | undefined;
 afterEach(async () => {
@@ -11,7 +11,7 @@ test('a run started from the test request screen opens the request and asks for 
   const lab = await startTestRequestsAgents();
   close = lab.close;
   const { host } = lab;
-  const session = host.sessions.create(owner);
+  const session = host.sessions.create(localUser);
   const call = async (path: string, body?: unknown) =>
     fetch(host.url + path, {
       method: body === undefined ? 'GET' : 'POST',
@@ -47,7 +47,7 @@ test('a run started from the test request screen opens the request and asks for 
       },
       idempotencyKey: 'submit',
     },
-    owner,
+    localUser,
   );
   // The test request screen registers the open request; ids are sequential, so it is id-1.
   const ui = (await (

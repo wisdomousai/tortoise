@@ -28,7 +28,7 @@ const get = defineCapability({
 const commands = defineModule({ id: 'commands', capabilities: [add] });
 const queries = defineModule({ id: 'queries', capabilities: [get], requires: ['commands'] });
 type State = { count: number };
-const owner = { workspaceId: 'workspace', principalId: 'owner' };
+const localUser = { workspaceId: 'workspace', principalId: 'local-user' };
 function fixture(
   overrides: {
     handle?: (
@@ -67,21 +67,21 @@ function fixture(
 describe('authorized atomic command runtime', () => {
   test('two modules preserve command/query literals and inferred results', async () => {
     const { app } = fixture();
-    const receipt = await app.invoke({ operation: 'counter.add', input: { amount: 2 } }, owner);
+    const receipt = await app.invoke({ operation: 'counter.add', input: { amount: 2 } }, localUser);
     const result: number = receipt.result;
     expect(result).toBe(2);
-    expect(await app.query({ operation: 'counter.get', input: {} }, owner)).toEqual({
+    expect(await app.query({ operation: 'counter.get', input: {} }, localUser)).toEqual({
       data: 2,
       cursor: 1,
       authorizationRevision: 0,
     });
     if (false) {
       // @ts-expect-error unknown operation
-      void app.invoke({ operation: 'missing', input: {} }, owner);
+      void app.invoke({ operation: 'missing', input: {} }, localUser);
       // @ts-expect-error command arguments are inferred
-      void app.invoke({ operation: 'counter.add', input: { amount: '2' } }, owner);
+      void app.invoke({ operation: 'counter.add', input: { amount: '2' } }, localUser);
       // @ts-expect-error queries cannot run on the command path
-      void app.invoke({ operation: 'counter.get', input: {} }, owner);
+      void app.invoke({ operation: 'counter.get', input: {} }, localUser);
       // @ts-expect-error handler output must match the capability
       createHandlerFactory<State, {}>()(add, () => 'invalid');
     }
@@ -95,9 +95,12 @@ describe('authorized atomic command runtime', () => {
       },
     });
     await expect(
-      app.invoke({ operation: 'counter.add', input: { amount: 2 }, idempotencyKey: 'bad' }, owner),
+      app.invoke(
+        { operation: 'counter.add', input: { amount: 2 }, idempotencyKey: 'bad' },
+        localUser,
+      ),
     ).rejects.toMatchObject({ code: 'INVALID_OUTPUT' });
-    expect(await storage.read(owner.workspaceId, async (snapshot) => snapshot)).toMatchObject({
+    expect(await storage.read(localUser.workspaceId, async (snapshot) => snapshot)).toMatchObject({
       state: { count: 0 },
       cursor: 0,
       journal: [],
@@ -120,10 +123,10 @@ describe('authorized atomic command runtime', () => {
       },
     });
     await expect(
-      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner),
+      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     allowed = true;
-    expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(0);
+    expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(0);
     const controller = new AbortController();
     const cancelled = fixture({
       handle: (_, ctx) => {
@@ -136,12 +139,12 @@ describe('authorized atomic command runtime', () => {
     await expect(
       cancelled.app.invoke(
         { operation: 'counter.add', input: { amount: 1 } },
-        { ...owner, signal: controller.signal },
+        { ...localUser, signal: controller.signal },
       ),
     ).rejects.toMatchObject({ code: 'CANCELLED' });
-    expect((await cancelled.app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(
-      0,
-    );
+    expect(
+      (await cancelled.app.query({ operation: 'counter.get', input: {} }, localUser)).data,
+    ).toBe(0);
   });
   test('canonical idempotency is scoped and current authorization governs retries', async () => {
     let allowed = true;
@@ -153,15 +156,21 @@ describe('authorized atomic command runtime', () => {
       input: { amount: 1 },
       idempotencyKey: 'retry',
     };
-    const first = await app.invoke(request, owner);
-    expect(await app.invoke(request, owner)).toEqual(first);
-    await expect(app.invoke({ ...request, input: { amount: 2 } }, owner)).rejects.toMatchObject({
-      code: 'IDEMPOTENCY_CONFLICT',
-    });
-    expect((await app.invoke(request, { ...owner, principalId: 'another' })).result).toBe(2);
+    const first = await app.invoke(request, localUser);
+    expect(await app.invoke(request, localUser)).toEqual(first);
+    await expect(app.invoke({ ...request, input: { amount: 2 } }, localUser)).rejects.toMatchObject(
+      {
+        code: 'IDEMPOTENCY_CONFLICT',
+      },
+    );
+    expect((await app.invoke(request, { ...localUser, principalId: 'another' })).result).toBe(2);
     allowed = false;
-    await expect(app.invoke(request, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    expect(await app.events(0, owner)).toEqual({ events: [], cursor: 2, authorizationRevision: 0 });
+    await expect(app.invoke(request, localUser)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(await app.events(0, localUser)).toEqual({
+      events: [],
+      cursor: 2,
+      authorizationRevision: 0,
+    });
   });
   test('concurrent expected-revision commands cannot lose updates', async () => {
     const { app } = fixture();
@@ -171,12 +180,12 @@ describe('authorized atomic command runtime', () => {
       expectedRevisions: { 'counter:one': 0 },
     };
     const results = await Promise.allSettled([
-      app.invoke(request, owner),
-      app.invoke(request, owner),
+      app.invoke(request, localUser),
+      app.invoke(request, localUser),
     ]);
     expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
     expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
-    expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(1);
+    expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(1);
   });
   test('expected revisions of unreadable resources are denied before any comparison', async () => {
     const { app } = fixture({
@@ -185,9 +194,9 @@ describe('authorized atomic command runtime', () => {
         canReadEvent: ({ event }) => event.resource === 'counter:one',
       },
     });
-    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner);
+    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser);
     const probe = (expectedRevisions: Record<string, number>) =>
-      app.invoke({ operation: 'counter.add', input: { amount: 1 }, expectedRevisions }, owner);
+      app.invoke({ operation: 'counter.add', input: { amount: 1 }, expectedRevisions }, localUser);
     // Hidden and nonexistent keys at any revision fail the same way, so no revision leaks.
     for (const revisions of <Record<string, number>[]>[
       { 'counter:hidden': 0 },
@@ -199,7 +208,7 @@ describe('authorized atomic command runtime', () => {
     await expect(probe({ 'counter:one': 0 })).rejects.toMatchObject({ code: 'CONFLICT' });
     expect((await probe({ 'counter:one': 1 })).result).toBe(2);
     const granted = {
-      ...owner,
+      ...localUser,
       grant: { operations: ['counter.add'], resources: ['counter:two'] },
     };
     await expect(
@@ -216,12 +225,12 @@ describe('authorized atomic command runtime', () => {
       input: { amount: 1 },
       idempotencyKey: 'bound',
     };
-    await app.invoke(request, { ...owner, runId: 'run-a' });
-    await expect(app.invoke(request, { ...owner, runId: 'run-b' })).rejects.toMatchObject({
+    await app.invoke(request, { ...localUser, runId: 'run-a' });
+    await expect(app.invoke(request, { ...localUser, runId: 'run-b' })).rejects.toMatchObject({
       code: 'IDEMPOTENCY_CONFLICT',
     });
     await expect(
-      app.invoke(request, { ...owner, runId: 'run-a', grant: { operations: ['counter.add'] } }),
+      app.invoke(request, { ...localUser, runId: 'run-a', grant: { operations: ['counter.add'] } }),
     ).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
     const bind = createHandlerFactory<State, {}>();
     const upgraded = createApplication({
@@ -232,7 +241,7 @@ describe('authorized atomic command runtime', () => {
       authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
       handlers: [bind(add, (_, ctx) => ctx.state.count), bind(get, (_, ctx) => ctx.state.count)],
     });
-    await expect(upgraded.invoke(request, { ...owner, runId: 'run-a' })).rejects.toMatchObject({
+    await expect(upgraded.invoke(request, { ...localUser, runId: 'run-a' })).rejects.toMatchObject({
       code: 'IDEMPOTENCY_CONFLICT',
     });
   });
@@ -247,18 +256,18 @@ describe('authorized atomic command runtime', () => {
     await expect(
       app.invoke(
         { operation: 'counter.add', input: { amount: 1 } },
-        { ...owner, grant: { operations: [] } },
+        { ...localUser, grant: { operations: [] } },
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(
       app.invoke(
         { operation: 'counter.add', input: { amount: 1 } },
-        { ...owner, grant: { operations: ['counter.add'], resources: ['counter:other'] } },
+        { ...localUser, grant: { operations: ['counter.add'], resources: ['counter:other'] } },
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner);
-    expect((await app.events(0, { ...owner, grant: { operations: [] } })).events).toEqual([]);
-    expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(1);
+    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser);
+    expect((await app.events(0, { ...localUser, grant: { operations: [] } })).events).toEqual([]);
+    expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(1);
   });
   test('shared memory is refused so a rejected transaction cannot leak through an alias', async () => {
     const shared = new Uint8Array(new SharedArrayBuffer(1));
@@ -286,10 +295,10 @@ describe('authorized atomic command runtime', () => {
       },
     });
     expect(
-      (await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner))
+      (await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser))
         .authorizationRevision,
     ).toBe(1);
-    expect((await app.events(0, owner)).authorizationRevision).toBe(1);
+    expect((await app.events(0, localUser)).authorizationRevision).toBe(1);
   });
   test('queries cannot mutate authoritative state', async () => {
     const storage = createMemoryStorage({ count: 0 });
@@ -301,10 +310,14 @@ describe('authorized atomic command runtime', () => {
       authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
       handlers: [bind(add, (_, ctx) => ctx.state.count), bind(get, (_, ctx) => ++ctx.state.count)],
     });
-    await expect(app.query({ operation: 'counter.get', input: {} }, owner)).rejects.toMatchObject({
+    await expect(
+      app.query({ operation: 'counter.get', input: {} }, localUser),
+    ).rejects.toMatchObject({
       code: 'INTERNAL',
     });
-    expect(await storage.read(owner.workspaceId, async (snapshot) => snapshot.state.count)).toBe(0);
+    expect(
+      await storage.read(localUser.workspaceId, async (snapshot) => snapshot.state.count),
+    ).toBe(0);
   });
   test('feature state may use cloneable repository structures rather than JSON records', async () => {
     const storage = createMemoryStorage({ counts: new Map([['one', 3]]) });
@@ -316,18 +329,21 @@ describe('authorized atomic command runtime', () => {
       authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
       handlers: [bind(get, (_, ctx) => ctx.state.counts.get('one')!)],
     });
-    expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(3);
+    expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(3);
   });
   test('undeclared changes cannot commit without reactive journal information', async () => {
     const { app } = fixture({ handle: (_, ctx) => ++ctx.state.count });
     await expect(
-      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner),
+      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser),
     ).rejects.toMatchObject({ code: 'INTERNAL' });
-    expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(0);
+    expect((await app.query({ operation: 'counter.get', input: {} }, localUser)).data).toBe(0);
   });
   test('grant bindings are enforced on command, event and discovery surfaces', async () => {
     const { app } = fixture();
-    const context = { ...owner, grant: { operations: ['counter.add'], workspaceId: 'different' } };
+    const context = {
+      ...localUser,
+      grant: { operations: ['counter.add'], workspaceId: 'different' },
+    };
     await expect(
       app.invoke({ operation: 'counter.add', input: { amount: 1 } }, context),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
@@ -343,7 +359,7 @@ describe('authorized atomic command runtime', () => {
       },
     });
     await expect(
-      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner),
+      app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser),
     ).rejects.toMatchObject({ code: 'INVALID_OUTPUT' });
   });
   test('synchronous event delivery remains inside the boundary excluding queued revocation', async () => {
@@ -366,20 +382,20 @@ describe('authorized atomic command runtime', () => {
         },
       },
     });
-    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner);
-    const delivery = app.deliverEvents(0, owner, (batch) => {
+    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, localUser);
+    const delivery = app.deliverEvents(0, localUser, (batch) => {
       expect(batch.events).toHaveLength(1);
       order.push('delivered');
     });
     await reading;
     const revoke = app
-      .invoke({ operation: 'counter.add', input: { amount: -1 } }, owner)
+      .invoke({ operation: 'counter.add', input: { amount: -1 } }, localUser)
       .then(() => {
         order.push('revoked');
       });
     release();
     await Promise.all([delivery, revoke]);
     expect(order).toEqual(['delivered', 'revoked']);
-    expect((await app.events(0, owner)).events).toEqual([]);
+    expect((await app.events(0, localUser)).events).toEqual([]);
   });
 });

@@ -12,7 +12,7 @@ import {
 } from '@tortoise/bundle';
 import type { BlobRef } from '@tortoise/contracts';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import type { FleetRelease, RelayResponse, SiteReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
 import { fleetNetworkFixture } from '../src/testing';
@@ -23,7 +23,7 @@ afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 
 async function temporary(prefix: string) {
   const directory = await mkdtemp(join(tmpdir(), prefix));
@@ -53,11 +53,11 @@ async function startFleet() {
     (
       await fleet.application.invokeRaw(
         { operation, input, idempotencyKey: crypto.randomUUID() },
-        owner,
+        localUser,
       )
     ).result as Record<string, any>;
   const view = async () =>
-    (await fleet.application.queryRaw({ operation: 'fixture.fleet.get', input: {} }, owner))
+    (await fleet.application.queryRaw({ operation: 'fixture.fleet.get', input: {} }, localUser))
       .data as unknown as FleetView;
   const code = async () =>
     (
@@ -117,7 +117,7 @@ async function startSite(
   const addNote = (text: string) =>
     site.application.invokeRaw(
       { operation: 'notes.add', input: { text }, idempotencyKey: crypto.randomUUID() },
-      owner,
+      localUser,
     );
   return { site, agent, link, releases, addNote, policy: join(directory, 'site-policy.json') };
 }
@@ -236,7 +236,7 @@ async function placeholderBundle(directory: string) {
 async function publishRelease(
   command: (operation: string, input: unknown) => Promise<unknown>,
   fleetApp: {
-    putBlob(data: Uint8Array, mediaType: string, context: typeof owner): Promise<BlobRef>;
+    putBlob(data: Uint8Array, mediaType: string, context: typeof localUser): Promise<BlobRef>;
   },
   directory: string,
   options: {
@@ -252,7 +252,7 @@ async function publishRelease(
     let bytes = new Uint8Array(await Bun.file(join(out, 'files', file.path)).arrayBuffer());
     // A fleet that swaps a file must also change its manifest entry, which the signature covers.
     if (options.tamper && file.path === 'app') bytes = new TextEncoder().encode('binarx');
-    const ref = await fleetApp.putBlob(bytes, 'application/octet-stream', owner);
+    const ref = await fleetApp.putBlob(bytes, 'application/octet-stream', localUser);
     files.push(ref);
     listed.push({ ...file, sha256: ref.digest.slice('sha256:'.length), size: ref.size });
   }
@@ -340,7 +340,7 @@ test('the relay reaches an operation only with a session the site issued', async
   const credential = await Bun.file(join(site.workspacePath, 'fleet-agent', 'credential')).text();
   expect((await ask('fleet-token', { authorization: `Bearer ${credential}` })).status).toBe(403);
 
-  const session = site.sessions.create(owner, 60_000);
+  const session = site.sessions.create(localUser, 60_000);
   const response = await ask('operator', { authorization: `Bearer ${session.token}` });
   expect(response.status).toBe(200);
   expect(JSON.parse(Buffer.from(response.body!, 'base64').toString())).toMatchObject({
@@ -481,7 +481,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
   try {
     const added = await upgraded.application.invokeRaw(
       { operation: 'notes.add', input: { text: 'third' }, idempotencyKey: 'third' },
-      owner,
+      localUser,
     );
     expect(added.result).toEqual({ count: 3 });
   } finally {

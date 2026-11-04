@@ -20,8 +20,8 @@ import { reviewFeature, type ReviewAccess, type ReviewHooks } from './features/r
 export function createTestRequestsReviewApplication(options: TestRequestsOptions = {}) {
   return defineApplication<TestRequestsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
     }),
     handlers: sliceHandlers<TestRequestsRoot, 'testRequests', TestRequestsServices>(
       'testRequests',

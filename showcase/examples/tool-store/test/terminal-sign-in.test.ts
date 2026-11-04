@@ -8,7 +8,7 @@ import { createToolStoreApplication } from '../application';
 
 /**
  * Attendant sign-in at the counter terminal over HTTP. The connection file's token is the
- * terminal: the workspace owner, who enrolls badges and whose screen signs attendants in. An
+ * terminal: the local user, who enrolls badges and whose screen signs attendants in. An
  * attendant's token then acts as that attendant under the application's policy.
  */
 const cleanups: (() => Promise<void>)[] = [];
@@ -134,13 +134,13 @@ test('an attendant signs in with badge and PIN, and lends and takes back a tool 
     returnedBy: 'mia@plant',
     condition: 'ok',
   });
-  // The owner reads the same loan with the attendant on it.
+  // The local user reads the same loan with the attendant on it.
   const loans = (await (await query(terminal, 'loan.list', { toolId })).json()) as {
     data: { items: unknown[] };
   };
   expect(loans.data.items).toMatchObject([{ checkedOutBy: 'mia@plant', returnedBy: 'mia@plant' }]);
 
-  // Only the owner enrolls badges, and an attendant's session cannot sign anyone in.
+  // Only the local user enrolls badges, and an attendant's session cannot sign anyone in.
   const own = await operatorToken('E100001', '2468');
   expect(
     (

@@ -23,7 +23,7 @@ export interface ProviderAccessOptions {
   readonly sessions: (token: string) => HostSession | undefined;
   readonly vault?: CredentialVault;
   readonly runtimeManifest?: string;
-  readonly ownerPrincipalId?: string;
+  readonly localUserPrincipalId?: string;
   readonly appName?: string;
   readonly now?: () => number;
   readonly fetch?: typeof fetch;

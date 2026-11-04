@@ -14,7 +14,7 @@ Primitives:
 - [Driver contract](../../docs/primitives.md#driver-contract)
 - [Driver process](../../docs/primitives.md#driver-process)
 - [Connector](../../docs/primitives.md#connector)
-- [Interlock](../../docs/primitives.md#interlock)
+- [Action checks](../../docs/primitives.md#action-checks)
 - [Observation](../../docs/primitives.md#observation)
 - [UI registry](../../docs/primitives.md#ui-registry)
 

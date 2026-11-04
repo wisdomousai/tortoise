@@ -44,7 +44,7 @@ export function migrateSlice(
   migrations: StateMigrations | undefined,
   stored: unknown,
   stamp: SliceVersion | undefined,
-  ownerId: string,
+  localUserId: string,
 ): { readonly value: unknown; readonly stamp: SliceVersion } {
   const target = migrations?.version ?? UNVERSIONED;
   const from = stamp?.version ?? UNVERSIONED;
@@ -60,7 +60,7 @@ export function migrateSlice(
   for (const step of migrations?.steps ?? []) {
     if (step.from < at) continue;
     if (step.from !== at) break;
-    value = step.up(value, ownerId);
+    value = step.up(value, localUserId);
     oldest = step.compatible ? oldest : step.to;
     at = step.to;
   }

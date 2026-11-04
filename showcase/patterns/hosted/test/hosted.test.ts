@@ -6,7 +6,7 @@ import { WorkspaceOwnedError } from '@tortoise/adapters/exclusive-lock';
 import { sessionCookieName } from '@tortoise/adapters/http';
 import { startHost } from '@tortoise/host/host';
 import { hostedPlatform } from '@tortoise/host/platform/hosted';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { startIdentityProvider } from '@tortoise/site/testing';
 import { pgliteDriver } from '@tortoise/testing/postgres';
 import { createTestRequestsHostedApplication } from '../application';
@@ -32,7 +32,7 @@ function sharedDatabase() {
     hostedPlatform({ database: pgliteDriver(database), workspace: 'test-requests', leaseMs: 300 });
 }
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const submit = (host: Awaited<ReturnType<typeof startHost>>, sample: string) =>
   host.application.invokeRaw(
     {
@@ -40,11 +40,11 @@ const submit = (host: Awaited<ReturnType<typeof startHost>>, sample: string) =>
       input: { sample, transformer: 'TR-40517', description: 'Gas alarm after a load increase' },
       idempotencyKey: crypto.randomUUID(),
     },
-    owner,
+    localUser,
   );
 const samples = async (host: Awaited<ReturnType<typeof startHost>>) =>
   (
-    (await host.application.queryRaw({ operation: 'test-request.list', input: {} }, owner))
+    (await host.application.queryRaw({ operation: 'test-request.list', input: {} }, localUser))
       .data as { items: { sample: string }[] }
   ).items.map((item) => item.sample);
 
@@ -135,7 +135,7 @@ test.skipIf(!Bun.which('openssl'))(
       settings: { 'site-policy': policy },
     });
     cleanups.push(() => host.close());
-    // No owner session, launch link or connection file: the only way in is to sign in.
+    // No local-user session, launch link or connection file: the only way in is to sign in.
     expect(host.launchUrl).toBeUndefined();
     expect(host.connectionFile).toBeUndefined();
 

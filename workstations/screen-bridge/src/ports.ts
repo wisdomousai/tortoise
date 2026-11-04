@@ -57,7 +57,7 @@ export interface ScreenTransport {
   act(action: ScreenAction, signal: AbortSignal): Promise<void>;
   /**
    * Whether a person used the station's own keyboard, mouse or touch since `since` (transport
-   * clock). Transports that cannot tell omit it; the control holder is then the only guard.
+   * clock). Transports that cannot tell omit it; who has control is then the only guard.
    */
   localInputSince?(since: number, signal: AbortSignal): Promise<boolean>;
 }

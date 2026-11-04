@@ -29,7 +29,7 @@ function connectorFixture(
     onRead?: (reads: number) => Partial<BridgeControl> | void;
   } = {
     mode: 'actuate',
-    holder: 'agent',
+    controlledBy: 'agent',
     ...initial,
   };
   let reads = 0;
@@ -43,7 +43,7 @@ function connectorFixture(
     driver: createScriptedDriver(),
     control: async () => {
       Object.assign(control, control.onRead?.(++reads) ?? {});
-      return { mode: control.mode, holder: control.holder };
+      return { mode: control.mode, controlledBy: control.controlledBy };
     },
     now: () => hmi.state.clock,
     sleep: async () => {
@@ -100,7 +100,7 @@ test('monitor-only, assist for procedures above risk none, and an operator holdi
   for (const control of [
     { mode: 'monitor-only' as const },
     { mode: 'assist' as const },
-    { holder: 'operator' as const },
+    { controlledBy: 'operator' as const },
   ]) {
     const { hmi, connector, signal } = connectorFixture(control);
     const attempt = connector.deliver(effect(present), signal);
@@ -213,7 +213,7 @@ test('the runtime refuses a resolved point inside a forbidden region', async () 
 });
 
 test('lookup: converged is accepted, untouched attempts and fresh effects deliver', async () => {
-  const { hmi, connector, control, signal } = connectorFixture({ holder: 'operator' });
+  const { hmi, connector, control, signal } = connectorFixture({ controlledBy: 'operator' });
   await expect(connector.deliver(effect(present), signal)).rejects.toBeInstanceOf(DeliveryFailure);
   hmi.state.screen = 'recipe';
   // Attempted by this process but never touched the screen: safe to deliver again.
@@ -229,7 +229,7 @@ test('lookup: converged is accepted, untouched attempts and fresh effects delive
   expect(await restarted.connector.lookup!('e1', signal, effect(present))).toBeUndefined();
   hmi.state.screen = 'main';
   hmi.state.recipe = 'R-12';
-  control.holder = 'agent';
+  control.controlledBy = 'agent';
   expect(await connector.lookup!('e1', signal, effect(present, { attempts: 3 }))).toMatchObject({
     status: 'accepted',
   });
@@ -332,7 +332,7 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
   const bridge = { workspaceId: 'w', principalId: 'station-bridge:line-1' };
   const { hmi, control, connector } = connectorFixture();
   // The operator presses "Take over" while the agent is between the dialog's click and typing.
-  control.onRead = (reads) => (reads === 4 ? { holder: 'operator' } : undefined);
+  control.onRead = (reads) => (reads === 4 ? { controlledBy: 'operator' } : undefined);
   const dispatcher = createEffectDispatcher({
     application: app,
     port: connector,
@@ -354,7 +354,7 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
 
   // Held effects are not redelivered, even after the operator hands back.
   control.onRead = undefined;
-  control.holder = 'agent';
+  control.controlledBy = 'agent';
   expect(await dispatcher.runOnce(undefined, { ignoreBackoff: true })).toMatchObject({
     held: 0,
     accepted: 0,

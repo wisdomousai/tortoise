@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { defineModule } from '@tortoise/contracts';
 import { stampBuild } from '@tortoise/kernel/build';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { defineApplication } from '../src/application';
 import { startHost } from '../src/host';
 import { defineManifest } from '../src/manifest';
@@ -21,7 +21,7 @@ const definition = defineApplication<Record<string, never>>({
   authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
 });
 
-/** `GET /api/v1/build` with an owner session, or with none. */
+/** `GET /api/v1/build` with a local-user session, or with none. */
 async function readBuild(applicationDefinition: typeof definition, authorized = true) {
   const directory = await mkdtemp(join(tmpdir(), 'host-build-'));
   const host = await startHost(applicationDefinition, {
@@ -30,7 +30,7 @@ async function readBuild(applicationDefinition: typeof definition, authorized = 
   });
   try {
     const { token } = host.sessions.create(
-      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
+      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
       60_000,
     );
     const response = await fetch(`${host.url}/api/v1/build`, {

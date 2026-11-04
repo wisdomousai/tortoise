@@ -80,13 +80,13 @@ export interface SurveyState {
 }
 
 export function createSurveyState(options: {
-  ownerId: string;
+  localUserId: string;
   integrationPrincipalId: string;
   members?: Record<string, Role>;
 }): SurveyState {
   return {
     integrationPrincipalId: options.integrationPrincipalId,
-    members: options.members ?? { [options.ownerId]: 'manager' },
+    members: options.members ?? { [options.localUserId]: 'manager' },
     nodes: {},
     documents: {},
     filings: {},

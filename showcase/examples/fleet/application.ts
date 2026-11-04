@@ -10,7 +10,7 @@ import { appPolicy, createHandlers, type Services } from './server';
 
 export interface FleetOptions {
   services?: Services;
-  /** People who work in a new workspace besides its owner, who is always an operator. */
+  /** People who work in a new workspace besides the local user, who is always an operator. */
   members?: Record<string, Role>;
 }
 
@@ -22,7 +22,7 @@ export interface FleetOptions {
 export function createFleetApplication(options: FleetOptions = {}) {
   return defineApplication<AppState, Services>({
     manifest,
-    createState: (ownerId) => createState(ownerId, options.members),
+    createState: (localUserId) => createState(localUserId, options.members),
     handlers: createHandlers(),
     authorization: appPolicy,
     plugins: [

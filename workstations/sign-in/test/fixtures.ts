@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts';
 import { defineApplication } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { defineManifest } from '@tortoise/kernel/manifest';
 import { createHandlerFactory } from '@tortoise/runtime';
 import { createStationSignInPlugin } from '../src/plugin';
@@ -17,7 +17,7 @@ export const whoami = defineCapability({
   ui: { exception: 'test fixture' },
 });
 
-/** A station application: the owner's screen is the terminal, and enrolled operators may read work. */
+/** A station application: the local user's screen is the terminal, and enrolled operators may read work. */
 export function stationApplication(options: { now?: () => number } = {}) {
   const bind = createHandlerFactory<Record<string, never>, {}>();
   return defineApplication<Record<string, never>>({
@@ -31,10 +31,10 @@ export function stationApplication(options: { now?: () => number } = {}) {
     handlers: [bind(whoami, async (_input, ctx) => ({ principalId: ctx.context.principalId }))],
     authorization: {
       authorize: ({ context }) => ({
-        allowed: context.principalId === LOCAL_OWNER || context.principalId.endsWith('@plant'),
+        allowed: context.principalId === LOCAL_USER || context.principalId.endsWith('@plant'),
         reason: 'RESOURCE_DENIED',
       }),
-      canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
+      canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [createStationSignInPlugin(options)],
   });

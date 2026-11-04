@@ -60,7 +60,7 @@ const compact = <T extends object>(value: T): T =>
   Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
 
 /** Version 1's field work as the assignment feature's slice. */
-export function adoptAssignments(stored: unknown, ownerId: string): AssignmentSlice {
+export function adoptAssignments(stored: unknown, localUserId: string): AssignmentSlice {
   const v1 = (stored ?? {}) as V1State;
   const nodes = v1.nodes ?? {};
   const integration = v1.integrationPrincipalId ?? 'integration';
@@ -119,7 +119,7 @@ export function adoptAssignments(stored: unknown, ownerId: string): AssignmentSl
       brief: { reportId: capture.id, kind: capture.kind, photos: capture.photos },
       assignee: { type: 'target' as const, id: 'model' },
       status: !responded ? 'sent' : extraction.status === 'accepted' ? 'closed' : 'done',
-      createdBy: ownerId,
+      createdBy: localUserId,
       createdAt: capture.receivedAt,
       sentAt: capture.receivedAt,
       doneBy: responded ? integration : undefined,

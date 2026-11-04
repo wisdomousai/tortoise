@@ -19,7 +19,7 @@ import { approvalAccess } from './policy';
 
 export interface PartsDeskOptions {
   services?: Services;
-  /** People who work in a new workspace besides its owner, who is always a desk member. */
+  /** People who work in a new workspace besides the local user, who is always a desk member. */
   members?: Record<string, Role>;
   /** The assistant's model entry, files and activation; `assistantModelFrom()` when omitted. */
   model?: AssistantModel;
@@ -45,11 +45,11 @@ export function composePartsDesk(options: PartsDeskOptions = {}) {
     ...(model.activation ? { activation: model.activation } : {}),
     ...(options.pollMs ? { pollMs: options.pollMs } : {}),
   });
-  const state = (ownerId: string) => createState(ownerId, options.members);
+  const state = (localUserId: string) => createState(localUserId, options.members);
   const application = defineApplication<AppState, Services>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     features: [
       mountFeature<AppState, ApprovalAccess, ApprovalHooks, Services>(approvalFeature(), {
         access: approvalAccess,

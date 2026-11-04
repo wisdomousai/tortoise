@@ -15,15 +15,15 @@ import { createCrmHandlers, crmPolicy, type CrmServices } from './server';
 export const INTEGRATION_PRINCIPAL = 'integration';
 
 /**
- * Demo only: the in-memory CRM, so the reference needs no CRM account. The local owner signs in
- * to it as `ann` (`DEMO_CRM_LOGIN` picks another user; `none` leaves the owner without a login,
+ * Demo only: the in-memory CRM, so the reference needs no CRM account. The local user signs in
+ * to it as `ann` (`DEMO_CRM_LOGIN` picks another user; `none` leaves the local user without a login,
  * so searches fall back to the service account). `DEMO_CRM_LATENCY_MS` slows searches and
  * `DEMO_CRM_UNAVAILABLE=1` makes the CRM unreachable. A deploying application passes its real
  * port and credential store instead; the framework never reads these variables.
  */
 export function demoCrm(env: Record<string, string | undefined> = process.env) {
   const login = env.DEMO_CRM_LOGIN ?? 'ann';
-  const crm = new FakeCrm(login === 'none' ? {} : { logins: { owner: login } });
+  const crm = new FakeCrm(login === 'none' ? {} : { logins: { 'local-user': login } });
   crm.latencyMs = Number(env.DEMO_CRM_LATENCY_MS ?? 0);
   crm.unavailable = env.DEMO_CRM_UNAVAILABLE === '1';
   return crm;
@@ -32,22 +32,22 @@ export function demoCrm(env: Record<string, string | undefined> = process.env) {
 /**
  * The CRM capture application. One CRM serves three paths: live search (the remote source),
  * follow requests and activities (the outbox), and followed accounts (the feed). `members` are
- * the people who work in a new workspace and their regions; by default the owner covers all.
+ * the people who work in a new workspace and their regions; by default the local user covers all.
  */
 export function createCrmCaptureApplication(
   options: { crm?: FakeCrm; services?: CrmServices; members?: Record<string, Member> } = {},
 ) {
   const crm = options.crm ?? demoCrm();
-  const state = (ownerId: string) =>
+  const state = (localUserId: string) =>
     createCrmState({
-      ownerId,
+      localUserId,
       integrationPrincipalId: INTEGRATION_PRINCIPAL,
-      members: options.members ?? { [ownerId]: { regions: [...REGIONS] } },
+      members: options.members ?? { [localUserId]: { regions: [...REGIONS] } },
     });
   return defineApplication<CrmState, CrmServices>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => (stored as CrmState | undefined) ?? state(ownerId),
+    upgradeState: (stored, localUserId) => (stored as CrmState | undefined) ?? state(localUserId),
     handlers: createCrmHandlers(),
     authorization: crmPolicy,
     ...(options.services ? { services: options.services } : {}),

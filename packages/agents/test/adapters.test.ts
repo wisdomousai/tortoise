@@ -478,9 +478,9 @@ for (const fixture of ['tool-envelope', 'turn-status', 'thread-response'] as con
 
 test('every adapter shows the model the captured selection and nothing else from the run context', async () => {
   const context = {
-    principalId: 'owner',
+    principalId: 'local-user',
     workspaceId: 'local',
-    grant: { operations: ['task.update'], principalId: 'owner' },
+    grant: { operations: ['task.update'], principalId: 'local-user' },
     providerProfile: 'profile-secret',
     uiContext: {
       sessionId: 'ui-1',
@@ -565,7 +565,7 @@ test('every adapter shows the model the captured selection and nothing else from
   for (const prompt of prompts) {
     expect(prompt).toContain('Rename the selected task.');
     expect(prompt).toContain('task:id-3 (revision 4)');
-    for (const hidden of ['task.update', 'profile-secret', 'owner', 'ui-1'])
+    for (const hidden of ['task.update', 'profile-secret', 'local-user', 'ui-1'])
       expect(prompt).not.toContain(hidden);
   }
 });

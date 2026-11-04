@@ -7,7 +7,7 @@ import { createToolStoreApplication } from '../application';
 import type { EamTool } from '../contracts/eam-target';
 import { FakeEam } from '../eam-port';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -46,7 +46,7 @@ async function open(unknownTags: string[] = []) {
       },
       idempotencyKey: 'seed',
     },
-    owner,
+    localUser,
   );
   await application.invokeRaw(
     {
@@ -59,7 +59,7 @@ async function open(unknownTags: string[] = []) {
       },
       idempotencyKey: 'out',
     },
-    owner,
+    localUser,
   );
   const target = integrations.target('eam');
   return {
@@ -299,11 +299,11 @@ test('only the connector completes and syncs, and it can do nothing else', async
     input: { effectId, outcome: { status: 'accepted', externalRef: 'RO-999999' } },
     idempotencyKey: 'forged',
   };
-  await expect(app.invokeRaw(complete, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  await expect(app.invokeRaw(complete, localUser)).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
     app.invokeRaw(
       { operation: 'eam.sync', input: { to: '1', items: [] }, idempotencyKey: 'sync' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(

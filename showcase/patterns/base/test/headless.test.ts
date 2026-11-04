@@ -65,7 +65,7 @@ test('the CLI submits and lists test requests in-process, with no frame', async 
   expect(listed.exitCode).toBe(0);
   expect(JSON.parse(listed.stdout).data).toMatchObject({
     total: 1,
-    items: [{ sample: 'OS-24-0417', requester: 'owner' }],
+    items: [{ sample: 'OS-24-0417', requester: 'local-user' }],
   });
   expect(
     (
@@ -88,7 +88,10 @@ test('an MCP client sees one titled tool per capability and the workflow text', 
     workspacePath: join(directory, 'mcp'),
   });
   const server = createMcpServer(
-    createDirectTransport(instance.application, { workspaceId: 'local', principalId: 'owner' }),
+    createDirectTransport(instance.application, {
+      workspaceId: 'local',
+      principalId: 'local-user',
+    }),
   );
   const mcp = new Client({ name: 'pattern-base', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

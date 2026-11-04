@@ -24,10 +24,10 @@ export interface AppState {
   // scaffold:state
 }
 
-/** A new workspace. Its owner is always an attendant. */
-export function createState(ownerId: string, members: Record<string, Role> = {}): AppState {
+/** A new workspace. The local user is always an attendant. */
+export function createState(localUserId: string, members: Record<string, Role> = {}): AppState {
   return {
-    members: { ...members, [ownerId]: 'attendant' },
+    members: { ...members, [localUserId]: 'attendant' },
     sync: {
       eam: {},
       // scaffold:sync

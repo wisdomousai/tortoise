@@ -5,7 +5,7 @@ import { bridgeStation, own, type LineState } from '../domain';
 import { stationOf } from '../server/access';
 import { now, handler, type LineServices } from '../server/context';
 
-/** Bridge mode, the control holder and station roles. */
+/** Bridge mode, who has control and station roles. */
 export function administrationHandlers(): HandlerContribution<LineState, LineServices>[] {
   return [
     handler(operations.bridgeSetMode, (input, ctx) => {
@@ -16,11 +16,11 @@ export function administrationHandlers(): HandlerContribution<LineState, LineSer
     }),
     handler(operations.controlRequest, (input, ctx) => {
       const station = stationOf(ctx.state, input.station);
-      station.controlHolder = input.holder;
+      station.controlledBy = input.controlledBy;
       station.controlChangedBy = ctx.context.principalId;
       station.controlChangedAt = now(ctx);
       ctx.change(`station:${station.id}`);
-      return { station: station.id, holder: station.controlHolder };
+      return { station: station.id, controlledBy: station.controlledBy };
     }),
     // Integration principals act through their own integration allowlists, never through roles.
     membershipHandler<LineState, LineServices, typeof stationMembership>(stationMembership, {

@@ -31,8 +31,8 @@ test('a station observed through its screen reads the same on every transport; e
     extractors: [createAccessibilityExtractor(), createSimulatorOcr(() => sim.state)],
     sleep: async () => undefined,
   });
-  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
+  const localUserConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
+  const localUser = createHttpTransport({ baseUrl: host.url, token: localUserConnection.token });
   const operatorSession = host.sessions.create({ workspaceId: 'local', principalId: 'olga' });
   const operator = createHttpTransport({ baseUrl: host.url, token: operatorSession.token });
   const operatorServer = createMcpServer(operator);
@@ -60,7 +60,7 @@ test('a station observed through its screen reads the same on every transport; e
     await operatorServer.connect(serverTransport);
     await operatorMcp.connect(clientTransport);
     expect((await host.integrations.target('mes').inbound.runOnce()).items).toBeGreaterThan(0);
-    await owner.command(
+    await localUser.command(
       'line.station.set-member',
       { station: 'winder-1', principalId: 'olga', role: 'operator' },
       { idempotencyKey: 'member-olga' },
@@ -96,15 +96,15 @@ test('a station observed through its screen reads the same on every transport; e
     ).toBe(true);
     expect(tools.tools.some((tool) => tool.name === 'line_observation_ingest')).toBe(true);
 
-    // The owner (supervisor, a person) enables actuation; the bridge loads the recipe on screen.
-    await owner.command(
+    // The local user (supervisor, a person) enables actuation; the bridge loads the recipe on screen.
+    await localUser.command(
       'line.bridge.set-mode',
       { station: 'winder-1', mode: 'actuate' },
       { idempotencyKey: 'mode' },
     );
     await operator.command(
       'line.control.request',
-      { station: 'winder-1', holder: 'agent' },
+      { station: 'winder-1', controlledBy: 'agent' },
       { idempotencyKey: 'control' },
     );
     const started = await operator.command<{ desired: { sync: string; effectId: string } }>(
@@ -149,10 +149,10 @@ test('a station observed through its screen reads the same on every transport; e
         { idempotencyKey: 'routes' },
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await owner.command(
+    await localUser.command(
       'device.routes.save',
       { station: 'winder-1', routes: [] },
-      { idempotencyKey: 'routes-owner' },
+      { idempotencyKey: 'routes-local-user' },
     );
   } finally {
     await operatorMcp.close();

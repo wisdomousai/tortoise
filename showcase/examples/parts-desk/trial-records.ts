@@ -1,11 +1,11 @@
-import { LOCAL_OWNER, LOCAL_WORKSPACE, type EmbeddedInstance } from '@tortoise/host';
+import { LOCAL_USER, LOCAL_WORKSPACE, type EmbeddedInstance } from '@tortoise/host';
 import type { Part } from './contracts/part';
 
 /**
  * Trial records for a development workspace: three utilities, six transformers of three models
  * and 24 parts across every category and assembly, some out of stock. TR-40417 and TR-40471
  * share the start TR-404, so a find for it is ambiguous. Every record goes through its create
- * command as the workspace owner, under a fixed idempotency key: on a workspace that has them,
+ * command as the local user, under a fixed idempotency key: on a workspace that has them,
  * each command replays its stored receipt and the seed adds nothing. Names and phone numbers are
  * made up.
  */
@@ -78,9 +78,9 @@ const catalog: Row[] = [
 
 /** Create the trial records that the workspace does not have yet. */
 export async function seedTrialRecords(application: EmbeddedInstance['application']) {
-  const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+  const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
   const create = async (operation: string, key: string, input: object) =>
-    (await application.invokeRaw({ operation, input, idempotencyKey: `trial-${key}` }, owner))
+    (await application.invokeRaw({ operation, input, idempotencyKey: `trial-${key}` }, localUser))
       .result as { id: string };
   const customerIds: Record<string, string> = {};
   for (const utility of utilities)

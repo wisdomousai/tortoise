@@ -57,7 +57,7 @@ export interface ConnectionRecord {
 
 /** The plugin's slice, under `state['peer-link']`. */
 export interface PeerLinkState {
-  /** Principals who enroll, map, list and revoke peers: the local owner. */
+  /** Principals who enroll, map, list and revoke peers: the local user. */
   admins: string[];
   peers: Record<string, PeerRecord>;
   enrollments: Record<string, PeerEnrollmentRecord>;
@@ -67,8 +67,8 @@ export interface PeerLinkState {
   connections: Record<string, ConnectionRecord>;
 }
 
-export const createPeerLinkState = (ownerId: string): PeerLinkState => ({
-  admins: [ownerId],
+export const createPeerLinkState = (localUserId: string): PeerLinkState => ({
+  admins: [localUserId],
   peers: {},
   enrollments: {},
   subjects: {},

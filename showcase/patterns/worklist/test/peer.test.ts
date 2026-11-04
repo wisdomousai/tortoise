@@ -52,13 +52,13 @@ async function pair() {
     hosts: { callee: { port }, caller: { settings: { 'site-policy': policy } } },
   });
   cleanup.push(() => started.close());
-  const { callee, caller, owner, peerId } = started;
+  const { callee, caller, localUser, peerId } = started;
   let keys = 0;
   const on = (host: typeof callee) => ({
-    run: async (operation: string, input: object, as: ExecutionContext = owner) =>
+    run: async (operation: string, input: object, as: ExecutionContext = localUser) =>
       (await host.application.invokeRaw({ operation, input, idempotencyKey: `k${++keys}` }, as))
         .result as Row,
-    read: async (operation: string, input: object = {}, as: ExecutionContext = owner) =>
+    read: async (operation: string, input: object = {}, as: ExecutionContext = localUser) =>
       (await host.application.queryRaw({ operation, input }, as)).data as Row,
   });
   const labTarget = caller.integrations.target('lab');

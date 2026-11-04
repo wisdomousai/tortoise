@@ -20,8 +20,8 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     workspacePath: join(directory, 'workspace'),
     integration: false,
   });
-  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
+  const localUserConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
+  const localUser = createHttpTransport({ baseUrl: host.url, token: localUserConnection.token });
   const inspectorSession = host.sessions.create({ workspaceId: 'local', principalId: 'ina' });
   const viewerSession = host.sessions.create({ workspaceId: 'local', principalId: 'vic' });
   const inspector = createHttpTransport({ baseUrl: host.url, token: inspectorSession.token });
@@ -68,12 +68,12 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     expect(
       (await host.integrations.target('quality-system').inbound.runOnce()).items,
     ).toBeGreaterThan(0);
-    await owner.command(
+    await localUser.command(
       'inspection.plant.set-member',
       { plant: 'P100', principalId: 'ina', role: 'inspector' },
       { idempotencyKey: 'member-ina' },
     );
-    await owner.command(
+    await localUser.command(
       'inspection.plant.set-member',
       { plant: 'P100', principalId: 'vic', role: 'viewer' },
       { idempotencyKey: 'member-vic' },

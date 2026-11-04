@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -37,7 +37,7 @@ async function open() {
       },
       idempotencyKey: 'seed',
     },
-    owner,
+    localUser,
   );
   return app;
 }
@@ -50,11 +50,11 @@ const checkOut = {
 };
 
 const statusOf = async (app: Awaited<ReturnType<typeof open>>) =>
-  (await app.queryRaw({ operation: 'tool.get', input: { id: 'id-1' } }, owner)).data as {
+  (await app.queryRaw({ operation: 'tool.get', input: { id: 'id-1' } }, localUser)).data as {
     status: string;
   };
 const loanTotal = async (app: Awaited<ReturnType<typeof open>>) =>
-  (await app.queryRaw({ operation: 'loan.list', input: {} }, owner)).data as { total: number };
+  (await app.queryRaw({ operation: 'loan.list', input: {} }, localUser)).data as { total: number };
 
 test('an attendant lends an available tool: an open loan and a checked-out tool', async () => {
   const app = await open();
@@ -64,7 +64,7 @@ test('an attendant lends an available tool: an open loan and a checked-out tool'
       input: { ...checkOut, workOrder: ' WO-100 ' },
       idempotencyKey: 'out',
     },
-    owner,
+    localUser,
   );
   expect(receipt.result).toEqual({
     id: 'id-2',
@@ -73,7 +73,7 @@ test('an attendant lends an available tool: an open loan and a checked-out tool'
     borrower: 'E004217',
     workOrder: 'WO-100',
     dueAt: '2026-11-05T16:00:00Z',
-    checkedOutBy: 'owner',
+    checkedOutBy: 'local-user',
     checkedOutAt: 2_000,
   });
   expect(await statusOf(app)).toMatchObject({ status: 'checked-out' });
@@ -97,7 +97,7 @@ test('a stale tool revision is refused and nothing changes', async () => {
   // The tool is at revision 1 after create; this edit moves it to 2.
   await app.invokeRaw(
     { operation: 'tool.update', input: { id: 'id-1', bin: 'A-04' }, idempotencyKey: 'edit' },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -107,7 +107,7 @@ test('a stale tool revision is refused and nothing changes', async () => {
         idempotencyKey: 'stale',
         expectedRevisions: { 'tool:id-1': 1 },
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   expect(await statusOf(app)).toMatchObject({ status: 'available' });
@@ -120,7 +120,7 @@ test('a stale tool revision is refused and nothing changes', async () => {
       idempotencyKey: 'current',
       expectedRevisions: { 'tool:id-1': 2 },
     },
-    owner,
+    localUser,
   );
   expect(await statusOf(app)).toMatchObject({ status: 'checked-out' });
 });
@@ -128,8 +128,8 @@ test('a stale tool revision is refused and nothing changes', async () => {
 test('a repeated idempotency key returns the same receipt and lends once', async () => {
   const app = await open();
   const request = { operation: 'tool.check-out', input: checkOut, idempotencyKey: 'retry' };
-  const first = await app.invokeRaw(request, owner);
-  const again = await app.invokeRaw(request, owner);
+  const first = await app.invokeRaw(request, localUser);
+  const again = await app.invokeRaw(request, localUser);
   expect(again).toEqual(first);
   expect(await loanTotal(app)).toMatchObject({ total: 1 });
 });
@@ -138,7 +138,7 @@ test('a second check-out of the same tool is refused with CONFLICT', async () =>
   const app = await open();
   await app.invokeRaw(
     { operation: 'tool.check-out', input: checkOut, idempotencyKey: 'first' },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -147,10 +147,10 @@ test('a second check-out of the same tool is refused with CONFLICT', async () =>
         input: { ...checkOut, borrower: 'E000042', workOrder: 'WO-200' },
         idempotencyKey: 'second',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
-  const loans = await app.queryRaw({ operation: 'loan.list', input: {} }, owner);
+  const loans = await app.queryRaw({ operation: 'loan.list', input: {} }, localUser);
   expect(loans.data).toMatchObject({ total: 1, items: [{ borrower: 'E004217' }] });
 });
 
@@ -163,7 +163,7 @@ test('a tool that is not available, a missing tool and bad input are refused', a
         input: { ...checkOut, toolId: 'missing' },
         idempotencyKey: 'a',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   for (const [key, input] of Object.entries({
@@ -174,7 +174,7 @@ test('a tool that is not available, a missing tool and bad input are refused', a
     await expect(
       app.invokeRaw(
         { operation: 'tool.check-out', input: { ...checkOut, ...input }, idempotencyKey: key },
-        owner,
+        localUser,
       ),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   expect(await loanTotal(app)).toMatchObject({ total: 0 });

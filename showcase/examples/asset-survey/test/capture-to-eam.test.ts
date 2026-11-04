@@ -38,8 +38,8 @@ async function started() {
       ports: defaultPorts,
       delegate: (grant) => ({
         workspaceId: 'local',
-        principalId: 'owner',
-        grant: { ...grant, principalId: 'owner', workspaceId: 'local' },
+        principalId: 'local-user',
+        grant: { ...grant, principalId: 'local-user', workspaceId: 'local' },
       }),
       onError: (_scope, error) => errors.push(error),
     },
@@ -76,7 +76,9 @@ async function started() {
     expect(await get()).toMatchObject({ status: 'running', step: 'export' });
   };
   const completeExport = async (accepted: boolean) => {
-    const [effect] = await survey.application.pendingEffects(at('owner'), { target: 'export' });
+    const [effect] = await survey.application.pendingEffects(at('local-user'), {
+      target: 'export',
+    });
     await survey.command(
       'filing.export.complete',
       {

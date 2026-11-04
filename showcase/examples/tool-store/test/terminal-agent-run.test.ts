@@ -14,7 +14,7 @@ import {
 
 /**
  * Agent runs started from the counter terminal's UI session, over HTTP. The connection file's
- * token is the terminal's session, the workspace owner, as the terminal's browser is: it
+ * token is the terminal's session, the local user, as the terminal's browser is: it
  * registers the ticked tools as the session context and starts the runs. The runs use the
  * scripts and prompts the agent panel sends.
  */

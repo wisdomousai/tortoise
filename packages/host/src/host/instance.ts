@@ -25,7 +25,7 @@ export async function openInstance(
     serving: true,
     ...(options.settings ? { settings: options.settings } : {}),
     // Identity before any state opens: a port that admits only the launcher's delegated grant
-    // means the trusted local owner is never issued a session.
+    // means the trusted local user is never issued a session.
     admit: { context: options.agentConnection?.context },
   });
   cleanup.push(() => instance.plugins.close());
@@ -46,7 +46,7 @@ export async function openInstance(
     connections: instance.connections,
     integrations: instance.integrations,
     observers,
-    localOwner: instance.ports.identity.localOwnerSessions,
+    localUser: instance.ports.identity.localUserSessions,
   };
 }
 export type Instance = Awaited<ReturnType<typeof openInstance>>;

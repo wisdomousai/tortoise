@@ -6,7 +6,7 @@ import { openEmbeddedInstance } from '@tortoise/host';
 import { createPartsDeskApplication } from '../application';
 import { assemblies, partCategories } from '../contracts/part';
 import { seedTrialRecords } from '../trial-records';
-import { owner } from './support';
+import { localUser } from './support';
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -21,7 +21,7 @@ async function launch(workspacePath: string) {
   try {
     await seedTrialRecords(instance.application);
     const read = async (operation: string) =>
-      (await instance.application.queryRaw({ operation, input: { limit: 100 } }, owner))
+      (await instance.application.queryRaw({ operation, input: { limit: 100 } }, localUser))
         .data as Page;
     return {
       customers: await read('customer.list'),

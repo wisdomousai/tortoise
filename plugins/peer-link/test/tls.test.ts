@@ -7,7 +7,7 @@ import { auditPlugin } from '@tortoise/audit/plugin';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { connectPeerTarget } from '@tortoise/integration';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
 import { sitePlugin } from '@tortoise/site/plugin';
@@ -91,7 +91,7 @@ async function freePort() {
   return port;
 }
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 /** The plugins that open, bind and record the site network, as a site deployment composes them. */
 const site = [
   { manifest: sitePluginManifest, plugin: sitePlugin },
@@ -150,17 +150,17 @@ test.skipIf(!Bun.which('openssl'))(
               input: { label: 'Receiving' },
               idempotencyKey: 'tls-enroll',
             },
-            owner,
+            localUser,
           );
           const linked = peerLinkServiceOf(receiving.services)!;
           await linked.connect(
             { target: 'quality', code: (result as { code: string }).code },
-            owner,
+            localUser,
           );
           const port = connectPeerTarget({
             target: qualityTarget,
             application: receiving.application,
-            workspaceId: owner.workspaceId,
+            workspaceId: localUser.workspaceId,
             principalId: 'quality-integration',
             link: () => linked.link('quality'),
             readBlob: async () => undefined,

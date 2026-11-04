@@ -48,7 +48,7 @@ import { assignmentHooks } from './handlers/assignments';
 
 export interface ToolStoreOptions {
   services?: Services;
-  /** People who work in a new workspace besides its owner, who is always an attendant. */
+  /** People who work in a new workspace besides the local user, who is always an attendant. */
   members?: Record<string, Role>;
   /** The connector to the plant EAM; an in-memory fake EAM that knows every asset tag when omitted. */
   eam?: SystemOfRecordPort<EamTool>;
@@ -57,7 +57,7 @@ export interface ToolStoreOptions {
 
 /**
  * The people who sign in at the counter terminal in a new workspace. An operator acts with their
- * own role, so each badge the owner enrolls must name one of these principals. A workspace keeps
+ * own role, so each badge the local user enrolls must name one of these principals. A workspace keeps
  * the members it was created with.
  */
 // #region members
@@ -74,12 +74,12 @@ export const counterMembers: Record<string, Role> = {
  * operator session.
  */
 export function createToolStoreApplication(options: ToolStoreOptions = {}) {
-  const state = (ownerId: string) => createState(ownerId, options.members);
+  const state = (localUserId: string) => createState(localUserId, options.members);
   const clock = options.services?.now;
   return defineApplication<AppState, Services>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     features: [
       mountFeature<AppState, HandoverAccess, HandoverHooks, Services>(handoverFeature(), {
         access: handoverAccess,

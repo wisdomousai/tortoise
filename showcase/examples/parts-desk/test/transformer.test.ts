@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { owner, stranger, testWorkspaces, viewer } from './support';
+import { localUser, stranger, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('transformer');
 const unit = {
@@ -20,7 +20,7 @@ async function withUtility() {
       input: { account: 'U1042', name: 'Stadtwerke Nordhafen', phone: '+49 40 5550 1042' },
       idempotencyKey: 'utility',
     },
-    owner,
+    localUser,
   );
   return app;
 }
@@ -33,13 +33,13 @@ test('the desk adds and changes transformers; members filter and search them', a
       input: { ...unit, customerId: 'id-1' },
       idempotencyKey: 'create-1',
     },
-    owner,
+    localUser,
   );
   expect(created.result).toEqual({
     id: 'id-2',
     ...unit,
     customerId: 'id-1',
-    createdBy: 'owner',
+    createdBy: 'local-user',
     createdAt: 1_000,
   });
   await app.invokeRaw(
@@ -48,7 +48,7 @@ test('the desk adds and changes transformers; members filter and search them', a
       input: { id: 'id-2', substation: 'Nordhafen West' },
       idempotencyKey: 'update-1',
     },
-    owner,
+    localUser,
   );
   const byModel = await app.queryRaw(
     { operation: 'transformer.list', input: { model: 'PTX-40', customerId: 'id-1' } },
@@ -75,7 +75,7 @@ test('a serial is unique, well formed and names a known utility', async () => {
       input: { ...unit, customerId: 'id-1' },
       idempotencyKey: 'a',
     },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -84,7 +84,7 @@ test('a serial is unique, well formed and names a known utility', async () => {
         input: { ...unit, customerId: 'id-1' },
         idempotencyKey: 'b',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   await expect(
@@ -94,7 +94,7 @@ test('a serial is unique, well formed and names a known utility', async () => {
         input: { ...unit, serial: 'TR-4041', customerId: 'id-1' },
         idempotencyKey: 'c',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   await expect(
@@ -104,7 +104,7 @@ test('a serial is unique, well formed and names a known utility', async () => {
         input: { ...unit, serial: 'TR-40418', customerId: 'missing' },
         idempotencyKey: 'd',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });
@@ -125,6 +125,6 @@ test('viewers cannot write, strangers cannot read, and a missing transformer is 
     app.queryRaw({ operation: 'transformer.list', input: {} }, stranger),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    app.queryRaw({ operation: 'transformer.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: 'transformer.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

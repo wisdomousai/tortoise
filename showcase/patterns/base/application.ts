@@ -17,7 +17,7 @@ export interface TestRequestsRoot {
 }
 
 export interface TestRequestsOptions {
-  /** People who work in a new workspace besides its owner, who is always a technician. */
+  /** People who work in a new workspace besides the local user, who is always a technician. */
   members?: Record<string, Role>;
   services?: TestRequestsServices;
 }
@@ -26,8 +26,8 @@ export interface TestRequestsOptions {
 export function createTestRequestsApplication(options: TestRequestsOptions = {}) {
   return defineApplication<TestRequestsRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
     }),
     handlers: sliceHandlers<TestRequestsRoot, 'testRequests', TestRequestsServices>(
       'testRequests',

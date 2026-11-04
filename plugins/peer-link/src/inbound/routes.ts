@@ -9,7 +9,7 @@ import { peerLinkOperations as ops } from '../contracts';
 export interface PeerCaller {
   readonly application: HostedApplication;
   readonly workspaceId: string;
-  /** The local owner narrowed to the redeem and resolve operations. */
+  /** The local user narrowed to the redeem and resolve operations. */
   readonly context: ExecutionContext;
 }
 

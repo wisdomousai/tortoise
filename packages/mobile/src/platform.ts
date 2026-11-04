@@ -2,7 +2,7 @@ import { acquireExclusiveLock } from '@tortoise/adapters/exclusive-lock';
 import { SnapshotStorage } from '@tortoise/adapters/snapshot-storage';
 import type { SqlDriver } from '@tortoise/adapters/sql-driver';
 import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import type { HostPlatform, SecretStore } from '@tortoise/kernel/platform';
 import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
 import type { BlobStore } from '@tortoise/runtime';
@@ -57,8 +57,8 @@ export function createMobilePlatform(bindings: MobileBindings): HostPlatform {
       driver.exec(
         'PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;',
       );
-      return new SnapshotStorage<unknown>(driver, () => definition.createState(LOCAL_OWNER), {
-        upgrade: stateUpgrade(definition, LOCAL_OWNER),
+      return new SnapshotStorage<unknown>(driver, () => definition.createState(LOCAL_USER), {
+        upgrade: stateUpgrade(definition, LOCAL_USER),
       });
     },
     openBlobs: (ownership: { canonicalPath: string }) =>

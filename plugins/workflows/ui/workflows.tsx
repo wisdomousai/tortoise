@@ -121,7 +121,7 @@ function Detail({ id }: { id: string }) {
 }
 
 /**
- * Workflow instances (`workflow.list`): the signed-in person's own, and for the workspace owner
+ * Workflow instances (`workflow.list`): the signed-in person's own, and for the local user
  * everyone else's status. Selecting one shows its history.
  */
 export function WorkflowsScreen() {

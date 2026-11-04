@@ -11,7 +11,7 @@ import { validModel } from './validation';
 type HarnessId = 'codex' | 'claude' | 'ai-sdk';
 type Build = (turn: HarnessTurn, key: string) => Promise<Harness>;
 
-/** Before the provider runs: the owner's selection or explicitly loaded key must still stand. */
+/** Before the provider runs: the local user's selection or explicitly loaded key must still stand. */
 function recheckFunding(state: ProviderState, id: HarnessId, turn: HarnessTurn, key: string) {
   if (id === 'codex') chooseModel(state, key, turnSelection(turn.context));
   else if (!state.loadedKeys.get(key)?.has(id))

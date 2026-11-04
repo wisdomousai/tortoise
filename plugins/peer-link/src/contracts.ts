@@ -5,7 +5,7 @@ import { defineCapability, defineModule, jsonSchema } from '@tortoise/contracts'
 export const enrollPath = '/api/v1/peer/enroll';
 
 /**
- * The calling application's route that connects to a peer with a code its owner read out: it
+ * The calling application's route that connects to a peer with a code its local user read out: it
  * enrolls through the network port, keeps the credential in the secret store and records the
  * connection. A person signed in here posts `{ target, code }`.
  */
@@ -227,7 +227,7 @@ export const peerLinkOperations = {
     id: 'peer.connection.remove',
     kind: 'command',
     description:
-      'Remove the connection to a peer target: its next call fails as not connected, effects for it stay pending, and the plugin deletes the credential. The peer still lists this application until its owner revokes it.',
+      'Remove the connection to a peer target: its next call fails as not connected, effects for it stay pending, and the plugin deletes the credential. The peer still lists this application until its local user revokes it.',
     input: jsonSchema(z.strictObject({ target: z.string() })),
     output: jsonSchema(z.strictObject({ removed: z.boolean() })),
     permission: { action: 'disconnect', resourceType: 'Peer' },

@@ -23,7 +23,7 @@ export interface StorageHarness {
 const fresh = (): ConformanceState => ({ count: 0, items: {} });
 const receipt = (cursor: number): StoredReceipt => ({
   fingerprint: `f${cursor}`,
-  principalId: 'owner',
+  principalId: 'local-user',
   input: {},
   receipt: {
     operation: 'item.put',
@@ -247,7 +247,7 @@ export function storageConformance(harness: StorageHarness): ConformanceCase[] {
           snapshot.effects.e1 = {
             id: 'e1',
             operation: 'item.put',
-            principalId: 'owner',
+            principalId: 'local-user',
             resource: 'item:a',
             target: 'erp',
             type: 'item.created',

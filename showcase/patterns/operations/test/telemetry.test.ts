@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { auditServiceOf } from '@tortoise/audit';
 import { readEvents } from '@tortoise/event-log';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/host';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/host';
 import type { TelemetryService } from '@tortoise/telemetry/plugin';
 import { startCollector } from '@tortoise/telemetry/testing';
 import { createTestRequestsOperationsApplication } from '../application';
@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const step of cleanup.splice(0).reverse()) await step();
 });
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const SAMPLE = 'OS-24-0417';
 const DESCRIPTION = 'Drawn from the bottom valve of T2, Substation Nord';
 
@@ -46,7 +46,7 @@ test('test request commands reach the collector as counts, and the export is in 
     },
   );
   cleanup.push(() => host.close());
-  const submit = (context = owner) =>
+  const submit = (context = localUser) =>
     host.application.invokeRaw(
       {
         operation: 'test-request.submit',
@@ -57,7 +57,7 @@ test('test request commands reach the collector as counts, and the export is in 
     );
 
   const submitted = await submit();
-  const refused = await submit({ ...owner, principalId: 'viewer' }).catch(
+  const refused = await submit({ ...localUser, principalId: 'viewer' }).catch(
     (error: unknown) => error,
   );
   expect(refused).toBeInstanceOf(Error);
@@ -93,7 +93,7 @@ test('test request commands reach the collector as counts, and the export is in 
   // Operation names and outcomes leave; request contents, identifiers and principals do not.
   const sent = JSON.stringify(collector.received);
   const requestId = (submitted.result as { id: string }).id;
-  for (const leak of [SAMPLE, DESCRIPTION, requestId, LOCAL_OWNER, 'viewer'])
+  for (const leak of [SAMPLE, DESCRIPTION, requestId, LOCAL_USER, 'viewer'])
     expect(sent).not.toContain(leak);
 
   const events = await readEvents(auditServiceOf(host.services).logDirectory);

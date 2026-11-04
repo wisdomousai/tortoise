@@ -2,7 +2,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { startHost } from '@tortoise/host/host';
 import { openMobileInstance, type MobileInstance } from '@tortoise/mobile';
 import { enrollPath as deviceEnrollPath } from '@tortoise/hub-link/contracts';
@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const jpeg = new Uint8Array([255, 216, 255, 224, 1, 2, 3]);
 
 /** A hub on loopback whose field devices may ingest captures and read the assignment feed. */
@@ -34,11 +34,11 @@ async function startHub(clock = { now: Date.now() }) {
     (
       await hub.application.invokeRaw(
         { operation, input, idempotencyKey: crypto.randomUUID() },
-        owner,
+        localUser,
       )
     ).result as Record<string, any>;
   const query = async (operation: string, input: unknown = {}) =>
-    (await hub.application.queryRaw({ operation, input }, owner)).data as Record<string, any>;
+    (await hub.application.queryRaw({ operation, input }, localUser)).data as Record<string, any>;
   const enrollment = async (kind: 'field-sync' | 'attached', operations?: string[]) =>
     (await command('link.enrollment.create', {
       label: kind === 'attached' ? 'Tablet' : 'Phone',
@@ -140,7 +140,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
   expect((await captures(field)).captures).toEqual([{ id: 'c1', sync: 'accepted' }]);
 
   // The photo went up before the record and the hub keeps it with the capture.
-  const owned = await hub.application.readBlob(photo.digest, owner);
+  const owned = await hub.application.readBlob(photo.digest, localUser);
   expect(owned?.data).toEqual(jpeg);
 
   // Offline: the record queues, then goes once the network returns.

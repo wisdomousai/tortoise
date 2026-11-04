@@ -3,13 +3,13 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SQLiteStorage } from '@tortoise/adapters/sqlite';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
+import { LOCAL_USER, LOCAL_WORKSPACE, openEmbeddedInstance } from '@tortoise/host';
 import { createCli } from '@tortoise/host/cli';
 import { createTestRequestsApplication } from '@tortoise/pattern-base/application';
 import { createTestRequestsOperationsApplication } from '../application';
 import fixture from './fixtures/workspace-v1.json';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 type Stored = { testRequests: { requests: Record<string, Record<string, unknown>> } };
 
 const cleanup: (() => Promise<void>)[] = [];
@@ -66,7 +66,7 @@ async function getRequest(definition: Parameters<typeof openEmbeddedInstance>[0]
   try {
     const read = await instance.application.queryRaw(
       { operation: 'test-request.get', input: { id: 'r1' } },
-      owner,
+      localUser,
     );
     return read.data;
   } finally {
@@ -93,7 +93,7 @@ test('migrate renames sampleId, unit and tests, stamps version 2 and refuses the
     transformer: 'TR-40517',
     description: 'Drawn from the bottom valve of T2, Substation Nord',
     method: 'IEC 60567 dissolved gas analysis',
-    requester: 'owner',
+    requester: 'local-user',
     updatedAt: 1000,
   });
   expect(after.stateVersions?.application).toEqual({ version: 2, readableFrom: 2 });
@@ -123,7 +123,7 @@ test('a workspace the base pattern wrote opens at version 2 with its requests un
         method: 'IEC 60567 dissolved gas analysis',
       },
     },
-    owner,
+    localUser,
   );
   await base.close();
 

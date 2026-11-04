@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { draftQuote, owner, stranger, testWorkspaces, utilityIds, viewer } from './support';
+import { draftQuote, localUser, stranger, testWorkspaces, utilityIds, viewer } from './support';
 
 const open = testWorkspaces('quote');
 const bushing = { partNumber: 'BSH-145-1250', quantity: 1 };
@@ -18,7 +18,7 @@ test('the desk drafts a quote with the prices of the parts and sets its inquiry 
       },
       idempotencyKey: 'inquiry',
     },
-    owner,
+    localUser,
   );
   const inquiryId = (inquiry.result as { id: string }).id;
   const created = await app.invokeRaw(
@@ -32,7 +32,7 @@ test('the desk drafts a quote with the prices of the parts and sets its inquiry 
       },
       idempotencyKey: 'quote',
     },
-    owner,
+    localUser,
   );
   const quote = created.result as { id: string };
   expect(created.result).toEqual({
@@ -58,7 +58,7 @@ test('the desk drafts a quote with the prices of the parts and sets its inquiry 
     discountPercent: 0,
     status: 'draft',
     total: 1_618_000,
-    createdBy: 'owner',
+    createdBy: 'local-user',
     createdAt: 1_000,
   });
   // The inquiry changed in the same command: its revision is on the quote's receipt.
@@ -86,7 +86,7 @@ test("a quote refuses another utility's transformer and a part that does not fit
       input: { caller: 'A. Huber', customerId: ids.U2117!, subject: 'Gaskets' },
       idempotencyKey: 'other-inquiry',
     },
-    owner,
+    localUser,
   );
   const attempts = [
     // TR-40471 runs at Alpental, not at Nordhafen.
@@ -113,10 +113,12 @@ test("a quote refuses another utility's transformer and a part that does not fit
           },
           idempotencyKey: `refused-${JSON.stringify(fields)}`,
         },
-        owner,
+        localUser,
       ),
     ).rejects.toMatchObject({ code });
-  expect((await app.queryRaw({ operation: 'quote.list', input: {} }, owner)).data).toMatchObject({
+  expect(
+    (await app.queryRaw({ operation: 'quote.list', input: {} }, localUser)).data,
+  ).toMatchObject({
     total: 0,
   });
 });
@@ -130,7 +132,7 @@ test('quote.update replaces the lines of a draft and keeps the discount', async 
       input: { id: quote.id, percent: 10, reason: 'Framework agreement' },
       idempotencyKey: 'discount',
     },
-    owner,
+    localUser,
   );
   const updated = await app.invokeRaw(
     {
@@ -138,7 +140,7 @@ test('quote.update replaces the lines of a draft and keeps the discount', async 
       input: { id: quote.id, lines: [{ partNumber: 'BSH-24-3150', quantity: 3 }] },
       idempotencyKey: 'update',
     },
-    owner,
+    localUser,
   );
   // 3 × 1,980.00 = 5,940.00, less 10 percent.
   expect(updated.result).toMatchObject({
@@ -153,12 +155,12 @@ test('quote.update replaces the lines of a draft and keeps the discount', async 
         input: { id: quote.id, lines: [{ partNumber: 'BSH-245-1600', quantity: 1 }] },
         idempotencyKey: 'not-fitting',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   await app.invokeRaw(
     { operation: 'quote.submit', input: { id: quote.id }, idempotencyKey: 'submit' },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -167,7 +169,7 @@ test('quote.update replaces the lines of a draft and keeps the discount', async 
         input: { id: quote.id, lines: [bushing] },
         idempotencyKey: 'late',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
 });
@@ -176,7 +178,9 @@ test('a repeated key returns the first receipt and a stale revision is refused',
   const app = await open({ trialRecords: true });
   const first = await draftQuote(app, 'once');
   expect((await draftQuote(app, 'once')).result).toEqual(first.result);
-  expect((await app.queryRaw({ operation: 'quote.list', input: {} }, owner)).data).toMatchObject({
+  expect(
+    (await app.queryRaw({ operation: 'quote.list', input: {} }, localUser)).data,
+  ).toMatchObject({
     total: 1,
   });
   const resource = `quote:${first.result.id}`;
@@ -189,7 +193,7 @@ test('a repeated key returns the first receipt and a stale revision is refused',
         idempotencyKey: key,
         expectedRevisions: { [resource]: revision },
       },
-      owner,
+      localUser,
     );
   await update('fresh');
   await expect(update('stale')).rejects.toMatchObject({ code: 'CONFLICT' });
@@ -212,6 +216,6 @@ test('viewers cannot write, strangers cannot read, and a missing quote is NOT_FO
     app.queryRaw({ operation: 'quote.list', input: {} }, stranger),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    app.queryRaw({ operation: 'quote.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: 'quote.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

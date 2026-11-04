@@ -17,7 +17,7 @@ export function StationBack() {
   );
 }
 
-/** Control holder and mode for people who cannot take over, scanner and bridge setup, and mute. */
+/** Who has control, and the mode, for people who cannot take over, scanner and bridge setup, and mute. */
 export function StationHeaderActions({
   station,
   person,
@@ -31,9 +31,9 @@ export function StationHeaderActions({
 }) {
   const { bridge } = station;
   const controlLabel =
-    bridge.controlHolder === 'agent'
+    bridge.controlledBy === 'agent'
       ? 'Agent at screen'
-      : bridge.controlHolder === 'operator'
+      : bridge.controlledBy === 'operator'
         ? 'Operator has the screen'
         : 'Screen idle';
   return (

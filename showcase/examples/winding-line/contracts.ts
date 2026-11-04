@@ -14,7 +14,7 @@ import { queryOperations } from './contracts/queries';
 export {
   stationRoleSchema,
   bridgeModeSchema,
-  controlHolderSchema,
+  controlledBySchema,
   syncSchema,
   observedReadingSchema,
   observationSchema,

@@ -22,7 +22,7 @@ The host runs on a server with its workspace in Postgres, and a site connects to
 5. In the deployment policy, set `ingress.listen` to `tls` with your certificate and key, `identity: external`, the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
 6. Back up the database with its own tools (`pg_dump`, point-in-time recovery).
 
-People sign in through workforce sign-in; nobody gets a local owner session. The instance keeps sessions by token digest in `workforce-sessions.sqlite` in its local directory, so a restart keeps people signed in until their sessions expire. A takeover on another machine without that directory signs everyone out. Reach the instance in attached mode; `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` work on local workspaces only.
+People sign in through workforce sign-in; nobody gets a local user session. The instance keeps sessions by token digest in `workforce-sessions.sqlite` in its local directory, so a restart keeps people signed in until their sessions expire. A takeover on another machine without that directory signs everyone out. Reach the instance in attached mode; `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` work on local workspaces only.
 
 Check it:
 

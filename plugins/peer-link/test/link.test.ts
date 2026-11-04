@@ -45,7 +45,7 @@ const portOf = (started: PeerPair) =>
   connectPeerTarget({
     target: qualityTarget,
     application: started.caller.application,
-    workspaceId: started.owner.workspaceId,
+    workspaceId: started.localUser.workspaceId,
     principalId: 'quality-integration',
     link: () => linkOf(started),
     readBlob: async () => undefined,
@@ -74,7 +74,7 @@ describe('connection', () => {
     const started = await pair();
     const { data } = await started.caller.application.queryRaw(
       { operation: 'peer.connection.list', input: {} },
-      started.owner,
+      started.localUser,
     );
     const listed = data as {
       targets: { target: string; connection: { peerId: string; contract: { id: string } } }[];
@@ -98,19 +98,22 @@ describe('connection', () => {
         input: { label: 'Again' },
         idempotencyKey: 'again',
       },
-      started.owner,
+      started.localUser,
     );
     const linked = peerLinkServiceOf(started.caller.services)!;
     await expect(
-      linked.connect({ target: 'nowhere', code: (result as { code: string }).code }, started.owner),
+      linked.connect(
+        { target: 'nowhere', code: (result as { code: string }).code },
+        started.localUser,
+      ),
     ).rejects.toThrow('nowhere is not a peer target here');
     await expect(
-      linked.connect({ target: 'quality', code: 'WRONGCODE1' }, started.owner),
+      linked.connect({ target: 'quality', code: 'WRONGCODE1' }, started.localUser),
     ).rejects.toThrow('quality refused the code');
     await expect(
       linked.connect(
         { target: 'quality', code: (result as { code: string }).code },
-        { ...started.owner, principalId: 'stranger' },
+        { ...started.localUser, principalId: 'stranger' },
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
@@ -119,7 +122,7 @@ describe('connection', () => {
     const started = await pair();
     await started.caller.application.invokeRaw(
       { operation: 'peer.connection.remove', input: { target: 'quality' }, idempotencyKey: 'rm' },
-      started.owner,
+      started.localUser,
     );
     const refused = await failure(
       portOf(started).deliver(effect(requestInspection.id, { lot: 'L1' }), signal()),
@@ -228,7 +231,7 @@ describe('client', () => {
       reads: { 'receiving.lot.who': peerQuery(whoami, () => ({})) },
     });
     const call = (principalId: string) => ({
-      context: { workspaceId: started.owner.workspaceId, principalId },
+      context: { workspaceId: started.localUser.workspaceId, principalId },
       identity: 'caller' as const,
       signal: signal(),
     });

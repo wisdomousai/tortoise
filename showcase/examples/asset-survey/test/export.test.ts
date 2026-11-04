@@ -87,7 +87,7 @@ describe('export directory', () => {
       designation: '=G1-Q2',
       scheme: 'iec81346',
       attributes: { manufacturer: 'Siemens', serial: 'S-77' },
-      filedBy: 'owner',
+      filedBy: 'local-user',
       photos: [{ file: `photos/${hex}.png`, digest: photo.digest, mediaType: 'image/png' }],
     });
     const bytes = await readFile(join(exportDirectory, folder, 'photos', `${hex}.png`));

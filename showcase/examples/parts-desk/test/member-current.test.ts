@@ -1,12 +1,15 @@
 import { expect, test } from 'bun:test';
-import { owner, stranger, supervisor, testWorkspaces, viewer } from './support';
+import { localUser, stranger, supervisor, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('member-current');
 const current = { operation: 'member.current', input: {} };
 
 test("member.current returns the caller's own role, and refuses a stranger", async () => {
   const app = await open();
-  expect((await app.queryRaw(current, owner)).data).toEqual({ principalId: 'owner', role: 'desk' });
+  expect((await app.queryRaw(current, localUser)).data).toEqual({
+    principalId: 'local-user',
+    role: 'desk',
+  });
   expect((await app.queryRaw(current, supervisor)).data).toEqual({
     principalId: 'mara',
     role: 'supervisor',

@@ -46,7 +46,7 @@ export const historyEntrySchema = z.strictObject({
 
 /**
  * One workflow instance. The starter sees its input, the values later steps read, its history
- * and its error; the workspace owner sees the fields up to `finishedAt` only.
+ * and its error; the local user sees the fields up to `finishedAt` only.
  */
 export const instanceSchema = z.strictObject({
   id,
@@ -107,7 +107,7 @@ export const workflowOperations = {
     id: 'workflow.list',
     kind: 'query',
     description:
-      'Workflow instances you started, with their values and history, newest first. The workspace owner also sees everyone else’s, status only.',
+      'Workflow instances you started, with their values and history, newest first. The local user also sees everyone else’s, status only.',
     input: jsonSchema(z.strictObject({ workflow: id.optional(), open: z.boolean().optional() })),
     output: jsonSchema(z.strictObject({ items: z.array(instanceSchema) })),
     permission: { action: 'read', resourceType: 'Workflow' },
@@ -126,7 +126,7 @@ export const workflowOperations = {
     id: 'workflow.cancel',
     kind: 'command',
     description:
-      'Cancel a workflow instance you started (or, as the workspace owner, anyone’s). The steps it completed are undone in reverse order by their compensations, then it is cancelled.',
+      'Cancel a workflow instance you started (or, as the local user, anyone’s). The steps it completed are undone in reverse order by their compensations, then it is cancelled.',
     input: jsonSchema(byId),
     output: jsonSchema(instanceSchema),
     permission: { action: 'cancel', resourceType: 'Workflow' },
@@ -157,7 +157,7 @@ export const workflowOperations = {
     id: 'workflow.due',
     kind: 'query',
     description:
-      'Instances the runner advances now, and waiting instances with the resource types they watch. Called only by the workflow runner as the workspace owner.',
+      'Instances the runner advances now, and waiting instances with the resource types they watch. Called only by the workflow runner as the local user.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(
       z.strictObject({

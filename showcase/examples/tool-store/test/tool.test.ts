@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
@@ -41,13 +41,13 @@ test('attendants add and update tools; members list, filter and search them', as
   const app = await open();
   const created = await app.invokeRaw(
     { operation: 'tool.create', input: wrench, idempotencyKey: 'create-1' },
-    owner,
+    localUser,
   );
   expect(created.result).toMatchObject({
     id: 'tool-1',
     ...wrench,
     status: 'available',
-    createdBy: 'owner',
+    createdBy: 'local-user',
     createdAt: 1_000,
   });
   await app.invokeRaw(
@@ -61,7 +61,7 @@ test('attendants add and update tools; members list, filter and search them', as
       },
       idempotencyKey: 'create-2',
     },
-    owner,
+    localUser,
   );
   const updated = await app.invokeRaw(
     {
@@ -69,7 +69,7 @@ test('attendants add and update tools; members list, filter and search them', as
       input: { id: 'tool-1', bin: ' A-04 ', description: ' Torque wrench 10-50 Nm ' },
       idempotencyKey: 'update-1',
     },
-    owner,
+    localUser,
   );
   // The update keeps the fields it leaves out, trims the ones it changes and never touches the tag.
   expect(updated.result).toMatchObject({
@@ -104,7 +104,7 @@ test('attendants add and update tools; members list, filter and search them', as
 
 test('a duplicate asset tag is refused and the first tool stays', async () => {
   const app = await open();
-  await app.invokeRaw({ operation: 'tool.create', input: wrench, idempotencyKey: 'a' }, owner);
+  await app.invokeRaw({ operation: 'tool.create', input: wrench, idempotencyKey: 'a' }, localUser);
   await expect(
     app.invokeRaw(
       {
@@ -112,10 +112,10 @@ test('a duplicate asset tag is refused and the first tool stays', async () => {
         input: { ...wrench, description: 'Copy', category: 'gauge', bin: 'A-04' },
         idempotencyKey: 'b',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
-  const all = await app.queryRaw({ operation: 'tool.list', input: {} }, owner);
+  const all = await app.queryRaw({ operation: 'tool.list', input: {} }, localUser);
   expect(all.data).toMatchObject({
     total: 1,
     items: [{ id: 'tool-1', description: wrench.description }],
@@ -127,7 +127,7 @@ test('input that breaks the record shape is refused', async () => {
   const create = (input: Record<string, unknown>, key: string) =>
     app.invokeRaw(
       { operation: 'tool.create', input: { ...wrench, ...input }, idempotencyKey: key },
-      owner,
+      localUser,
     );
   await expect(create({ assetTag: 'TC-601' }, 'k1')).rejects.toMatchObject({
     code: 'INVALID_INPUT',
@@ -145,7 +145,7 @@ test('input that breaks the record shape is refused', async () => {
   await expect(create({ status: 'retired' }, 'k5')).rejects.toMatchObject({
     code: 'INVALID_INPUT',
   });
-  const none = await app.queryRaw({ operation: 'tool.list', input: {} }, owner);
+  const none = await app.queryRaw({ operation: 'tool.list', input: {} }, localUser);
   expect(none.data).toMatchObject({ total: 0 });
 });
 
@@ -158,14 +158,17 @@ test('a tool needs no calibration date', async () => {
       input: { ...plain, category: 'hand-tool' },
       idempotencyKey: 'plain',
     },
-    owner,
+    localUser,
   );
   expect(created.result).not.toHaveProperty('calibrationDue');
 });
 
 test('viewers cannot write, strangers cannot read, and a missing tool is NOT_FOUND', async () => {
   const app = await open();
-  await app.invokeRaw({ operation: 'tool.create', input: wrench, idempotencyKey: 'seed' }, owner);
+  await app.invokeRaw(
+    { operation: 'tool.create', input: wrench, idempotencyKey: 'seed' },
+    localUser,
+  );
   await expect(
     app.invokeRaw(
       {
@@ -190,12 +193,12 @@ test('viewers cannot write, strangers cannot read, and a missing tool is NOT_FOU
     { code: 'FORBIDDEN' },
   );
   await expect(
-    app.queryRaw({ operation: 'tool.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: 'tool.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   await expect(
     app.invokeRaw(
       { operation: 'tool.update', input: { id: 'missing', bin: 'A-01' }, idempotencyKey: 'gone' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

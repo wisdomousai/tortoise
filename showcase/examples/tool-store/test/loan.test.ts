@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -39,11 +39,11 @@ test('members list, filter, search and read loans; strangers cannot', async () =
   const app = await open();
   await app.invokeRaw(
     { operation: 'tool.create', input: tool('TC-00601'), idempotencyKey: 't1' },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     { operation: 'tool.create', input: tool('TC-00602'), idempotencyKey: 't2' },
-    owner,
+    localUser,
   );
   const lend = (toolId: string, borrower: string, workOrder: string) =>
     app.invokeRaw(
@@ -52,7 +52,7 @@ test('members list, filter, search and read loans; strangers cannot', async () =
         input: { toolId, borrower, workOrder, dueAt: '2026-11-05T16:00:00Z' },
         idempotencyKey: `out-${toolId}`,
       },
-      owner,
+      localUser,
     );
   await lend('id-1', 'E004217', 'WO-100');
   await lend('id-2', 'E000042', 'WO-200');
@@ -79,7 +79,7 @@ test('members list, filter, search and read loans; strangers cannot', async () =
     },
   );
   await expect(
-    app.queryRaw({ operation: 'loan.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: 'loan.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });
 
@@ -87,8 +87,8 @@ test('only tool.check-out and tool.return write loans', async () => {
   const app = await open();
   for (const operation of ['loan.create', 'loan.update'])
     await expect(
-      app.invokeRaw({ operation, input: { title: 'X' }, idempotencyKey: operation }, owner),
+      app.invokeRaw({ operation, input: { title: 'X' }, idempotencyKey: operation }, localUser),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
-  const none = await app.queryRaw({ operation: 'loan.list', input: {} }, owner);
+  const none = await app.queryRaw({ operation: 'loan.list', input: {} }, localUser);
   expect(none.data).toMatchObject({ total: 0 });
 });

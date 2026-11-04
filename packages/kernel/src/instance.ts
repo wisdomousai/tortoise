@@ -9,7 +9,7 @@ import type { PluginSettings } from './plugins/settings';
 /** The single workspace a local instance serves. */
 export const LOCAL_WORKSPACE = 'local';
 /** The principal a local instance starts as; it owns the workspace it creates. */
-export const LOCAL_OWNER = 'owner';
+export const LOCAL_USER = 'local-user';
 
 export interface OpenInstanceOptions {
   readonly platform: HostPlatform;
@@ -24,7 +24,7 @@ export interface OpenInstanceOptions {
   readonly launcherSettingsWin?: boolean;
   /**
    * Check this launcher identity against the identity port before any state opens. `context`
-   * undefined means the local owner. Omitted: no check, as for a one-shot embedded process whose
+   * undefined means the local user. Omitted: no check, as for a one-shot embedded process whose
    * grant file the caller already applied.
    */
   readonly admit?: { readonly context?: ExecutionContext };
@@ -37,7 +37,7 @@ export interface OpenInstanceOptions {
  * 1. Plugins, and so the ports. One that refuses (an unusable policy, an unwritable audit log, a
  *    platform it does not run on) stops startup before the workspace is opened.
  * 2. Identity, when `admit` is given: a port that admits only a delegated grant must refuse the
- *    local owner before any state exists.
+ *    local user before any state exists.
  * 3. Storage and the blob store, then the runtime with the event-log port and the plugins'
  *    services.
  * 4. Every plugin's `ready` hook (attestation, crash recovery), before any integration pass or

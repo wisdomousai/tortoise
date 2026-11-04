@@ -1,6 +1,6 @@
 import { createDirectTransport } from '@tortoise/adapters/direct-transport';
 import type { AnyApplicationDefinition, Observer } from '@tortoise/kernel/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE, openInstance } from '@tortoise/kernel/instance';
 import type { HostPlatform } from '@tortoise/kernel/platform';
 import type { PluginSettings } from '@tortoise/kernel/plugins/settings';
 
@@ -17,7 +17,7 @@ export interface MobileInstanceOptions {
 
 /**
  * Open the application's instance inside the app, for the person holding the device. The screens
- * talk to it through the direct transport as the local owner; there is no listener and no session.
+ * talk to it through the direct transport as the local user; there is no listener and no session.
  * The instance sweeps unreferenced blobs when it opens. Integrations, plugin observers (such as
  * a notification dispatcher) and the application's observers are built but stopped: call
  * `foreground` when the app becomes active and `background` when it leaves, and
@@ -49,7 +49,7 @@ export async function openMobileInstance(
   }
   const context = {
     workspaceId: LOCAL_WORKSPACE,
-    principalId: LOCAL_OWNER,
+    principalId: LOCAL_USER,
     channel: 'direct' as const,
   };
   const transport = createDirectTransport(instance.application, context, {
@@ -67,8 +67,8 @@ export async function openMobileInstance(
         workspaceId: LOCAL_WORKSPACE,
         delegate: (grant) => ({
           workspaceId: LOCAL_WORKSPACE,
-          principalId: LOCAL_OWNER,
-          grant: { ...grant, principalId: LOCAL_OWNER, workspaceId: LOCAL_WORKSPACE },
+          principalId: LOCAL_USER,
+          grant: { ...grant, principalId: LOCAL_USER, workspaceId: LOCAL_WORKSPACE },
         }),
         onError,
       });

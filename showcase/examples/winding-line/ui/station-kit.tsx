@@ -8,7 +8,7 @@ import {
 } from '@/components/operator-surface';
 import { ScannerSetup } from '@/components/scanner-setup';
 import { DeliveryBadge, Freshness, StatusPill, StatusStrip } from '@/components/status-strip';
-import type { ControlHolder } from '@/components/takeover-button';
+import type { ControlledBy } from '@/components/takeover-button';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFeedback } from '@/hooks/use-feedback';
@@ -71,11 +71,11 @@ function DisplayControls({
 /** Every status pill and delivery badge state the station uses. */
 function KitStatus({
   running,
-  holder,
+  controlledBy,
   started,
 }: {
   running: boolean;
-  holder: ControlHolder;
+  controlledBy: ControlledBy;
   started: number;
 }) {
   return (
@@ -87,11 +87,11 @@ function KitStatus({
       />
       <StatusPill signal="pending" label="Monitor only" detail="Bridge mode" />
       <StatusPill
-        signal={holder === 'agent' ? 'attention' : 'idle'}
+        signal={controlledBy === 'agent' ? 'attention' : 'idle'}
         label={
-          holder === 'agent'
+          controlledBy === 'agent'
             ? 'Agent at screen'
-            : holder === 'operator'
+            : controlledBy === 'operator'
               ? 'You have the screen'
               : 'Screen idle'
         }
@@ -151,7 +151,7 @@ export function StationKitScreen() {
           />
         }
       />
-      <KitStatus running={demo.running} holder={demo.holder} started={started} />
+      <KitStatus running={demo.running} controlledBy={demo.controlledBy} started={started} />
       <Tabs value={tab} onValueChange={setTab} className="flex-col">
         <TabsList className="h-(--operator-target)">
           <TabsTrigger value="station" className="px-6 text-(length:--operator-text)">

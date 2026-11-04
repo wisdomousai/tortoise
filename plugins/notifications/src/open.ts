@@ -24,7 +24,7 @@ export const completeOperationOf = (target: string) => `${target}.effect.complet
  * Open the notifications plugin: enable notify actions and reply handlers in the OS plugin and
  * receive the replies that name it. Once started (on a serving host after it listens, on a phone
  * at each foreground) it runs one outbox dispatcher per target a queueing notify action carries,
- * as the owner narrowed to issuing replies and that target's completion command.
+ * as the local user narrowed to issuing replies and that target's completion command.
  */
 export function openNotifications(options: NotificationsOptions = {}) {
   return async (context: PluginOpenContext): Promise<PluginInstance> => {

@@ -29,7 +29,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'line.bridge.set-mode':
     'Set what the station bridge may do as supervisor: monitor-only (observe), assist (procedures of risk level none) or actuate (all declared procedures).',
   'line.control.request':
-    'Take over the station screen from the bridge (holder=operator) or hand it back (holder=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
+    'Take over the station screen from the bridge (controlledBy=operator) or hand it back (controlledBy=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
   'line.observation.ingest':
     'Station bridge only: submit what the station screen currently shows. Stable confident readings become observed values, unsure ones become attention items, and machine state changes open and close stops.',
 };

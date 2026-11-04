@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { deterministicHarness } from '@tortoise/agents';
 import { runAgentScenarios, type AgentScenario } from '@tortoise/testing/agent-scenarios';
-import { draftQuote, owner, supervisor, testWorkspaces, utilityIds } from './support';
+import { draftQuote, localUser, supervisor, testWorkspaces, utilityIds } from './support';
 
 // The assistant's scenarios, played by the deterministic harness and judged by what each run
 // committed, requested approval for and was refused. A scripted run cannot read a result and ends
@@ -23,14 +23,14 @@ async function run(app: Application, scenarios: AgentScenario[]) {
 }
 
 const readQuote = async (app: Application, id: string) =>
-  (await app.queryRaw({ operation: 'quote.get', input: { id } }, owner)).data;
+  (await app.queryRaw({ operation: 'quote.get', input: { id } }, localUser)).data;
 
-/** The owner's draft for TR-40417, submitted to the utility. */
+/** The local user's draft for TR-40417, submitted to the utility. */
 async function submittedQuote(app: Application) {
   const quote = (await draftQuote(app)).result;
   await app.invokeRaw(
     { operation: 'quote.submit', input: { id: quote.id }, idempotencyKey: 'submit' },
-    owner,
+    localUser,
   );
   return quote;
 }
@@ -50,7 +50,7 @@ test('the assistant finds TR-40417, searches its bushings, creates a draft quote
       name: 'a draft quote for two HV bushings at 5 percent',
       agent: assistant,
       task: 'Stadtwerke Nordhafen needs two HV bushings for TR-40417. Create the draft quote with 5 percent off under the framework agreement 2026.',
-      issuer: owner,
+      issuer: localUser,
       script: {
         commands: [
           { operation: 'transformer.find', input: { serial: 'TR-40417' } },
@@ -78,7 +78,7 @@ test('the assistant finds TR-40417, searches its bushings, creates a draft quote
         expect(created.id).toBe(quoteId);
         const stored = await application.queryRaw(
           { operation: 'quote.get', input: { id: quoteId } },
-          owner,
+          localUser,
         );
         // The run acts as the person who started it, so the quote is theirs.
         expect(stored.data).toMatchObject({
@@ -86,7 +86,7 @@ test('the assistant finds TR-40417, searches its bushings, creates a draft quote
           status: 'draft',
           discountPercent: 5,
           total: 2_812_000,
-          createdBy: owner.principalId,
+          createdBy: localUser.principalId,
         });
       },
     },
@@ -101,7 +101,7 @@ test('a cancellation without approval is FORBIDDEN, commits nothing and leaves t
       name: 'the assistant cancels a submitted quote itself',
       agent: assistant,
       task: `Cancel ${quote.number}, the utility ordered elsewhere.`,
-      issuer: owner,
+      issuer: localUser,
       script: { commands: [{ operation: 'quote.cancel', input: cancellation(quote.id) }] },
       expect: {
         commits: [],
@@ -125,7 +125,7 @@ test('the assistant requests approval for a cancellation, and the cancellation r
       name: 'the assistant requests approval to cancel a submitted quote',
       agent: assistant,
       task: `Cancel ${quote.number}, the utility ordered elsewhere.`,
-      issuer: owner,
+      issuer: localUser,
       script: {
         commands: [
           {
@@ -150,7 +150,7 @@ test('the assistant requests approval for a cancellation, and the cancellation r
   expect(await readQuote(app, quote.id)).toMatchObject({ status: 'submitted' });
 
   const request = result!.calls[0]!.receipt!.result as { id: string; requestedBy: string };
-  expect(request).toMatchObject({ status: 'pending', requestedBy: owner.principalId });
+  expect(request).toMatchObject({ status: 'pending', requestedBy: localUser.principalId });
   const approved = await app.invokeRaw(
     { operation: 'approval.approve', input: { id: request.id }, idempotencyKey: 'approve' },
     supervisor,
@@ -162,7 +162,7 @@ test('the assistant requests approval for a cancellation, and the cancellation r
   });
   const { data } = await app.queryRaw(
     { operation: 'approval.get', input: { id: request.id } },
-    owner,
+    localUser,
   );
   expect(data).toMatchObject({ status: 'approved', closedBy: supervisor.principalId });
   expect(await readQuote(app, quote.id)).toMatchObject({
@@ -182,7 +182,7 @@ test('the policy refuses the assistant 15 percent and accepts an approval reques
       name: 'the assistant sets 15 percent itself',
       agent: assistant,
       task,
-      issuer: owner,
+      issuer: localUser,
       script: { commands: [{ operation: 'quote.discount', input: discount }] },
       expect: {
         commits: [],
@@ -196,7 +196,7 @@ test('the policy refuses the assistant 15 percent and accepts an approval reques
       name: 'the assistant requests approval for 15 percent',
       agent: assistant,
       task,
-      issuer: owner,
+      issuer: localUser,
       script: {
         commands: [
           {
@@ -227,7 +227,7 @@ test('for TR-404 the assistant asks which transformer, and searches the parts of
       name: 'the assistant asks which transformer TR-404 is',
       agent: assistant,
       task: 'Which bushings fit TR-404?',
-      issuer: owner,
+      issuer: localUser,
       // The harness asks before its calls; the scenario's answer names TR-40471.
       script: {
         question: 'TR-404 matches TR-40417 and TR-40471. Which transformer do you mean?',

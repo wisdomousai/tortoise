@@ -60,7 +60,7 @@ function CapturedTools({ run }: { run: Run }) {
 
 /**
  * The agent panel under the terminal's tool list. A run starts from the work area's UI session,
- * so it captures the ticked tools, and it acts as the terminal's session, the workspace owner, not
+ * so it captures the ticked tools, and it acts as the terminal's session, the local user, not
  * as the signed-in attendant. The deterministic demo harness takes a script: Start run reads each
  * ticked tool with `tool.get`, and Pull for calibration opens the first ticked tool at the counter
  * and asks the attendant to review its bin change. A provider harness takes the brief instead.

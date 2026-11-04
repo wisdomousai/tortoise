@@ -10,7 +10,7 @@ const scheme = 'dev.example.field-service';
 const directories: string[] = [];
 afterAll(() => Promise.all(directories.map((path) => rm(path, { recursive: true, force: true }))));
 
-/** A started host and calls as the owner's session, closed after `run`. */
+/** A started host and calls as the local user's session, closed after `run`. */
 async function withHost(
   run: (
     call: (path: string, body?: unknown) => Promise<any>,
@@ -25,7 +25,7 @@ async function withHost(
     settings: { 'os-scheme': scheme },
   });
   try {
-    const { token } = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
+    const { token } = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' });
     const call = async (path: string, body?: unknown) => {
       const response = await fetch(`${host.url}/api/v1/${path}`, {
         method: body === undefined ? 'GET' : 'POST',
@@ -180,7 +180,7 @@ test('a reminder waits for the desktop, shows with Mark done, and the reply sets
       .result;
     expect((await command('task.remind', { id: task.id }, 'r-1')).result.reminder).toBe('pending');
 
-    // Electron main attaches by polling for instructions as the owner's session.
+    // Electron main attaches by polling for instructions as the local user's session.
     const relayed = await call('shell/actions?platform=macos');
     expect(relayed.instruction).toMatchObject({
       kind: 'notify',

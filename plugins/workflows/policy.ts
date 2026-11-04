@@ -8,8 +8,8 @@ const runner = new Set<string>([ops.advance.id, ops.fail.id]);
 /**
  * Starting is open to any caller except a workflow run, so an instance never starts another.
  * Retrying and resolving are for the starter as a person; cancelling is for the starter or a
- * workspace owner, which handlers check, as they filter reads. `workflow.due` is for an owner:
- * the runner reads it as the local owner. Advancing and recording a failure are allowed only for
+ * local user, which handlers check, as they filter reads. `workflow.due` is for a local user:
+ * the runner reads it as the local user. Advancing and recording a failure are allowed only for
  * the starter under the instance's run ID, a context only the in-process runner creates; each
  * step then passes the application's policy as the starter, inside that transaction.
  */
@@ -24,7 +24,7 @@ export const workflowsPolicy: AuthorizationPort<WorkflowsState> = {
     if (capability.id === ops.retry.id || capability.id === ops.resolve.id)
       return { allowed: !isDelegated(context), reason: 'PERSON_REQUIRED' };
     if (capability.id === ops.due.id)
-      return { allowed: state.owners.includes(context.principalId), reason: 'RUNNER_ONLY' };
+      return { allowed: state.localUsers.includes(context.principalId), reason: 'RUNNER_ONLY' };
     if (runner.has(capability.id)) {
       const id = String((input as { id?: unknown }).id);
       const instance = own(state.instances, id);
@@ -40,7 +40,7 @@ export const workflowsPolicy: AuthorizationPort<WorkflowsState> = {
     const instance = own(state.instances, event.resource.slice('workflow:'.length));
     return (
       !!instance &&
-      (instance.starter === context.principalId || state.owners.includes(context.principalId))
+      (instance.starter === context.principalId || state.localUsers.includes(context.principalId))
     );
   },
 };

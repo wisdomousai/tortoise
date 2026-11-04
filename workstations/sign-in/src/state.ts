@@ -34,14 +34,14 @@ export interface SessionRecord {
 
 /** The plugin's slice, under `state['station-sign-in']`. */
 export interface StationSignInState {
-  /** Principals who enroll and revoke badges: the local owner. */
+  /** Principals who enroll and revoke badges: the local user. */
   admins: string[];
   badges: Record<string, BadgeRecord>;
   sessions: Record<string, SessionRecord>;
 }
 
-export const createStationSignInState = (ownerId: string): StationSignInState => ({
-  admins: [ownerId],
+export const createStationSignInState = (localUserId: string): StationSignInState => ({
+  admins: [localUserId],
   badges: {},
   sessions: {},
 });

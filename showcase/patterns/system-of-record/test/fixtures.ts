@@ -7,7 +7,7 @@ import { openEmbeddedInstance } from '@tortoise/host';
 import { createTestRequestsSystemOfRecordApplication } from '../application';
 import { FakeLims } from '../fake-lims';
 
-export const owner = { workspaceId: 'local', principalId: 'owner' };
+export const localUser = { workspaceId: 'local', principalId: 'local-user' };
 export const viewer = { workspaceId: 'local', principalId: 'viewer' };
 
 const cleanup: (() => Promise<void>)[] = [];
@@ -48,12 +48,12 @@ export async function open({ bound = true } = {}) {
   const query = async <T = Record<string, unknown>>(
     operation: string,
     input: unknown,
-    as = owner,
+    as = localUser,
   ) => (await application.queryRaw({ operation, input }, as)).data as T;
   const command = async <T = Record<string, unknown>>(
     operation: string,
     input: unknown,
-    as: { workspaceId: string; principalId: string } = owner,
+    as: { workspaceId: string; principalId: string } = localUser,
   ) =>
     (await application.invokeRaw({ operation, input, idempotencyKey: `k${++key}` }, as))
       .result as T;

@@ -1,4 +1,4 @@
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import { createHubLinkState, hubLinkHandlers, hubLinkPolicy, type HubLinkState } from './handlers';
 import { hubNetworkPort } from './network';
@@ -49,7 +49,7 @@ export function createHubLinkPlugin(
         async ready(application) {
           const { paired } = await pairing.load(application, {
             workspaceId: LOCAL_WORKSPACE,
-            principalId: LOCAL_OWNER,
+            principalId: LOCAL_USER,
           });
           if (!paired && origin && code)
             background = pairing.service.pair({ origin, code }).catch(() => undefined);

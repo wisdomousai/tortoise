@@ -252,7 +252,7 @@ export function inProcess(
   const resolved = resolveTriggers(triggers, catalog, jobs);
   const log = createMemoryEventLog();
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState('owner')),
+    storage: createMemoryStorage(definition.createState('local-user')),
     services: { automation: { triggers: resolved, now, newId } },
     eventLog: log,
     now,
@@ -264,8 +264,8 @@ export function inProcess(
     ports: defaultPorts,
     delegate: (grant) => ({
       workspaceId: 'local',
-      principalId: 'owner',
-      grant: { ...grant, principalId: 'owner', workspaceId: 'local' },
+      principalId: 'local-user',
+      grant: { ...grant, principalId: 'local-user', workspaceId: 'local' },
     }),
     onError: (_scope, error) => errors.push(error),
   };

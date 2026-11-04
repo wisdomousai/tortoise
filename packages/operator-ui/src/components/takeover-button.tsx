@@ -3,16 +3,16 @@ import { Bot, Hand } from 'lucide-react';
 import { BigAction } from '@/components/big-action';
 import { cn } from '@/lib/utils';
 
-export type ControlHolder = 'operator' | 'agent' | 'idle';
+export type ControlledBy = 'operator' | 'agent' | 'idle';
 
 /**
  * Screen control for a station screen shared by an operator and a background agent. Taking over is
  * a single tap and is never guarded: the operator always preempts the agent. Handing the screen
  * back needs a hold, because the agent may act on the machine afterwards. The button only issues
- * the request; the holder shown is the one the bridge reports, so a pending takeover is visible.
+ * the request; the party shown is the one the bridge reports, so a pending takeover is visible.
  */
 function TakeoverButton({
-  holder,
+  controlledBy,
   requested,
   activity,
   onTakeOver,
@@ -20,10 +20,10 @@ function TakeoverButton({
   pending = false,
   className,
 }: {
-  /** The holder as reported by the bridge. */
-  holder: ControlHolder;
-  /** The holder the operator asked for, while the bridge has not confirmed it. */
-  requested?: ControlHolder;
+  /** Who has control, as reported by the bridge. */
+  controlledBy: ControlledBy;
+  /** Who the operator asked to have control, while the bridge has not confirmed it. */
+  requested?: ControlledBy;
   /** What the agent is doing, e.g. "Loading recipe R-12 · step 3 of 7". */
   activity?: React.ReactNode;
   onTakeOver: () => void;
@@ -31,8 +31,8 @@ function TakeoverButton({
   pending?: boolean;
   className?: string;
 }) {
-  const waiting = requested !== undefined && requested !== holder;
-  if (holder === 'operator' || requested === 'operator')
+  const waiting = requested !== undefined && requested !== controlledBy;
+  if (controlledBy === 'operator' || requested === 'operator')
     return (
       <BigAction
         className={cn(className)}
@@ -61,13 +61,13 @@ function TakeoverButton({
   return (
     <BigAction
       className={cn(className)}
-      tone={holder === 'agent' ? 'caution' : 'neutral'}
+      tone={controlledBy === 'agent' ? 'caution' : 'neutral'}
       size="compact"
       pending={pending}
       icon={<Hand aria-hidden />}
       label="Take over"
       description={
-        holder === 'agent' ? (activity ?? 'Agent is using the station') : 'Station is idle'
+        controlledBy === 'agent' ? (activity ?? 'Agent is using the station') : 'Station is idle'
       }
       onAction={onTakeOver}
     />

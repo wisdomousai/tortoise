@@ -17,7 +17,7 @@ test('the compliance screen shows posture and a new denial without a reload', as
     await expect(page.getByText('chain verified', { exact: false })).toBeVisible();
     await expect(page.getByText('Nothing has been denied.')).toBeVisible();
 
-    // Completing outbox effects belongs to the integration principal, so the owner is refused.
+    // Completing outbox effects belongs to the integration principal, so the local user is refused.
     const refused = await page.request.post(
       `${host.origin}/api/v1/commands/inspection.effect.complete`,
       {

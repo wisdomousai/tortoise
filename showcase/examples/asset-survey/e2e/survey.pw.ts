@@ -10,13 +10,13 @@ type Host = Awaited<ReturnType<typeof startService>>;
 /** A field phone without the app: pair through the enrollment route, then use the hub API. */
 async function pairPhone(host: Host) {
   const { token } = JSON.parse(await readFile(host.connectionFile, 'utf8')) as { token: string };
-  const owner = (operation: string, input: unknown) =>
+  const localUser = (operation: string, input: unknown) =>
     fetch(`${host.origin}/api/v1/commands/${operation}`, {
       method: 'POST',
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
       body: JSON.stringify({ input, idempotencyKey: crypto.randomUUID() }),
     }).then((response) => response.json() as Promise<{ result: Record<string, string> }>);
-  const { result } = await owner('link.enrollment.create', {
+  const { result } = await localUser('link.enrollment.create', {
     label: 'Field phone',
     kind: 'field-sync',
   });

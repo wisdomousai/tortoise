@@ -8,8 +8,8 @@ export interface ActivityState {
   cursor: number;
   counts: Record<string, number>;
 }
-export const createActivityState = (ownerId: string): ActivityState => ({
-  readers: [ownerId],
+export const createActivityState = (localUserId: string): ActivityState => ({
+  readers: [localUserId],
   cursor: 0,
   counts: {},
 });
@@ -63,7 +63,7 @@ const known = new Set<string>(activityModule.capabilities.map((capability) => ca
 /**
  * Listed readers read the summary and record passes. The plugin's policy sees only its own
  * slice, so a member of the application is not a reader until this slice lists them. The record
- * command is for the counting loop, which acts as the local owner narrowed to a grant.
+ * command is for the counting loop, which acts as the local user narrowed to a grant.
  */
 export const activityPolicy: AuthorizationPort<ActivityState> = {
   authorize({ capability, context, state }) {

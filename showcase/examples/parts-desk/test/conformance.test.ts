@@ -16,31 +16,31 @@ test('the screen, HTTP, the CLI and MCP read the same inquiry list', async () =>
     integration: false,
   });
   const { token } = (await Bun.file(host.connectionFile!).json()) as { token: string };
-  const owner = createHttpTransport({ baseUrl: host.url, token });
-  const connection = join(directory, 'owner-connection.json');
+  const localUser = createHttpTransport({ baseUrl: host.url, token });
+  const connection = join(directory, 'local-user-connection.json');
   await writeFile(connection, JSON.stringify({ endpoint: host.url, token }), { mode: 0o600 });
-  const server = createMcpServer(owner);
+  const server = createMcpServer(localUser);
   const mcp = new Client({ name: 'parts-desk-conformance', version: '1.0.0' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   try {
     await server.connect(serverTransport);
     await mcp.connect(clientTransport);
-    const utility = await owner.command('customer.create', {
+    const utility = await localUser.command('customer.create', {
       account: 'U1042',
       name: 'Stadtwerke Nordhafen',
       phone: '+49 40 5550 1042',
     });
-    await owner.command('inquiry.create', {
+    await localUser.command('inquiry.create', {
       caller: 'J. Weber',
       customerId: (utility.result as { id: string }).id,
       subject: 'From HTTP',
     });
     const direct = await host.application.queryRaw(
       { operation: 'inquiry.list', input: {} },
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: 'local', principalId: 'local-user' },
     );
     expect(direct.data).toMatchObject({ total: 1, items: [{ subject: 'From HTTP' }] });
-    expect((await owner.query('inquiry.list', {})).data).toEqual(direct.data);
+    expect((await localUser.query('inquiry.list', {})).data).toEqual(direct.data);
     const child = Bun.spawn(
       [
         process.execPath,

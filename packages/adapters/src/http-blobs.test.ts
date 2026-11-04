@@ -53,7 +53,7 @@ function fixture() {
   const store = createMemoryBlobStore();
   const origin = 'http://127.0.0.1:4100';
   const sessions = new Sessions();
-  const owner = sessions.create({ workspaceId: 'w', principalId: 'owner' });
+  const localUser = sessions.create({ workspaceId: 'w', principalId: 'local-user' });
   const other = sessions.create({ workspaceId: 'w', principalId: 'other' });
   const handler = createHttpHandler({ application, sessions, origin: () => origin });
   const fetch = (async (input: RequestInfo | URL, init?: RequestInit) =>
@@ -64,15 +64,15 @@ function fixture() {
       }),
     )) as typeof globalThis.fetch;
   const client = (token: string) => createHttpTransport({ baseUrl: origin, token, fetch });
-  return { application, handler, origin, owner, other, client };
+  return { application, handler, origin, localUser, other, client };
 }
 
 const code = (error: unknown) => (error as ApplicationError).code;
 
 test('a blob uploaded over HTTP attaches and reads back only for its readers', async () => {
-  const { client, owner, other } = fixture();
+  const { client, localUser, other } = fixture();
   const data = new Uint8Array([137, 80, 78, 71]);
-  const transport = client(owner.token);
+  const transport = client(localUser.token);
   const ref = await transport.blobs!.put(data, 'image/png');
   expect(ref.size).toBe(4);
   await transport.command('photo.attach', { capture: 'c1', photo: ref });
@@ -83,14 +83,14 @@ test('a blob uploaded over HTTP attaches and reads back only for its readers', a
 });
 
 test('a downloaded blob is sandboxed, typed and never cached', async () => {
-  const { handler, client, owner, origin } = fixture();
+  const { handler, client, localUser, origin } = fixture();
   const svg = new TextEncoder().encode('<svg onload="alert(1)"/>');
-  const transport = client(owner.token);
+  const transport = client(localUser.token);
   const ref = await transport.blobs!.put(svg, 'image/svg+xml');
   await transport.command('photo.attach', { capture: 'c1', photo: ref });
   const response = await handler(
     new Request(`${origin}/api/v1/blobs/${encodeURIComponent(ref.digest)}`, {
-      headers: { host: '127.0.0.1:4100', authorization: `Bearer ${owner.token}` },
+      headers: { host: '127.0.0.1:4100', authorization: `Bearer ${localUser.token}` },
     }),
   );
   expect(response.status).toBe(200);
@@ -101,8 +101,8 @@ test('a downloaded blob is sandboxed, typed and never cached', async () => {
 });
 
 test('uploads beyond the largest declared size or of undeclared types are refused', async () => {
-  const { client, owner } = fixture();
-  const transport = client(owner.token);
+  const { client, localUser } = fixture();
+  const transport = client(localUser.token);
   expect(await transport.blobs!.put(new Uint8Array(65), 'image/png').catch(code)).toBe(
     'INVALID_INPUT',
   );
@@ -116,7 +116,10 @@ test('uploads beyond the largest declared size or of undeclared types are refuse
 
 test('the direct transport stores and reads blobs under the launcher context', async () => {
   const { application } = fixture();
-  const transport = createDirectTransport(application, { workspaceId: 'w', principalId: 'owner' });
+  const transport = createDirectTransport(application, {
+    workspaceId: 'w',
+    principalId: 'local-user',
+  });
   const data = new Uint8Array([1, 2, 3]);
   const ref = await transport.blobs!.put(data, 'image/png');
   await transport.command(

@@ -8,7 +8,7 @@ import {
 import { auditPlugin } from '@tortoise/audit/plugin';
 import { auditPluginManifest } from '@tortoise/audit/plugin-manifest';
 import { defineApplication } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { defineManifest } from '@tortoise/kernel/manifest';
 import { networkPlugin } from '@tortoise/network/plugin';
 import { networkPluginManifest } from '@tortoise/network/plugin-manifest';
@@ -100,10 +100,10 @@ export function telemetryApplication() {
     ],
     authorization: {
       authorize: ({ context }) => ({
-        allowed: context.principalId === LOCAL_OWNER,
+        allowed: context.principalId === LOCAL_USER,
         reason: 'RESOURCE_DENIED',
       }),
-      canReadEvent: ({ context }) => context.principalId === LOCAL_OWNER,
+      canReadEvent: ({ context }) => context.principalId === LOCAL_USER,
     },
     plugins: [
       sitePlugin,

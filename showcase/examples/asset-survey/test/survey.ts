@@ -14,7 +14,7 @@ export const at = (principalId: string): ExecutionContext => ({
   workspaceId: 'local',
   principalId,
 });
-export const owner = at('owner');
+export const localUser = at('local-user');
 export const rita = at('rita');
 export const vic = at('vic');
 export const device = at('device:d1');
@@ -44,7 +44,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
   let eam!: FakeEam;
   const instance = await openEmbeddedInstance(
     createAssetSurveyApplication({
-      members: { owner: 'manager', rita: 'reviewer', vic: 'viewer' },
+      members: { 'local-user': 'manager', rita: 'reviewer', vic: 'viewer' },
       ...(options.now ? { workflows: { now: options.now } } : {}),
       onConnect: (ports) => {
         eam = ports.eam;
@@ -59,12 +59,12 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
   const query = async <T = Record<string, unknown>>(
     operation: string,
     input: unknown,
-    as = owner,
+    as = localUser,
   ) => (await application.queryRaw({ operation, input }, as)).data as T;
   const command = async <T = Record<string, unknown>>(
     operation: string,
     input: unknown,
-    as = owner,
+    as = localUser,
   ) =>
     (await application.invokeRaw({ operation, input, idempotencyKey: `k${++key}` }, as))
       .result as T;

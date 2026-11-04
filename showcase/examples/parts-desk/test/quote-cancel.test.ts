@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test';
-import { draftQuote, owner, testWorkspaces, viewer } from './support';
+import { draftQuote, localUser, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('quote-cancel');
 
 test('the desk cancels a draft or a submitted quote with a reason; a cancelled quote is CONFLICT', async () => {
   const app = await open({ trialRecords: true });
-  const cancel = (id: string, key: string, caller = owner) =>
+  const cancel = (id: string, key: string, caller = localUser) =>
     app.invokeRaw(
       {
         operation: 'quote.cancel',
@@ -23,7 +23,7 @@ test('the desk cancels a draft or a submitted quote with a reason; a cancelled q
   const sent = (await draftQuote(app, 'sent')).result;
   await app.invokeRaw(
     { operation: 'quote.submit', input: { id: sent.id }, idempotencyKey: 'submit' },
-    owner,
+    localUser,
   );
   expect((await cancel(sent.id, 'cancel-sent')).result).toMatchObject({ status: 'cancelled' });
   await expect(cancel(sent.id, 'viewer', viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });

@@ -128,7 +128,8 @@ export function createWindingLineDriverBridge(options: WindingLineDriverBridgeOp
         )
       ).data as BridgeControl;
       // Before anything is read or sent, so the effect stays pending, never held.
-      if (control.holder === 'operator') throw new DeliveryFailure('The operator has the station');
+      if (control.controlledBy === 'operator')
+        throw new DeliveryFailure('The operator has the station');
       return { mode: control.mode };
     },
     ...(options.pollMs ? { pollMs: options.pollMs } : {}),

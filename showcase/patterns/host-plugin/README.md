@@ -11,7 +11,7 @@ bun run dev:web
 
 - Submit and update a request (port 4353), then open **Activity**.
 - Set `TORTOISE_ACTIVITY_MODULES` to narrow the counted modules; startup refuses a module the application does not compose.
-- Read the summary as a viewer: only the owner may, and the counts contain operation names, never sample descriptions or principals.
+- Read the summary as a viewer: only the local user may, and the counts contain operation names, never sample descriptions or principals.
 
 ## References
 

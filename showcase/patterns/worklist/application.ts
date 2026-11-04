@@ -29,15 +29,15 @@ export interface TestRequestsWorklistOptions {
 
 /**
  * A field service crew that draws oil samples for the lab: the test requests module unchanged,
- * with a worklist of the sampling rounds the oil lab sends here. The owner connects to the oil
- * lab on the peers screen with a code its owner created. Rounds arrive through inbound sync;
+ * with a worklist of the sampling rounds the oil lab sends here. The local user connects to the oil
+ * lab on the peers screen with a code the oil lab's local user created. Rounds arrive through inbound sync;
  * samples and done marks leave through the outbox, and each shows whether the oil lab took it.
  */
 export function createTestRequestsWorklistApplication(options: TestRequestsWorklistOptions = {}) {
   return defineApplication<TestRequestsWorklistRoot, TestRequestsServices>({
     manifest,
-    createState: (ownerId) => ({
-      testRequests: createTestRequestsState(ownerId, options.members),
+    createState: (localUserId) => ({
+      testRequests: createTestRequestsState(localUserId, options.members),
       worklist: createWorklistSlice(),
     }),
     handlers: [

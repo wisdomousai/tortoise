@@ -64,7 +64,7 @@ import { create${app.app.pascal}Application } from '../application';
 
 // The ${agent.words} agent judged by what it commits and what it requests approval for. The deterministic harness
 // plays a scripted run; with \`AGENT_SCENARIOS=live\` the first test runs them on a model (\`scenarioHarness\`).
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 let ids = 0;
 let directory: string;
 let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
@@ -87,7 +87,7 @@ const scenarios: AgentScenario[] = [
     name: 'approval is requested to mark a finished ${one.words} done, and it stays open until a person approves',
     agent: '${app.app.kebab}.${agent.kebab}',
     task: 'Close the finished ${one.words}.',
-    issuer: owner,
+    issuer: localUser,
     setup: [
       {
         operation: '${one.kebab}.create',
@@ -118,7 +118,7 @@ const scenarios: AgentScenario[] = [
     async check(_result, application) {
       const record = await application.queryRaw(
         { operation: '${one.kebab}.get', input: { id: '${one.kebab}-1' } },
-        owner,
+        localUser,
       );
       expect(record.data).toMatchObject({ status: 'open' });
     },
@@ -127,7 +127,7 @@ const scenarios: AgentScenario[] = [
     name: 'updating directly is refused: the agent only requests approval',
     agent: '${app.app.kebab}.${agent.kebab}',
     task: 'Close everything.',
-    issuer: owner,
+    issuer: localUser,
     script: {
       commands: [{ operation: '${one.kebab}.update', input: { id: 'any', status: 'done' } }],
     },
@@ -153,7 +153,7 @@ test('a person approves an approval, and the update commits as that person', asy
   const app = instance.application;
   const created = await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Approved' }, idempotencyKey: 'create-approved' },
-    owner,
+    localUser,
   );
   const id = (created.result as { id: string }).id;
   const requested = await app.invokeRaw(
@@ -162,7 +162,7 @@ test('a person approves an approval, and the update commits as that person', asy
       input: { operation: '${one.kebab}.update', input: { id, status: 'done' }, rationale: 'Done.' },
       idempotencyKey: 'request-approved',
     },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     {
@@ -170,9 +170,9 @@ test('a person approves an approval, and the update commits as that person', asy
       input: { id: (requested.result as { id: string }).id },
       idempotencyKey: 'approve-approved',
     },
-    owner,
+    localUser,
   );
-  const record = await app.queryRaw({ operation: '${one.kebab}.get', input: { id } }, owner);
+  const record = await app.queryRaw({ operation: '${one.kebab}.get', input: { id } }, localUser);
   expect(record.data).toMatchObject({ id, status: 'done' });
 });
 `;

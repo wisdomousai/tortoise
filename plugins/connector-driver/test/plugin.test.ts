@@ -178,16 +178,18 @@ describe('driver plugin', () => {
   });
 
   test('only named readers see driver status, and a scoped grant must name it', async () => {
-    const state = createDriverState(['owner']);
+    const state = createDriverState(['local-user']);
     const capability = driverOperations.statusGet;
     const allowed = (ctx: ExecutionContext) =>
       driverPolicy.authorize({ capability, context: ctx, state } as never);
-    expect(allowed({ workspaceId: 'w', principalId: 'owner' })).toMatchObject({ allowed: true });
+    expect(allowed({ workspaceId: 'w', principalId: 'local-user' })).toMatchObject({
+      allowed: true,
+    });
     expect(allowed({ workspaceId: 'w', principalId: 'agent' })).toMatchObject({ allowed: false });
     expect(
       allowed({
         workspaceId: 'w',
-        principalId: 'owner',
+        principalId: 'local-user',
         grant: { operations: [capability.id], resources: ['order:1'] },
       } as ExecutionContext),
     ).toMatchObject({ allowed: false, reason: 'RESOURCE_DENIED' });

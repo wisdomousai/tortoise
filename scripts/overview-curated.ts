@@ -18,7 +18,7 @@ export type DocReference = string;
 export type Column = 'world' | 'surfaces' | 'instance' | 'delivery' | 'records';
 
 export const columns: ReadonlyArray<{ readonly id: Column; readonly title: string }> = [
-  { id: 'world', title: 'Point of work' },
+  { id: 'world', title: 'Workstation' },
   { id: 'surfaces', title: 'Surfaces' },
   { id: 'instance', title: 'Instance' },
   { id: 'delivery', title: 'Delivery' },
@@ -68,7 +68,7 @@ export const paths: readonly RequestPath[] = [
         title: 'Input',
         summary:
           "An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads a workstation application's screen.",
-        doc: 'point-of-work-input',
+        doc: 'operator-input',
         sources: [
           'packages/devices/src',
           'packages/observation/src',
@@ -379,7 +379,7 @@ export const properties: readonly Property[] = [
   {
     property: 'A scan submits the same command a button would, without a model turn.',
     mechanism: 'The scan router maps a decoded scan to a capability by GS1 AI or pattern.',
-    doc: 'point-of-work-input#scan-routing',
+    doc: 'operator-input#scan-routing',
     tests: [
       {
         file: 'packages/devices/test/scanner.test.ts',
@@ -435,8 +435,8 @@ export const properties: readonly Property[] = [
   },
   {
     property: 'A workstation application is not operated while the operator holds control.',
-    mechanism: 'The workstation controller checks the bridge mode, risk level and control holder.',
-    doc: 'operator-workstations#control-holder',
+    mechanism: 'The workstation controller checks the bridge mode, risk level and who has control.',
+    doc: 'operator-workstations#control',
     tests: [
       {
         file: 'workstations/screen-bridge/test/controller.test.ts',
@@ -511,7 +511,7 @@ export const ports: readonly PortEntry[] = [
   {
     port: 'identity',
     title: 'Identity',
-    fallback: 'Admits the trusted local owner',
+    fallback: 'Admits the trusted local user',
     providers: [{ plugin: 'site', source: 'plugins/site/src/open.ts' }],
   },
   {

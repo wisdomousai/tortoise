@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { createUiSessions } from '../src/host/ui-sessions';
 
-const context = { principalId: 'owner', workspaceId: 'w' } as never;
+const context = { principalId: 'local-user', workspaceId: 'w' } as never;
 const owner = { token: 't', context } as never;
 const sessions = { get: () => ({}) } as never;
 /** An application whose tool read returns the record with or without a revision. */

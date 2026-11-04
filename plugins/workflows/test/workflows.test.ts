@@ -15,7 +15,7 @@ const completeCarrier = async (app: ReturnType<typeof inProcess>, id: string, ac
   app.invoke(
     'carrier.complete',
     { id, effect: (await carrierEffect(app)).id, accepted },
-    person('owner'),
+    person('local-user'),
   );
 
 describe('workflow instances', () => {
@@ -152,7 +152,7 @@ describe('workflow instances', () => {
 
 /** The runner's context for one due instance, built the way the runner builds it. */
 async function asRunner(app: ReturnType<typeof inProcess>, id: string) {
-  const { items } = await app.query('workflow.due', {}, person('owner'));
+  const { items } = await app.query('workflow.due', {}, person('local-user'));
   const item = items.find((candidate: { id: string }) => candidate.id === id);
   const runId = `wf:${id}`;
   return {
@@ -207,7 +207,7 @@ describe('workflow durability', () => {
     await app.pass();
     await app.pass();
     await app.application.recordAttempt(
-      person('owner'),
+      person('local-user'),
       (await carrierEffect(app)).id,
       'Outcome unknown',
       {
@@ -249,7 +249,7 @@ describe('workflow durability', () => {
     const app = inProcess();
     const id = await filed(app);
     await app.pass();
-    await app.invoke('role.set', { principalId: 'ann', role: 'viewer' }, person('owner'));
+    await app.invoke('role.set', { principalId: 'ann', role: 'viewer' }, person('local-user'));
     await app.pass();
     expect(await app.instance(id)).toMatchObject({
       status: 'compensating',
@@ -267,16 +267,19 @@ describe('workflow durability', () => {
     await completeCarrier(app, 'p1');
     for (let index = 0; index < 3; index++) await app.pass();
     expect((await app.instance(id)).status).toBe('waiting');
-    const cancelled = await app.invoke('workflow.cancel', { id }, person('owner'));
+    const cancelled = await app.invoke('workflow.cancel', { id }, person('local-user'));
     expect(cancelled.result).toMatchObject({ status: 'compensating' });
     expect(cancelled.result).not.toHaveProperty('input');
     await app.pass();
-    expect(await app.instance(id)).toMatchObject({ status: 'cancelled', cancelledBy: 'owner' });
+    expect(await app.instance(id)).toMatchObject({
+      status: 'cancelled',
+      cancelledBy: 'local-user',
+    });
   });
 });
 
 describe('workflow access', () => {
-  test('the starter sees values, the owner status only, anyone else nothing', async () => {
+  test('the starter sees values, the local user status only, anyone else nothing', async () => {
     const app = inProcess();
     const id = await filed(app);
     await app.pass();
@@ -284,13 +287,13 @@ describe('workflow access', () => {
       input: { id: 'p1' },
       values: { reserve: { id: 'p1' } },
     });
-    const owner = await app.instance(id, person('owner'));
-    expect(owner).toMatchObject({ id, status: 'running', starter: 'ann' });
+    const localUser = await app.instance(id, person('local-user'));
+    expect(localUser).toMatchObject({ id, status: 'running', starter: 'ann' });
     for (const field of ['input', 'values', 'history', 'grantExpiresAt'])
-      expect(owner).not.toHaveProperty(field);
+      expect(localUser).not.toHaveProperty(field);
     await expect(app.instance(id, person('vic'))).rejects.toMatchObject({ code: 'NOT_FOUND' });
     expect((await app.query('workflow.list', {}, person('vic'))).items).toEqual([]);
-    expect((await app.query('workflow.list', {}, person('owner'))).items).toHaveLength(1);
+    expect((await app.query('workflow.list', {}, person('local-user'))).items).toHaveLength(1);
     await expect(app.invoke('workflow.cancel', { id }, person('vic'))).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
@@ -387,7 +390,7 @@ describe('workflow access', () => {
       status: 'stalled',
       stalledReason: 'GRANT_EXPIRED',
     });
-    expect((await app.query('workflow.due', {}, person('owner'))).items).toEqual([]);
+    expect((await app.query('workflow.due', {}, person('local-user'))).items).toEqual([]);
     await app.invoke('workflow.retry', { id });
     const renewed = await app.instance(id);
     expect(renewed).toMatchObject({ status: 'running' });

@@ -8,7 +8,7 @@ import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import type { StateMigrations } from '@tortoise/kernel/migrations';
 import { defineApplication } from '../src/application';
 import { createCli } from '../src/cli';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
+import { LOCAL_USER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineManifest } from '../src/manifest';
 
 const bump = defineCapability({
@@ -99,7 +99,7 @@ async function bumpWith(
   try {
     const receipt = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
-      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
+      { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
     );
     return (receipt.result as { value: number }).value;
   } finally {

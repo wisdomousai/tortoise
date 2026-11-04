@@ -1,4 +1,4 @@
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { defineHostPlugin } from '@tortoise/kernel/plugin';
 import type { ExecutionContext } from '@tortoise/runtime';
 import { stationSignInOperations as ops } from './contracts';
@@ -72,7 +72,7 @@ export function createStationSignInPlugin(options: { readonly now?: () => number
         sessionMinutes: minutesOf(settings['station-sign-in-minutes']),
       };
       const terminals = new Set([
-        LOCAL_OWNER,
+        LOCAL_USER,
         ...(settings['station-sign-in-terminals'] ?? '')
           .split(',')
           .map((terminal) => terminal.trim())

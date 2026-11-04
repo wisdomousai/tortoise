@@ -14,18 +14,18 @@ type Root = Record<string, unknown>;
 
 /** The application's state with a fresh slice per stateful unit, under the unit's id. */
 export function composeCreateState(
-  create: (ownerId: string) => unknown,
+  create: (localUserId: string) => unknown,
   units: readonly ComposedUnit[],
 ) {
-  return (ownerId: string): Root => {
-    const state = create(ownerId) as Root;
+  return (localUserId: string): Root => {
+    const state = create(localUserId) as Root;
     const slices: Root = {};
     for (const unit of statefulUnits(units)) {
       if (Object.hasOwn(state, unit.id))
         throw new Error(
           `Application state already has a "${unit.id}" key; ${unit.kind} slices own it`,
         );
-      slices[unit.id] = unit.feature.state!.create(ownerId);
+      slices[unit.id] = unit.feature.state!.create(localUserId);
     }
     return { ...state, ...slices };
   };
@@ -37,24 +37,24 @@ export function composeCreateState(
  * the unit is new to this workspace.
  */
 export function composeUpgradeState(
-  upgrade: ((state: unknown, ownerId: string) => unknown) | undefined,
+  upgrade: ((state: unknown, localUserId: string) => unknown) | undefined,
   units: readonly ComposedUnit[],
 ) {
   const stateful = statefulUnits(units);
   const keys = new Set(stateful.map((unit) => unit.id));
-  return (stored: unknown, ownerId: string): Root => {
+  return (stored: unknown, localUserId: string): Root => {
     const value = (stored ?? {}) as Root;
     const own = Object.fromEntries(Object.entries(value).filter(([key]) => !keys.has(key)));
-    const state = (upgrade ? upgrade(own, ownerId) : own) as Root;
+    const state = (upgrade ? upgrade(own, localUserId) : own) as Root;
     const slices: Root = {};
     for (const unit of stateful) {
       const { state: slice } = unit.feature;
       const stored = value[unit.id];
       slices[unit.id] =
         stored === undefined
-          ? slice!.create(ownerId)
+          ? slice!.create(localUserId)
           : slice!.upgrade
-            ? slice!.upgrade(stored, ownerId)
+            ? slice!.upgrade(stored, localUserId)
             : stored;
     }
     return { ...state, ...slices };

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { createApplicationRuntime } from '@tortoise/host/application';
 import { createMemoryStorage } from '@tortoise/runtime';
 import { directDriver, runScenarios, type BehavioralScenario } from '@tortoise/testing/scenarios';
@@ -7,8 +7,8 @@ import { peerLinkOperations as ops } from '../src/contracts';
 import type { PeerLinkService } from '../src/service';
 import { requestInspection, hold, qualityApplication, api, whoami } from './fixtures';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
-const guest = { ...owner, principalId: 'ann' };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
+const guest = { ...localUser, principalId: 'ann' };
 const tokenDigest = 'a'.repeat(64);
 const publicKey = 'A'.repeat(43);
 let key = 0;
@@ -20,7 +20,7 @@ const command = (operation: string, input: unknown) => ({
 const resolve = async (
   driver: Parameters<BehavioralScenario['run']>[0],
   input: Record<string, unknown>,
-) => (await driver.query({ operation: ops.credentialResolve.id, input }, owner)).data;
+) => (await driver.query({ operation: ops.credentialResolve.id, input }, localUser)).data;
 
 const scenarios: BehavioralScenario[] = [
   {
@@ -31,7 +31,7 @@ const scenarios: BehavioralScenario[] = [
           label: 'Receiving',
           operations: [requestInspection.id],
         }),
-        owner,
+        localUser,
       );
       const { code } = created.result as { code: string };
       await expect(
@@ -45,7 +45,7 @@ const scenarios: BehavioralScenario[] = [
           application: 'receiving',
           publicKey,
         }),
-        owner,
+        localUser,
       );
       const { peer } = redeemed.result as { peer: { id: string; audience: string } };
       expect(peer).toMatchObject({
@@ -53,7 +53,7 @@ const scenarios: BehavioralScenario[] = [
         audience: `quality#${peer.id}`,
         subjects: 'mapped',
         operations: [requestInspection.id],
-        enrolledBy: LOCAL_OWNER,
+        enrolledBy: LOCAL_USER,
       });
       await expect(
         driver.command(
@@ -63,7 +63,7 @@ const scenarios: BehavioralScenario[] = [
             application: 'receiving',
             publicKey,
           }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
@@ -78,31 +78,31 @@ const scenarios: BehavioralScenario[] = [
           principalId: 'ann',
           operations: [whoami.id],
         }),
-        owner,
+        localUser,
       );
       expect(await resolve(driver, { tokenDigest, subject: 'rita' })).toMatchObject({
         mapping: { principalId: 'ann', operations: [whoami.id] },
       });
       const mappings = await driver.query(
         { operation: ops.subjectList.id, input: { peerId: peer.id } },
-        owner,
+        localUser,
       );
       expect((mappings.data as { mappings: unknown[] }).mappings).toHaveLength(1);
       await driver.command(
         command(ops.subjectUnmap.id, { peerId: peer.id, subject: 'rita' }),
-        owner,
+        localUser,
       );
       expect(await resolve(driver, { tokenDigest, subject: 'rita' })).toMatchObject({
         mapping: null,
       });
 
-      await driver.command(command(ops.revoke.id, { peerId: peer.id }), owner);
-      await driver.command(command(ops.revoke.id, { peerId: peer.id }), owner);
+      await driver.command(command(ops.revoke.id, { peerId: peer.id }), localUser);
+      await driver.command(command(ops.revoke.id, { peerId: peer.id }), localUser);
       expect(await resolve(driver, { tokenDigest })).toEqual({ peer: null, mapping: null });
       await expect(
         driver.command(
           command(ops.subjectMap.id, { peerId: peer.id, subject: 'rita', principalId: 'ann' }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'CONFLICT' });
       await expect(
@@ -116,10 +116,13 @@ const scenarios: BehavioralScenario[] = [
       await expect(
         driver.command(
           command(ops.enrollmentCreate.id, { label: 'R', operations: [hold.id] }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
-      const created = await driver.command(command(ops.enrollmentCreate.id, { label: 'R' }), owner);
+      const created = await driver.command(
+        command(ops.enrollmentCreate.id, { label: 'R' }),
+        localUser,
+      );
       const { code } = created.result as { code: string };
       const { peer } = (
         await driver.command(
@@ -129,7 +132,7 @@ const scenarios: BehavioralScenario[] = [
             application: 'receiving',
             publicKey,
           }),
-          owner,
+          localUser,
         )
       ).result as { peer: { id: string } };
       await expect(
@@ -140,7 +143,7 @@ const scenarios: BehavioralScenario[] = [
             principalId: 'ann',
             operations: [requestInspection.id],
           }),
-          owner,
+          localUser,
         ),
       ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
     },
@@ -164,7 +167,7 @@ test('behavioural scenarios through the direct driver', async () => {
     },
   };
   const application = createApplicationRuntime(definition, {
-    storage: createMemoryStorage(definition.createState(LOCAL_OWNER)),
+    storage: createMemoryStorage(definition.createState(LOCAL_USER)),
     services: { 'peer-link': service },
   });
   await runScenarios(scenarios, directDriver(application));

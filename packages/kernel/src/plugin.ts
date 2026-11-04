@@ -65,17 +65,17 @@ export interface IngressPort {
   };
 }
 
-/** Who may act. The default admits every trusted launcher context and the local owner. */
+/** Who may act. The default admits every trusted launcher context and the local user. */
 export interface IdentityPort {
-  /** Throws FORBIDDEN or UNAVAILABLE when `context` (undefined: the local owner) is not admitted. */
+  /** Throws FORBIDDEN or UNAVAILABLE when `context` (undefined: the local user) is not admitted. */
   admit(context: ExecutionContext | undefined): void;
-  /** Whether the host issues the local owner a session and a connection file. */
-  readonly localOwnerSessions: boolean;
+  /** Whether the host issues the local user a session and a connection file. */
+  readonly localUserSessions: boolean;
 }
 
 /**
  * The kernel's ports. Each has at most one provider plugin and a safe default otherwise: no
- * network, no audit log, a loopback listener, the local owner admitted, no OS integration, no
+ * network, no audit log, a loopback listener, the local user admitted, no OS integration, no
  * child processes and no folders.
  */
 export interface HostPorts {
@@ -140,7 +140,7 @@ export interface PluginStartContext {
    */
   readonly origin?: string;
   /**
-   * The local owner narrowed to `grant`, the same delegation an agent run uses. A plugin acts as
+   * The local user narrowed to `grant`, the same delegation an agent run uses. A plugin acts as
    * a caller like any other: it reads and writes only through authorized operations.
    */
   delegate(grant: Pick<DelegationGrant, 'operations' | 'resources'>): ExecutionContext;
@@ -234,11 +234,11 @@ export interface HostPlugin<Slice = any, Services = any> extends Omit<
   /** Features or plugins that must be composed, and plugins opened, before this one. */
   readonly requires?: readonly string[];
   readonly state?: {
-    create(ownerId: string): Slice;
+    create(localUserId: string): Slice;
     /** Versions of this slice; see `StateMigrations`. */
     readonly migrations?: StateMigrations;
     /** Unversioned normalization run on every load after the migrations. */
-    upgrade?(stored: unknown, ownerId: string): Slice;
+    upgrade?(stored: unknown, localUserId: string): Slice;
   };
   readonly handlers?: readonly HandlerContribution<Slice, Services>[];
   readonly authorization?: {

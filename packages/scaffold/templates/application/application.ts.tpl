@@ -10,18 +10,18 @@ import { appPolicy, createHandlers, type Services } from './server';
 
 export interface {{app.pascal}}Options {
   services?: Services;
-  /** People who work in a new workspace besides its owner, who is always an editor. */
+  /** People who work in a new workspace besides the local user, who is always an editor. */
   members?: Record<string, Role>;
   // scaffold:options
 }
 
 /** The {{displayName}} application with the site, network, audit and compliance plugins. */
 export function create{{app.pascal}}Application(options: {{app.pascal}}Options = {}) {
-  const state = (ownerId: string) => createState(ownerId, options.members);
+  const state = (localUserId: string) => createState(localUserId, options.members);
   return defineApplication<AppState, Services>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    upgradeState: (stored, localUserId) => upgradeState(stored, state(localUserId)),
     features: [
       // scaffold:features
     ],

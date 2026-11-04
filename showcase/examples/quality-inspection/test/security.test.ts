@@ -40,11 +40,11 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
     });
     const auditLog = auditServiceOf(host.services).logDirectory;
     try {
-      // The local owner is the default auditor; posture is a read-only query like any other.
-      const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
+      // The local user is the default auditor; posture is a read-only query like any other.
+      const localUser = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' });
       const response = await fetch(`${host.url}/api/v1/queries/compliance.posture.get`, {
         method: 'POST',
-        headers: { authorization: `Bearer ${owner.token}`, 'content-type': 'application/json' },
+        headers: { authorization: `Bearer ${localUser.token}`, 'content-type': 'application/json' },
         body: JSON.stringify({ input: {} }),
       });
       expect(response.status).toBe(200);
@@ -90,7 +90,7 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
     // One changed byte breaks the chain, and verification says so with its own exit code.
     const segment = join(auditLog, segmentName(1));
     const text = await readFile(segment, 'utf8');
-    await writeFile(segment, text.replace('"owner"', '"0wner"'));
+    await writeFile(segment, text.replace('"local-user"', '"0wner"'));
     const tampered = await cli(directory, 'audit', 'verify', '--log', auditLog);
     expect(tampered.exitCode).toBe(10);
     expect(JSON.parse(tampered.stdout).ok).toBe(false);

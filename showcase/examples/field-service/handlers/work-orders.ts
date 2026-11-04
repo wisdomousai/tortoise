@@ -53,8 +53,8 @@ export const workOrderHandlers = (): HandlerContribution<ServiceState, WorkOrder
   }),
   handler(operations.workOrderSetMember, (input, ctx) => {
     const value = workOrder(ctx.state, input.id);
-    if (input.principalId === ctx.state.workspaceOwnerId)
-      throw new ApplicationError('FORBIDDEN', 'Workspace owner membership is fixed');
+    if (input.principalId === ctx.state.localUserId)
+      throw new ApplicationError('FORBIDDEN', 'Local user membership is fixed');
     if (input.role === null) delete value.members[input.principalId];
     else
       Object.defineProperty(value.members, input.principalId, {

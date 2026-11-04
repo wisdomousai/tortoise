@@ -49,13 +49,13 @@ function application(storage: Storage<State>) {
     ],
   });
 }
-const owner = { workspaceId: 'w', principalId: 'owner' };
+const localUser = { workspaceId: 'w', principalId: 'local-user' };
 const putItem = (
   app: ReturnType<typeof application>,
   id: string,
   text = id,
   key = `${id}:${text}`,
-) => app.invokeRaw({ operation: 'item.put', input: { id, text }, idempotencyKey: key }, owner);
+) => app.invokeRaw({ operation: 'item.put', input: { id, text }, idempotencyKey: key }, localUser);
 
 test('a commit writes the changed record and its bookkeeping, not the whole workspace', async () => {
   const { directory, path } = await scratch();
@@ -139,9 +139,9 @@ test('journal retention drops old entries, and a cursor behind them gets a reset
       expect(snapshot.journalFloor).toBe(3);
       expect(Object.keys(snapshot.receipts)).toHaveLength(2);
     });
-    const behind = await app.events(1, owner);
+    const behind = await app.events(1, localUser);
     expect(behind).toMatchObject({ events: [], cursor: 6, reset: true });
-    const current = await app.events(3, owner);
+    const current = await app.events(3, localUser);
     expect(current.reset).toBeUndefined();
     expect(current.events.map((event) => event.cursor)).toEqual([4, 5, 6]);
     // The oldest receipt is gone, so that retry runs again; a kept one replays.

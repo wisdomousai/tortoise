@@ -65,7 +65,7 @@ test('UI capture resolves authorized resources and binds to live host identity a
   });
   await app.invokeRaw(
     { operation: 'work-order.set-member', input: { id: 'p', principalId: 'customer', role: null } },
-    { principalId: 'owner', workspaceId: 'w' },
+    { principalId: 'local-user', workspaceId: 'w' },
   );
   expect(await store.poll(customer, context.sessionId)).toEqual([]);
   expect(store.status(customer, context.sessionId, pending)).toBe('rejected');
@@ -79,7 +79,7 @@ test('UI capture resolves authorized resources and binds to live host identity a
 test('UI contexts have revisions and immutable captures; intents replay until acknowledgement and expire', async () => {
   let now = 0;
   const sessions = new Sessions(() => now);
-  const owner = sessions.create({ principalId: 'owner', workspaceId: 'w' });
+  const localUser = sessions.create({ principalId: 'local-user', workspaceId: 'w' });
   const store = new UiSessionStore({
     now: () => now,
     isActive: (token) => !!sessions.get(token),
@@ -88,13 +88,13 @@ test('UI contexts have revisions and immutable captures; intents replay until ac
     intentTtlMs: 100,
     sessionTtlMs: 1000,
   });
-  const first = await store.register(owner, {
+  const first = await store.register(localUser, {
     selectedResources: ['task:one'],
     observedRevisions: { 'task:one': 1 },
   });
-  const captured = await store.capture(owner, first.sessionId);
+  const captured = await store.capture(localUser, first.sessionId);
   const changed = await store.update(
-    owner,
+    localUser,
     first.sessionId,
     { selectedResources: ['task:two'], observedRevisions: { 'task:two': 2 } },
     1,
@@ -103,38 +103,38 @@ test('UI contexts have revisions and immutable captures; intents replay until ac
   expect(captured.selectedResources).toEqual(['task:one']);
   expect(Object.isFrozen(captured.selectedResources)).toBe(true);
   await expect(
-    store.update(owner, first.sessionId, { selectedResources: [], observedRevisions: {} }, 1),
+    store.update(localUser, first.sessionId, { selectedResources: [], observedRevisions: {} }, 1),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
-  const id = await store.send(owner, first.sessionId, {
+  const id = await store.send(localUser, first.sessionId, {
     type: 'selectResource',
     resource: 'task:two',
   });
-  expect(await store.poll(owner, first.sessionId)).toHaveLength(1);
-  expect((await store.poll(owner, first.sessionId))[0]?.id).toBe(id);
-  expect(store.acknowledge(owner, first.sessionId, id, 'accepted')).toBe('accepted');
-  expect(store.acknowledge(owner, first.sessionId, id, 'accepted')).toBe('accepted');
-  expect(() => store.acknowledge(owner, first.sessionId, id, 'rejected')).toThrow(
+  expect(await store.poll(localUser, first.sessionId)).toHaveLength(1);
+  expect((await store.poll(localUser, first.sessionId))[0]?.id).toBe(id);
+  expect(store.acknowledge(localUser, first.sessionId, id, 'accepted')).toBe('accepted');
+  expect(store.acknowledge(localUser, first.sessionId, id, 'accepted')).toBe('accepted');
+  expect(() => store.acknowledge(localUser, first.sessionId, id, 'rejected')).toThrow(
     'already completed',
   );
-  expect(await store.poll(owner, first.sessionId)).toEqual([]);
-  expect(store.status(owner, first.sessionId, id)).toBe('accepted');
-  const expired = await store.send(owner, first.sessionId, {
+  expect(await store.poll(localUser, first.sessionId)).toEqual([]);
+  expect(store.status(localUser, first.sessionId, id)).toBe('accepted');
+  const expired = await store.send(localUser, first.sessionId, {
     type: 'requestReview',
     title: 'Review tasks',
     operations: ['task.create'],
   });
   now = 101;
-  expect(await store.poll(owner, first.sessionId)).toEqual([]);
-  expect(store.status(owner, first.sessionId, expired)).toBe('expired');
+  expect(await store.poll(localUser, first.sessionId)).toEqual([]);
+  expect(store.status(localUser, first.sessionId, expired)).toBe('expired');
   now = 201;
-  expect(store.status(owner, first.sessionId, expired)).toBeUndefined();
-  store.remove(owner, first.sessionId);
-  await expect(store.poll(owner, first.sessionId)).rejects.toThrow('unavailable');
+  expect(store.status(localUser, first.sessionId, expired)).toBeUndefined();
+  store.remove(localUser, first.sessionId);
+  await expect(store.poll(localUser, first.sessionId)).rejects.toThrow('unavailable');
 });
 
 test('a late UI validation cannot overwrite a newer selection', async () => {
   const sessions = new Sessions();
-  const owner = sessions.create({ principalId: 'owner', workspaceId: 'w' });
+  const localUser = sessions.create({ principalId: 'local-user', workspaceId: 'w' });
   let release!: () => void;
   const waiting = new Promise<void>((resolve) => {
     release = resolve;
@@ -146,24 +146,24 @@ test('a late UI validation cannot overwrite a newer selection', async () => {
       if (value.selectedResources.includes('task:slow')) await waiting;
     },
   });
-  const first = await store.register(owner, { selectedResources: [], observedRevisions: {} });
-  const older = store.update(owner, first.sessionId, {
+  const first = await store.register(localUser, { selectedResources: [], observedRevisions: {} });
+  const older = store.update(localUser, first.sessionId, {
     selectedResources: ['task:slow'],
     observedRevisions: { 'task:slow': 0 },
   });
-  await store.update(owner, first.sessionId, {
+  await store.update(localUser, first.sessionId, {
     selectedResources: ['task:new'],
     observedRevisions: { 'task:new': 0 },
   });
   release();
   await expect(older).rejects.toMatchObject({ code: 'CONFLICT' });
-  expect((await store.capture(owner, first.sessionId)).selectedResources).toEqual(['task:new']);
+  expect((await store.capture(localUser, first.sessionId)).selectedResources).toEqual(['task:new']);
 });
 
 test('a run sends intents only to the live UI session of its own principal, for resources it may read', async () => {
   let now = 0;
   const sessions = new Sessions(() => now);
-  const owner = sessions.create({ principalId: 'owner', workspaceId: 'w' });
+  const localUser = sessions.create({ principalId: 'local-user', workspaceId: 'w' });
   const readable = new Set(['task:one', 'approval-request:a1']);
   const store = new UiSessionStore({
     now: () => now,
@@ -181,11 +181,11 @@ test('a run sends intents only to the live UI session of its own principal, for 
     },
     sessionTtlMs: 1000,
   });
-  const { sessionId } = await store.register(owner, {
+  const { sessionId } = await store.register(localUser, {
     selectedResources: ['task:one'],
     observedRevisions: { 'task:one': 0 },
   });
-  const run = { principalId: 'owner', workspaceId: 'w', runId: 'r1' };
+  const run = { principalId: 'local-user', workspaceId: 'w', runId: 'r1' };
   const opened = await store.sendFromRun(run, sessionId, {
     type: 'openResource',
     resource: 'task:one',
@@ -196,7 +196,10 @@ test('a run sends intents only to the live UI session of its own principal, for 
     operations: ['task.create'],
     resources: ['approval-request:a1'],
   });
-  expect((await store.poll(owner, sessionId)).map((entry) => entry.id)).toEqual([opened, review]);
+  expect((await store.poll(localUser, sessionId)).map((entry) => entry.id)).toEqual([
+    opened,
+    review,
+  ]);
 
   const open = { type: 'openResource', resource: 'task:one' } as const;
   await expect(

@@ -7,7 +7,7 @@ import { acquireWorkspaceLease, type WorkspaceLease } from '@tortoise/adapters/p
 import { PostgresStorage, type PgDriver } from '@tortoise/adapters/postgres-storage';
 import { ApplicationError } from '@tortoise/contracts';
 import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import type { HostPlatform, PlatformOwnership } from '@tortoise/kernel/platform';
 import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
 import { JOURNAL_RETENTION, bunPlatform, type ServingPlatform } from './bun';
@@ -78,10 +78,10 @@ export function hostedPlatform(options: HostedPlatformOptions): ServingPlatform 
       if (!lease) throw new Error('Workspace storage needs the ownership this platform issued');
       return new PostgresStorage<unknown>(
         options.database,
-        () => definition.createState(LOCAL_OWNER),
+        () => definition.createState(LOCAL_USER),
         {
           retention: { journal: JOURNAL_RETENTION },
-          upgrade: stateUpgrade(definition, LOCAL_OWNER),
+          upgrade: stateUpgrade(definition, LOCAL_USER),
           scope: options.workspace,
           fence: (tx) => lease.check(tx),
         },

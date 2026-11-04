@@ -47,7 +47,7 @@ export function fakePlatform(
       events.push(`open storage ${path}`);
       let store = stores.get(path);
       if (!store) {
-        store = createMemoryStorage(() => definition.createState('owner'));
+        store = createMemoryStorage(() => definition.createState('local-user'));
         stores.set(path, store);
       }
       const { transact, read } = store;

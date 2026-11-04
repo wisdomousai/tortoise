@@ -100,7 +100,7 @@ async function pair() {
     hosts: { callee: { port: qualityPort }, caller: { settings: { 'site-policy': policy } } },
   });
   cleanup.push(() => started.close());
-  const { callee, caller, owner } = started;
+  const { callee, caller, localUser } = started;
   // Quality inspection: lots from its quality system, Ina inspects at P100, Vic holds no role.
   await callee.integrations.sync();
   await callee.application.invokeRaw(
@@ -109,13 +109,13 @@ async function pair() {
       input: { plant: 'P100', principalId: 'ina', role: 'inspector' },
       idempotencyKey: 'ina',
     },
-    owner,
+    localUser,
   );
   await writeFile(join(share, erpFolders.inbox, 'asn-1.csv'), notice);
   await caller.integrations.target('erp').inbound.runOnce();
 
   let keys = 0;
-  const as = (principalId: string): ExecutionContext => ({ ...owner, principalId });
+  const as = (principalId: string): ExecutionContext => ({ ...localUser, principalId });
   const receiving = {
     command: async (operation: string, input: unknown, principalId = 'rita') =>
       (
@@ -130,7 +130,7 @@ async function pair() {
         any
       >,
     line: async (id: string) =>
-      (await caller.application.queryRaw({ operation: 'delivery.get', input: { id } }, owner))
+      (await caller.application.queryRaw({ operation: 'delivery.get', input: { id } }, localUser))
         .data as Record<string, any>,
     deliver: () =>
       caller.integrations

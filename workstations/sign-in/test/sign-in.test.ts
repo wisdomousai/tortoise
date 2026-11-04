@@ -3,12 +3,12 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { stationPaths } from '../src/contracts';
 import { stationApplication } from './fixtures';
 
 /**
- * Shared-station sign-in on a serving host over HTTP: the owner's screen is the terminal, operators
+ * Shared-station sign-in on a serving host over HTTP: the local user's screen is the terminal, operators
  * sign in there with a badge and PIN, and their token acts as them until it ends.
  */
 const cleanups: (() => Promise<void>)[] = [];
@@ -64,7 +64,7 @@ test('an operator signs in at a terminal with badge and PIN, acts as themselves,
   };
   expect(session).toMatchObject({ principalId: 'ada@plant', terminal: 'press-1' });
   expect(await whoami(token)).toBe('ada@plant');
-  expect(await whoami(terminal)).toBe(LOCAL_OWNER);
+  expect(await whoami(terminal)).toBe(LOCAL_USER);
   // An operator is not an admin of badges, and cannot sign others in from their own session.
   expect((await post('/api/v1/queries/station.badge.list', token, { input: {} })).status).toBe(403);
   expect((await signIn('BADGE-0042', '2468', 'press-1', token)).status).toBe(403);
@@ -72,7 +72,7 @@ test('an operator signs in at a terminal with badge and PIN, acts as themselves,
   // Neither the badge value nor the PIN is stored in state or in a receipt.
   const listed = await host.application.queryRaw(
     { operation: 'station.badge.list', input: {} },
-    { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
+    { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER },
   );
   expect(JSON.stringify(listed.data)).not.toContain('BADGE-0042');
   const files = ['workspace.sqlite', 'workspace.sqlite-wal'].map((name) =>

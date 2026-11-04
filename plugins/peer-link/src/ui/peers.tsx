@@ -252,7 +252,7 @@ function Subjects({
   );
 }
 
-/** Connect with the code the other application's owner created; the route enrolls over the network. */
+/** Connect with the code the other application's local user created; the route enrolls over the network. */
 async function connectTo(target: string, code: string) {
   const response = await fetch(connectPath, {
     method: 'POST',
@@ -331,7 +331,7 @@ function Calling({ onError }: { onError: (message: string) => void }) {
       <CardHeader>
         <CardTitle>Applications this one calls</CardTitle>
         <CardDescription>
-          Ask the other application's owner for an enrollment code and enter it here.
+          Ask the other application's local user for an enrollment code and enter it here.
         </CardDescription>
       </CardHeader>
       <CardContent>

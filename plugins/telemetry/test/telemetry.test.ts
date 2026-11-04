@@ -6,7 +6,7 @@ import { auditServiceOf } from '@tortoise/audit';
 import { readEvents } from '@tortoise/event-log';
 import { startHost } from '@tortoise/host/host';
 import { hostContext } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import type { TelemetryService } from '../src/plugin';
 import { startCollector, telemetryApplication, type Received } from './fixtures';
 
@@ -15,7 +15,7 @@ afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
 
-const owner = { principalId: LOCAL_OWNER, workspaceId: 'local' };
+const localUser = { principalId: LOCAL_USER, workspaceId: 'local' };
 const SECRET = 'secret note text';
 
 async function start(collector?: string) {
@@ -36,7 +36,7 @@ async function start(collector?: string) {
   });
   cleanups.push(() => host.close());
   const telemetry = host.services.telemetry as TelemetryService;
-  const command = async (operation: string, input: unknown, context = owner) =>
+  const command = async (operation: string, input: unknown, context = localUser) =>
     host.application.invokeRaw({ operation, input, idempotencyKey: crypto.randomUUID() }, context);
   return { host, telemetry, command };
 }
@@ -74,7 +74,7 @@ test('commands, deliveries, backlog and runs reach the collector through the net
   await command('note.complete', { effectId: effect, status: 'accepted' });
 
   // A deterministic run, started over HTTP as a person would, adds one more note.
-  const session = host.sessions.create(owner);
+  const session = host.sessions.create(localUser);
   const response = await fetch(`${host.url}/api/v1/runs`, {
     method: 'POST',
     headers: { authorization: `Bearer ${session.token}`, 'content-type': 'application/json' },
@@ -157,7 +157,7 @@ test('commands, deliveries, backlog and runs reach the collector through the net
   for (const leak of [
     SECRET,
     'note-1',
-    LOCAL_OWNER,
+    LOCAL_USER,
     'stranger',
     runId,
     effect!,

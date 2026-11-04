@@ -11,13 +11,13 @@ export interface Pairing {
 
 /** The device side's slice, under `state['hub-link']`. The credential is in the keystore. */
 export interface HubLinkState {
-  owners: string[];
+  localUsers: string[];
   pairing: Pairing | null;
   lastError?: string;
 }
 
-export const createHubLinkState = (ownerId: string): HubLinkState => ({
-  owners: [ownerId],
+export const createHubLinkState = (localUserId: string): HubLinkState => ({
+  localUsers: [localUserId],
   pairing: null,
 });
 
@@ -60,7 +60,7 @@ const known = new Set<string>(hubLinkModule.capabilities.map((capability) => cap
 export const hubLinkPolicy: AuthorizationPort<HubLinkState> = {
   authorize({ capability, context, state }) {
     if (!known.has(capability.id)) return { allowed: false, reason: 'NO_POLICY' };
-    return { allowed: state.owners.includes(context.principalId), reason: 'RESOURCE_DENIED' };
+    return { allowed: state.localUsers.includes(context.principalId), reason: 'RESOURCE_DENIED' };
   },
-  canReadEvent: ({ context, state }) => state.owners.includes(context.principalId),
+  canReadEvent: ({ context, state }) => state.localUsers.includes(context.principalId),
 };

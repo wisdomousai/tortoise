@@ -50,7 +50,7 @@ export async function verifiedRuntime(
   return executable;
 }
 
-/** A per-run working directory and a per-conversation HOME, both private to the owner. */
+/** A per-run working directory and a per-conversation HOME, both private to the local user. */
 export async function providerDirectories(
   workspacePath: string,
   turn: HarnessTurn,

@@ -30,7 +30,7 @@ const show = (instance: Instance, ctx: Context) => {
 };
 const visible = (instance: Instance, ctx: Context) =>
   instance.starter === ctx.context.principalId ||
-  ctx.state.owners.includes(ctx.context.principalId);
+  ctx.state.localUsers.includes(ctx.context.principalId);
 /** An instance the caller may see; anything else reads as missing. */
 function found(ctx: Context, id: string, starterOnly = false): Instance {
   const instance = own(ctx.state.instances, id);

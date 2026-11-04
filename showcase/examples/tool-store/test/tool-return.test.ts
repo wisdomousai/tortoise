@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -40,7 +40,7 @@ async function open() {
       },
       idempotencyKey: 'seed',
     },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     {
@@ -53,18 +53,18 @@ async function open() {
       },
       idempotencyKey: 'out',
     },
-    owner,
+    localUser,
   );
   return app;
 }
 type App = Awaited<ReturnType<typeof open>>;
 
 const statusOf = async (app: App) =>
-  (await app.queryRaw({ operation: 'tool.get', input: { id: 'id-1' } }, owner)).data as {
+  (await app.queryRaw({ operation: 'tool.get', input: { id: 'id-1' } }, localUser)).data as {
     status: string;
   };
 const loan = async (app: App) =>
-  (await app.queryRaw({ operation: 'loan.get', input: { id: 'id-2' } }, owner)).data;
+  (await app.queryRaw({ operation: 'loan.get', input: { id: 'id-2' } }, localUser)).data;
 
 test('an ok return closes the loan and makes the tool available', async () => {
   const app = await open();
@@ -78,7 +78,7 @@ test('an ok return closes the loan and makes the tool available', async () => {
     condition: 'ok',
     returnedAt: 3_000,
     returnedBy: 'clerk',
-    checkedOutBy: 'owner',
+    checkedOutBy: 'local-user',
   });
   expect(receipt.result).not.toHaveProperty('note');
   expect(await statusOf(app)).toMatchObject({ status: 'available' });
@@ -93,7 +93,7 @@ test('a damaged return keeps the note and sends the tool to repair', async () =>
       input: { toolId: 'id-1', condition: 'damaged', note: ' ratchet slips ' },
       idempotencyKey: 'in',
     },
-    owner,
+    localUser,
   );
   expect(await statusOf(app)).toMatchObject({ status: 'in-repair' });
   expect(await loan(app)).toMatchObject({ condition: 'damaged', note: 'ratchet slips' });
@@ -121,7 +121,7 @@ test('a stale tool revision is refused and the loan stays open', async () => {
         idempotencyKey: 'stale',
         expectedRevisions: { 'tool:id-1': 1 },
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   expect(await statusOf(app)).toMatchObject({ status: 'checked-out' });
@@ -135,29 +135,29 @@ test('a repeated idempotency key returns the same receipt and closes the loan on
     input: { toolId: 'id-1', condition: 'damaged' },
     idempotencyKey: 'retry',
   };
-  const first = await app.invokeRaw(request, owner);
+  const first = await app.invokeRaw(request, localUser);
   clock = 9_000;
-  expect(await app.invokeRaw(request, owner)).toEqual(first);
+  expect(await app.invokeRaw(request, localUser)).toEqual(first);
   expect(await loan(app)).toMatchObject({ returnedAt: 2_000 });
 });
 
 test('a tool that is not checked out cannot be returned', async () => {
   const app = await open();
   const ok = { toolId: 'id-1', condition: 'ok' };
-  await app.invokeRaw({ operation: 'tool.return', input: ok, idempotencyKey: 'first' }, owner);
+  await app.invokeRaw({ operation: 'tool.return', input: ok, idempotencyKey: 'first' }, localUser);
   await expect(
-    app.invokeRaw({ operation: 'tool.return', input: ok, idempotencyKey: 'again' }, owner),
+    app.invokeRaw({ operation: 'tool.return', input: ok, idempotencyKey: 'again' }, localUser),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   await expect(
     app.invokeRaw(
       { operation: 'tool.return', input: { ...ok, toolId: 'missing' }, idempotencyKey: 'gone' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   await expect(
     app.invokeRaw(
       { operation: 'tool.return', input: { ...ok, condition: 'broken' }, idempotencyKey: 'bad' },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });
@@ -166,7 +166,7 @@ test('a returned tool can be lent again, to a new loan', async () => {
   const app = await open();
   await app.invokeRaw(
     { operation: 'tool.return', input: { toolId: 'id-1', condition: 'ok' }, idempotencyKey: 'in' },
-    owner,
+    localUser,
   );
   await app.invokeRaw(
     {
@@ -179,9 +179,12 @@ test('a returned tool can be lent again, to a new loan', async () => {
       },
       idempotencyKey: 'out-2',
     },
-    owner,
+    localUser,
   );
-  const open_ = await app.queryRaw({ operation: 'loan.list', input: { toolId: 'id-1' } }, owner);
+  const open_ = await app.queryRaw(
+    { operation: 'loan.list', input: { toolId: 'id-1' } },
+    localUser,
+  );
   expect(open_.data).toMatchObject({ total: 2 });
   // The first loan is untouched; the return closes only the tool's open loan.
   await app.invokeRaw(
@@ -190,7 +193,7 @@ test('a returned tool can be lent again, to a new loan', async () => {
       input: { toolId: 'id-1', condition: 'ok' },
       idempotencyKey: 'in-2',
     },
-    owner,
+    localUser,
   );
   expect(await loan(app)).toMatchObject({ borrower: 'E004217', returnedAt: 2_000 });
 });

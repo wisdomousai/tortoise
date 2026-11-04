@@ -23,16 +23,16 @@ export interface Task {
   reminder?: 'pending' | 'accepted' | 'rejected';
 }
 export interface ServiceState {
-  workspaceOwnerId: string;
+  localUserId: string;
   workOrders: Record<string, WorkOrder>;
   tasks: Record<string, Task>;
   deletedTasks: Record<string, string>;
   /** The task each queued reminder effect is about, until it completes. */
   reminderEffects: Record<string, string>;
 }
-export function createServiceState(ownerId = 'owner'): ServiceState {
+export function createServiceState(localUserId = 'local-user'): ServiceState {
   return {
-    workspaceOwnerId: ownerId,
+    localUserId: localUserId,
     workOrders: {},
     tasks: {},
     deletedTasks: {},

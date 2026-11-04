@@ -97,9 +97,9 @@ describe('winder through its automation interface', () => {
     await command('line.order.start', { station: 'winder-1', orderId: 'ORD-7002' });
     expect(await deliver()).toMatchObject({ retried: 1, accepted: 0 });
     await command('line.bridge.set-mode', { station: 'winder-1', mode: 'actuate' }, supervisor);
-    await command('line.control.request', { station: 'winder-1', holder: 'operator' });
+    await command('line.control.request', { station: 'winder-1', controlledBy: 'operator' });
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
-    await command('line.control.request', { station: 'winder-1', holder: 'agent' });
+    await command('line.control.request', { station: 'winder-1', controlledBy: 'agent' });
     driver.state.control = 'local';
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
     expect(driver.applied('effect-1')).toBe(0);

@@ -40,7 +40,7 @@ const application = defineApplication<State>({
   ],
   authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
 });
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 
 test('two hosted instances race for one workspace: one serves, the other takes over after it', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'hosted-'));
@@ -68,7 +68,7 @@ test('two hosted instances race for one workspace: one serves, the other takes o
     expect((refused as PromiseRejectedResult).reason).toBeInstanceOf(WorkspaceOwnedError);
     const serving = (hosts[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof start>>>).value;
     const bumpOn = (host: typeof serving) =>
-      host.application.invokeRaw({ operation: 'counter.bump', input: {} }, owner);
+      host.application.invokeRaw({ operation: 'counter.bump', input: {} }, localUser);
     expect((await bumpOn(serving)).result).toEqual({ count: 1 });
 
     // A renewal keeps the lease past its first expiry while the instance runs.

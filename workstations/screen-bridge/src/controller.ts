@@ -8,11 +8,11 @@ import { lookup } from './controller/lookup';
 /**
  * Bridge state the controller obeys, read from the application through the bridge principal's
  * control query before every action. `monitor-only` never acts; `assist` runs only
- * procedures of risk level `none`; `actuate` runs every declared procedure. Whoever holds control owns the screen.
+ * procedures of risk level `none`; `actuate` runs every declared procedure. Whoever has control owns the screen.
  */
 export interface BridgeControl {
   readonly mode: 'monitor-only' | 'assist' | 'actuate';
-  readonly holder: 'operator' | 'agent' | 'idle';
+  readonly controlledBy: 'operator' | 'agent' | 'idle';
 }
 
 export interface StationConnectorOptions {

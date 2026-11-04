@@ -42,14 +42,14 @@ export const noIngress: IngressPort = Object.freeze({
 
 /**
  * The kernel's ports when no plugin provides them: no network, no audit log, the platform's
- * listener if it has one, the local owner admitted, no OS integration, no child processes and no
+ * listener if it has one, the local user admitted, no OS integration, no child processes and no
  * folders.
  */
 export function defaultPorts(ingress: IngressPort = noIngress): HostPorts {
   return Object.freeze({
     network: isolatedNetwork,
     ingress,
-    identity: Object.freeze({ admit: () => undefined, localOwnerSessions: true }),
+    identity: Object.freeze({ admit: () => undefined, localUserSessions: true }),
     shell: noShell,
     processes: noProcesses,
     folders: noFolders,

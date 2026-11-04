@@ -135,7 +135,7 @@ async function start(harnesses: Harness[] = []) {
     harnesses,
   });
   close = host.close;
-  const session = host.sessions.create({ principalId: 'owner', workspaceId: 'local' });
+  const session = host.sessions.create({ principalId: 'local-user', workspaceId: 'local' });
   const call = async <T>(path: string, body?: unknown) => {
     const response = await fetch(host.url + path, {
       method: body === undefined ? 'GET' : 'POST',

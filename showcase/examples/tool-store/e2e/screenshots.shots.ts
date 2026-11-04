@@ -1,5 +1,5 @@
 /**
- * The screenshots of the tool store tutorial (`docs/tutorials/tool-store-*.mdx`). The owner's
+ * The screenshots of the tool store tutorial (`docs/tutorials/tool-store-*.mdx`). The local user's
  * connection token seeds tools, loans and requests over HTTP with fixed dates; the browser signs
  * an attendant in at the terminal as the pages describe. Run with `bun run docs:screenshots`.
  */

@@ -36,7 +36,7 @@ export interface MobileShellDependencies {
   /** The file's bytes when it holds at most `maxBytes`, or `undefined`. */
   readonly read: (uri: string, maxBytes: number) => Promise<Uint8Array | undefined>;
   readonly upload: BlobUpload;
-  /** Submit to the shell port as the device's owner. */
+  /** Submit to the shell port as the device's local user. */
   readonly submit: (request: RawOsRequest) => Promise<OsRequestOutcome>;
   /** Show an accepted request: open, navigate or prefill. */
   readonly deliver: (delivery: OsDelivery) => void;

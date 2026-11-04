@@ -12,7 +12,7 @@ const at = (principalId: string): ExecutionContext => ({
   workspaceId: LOCAL_WORKSPACE,
   principalId,
 });
-const owner = at('owner');
+const localUser = at('local-user');
 const rita = at('rita');
 const phone = at('device:d1');
 
@@ -31,7 +31,7 @@ const node = (id: string, designation: string, name: string, parentId?: string) 
   source: 'manual',
   attributes: {} as Record<string, unknown>,
   retired: false,
-  createdBy: 'owner',
+  createdBy: 'local-user',
   createdAt: 1,
 });
 const capture = (id: string, assignmentId: string, nodeId: string | undefined, review: string) => ({
@@ -63,7 +63,7 @@ function version1() {
   q1.attributes.serial = { value: 'S-1', captureId: 'cap-1', edited: false };
   return {
     integrationPrincipalId: 'integration',
-    members: { owner: 'manager', rita: 'reviewer' },
+    members: { 'local-user': 'manager', rita: 'reviewer' },
     nodes: {
       g1: node('g1', '=G1', 'Generator 1'),
       q1,
@@ -78,7 +78,7 @@ function version1() {
         kinds: ['nameplate'],
         status: 'returned',
         deviceId: 'd1',
-        createdBy: 'owner',
+        createdBy: 'local-user',
         createdAt: 0,
         dispatchedAt: 1,
         returnedAt: 3,
@@ -90,7 +90,7 @@ function version1() {
         kinds: ['nameplate'],
         status: 'dispatched',
         deviceId: 'd1',
-        createdBy: 'owner',
+        createdBy: 'local-user',
         createdAt: 4,
         dispatchedAt: 5,
       },
@@ -148,9 +148,9 @@ async function workspace(stored: Record<string, unknown>) {
     return {
       close: () => instance.close(),
       putBlob: instance.application.putBlob.bind(instance.application),
-      query: async <T = any>(operation: string, input: unknown, as = owner) =>
+      query: async <T = any>(operation: string, input: unknown, as = localUser) =>
         (await instance.application.queryRaw({ operation, input }, as)).data as T,
-      command: async <T = any>(operation: string, input: unknown, as = owner) =>
+      command: async <T = any>(operation: string, input: unknown, as = localUser) =>
         (
           await instance.application.invokeRaw(
             { operation, input, idempotencyKey: `k${++key}` },

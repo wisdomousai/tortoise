@@ -22,7 +22,7 @@ type Assignee = { type: string; id: string };
 
 /**
  * Members from the application, and connected peer applications from the peer link. Only the
- * workspace owner may list peers; for anyone else the list has none.
+ * local user may list peers; for anyone else the list has none.
  */
 function useAssignees(): AssigneeOption[] {
   const local = useQuery(live.liveQueryOptions(samplingOperations.assigneeList, {}));

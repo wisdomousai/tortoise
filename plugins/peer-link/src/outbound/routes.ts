@@ -19,13 +19,13 @@ export interface ConnectOptions {
 }
 
 /**
- * Connect to the peer target with the code its owner read out, as `context`.
+ * Connect to the peer target with the code its local user read out, as `context`.
  *
  * Ordering: the caller is authorized first, by listing connections as themself, so a person who
  * may not connect never spends the code. Then a new key pair is generated and the code redeemed
  * at the target's enrollment route through the network port; the credential and private key go
  * to the secret store; the connection is recorded as the caller. A crash after the redemption
- * leaves a peer record there that nobody uses (its owner revokes it) and, at worst, a secret
+ * leaves a peer record there that nobody uses (its local user revokes it) and, at worst, a secret
  * here without its record, which the next request deletes.
  */
 export async function connect(
@@ -67,7 +67,7 @@ export async function connect(
   if (reply.contract?.id !== declared.application)
     throw new ApplicationError(
       'CONFLICT',
-      `The code was issued by ${reply.contract?.id ?? 'an unknown application'}, not ${declared.application}; ask its owner to revoke this enrollment`,
+      `The code was issued by ${reply.contract?.id ?? 'an unknown application'}, not ${declared.application}; ask its local user to revoke this enrollment`,
     );
   const secret = { peerId: reply.peer.id, token: reply.token, privateKey: key.privateKey };
   await options.secrets.write(target, secret);

@@ -6,7 +6,7 @@ import { startService } from '../../../../tests/e2e/service';
 
 type Host = Awaited<ReturnType<typeof startService>>;
 
-/** Runs a command or query as the owner through the API. */
+/** Runs a command or query as the local user through the API. */
 async function call(host: Host, kind: 'commands' | 'queries', operation: string, input: object) {
   const { token } = JSON.parse(await readFile(host.connectionFile, 'utf8')) as { token: string };
   const response = await fetch(`${host.origin}/api/v1/${kind}/${operation}`, {
@@ -56,10 +56,10 @@ test('send a sampling round to yourself, report a sample per transformer, link a
     await page.getByRole('button', { name: 'New sampling round' }).click();
     const form = page.getByRole('form', { name: 'New Sampling round' });
     await form.getByLabel('Title').fill('Northfield, week 17');
-    // The launch signs in the principal `owner`, a technician of the workspace.
+    // The launch signs in the principal `local-user`, a technician of the workspace.
     const assignee = form.getByLabel('Assignee');
-    await expect(assignee.locator('option', { hasText: 'owner (technician)' })).toHaveCount(1);
-    await assignee.selectOption({ label: 'owner (technician)' });
+    await expect(assignee.locator('option', { hasText: 'local-user (technician)' })).toHaveCount(1);
+    await assignee.selectOption({ label: 'local-user (technician)' });
     const transformers = form.getByRole('group', { name: /Transformers/ });
     await transformers.getByLabel('Substation').fill('Northfield 110 kV');
     // Ticked transformers stay picked while the search changes.

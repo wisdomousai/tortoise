@@ -18,7 +18,7 @@ const tools = resolve(import.meta.dir, '../../tools');
 /**
  * What the sandbox sees read-only: the installed packages, the framework packages the tool
  * imports, and the tool's own directory. Not the whole checkout, because the workspaces of the
- * patterns and examples under it hold their owners' connection files, and an owner's token acts
+ * patterns and examples under it hold their local users' connection files, and a local user's token acts
  * outside the run's grant.
  */
 export const analysisReadOnly = [join(checkout, 'node_modules'), join(checkout, 'packages'), tools];

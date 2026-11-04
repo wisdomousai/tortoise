@@ -7,7 +7,7 @@ import { createWorklistSlice, type WorklistSlice } from '@tortoise/assignments/s
  * delivered. It keeps every capture it recorded, with whether the hub took it.
  */
 export interface FieldState {
-  ownerId: string;
+  localUserId: string;
   integrationPrincipalId: string;
   worklist: WorklistSlice;
 }
@@ -18,8 +18,11 @@ export interface FieldServices {
   newId?: () => string;
 }
 
-export const createFieldState = (ownerId: string, integrationPrincipalId: string): FieldState => ({
-  ownerId,
+export const createFieldState = (
+  localUserId: string,
+  integrationPrincipalId: string,
+): FieldState => ({
+  localUserId,
   integrationPrincipalId,
   worklist: createWorklistSlice(),
 });
@@ -41,7 +44,7 @@ export const migrations: StateMigrations = {
       to: 2,
       up: (stored) => {
         const v1 = stored as {
-          ownerId: string;
+          localUserId: string;
           integrationPrincipalId: string;
           captures?: Record<string, Delivery>;
           returns?: Record<string, Delivery>;
@@ -54,7 +57,7 @@ export const migrations: StateMigrations = {
           throw new Error(
             `Deliver the ${waiting} record(s) waiting for the hub with the previous version first`,
           );
-        return createFieldState(v1.ownerId, v1.integrationPrincipalId);
+        return createFieldState(v1.localUserId, v1.integrationPrincipalId);
       },
     },
   ],

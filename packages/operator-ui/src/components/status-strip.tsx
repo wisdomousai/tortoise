@@ -43,7 +43,7 @@ function StatusStrip({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** One station signal: machine state, bridge mode, control holder, system of record sync. */
+/** One station signal: machine state, bridge mode, who has control, system of record sync. */
 function StatusPill({
   signal,
   label,

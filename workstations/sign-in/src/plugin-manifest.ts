@@ -17,7 +17,7 @@ export const stationSignInPluginManifest = definePluginManifest({
       env: 'TORTOISE_STATION_SIGN_IN_TERMINALS',
       kind: 'string',
       description:
-        'comma-separated principals whose screens are station terminals, besides the local owner; absent: only the local owner',
+        'comma-separated principals whose screens are station terminals, besides the local user; absent: only the local user',
     },
     {
       key: 'station-sign-in-minutes',

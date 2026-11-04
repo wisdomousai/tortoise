@@ -7,14 +7,14 @@ import { createClient, createHttpTransport } from '@tortoise/client';
 import { createFleetApplication } from '@tortoise/fleet/application';
 import type { FleetAgentService } from '@tortoise/fleet-agent/plugin';
 import { startHost } from '@tortoise/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
+import { LOCAL_USER, LOCAL_WORKSPACE } from '@tortoise/kernel/instance';
 import { networkCommand } from '@tortoise/network/cli';
 import { policyErrors, sitePolicyFor } from '@tortoise/site/policy-file';
 import { createTestRequestsSiteApplication } from '../application';
 import manifest from '../manifest';
 import { publishRelease } from '../publish-release';
 
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const cleanups: (() => Promise<unknown> | unknown)[] = [];
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
@@ -26,7 +26,7 @@ async function temporary(prefix: string) {
   return directory;
 }
 
-/** The fleet example on loopback, and its owner's client over HTTP, as a build pipeline uses it. */
+/** The fleet example on loopback, and the local user's client over HTTP, as a build pipeline uses it. */
 async function startFleet() {
   const directory = await temporary('lab-fleet-');
   const policy = join(directory, 'site-policy.json');
@@ -49,11 +49,11 @@ async function startFleet() {
     (
       await fleet.application.invokeRaw(
         { operation, input, idempotencyKey: crypto.randomUUID() },
-        owner,
+        localUser,
       )
     ).result as Record<string, any>;
   const query = async (operation: string, input: unknown = {}) =>
-    (await fleet.application.queryRaw({ operation, input }, owner)).data as Record<string, any>;
+    (await fleet.application.queryRaw({ operation, input }, localUser)).data as Record<string, any>;
   return { fleet, client, command, query };
 }
 

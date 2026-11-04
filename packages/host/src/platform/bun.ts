@@ -3,7 +3,7 @@ import { SQLiteStorage } from '@tortoise/adapters/sqlite';
 import { acquireWorkspaceOwnership } from '@tortoise/adapters/ownership';
 import { createFileBlobStore } from '@tortoise/adapters/blob-files';
 import type { AnyApplicationDefinition } from '@tortoise/kernel/application';
-import { LOCAL_OWNER } from '@tortoise/kernel/instance';
+import { LOCAL_USER } from '@tortoise/kernel/instance';
 import { stateUpgrade } from '@tortoise/kernel/state-upgrade';
 import type { HostPlatform, PlatformOwnership } from '@tortoise/kernel/platform';
 import { hostComponents } from '../components';
@@ -27,9 +27,9 @@ export const WORKSPACE_DATABASE = 'workspace.sqlite';
 
 /** `workspaceStorage` over a database file, such as a staged copy being migrated. */
 export function workspaceDatabase(definition: AnyApplicationDefinition, file: string) {
-  return new SQLiteStorage<unknown>(file, () => definition.createState(LOCAL_OWNER), {
+  return new SQLiteStorage<unknown>(file, () => definition.createState(LOCAL_USER), {
     retention: { journal: JOURNAL_RETENTION },
-    upgrade: stateUpgrade(definition, LOCAL_OWNER),
+    upgrade: stateUpgrade(definition, LOCAL_USER),
   });
 }
 

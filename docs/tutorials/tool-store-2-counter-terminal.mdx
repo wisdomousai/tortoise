@@ -71,7 +71,7 @@ The application's side of the contract, the access view:
 
 **Goal:** a keyboard-wedge scanner does what the attendant would type. **Skill:** [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md).
 
-A scan is input from the person who scans and grants nothing by itself. A wedge source reads the burst of keystrokes a scanner types, told apart from typing by its speed and terminator, and keeps the burst from firing keyboard shortcuts. A scan router matches the code against the application's routes, a regular expression or a GS1 application identifier each, and turns the first match into an intent: open a screen or fill a field. The intent becomes an ordinary command that the policy still authorizes, and here the attendant confirms it. Scanner profiles and routes are per-station configuration kept by the device feature, which the application mounts with an access view over its own roles. [Point-of-work input](../point-of-work-input.md) describes sources, profiles and routing.
+A scan is input from the person who scans and grants nothing by itself. A wedge source reads the burst of keystrokes a scanner types, told apart from typing by its speed and terminator, and keeps the burst from firing keyboard shortcuts. A scan router matches the code against the application's routes, a regular expression or a GS1 application identifier each, and turns the first match into an intent: open a screen or fill a field. The intent becomes an ordinary command that the policy still authorizes, and here the attendant confirms it. Scanner profiles and routes are per-station configuration kept by the device feature, which the application mounts with an access view over its own roles. [Operator input](../operator-input.md) describes sources, profiles and routing.
 
 ```text prompt
 Use the add-scanner-input skill. In showcase/examples/tool-store, add a keyboard wedge scanner at
@@ -108,14 +108,14 @@ The run added one framework option for this step: `fill` on `CapabilityForm` put
 
 **Goal:** badge and PIN sign-in at the shared store terminal. **Skill:** [sign-in-at-a-terminal](../../workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md).
 
-A terminal is a principal whose screen may sign people in. An attendant scans a badge and enters a PIN; the terminal's screen then holds a short-lived operator token in memory and acts as that person, with that person's own role under the application's policy, never the terminal's. The work screen is mounted at one route alone, and leaving it ends the session, so the counter and the overdue list become tabs inside it. The terminal signs the operator out after the idle time, the workspace owner enrolls badges, and a badge that is also an employee number is no secret: the PIN and the lockout are. The frame components that send through the terminal's own session stay outside this screen.
+A terminal is a principal whose screen may sign people in. An attendant scans a badge and enters a PIN; the terminal's screen then holds a short-lived operator token in memory and acts as that person, with that person's own role under the application's policy, never the terminal's. The work screen is mounted at one route alone, and leaving it ends the session, so the counter and the overdue list become tabs inside it. The terminal signs the operator out after the idle time, the local user enrolls badges, and a badge that is also an employee number is no secret: the PIN and the lockout are. The frame components that send through the terminal's own session stay outside this screen.
 
 ```text prompt
 Use the sign-in-at-a-terminal skill. In showcase/examples/tool-store, the store counter has one
 shared terminal. Put the counter screen and the Overdue screen behind workstation sign-in with an
 attendant badge (E followed by six digits) and a PIN, and sign the attendant out after five idle
 minutes. Check-outs and returns record the signed-in attendant as checkedOutBy and returnedBy.
-The workspace owner enrolls badges on the badge screen. Write an HTTP test that enrolls a badge,
+The local user enrolls badges on the badge screen. Write an HTTP test that enrolls a badge,
 signs in, checks out a tool as that attendant, refuses a viewer's badge for a check-out, and
 refuses a revoked badge. Run the checks the sign-in-at-a-terminal skill names and report what
 passed.
@@ -150,7 +150,7 @@ The scanner is a typed burst and the badge reader a scan of the same kind; no ha
 
 - [Tool store 3: connections and agents](tool-store-3-connections-and-agents.mdx)
 - [Primitives](../primitives.md)
-- [Point-of-work input](../point-of-work-input.md)
+- [Operator input](../operator-input.md)
 - [Operator workstations](../operator-workstations.md)
 - [showcase/patterns/sign-in](../../showcase/patterns/sign-in/README.md)
 - [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)

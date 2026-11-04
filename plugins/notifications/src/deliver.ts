@@ -59,7 +59,7 @@ export interface NotificationPortOptions {
       context: ExecutionContext,
     ): Promise<unknown>;
   };
-  /** The dispatcher's identity: the owner narrowed to issuing and the target's completion. */
+  /** The dispatcher's identity: the local user narrowed to issuing and the target's completion. */
   readonly context: ExecutionContext;
 }
 

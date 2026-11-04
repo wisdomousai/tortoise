@@ -33,10 +33,10 @@ export interface AppState {
   // scaffold:state
 }
 
-/** A new workspace. Its owner is always a desk member. */
-export function createState(ownerId: string, members: Record<string, Role> = {}): AppState {
+/** A new workspace. The local user is always a desk member. */
+export function createState(localUserId: string, members: Record<string, Role> = {}): AppState {
   return {
-    members: { ...members, [ownerId]: 'desk' },
+    members: { ...members, [localUserId]: 'desk' },
     sync: {
       // scaffold:sync
     },

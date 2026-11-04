@@ -77,7 +77,7 @@ async function step(runner: Runner, item: Due, cursor: number | undefined) {
   }
 }
 
-/** One pass: read what is due as the local owner, then advance each instance once. */
+/** One pass: read what is due as the local user, then advance each instance once. */
 export async function passOnce(runner: Runner) {
   const { application, delegate, onError } = runner.context;
   const listed = await application.queryRaw(

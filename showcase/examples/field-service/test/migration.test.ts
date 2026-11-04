@@ -13,7 +13,7 @@ const as = (principalId: string): ExecutionContext => ({
   workspaceId: LOCAL_WORKSPACE,
   principalId,
 });
-const owner = as('owner');
+const localUser = as('local-user');
 
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -35,12 +35,12 @@ const pending: ApprovalRequest = {
   resource: 'work-order:p1',
   baseRevisions: {},
   status: 'pending',
-  requestedBy: 'owner',
+  requestedBy: 'local-user',
   createdAt: 0,
   expiresAt: 4_000_000_000_000,
 };
 const slice = {
-  workspaceOwnerId: 'owner',
+  localUserId: 'local-user',
   workOrders: { p1: workOrder },
   tasks: {},
   deletedTasks: {},
@@ -82,10 +82,13 @@ describe('field-service state version 2', () => {
       const { directory, open } = await workspace(structuredClone(stored));
       const application = open();
       expect(await listed(application, as('vic'))).toEqual(['a1']);
-      await application.invokeRaw({ operation: 'approval.approve', input: { id: 'a1' } }, owner);
+      await application.invokeRaw(
+        { operation: 'approval.approve', input: { id: 'a1' } },
+        localUser,
+      );
       const tasks = await application.queryRaw(
         { operation: 'task.list', input: { workOrderId: 'p1' } },
-        owner,
+        localUser,
       );
       expect(JSON.stringify(tasks.data)).toContain('Replace the burner nozzle');
       const raw = new SQLiteStorage<Record<string, any>>(

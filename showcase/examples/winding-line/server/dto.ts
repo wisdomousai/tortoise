@@ -55,7 +55,7 @@ export function summary(ctx: Context, station: Station, changed = false) {
     openStop: openStop(ctx.state, station.id) !== undefined,
     attention: attentionItems(ctx, station).length,
     mode: station.mode,
-    controlHolder: station.controlHolder,
+    controlledBy: station.controlledBy,
     stale: isStale(ctx, station),
   });
 }

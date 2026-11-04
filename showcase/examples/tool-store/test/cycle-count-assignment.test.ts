@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { createToolStoreApplication } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const clerk = { workspaceId: 'local', principalId: 'clerk' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
-type Caller = typeof owner;
+type Caller = typeof localUser;
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
   for (const step of cleanup.splice(0).reverse()) await step();
@@ -17,7 +17,7 @@ afterEach(async () => {
 
 /**
  * A workspace with bin A-03 holding TC-00601 (available), TC-00602 (checked out), TC-00603
- * (missing) and TC-00604 (retired), and TC-00701 in bin B-01. The owner and `clerk` are
+ * (missing) and TC-00604 (retired), and TC-00701 in bin B-01. The local user and `clerk` are
  * attendants, `viewer` is a viewer.
  */
 async function open() {
@@ -33,10 +33,10 @@ async function open() {
   );
   cleanup.push(() => instance.close());
   const app = instance.application;
-  const run = async (operation: string, input: unknown, caller: Caller = owner) =>
+  const run = async (operation: string, input: unknown, caller: Caller = localUser) =>
     (await app.invokeRaw({ operation, input, idempotencyKey: crypto.randomUUID() }, caller))
       .result as { id: string };
-  const read = async (operation: string, input: unknown, caller: Caller = owner) =>
+  const read = async (operation: string, input: unknown, caller: Caller = localUser) =>
     (await app.queryRaw({ operation, input }, caller)).data as Record<string, unknown>;
   const tool = async (assetTag: string, bin = 'A-03') =>
     (
@@ -116,7 +116,7 @@ test('attendants plan, work and review a bin count, viewers read it, and accepti
   });
   await expect(read('assignment.feed', {}, viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
   const body = { found: ['TC-00603'], missing: ['TC-00601'] };
-  for (const caller of [viewer, owner])
+  for (const caller of [viewer, localUser])
     await expect(
       run('assignment.cycle-count.report', { id: 'not-theirs', assignmentId: id, body }, caller),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
@@ -141,7 +141,7 @@ test('attendants plan, work and review a bin count, viewers read it, and accepti
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   expect(await run('assignment.cycle-count.accept', { id: reportId })).toMatchObject({
     review: 'accepted',
-    reviewedBy: 'owner',
+    reviewedBy: 'local-user',
   });
   expect(await status(tools.available)).toBe('missing');
   expect(await status(tools.missing)).toBe('available');
@@ -166,7 +166,7 @@ test('a count goes to an attendant only, and covers a bin that holds tools', asy
   expect(await read('assignee.list', {}, viewer)).toEqual({
     items: [
       { type: 'person', id: 'clerk', label: 'clerk' },
-      { type: 'person', id: 'owner', label: 'owner' },
+      { type: 'person', id: 'local-user', label: 'local-user' },
     ],
   });
   for (const assignee of ['viewer', 'stranger'])

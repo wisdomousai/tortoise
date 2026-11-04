@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { owner, stranger, testWorkspaces, viewer } from './support';
+import { localUser, stranger, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('part-search');
 type Found = {
@@ -30,7 +30,7 @@ test('category and text narrow the search, and the total counts matches before p
   const app = await open({ trialRecords: true });
   const bushings = await app.queryRaw(
     { operation: 'part.search', input: { transformerSerial: 'TR-10008', category: 'bushing' } },
-    owner,
+    localUser,
   );
   expect((bushings.data as Found).items.map((part) => part.partNumber)).toEqual([
     'BSH-123-2000',
@@ -39,16 +39,16 @@ test('category and text narrow the search, and the total counts matches before p
   ]);
   const gaskets = await app.queryRaw(
     { operation: 'part.search', input: { text: 'TANK COVER' } },
-    owner,
+    localUser,
   );
   expect((gaskets.data as Found).total).toBe(3);
   const first = await app.queryRaw(
     { operation: 'part.search', input: { category: 'relay', limit: 4 } },
-    owner,
+    localUser,
   );
   const rest = await app.queryRaw(
     { operation: 'part.search', input: { category: 'relay', offset: 4, limit: 4 } },
-    owner,
+    localUser,
   );
   expect((first.data as Found).total).toBe(6);
   expect((first.data as Found).items).toHaveLength(4);
@@ -59,7 +59,7 @@ test('category and text narrow the search, and the total counts matches before p
 test('an unknown serial is NOT_FOUND, and strangers cannot search', async () => {
   const app = await open({ trialRecords: true });
   await expect(
-    app.queryRaw({ operation: 'part.search', input: { transformerSerial: 'TR-99999' } }, owner),
+    app.queryRaw({ operation: 'part.search', input: { transformerSerial: 'TR-99999' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   await expect(
     app.queryRaw({ operation: 'part.search', input: {} }, stranger),

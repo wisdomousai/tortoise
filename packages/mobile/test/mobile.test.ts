@@ -181,13 +181,13 @@ test('each foreground starts the plugin and application observers again; backgro
   opened.foreground();
   opened.foreground();
   await opened.background();
-  expect(calls).toEqual(['start owner', 'observe', 'stop plugin', 'stop application']);
+  expect(calls).toEqual(['start local-user', 'observe', 'stop plugin', 'stop application']);
   calls.length = 0;
   await opened.backgroundPass(100);
   expect(calls).toEqual([]);
   opened.foreground();
   await opened.close();
-  expect(calls).toEqual(['start owner', 'observe', 'stop plugin', 'stop application']);
+  expect(calls).toEqual(['start local-user', 'observe', 'stop plugin', 'stop application']);
   opened.foreground();
   expect(calls).toHaveLength(4);
 });

@@ -92,7 +92,7 @@ test('the assistant panel finds TR-40417, asks which transformer TR-404 means an
     await expect(question).toContainText('Answered TR-40471');
     await expect(log).toContainText('TR-40471 is a PTX-40 of Alpental Energie');
 
-    // 15 percent is above the desk's limit, so the run requests approval; the owner is at the
+    // 15 percent is above the desk's limit, so the run requests approval; the local user is at the
     // desk, not a supervisor, so the card says who decides instead of offering Approve.
     await send(panel, 'The utility wants 15 percent off Q-00001 because of a late delivery.');
     const approval = log.getByRole('region', { name: 'Approval request' });
@@ -297,7 +297,7 @@ test('the assistant prepares a quote of two HV bushings for TR-40417 in the quot
       { search: 'Q-00002' },
     );
     const quote = created.items.find((item) => item.number === 'Q-00002')!;
-    expect(quote).toMatchObject({ createdBy: 'owner' });
+    expect(quote).toMatchObject({ createdBy: 'local-user' });
     // A run acts as the person who started it too, so the audit log tells them apart: the
     // person's command came through the screen's HTTP session, with no run.
     const audit = await query<{
@@ -306,7 +306,7 @@ test('the assistant prepares a quote of two HV bushings for TR-40417 in the quot
     const committed = audit.items.filter((event) => event.operation === 'quote.create');
     expect(committed.at(-1)).toMatchObject({
       resources: expect.arrayContaining([`quote:${quote.id}`]),
-      actor: { principalId: 'owner', via: 'http' },
+      actor: { principalId: 'local-user', via: 'http' },
     });
     expect(committed.at(-1)!.actor).not.toHaveProperty('runId');
     expect(

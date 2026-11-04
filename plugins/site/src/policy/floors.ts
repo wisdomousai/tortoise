@@ -98,7 +98,7 @@ export function checkFloors(
     error('FORWARD_UNBOUND', `Audit forward destination ${policy.audit.forwardTo} is not bound`);
   if (zeroTrust && !policy.audit.forwardTo)
     error('AUDIT_NOT_FORWARDED', 'zero-trust requires forwarding audit events off the host');
-  if (policy.profile === 'sandbox' && policy.identity === 'local-owner')
+  if (policy.profile === 'sandbox' && policy.identity === 'local-user')
     error('IDENTITY_FLOOR', 'sandbox requires launcher grants or an external identity adapter');
   if (zeroTrust && policy.identity !== 'external')
     error('IDENTITY_FLOOR', 'zero-trust requires an external identity adapter');

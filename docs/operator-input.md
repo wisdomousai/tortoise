@@ -1,4 +1,4 @@
-# Point-of-work input
+# Operator input
 
 Two kits support operator screens at a workstation:
 

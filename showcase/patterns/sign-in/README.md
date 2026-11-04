@@ -9,7 +9,7 @@ bun run dev:web
 
 ## What to try
 
-- On **Badges** (port 4358), enroll `ana` (technician) and `ben` (viewer) with values such as `LAB-0042`; only the owner enrolls or revokes.
+- On **Badges** (port 4358), enroll `ana` (technician) and `ben` (viewer) with values such as `LAB-0042`; only the local user enrolls or revokes.
 - On **Terminal**, scan a badge or type it as a burst with no field focused, or choose **Type instead**, then enter the PIN.
 - Scan a sample label such as `OS-24-0417` to fill the sample field and submit as `ana`; `ben` can only read.
 

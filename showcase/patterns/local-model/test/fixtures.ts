@@ -6,7 +6,7 @@ import { startHost } from '@tortoise/host/host';
 import { llamaServerStandIn } from '@tortoise/model-server/testing';
 import { composeTestRequestsLocalModel, type TestRequestsLocalModelOptions } from '../application';
 
-export const owner = { workspaceId: 'local', principalId: 'owner' };
+export const localUser = { workspaceId: 'local', principalId: 'local-user' };
 export const viewer = { workspaceId: 'local', principalId: 'viewer' };
 
 /** A loopback port no listener holds, for the stand-in the site policy binds. */

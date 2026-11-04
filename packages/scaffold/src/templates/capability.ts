@@ -62,7 +62,7 @@ import { join } from 'node:path';
 import { openEmbeddedInstance } from '@tortoise/host';
 import { create${app.app.pascal}Application } from '../application';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -78,7 +78,7 @@ test('${spec.id} is ${command ? 'for editors only' : 'open to members'}', async 
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
   cleanup.push(() => instance.close());
   const app = instance.application;
-  await expect(${call('owner', 'owner')}).resolves.toBeDefined();
+  await expect(${call('local-user', 'local-user')}).resolves.toBeDefined();
   ${viewer}
 });
 `;

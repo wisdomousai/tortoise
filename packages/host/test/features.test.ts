@@ -17,7 +17,7 @@ import {
   type RemoteSource,
 } from '@tortoise/runtime';
 import { createApplicationRuntime, defineApplication } from '../src/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
+import { LOCAL_USER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineFeature, mountFeature, type FeatureAdoption } from '../src/feature';
 import { defineManifest } from '../src/manifest';
 import { defineHostPlugin } from '../src/plugin';
@@ -116,7 +116,7 @@ function application(
 ) {
   return defineApplication<Root>({
     manifest,
-    createState: () => ({ members: ['owner'], log: [] }),
+    createState: () => ({ members: ['local-user'], log: [] }),
     handlers: [
       {
         capability: memberAdd,
@@ -132,7 +132,7 @@ function application(
     ...overrides,
   });
 }
-const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
+const localUser = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_USER };
 const stranger = { workspaceId: LOCAL_WORKSPACE, principalId: 'stranger' };
 
 async function withDirectory<T>(use: (directory: string) => Promise<T>) {
@@ -240,20 +240,20 @@ describe('feature manifests', () => {
 describe('feature composition', () => {
   test('the feature slice, access view, hooks and policy compose into one transaction', async () => {
     const definition = application();
-    const storage = createMemoryStorage<Root>(definition.createState('owner'));
+    const storage = createMemoryStorage<Root>(definition.createState('local-user'));
     const runtime = createApplicationRuntime(definition, { storage: storage as never });
     expect(await storage.read(LOCAL_WORKSPACE, async (s) => s.state)).toEqual({
-      members: ['owner'],
+      members: ['local-user'],
       log: [],
       score: { total: 0 },
     });
     await expect(
       runtime.invokeRaw({ operation: 'score.add', input: { by: 1 } }, stranger),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await runtime.invokeRaw({ operation: 'member.add', input: { id: 'stranger' } }, owner);
+    await runtime.invokeRaw({ operation: 'member.add', input: { id: 'stranger' } }, localUser);
     await runtime.invokeRaw({ operation: 'score.add', input: { by: 3 } }, stranger);
     expect(await storage.read(LOCAL_WORKSPACE, async (s) => s.state)).toEqual({
-      members: ['owner', 'stranger'],
+      members: ['local-user', 'stranger'],
       log: ['score 3'],
       score: { total: 3 },
     });
@@ -344,7 +344,7 @@ describe('feature composition', () => {
     expect(observed).toBe(true);
     expect(connections.sources).toEqual({ score: source });
     const runtime = createApplicationRuntime(definition, {
-      storage: createMemoryStorage<Root>(definition.createState('owner')) as never,
+      storage: createMemoryStorage<Root>(definition.createState('local-user')) as never,
     });
     runtime.bindSources(connections.sources!);
     expect(() => runtime.bindSources({ score: source })).toThrow(
@@ -372,7 +372,7 @@ describe('feature state', () => {
     from: (stored) => ({ total: (stored as Root).legacy ?? 0 }),
   };
   const legacy = application({
-    createState: () => ({ members: ['owner'], log: [], legacy: 0 }),
+    createState: () => ({ members: ['local-user'], log: [], legacy: 0 }),
     features: [],
     manifest: defineManifest({ id: 'score-app', title: 'Score', modules: [memberModule] }),
     authorization: applicationPolicy,
@@ -398,7 +398,7 @@ describe('feature state', () => {
           workspacePath,
         },
       );
-      await instance.application.invokeRaw({ operation: 'score.add', input: { by: 1 } }, owner);
+      await instance.application.invokeRaw({ operation: 'score.add', input: { by: 1 } }, localUser);
       await instance.close();
       const snapshot = await stored(workspacePath);
       expect(snapshot.state.score).toEqual({ total: 1 });
@@ -413,7 +413,7 @@ describe('feature state', () => {
     await withDirectory(async (workspacePath) => {
       // Version 1 kept the score in the application's own `legacy` field.
       const old = await openEmbeddedInstance(legacy, { workspacePath });
-      await old.application.invokeRaw({ operation: 'member.add', input: { id: 'ann' } }, owner);
+      await old.application.invokeRaw({ operation: 'member.add', input: { id: 'ann' } }, localUser);
       await old.close();
       const raw = new SQLiteStorage<Root>(join(workspacePath, 'workspace.sqlite'), () => ({
         members: [],
@@ -427,12 +427,12 @@ describe('feature state', () => {
       const upgraded = application({ migrations: v2 }, scoreMount(adopt));
       for (const by of [1, 1]) {
         const instance = await openEmbeddedInstance(upgraded, { workspacePath });
-        await instance.application.invokeRaw({ operation: 'score.add', input: { by } }, owner);
+        await instance.application.invokeRaw({ operation: 'score.add', input: { by } }, localUser);
         await instance.close();
       }
       const snapshot = await stored(workspacePath);
       expect(snapshot.state).toEqual({
-        members: ['owner', 'ann'],
+        members: ['local-user', 'ann'],
         log: ['score 6', 'score 7'],
         score: { total: 7 },
       });
@@ -440,7 +440,10 @@ describe('feature state', () => {
       const refused = await openEmbeddedInstance(legacy, { workspacePath });
       try {
         await expect(
-          refused.application.invokeRaw({ operation: 'member.add', input: { id: 'bo' } }, owner),
+          refused.application.invokeRaw(
+            { operation: 'member.add', input: { id: 'bo' } },
+            localUser,
+          ),
         ).rejects.toThrow('needs code at version 2');
       } finally {
         await refused.close();

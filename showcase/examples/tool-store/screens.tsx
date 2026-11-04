@@ -21,7 +21,7 @@ const COUNTER_IDLE_MS = 5 * 60_000;
 
 /**
  * The Tool Store screens. The counter and the overdue list are behind attendant sign-in at the
- * counter terminal (`/terminal`); the workspace owner enrolls badges on `/badges`.
+ * counter terminal (`/terminal`); the local user enrolls badges on `/badges`.
  */
 export default defineScreens({
   manifest,

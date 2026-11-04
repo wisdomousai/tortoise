@@ -27,7 +27,7 @@ const inquiry: Inquiry = {
   transformerSerial: 'TR-40417',
   subject: 'Two HV bushings after a flashover',
   status: 'open',
-  createdBy: 'owner',
+  createdBy: 'local-user',
   createdAt: 0,
 };
 const part: Part = {
@@ -40,7 +40,7 @@ const part: Part = {
   unitPrice: 1_480_000,
   stock: 3,
   leadTimeDays: 42,
-  createdBy: 'owner',
+  createdBy: 'local-user',
   createdAt: 0,
 };
 const quote: Quote = {
@@ -59,7 +59,7 @@ const quote: Quote = {
   discountPercent: 0,
   status: 'draft',
   total: 2_960_000,
-  createdBy: 'owner',
+  createdBy: 'local-user',
   createdAt: 0,
 };
 

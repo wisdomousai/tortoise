@@ -43,7 +43,7 @@ async function countOnce(loop: Loop) {
 }
 
 /**
- * Count committed commands every `intervalMs` as the local owner narrowed to a grant that lists
+ * Count committed commands every `intervalMs` as the local user narrowed to a grant that lists
  * the counted operations and this plugin's own two. It resumes from the recorded cursor after a
  * restart. Stops after the running pass.
  */

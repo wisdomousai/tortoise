@@ -10,7 +10,7 @@ import {
   type AgentScenario,
 } from '@tortoise/testing/agent-scenarios';
 import { createTestRequestsAgentsApplication } from '../application';
-import { owner } from './fixtures';
+import { localUser } from './fixtures';
 
 // The method suggester judged by what it commits and what it requests approval for. The
 // deterministic harness plays each script; with `AGENT_SCENARIOS=live` a model reads the task
@@ -44,7 +44,7 @@ const scenarios: AgentScenario[] = [
     name: 'approval is requested for a method, and the request keeps no method until approved',
     agent: 'test-request.method-suggester',
     task: 'Suggest test methods for requests that have none.',
-    issuer: owner,
+    issuer: localUser,
     setup: [withoutMethod],
     script: {
       commands: [
@@ -76,7 +76,7 @@ const scenarios: AgentScenario[] = [
     async check(_result, application) {
       const request = await application.queryRaw(
         { operation: 'test-request.get', input: { id: 'r1' } },
-        owner,
+        localUser,
       );
       expect(request.data).toMatchObject({ method: '' });
     },
@@ -85,7 +85,7 @@ const scenarios: AgentScenario[] = [
     name: 'changing a request directly is refused: the suggester only requests approval',
     agent: 'test-request.method-suggester',
     task: 'Set the method of test request r1.',
-    issuer: owner,
+    issuer: localUser,
     script: {
       commands: [
         {

@@ -28,10 +28,10 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
     const auditLog = auditServiceOf(host.services).logDirectory;
     try {
       expect(siteServiceOf(host.services).policy.mode).toBe('isolated');
-      const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
+      const localUser = host.sessions.create({ workspaceId: 'local', principalId: 'local-user' });
       const response = await fetch(`${host.url}/api/v1/commands/work-order.create`, {
         method: 'POST',
-        headers: { authorization: `Bearer ${owner.token}`, 'content-type': 'application/json' },
+        headers: { authorization: `Bearer ${localUser.token}`, 'content-type': 'application/json' },
         body: JSON.stringify({
           input: { name: 'Audited over HTTP' },
           idempotencyKey: 'audit-http-1',
@@ -55,7 +55,7 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
       (event) => event.kind === 'command.committed' && event.operation === 'work-order.create',
     );
     expect(committed).toHaveLength(1);
-    expect(committed[0]!.actor).toMatchObject({ principalId: 'owner', via: 'http' });
+    expect(committed[0]!.actor).toMatchObject({ principalId: 'local-user', via: 'http' });
     // The work order name is not allow-listed for audit, so only a digest of the input is kept.
     expect(JSON.stringify(events)).not.toContain('Audited over HTTP');
     expect((await verifyEventLog(auditLog)).ok).toBe(true);
@@ -65,7 +65,7 @@ test('the host attests, audits each channel and leaves a verifiable chain', asyn
 test('an unusable site policy refuses startup and releases the workspace', async () => {
   await withWorkspace(async (directory) => {
     const policy = join(directory, 'zero-trust.json');
-    // Zero trust refuses the trusted local-owner identity and an unforwarded audit log.
+    // Zero trust refuses the trusted local-user identity and an unforwarded audit log.
     await writeFile(policy, JSON.stringify({ profile: 'zero-trust' }));
     const workspacePath = join(directory, 'workspace');
     await expect(
@@ -100,7 +100,7 @@ test('startup resolves a command accepted before a crash', async () => {
         kind: 'command.accepted',
         outcome: 'accepted',
         operation: 'work-order.create',
-        actor: { principalId: 'owner', workspaceId: 'local' },
+        actor: { principalId: 'local-user', workspaceId: 'local' },
         correlationId: 'orphan',
         cursor: 999,
         data: { fromCursor: 998 },
@@ -178,7 +178,7 @@ test('the embedded instance shares the audit log and its writer lock', async () 
       ).rejects.toThrow(/Event log is open in another process/);
       await instance.application.invokeRaw(
         { operation: 'work-order.create', input: { name: 'Embedded' } },
-        { workspaceId: 'local', principalId: 'owner', channel: 'cli' },
+        { workspaceId: 'local', principalId: 'local-user', channel: 'cli' },
       );
     } finally {
       await instance.close();

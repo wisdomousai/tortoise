@@ -5,7 +5,7 @@ import manifest, { noteAdd, noteList } from './manifest';
 type State = { notes: { id: string; text: string }[] };
 const bind = createHandlerFactory<State, unknown>();
 
-/** The fixture's server definition. Everything is allowed: the device's owner is the only caller. */
+/** The fixture's server definition. Everything is allowed: the device's local user is the only caller. */
 export default defineApplication<State>({
   manifest,
   createState: () => ({ notes: [] }),

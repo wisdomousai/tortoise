@@ -220,7 +220,7 @@ import { featureConformance } from '@tortoise/testing/features';
 import { create${app.app.pascal}Application } from '../application';
 import { ${id.camel}Feature } from '../features/${id.kebab}/feature';
 
-const owner = { workspaceId: 'local', principalId: 'owner' };
+const localUser = { workspaceId: 'local', principalId: 'local-user' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
 const stranger = { workspaceId: 'local', principalId: 'stranger' };
 const cleanup: (() => Promise<void>)[] = [];
@@ -256,7 +256,7 @@ test('editors record ${id.words} entries, viewers read them and non-members reac
   cleanup.push(() => instance.close());
   const app = instance.application;
   const record = (text: string) => ({ operation: '${id.kebab}.record', input: { text }, idempotencyKey: text });
-  await app.invokeRaw(record('First'), owner);
+  await app.invokeRaw(record('First'), localUser);
   await expect(app.invokeRaw(record('Second'), viewer)).rejects.toMatchObject({ code: 'FORBIDDEN' });
   const listed = await app.queryRaw({ operation: '${id.kebab}.list', input: {} }, viewer);
   expect((listed.data as { items: { text: string }[] }).items.map((item) => item.text)).toEqual([

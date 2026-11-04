@@ -5,7 +5,7 @@ import { errorEnvelope } from '@tortoise/contracts';
 import { startHost } from '@tortoise/host/host';
 import { createTestRequestsAgentsApplication } from '../application';
 
-export const owner = { workspaceId: 'local', principalId: 'owner' };
+export const localUser = { workspaceId: 'local', principalId: 'local-user' };
 export const viewer = { workspaceId: 'local', principalId: 'viewer' };
 
 /** A serving host with a viewer member, sequential ids and a fast trigger loop. */

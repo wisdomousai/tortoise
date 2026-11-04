@@ -105,7 +105,7 @@ async function fixture(native = false) {
   const directory = await mkdtemp(join(tmpdir(), 'agent-provider-'));
   const vault = new CountingVault();
   const sessions = new Sessions();
-  const owner = sessions.create({ workspaceId: 'local', principalId: 'owner' });
+  const localUser = sessions.create({ workspaceId: 'local', principalId: 'local-user' });
   let began = 0;
   let completed = 0;
   let refreshed = 0;
@@ -124,7 +124,7 @@ async function fixture(native = false) {
   };
   const account = {
     async begin(token: string) {
-      expect(token).toBe(owner.token);
+      expect(token).toBe(localUser.token);
       began++;
       return {
         authorizationUrl: `https://auth.openai.com/api/accounts/authorize?state=state-${began}`,
@@ -132,7 +132,7 @@ async function fixture(native = false) {
       };
     },
     async complete(_url: string, token: string) {
-      expect(token).toBe(owner.token);
+      expect(token).toBe(localUser.token);
       completed++;
       return profile;
     },
@@ -192,7 +192,7 @@ async function fixture(native = false) {
   });
   return {
     access,
-    owner,
+    localUser,
     vault,
     sessions,
     directory,
@@ -220,22 +220,22 @@ async function fixture(native = false) {
 test('startup, provider status and availability never read credentials; management rejects delegated or stale sessions', async () => {
   const f = await fixture();
   try {
-    const response = await f.access.route(request('/api/v1/providers'), f.owner);
+    const response = await f.access.route(request('/api/v1/providers'), f.localUser);
     expect(response?.status).toBe(200);
     for (const harness of f.access.harnesses) await harness.availability();
     expect(f.vault.reads).toBe(0);
     expect(f.vault.writes).toBe(0);
     const delegated = f.sessions.create({
       workspaceId: 'local',
-      principalId: 'owner',
+      principalId: 'local-user',
       grant: { operations: ['task.list'] },
     });
     await expect(f.access.route(request('/api/v1/providers'), delegated)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     expect(f.access.resolveSelection(delegated, { harnessId: 'deterministic' })).toEqual({});
-    f.sessions.revoke(f.owner.token);
-    await expect(f.access.route(request('/api/v1/providers'), f.owner)).rejects.toMatchObject({
+    f.sessions.revoke(f.localUser.token);
+    await expect(f.access.route(request('/api/v1/providers'), f.localUser)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
   } finally {
@@ -246,7 +246,10 @@ test('startup, provider status and availability never read credentials; manageme
 test('OAuth callback binds to its originating live session, is single use, and never returns tokens', async () => {
   const f = await fixture();
   try {
-    const result = await f.access.route(request('/api/v1/providers/chatgpt/connect', {}), f.owner);
+    const result = await f.access.route(
+      request('/api/v1/providers/chatgpt/connect', {}),
+      f.localUser,
+    );
     expect(result?.status).toBe(200);
     const callback = request(
       '/oauth/chatgpt/callback?state=state-1&code=code&client_id=issued-client',
@@ -256,8 +259,8 @@ test('OAuth callback binds to its originating live session, is single use, and n
     expect(await complete!.text()).not.toContain('SECRET');
     expect(f.completed).toBe(1);
     expect((await f.access.callback(callback))?.status).toBe(400);
-    await f.access.route(request('/api/v1/providers/chatgpt/connect', {}), f.owner);
-    f.sessions.revoke(f.owner.token);
+    await f.access.route(request('/api/v1/providers/chatgpt/connect', {}), f.localUser);
+    f.sessions.revoke(f.localUser.token);
     expect(
       (await f.access.callback(request('/oauth/chatgpt/callback?state=state-2&code=code')))?.status,
     ).toBe(400);
@@ -270,11 +273,14 @@ test('OAuth callback binds to its originating live session, is single use, and n
 test('explicit profile models are account-specific, visible-only and safe; lazy Codex uses selected fresh tokens and isolated native paths', async () => {
   const f = await fixture(true);
   try {
-    const listed = await f.access.route(request('/api/v1/providers/chatgpt/profiles', {}), f.owner);
+    const listed = await f.access.route(
+      request('/api/v1/providers/chatgpt/profiles', {}),
+      f.localUser,
+    );
     expect(await listed!.text()).not.toContain('SECRET');
     const response = await f.access.route(
       request('/api/v1/providers/chatgpt/models', { profileId }),
-      f.owner,
+      f.localUser,
     );
     expect(await response!.json()).toEqual({
       models: [{ id: 'fixture-model', title: 'Fixture Model' }],
@@ -282,16 +288,20 @@ test('explicit profile models are account-specific, visible-only and safe; lazy 
     });
     await f.access.route(
       request('/api/v1/providers/chatgpt/select', { profileId, model: 'fixture-model' }),
-      f.owner,
+      f.localUser,
     );
-    expect(f.access.resolveSelection(f.owner, { harnessId: 'codex' })).toEqual({
+    expect(f.access.resolveSelection(f.localUser, { harnessId: 'codex' })).toEqual({
       profileId,
       model: 'fixture-model',
     });
     expect(() =>
-      f.access.resolveSelection(f.owner, { harnessId: 'codex', profileId, model: 'hidden-model' }),
+      f.access.resolveSelection(f.localUser, {
+        harnessId: 'codex',
+        profileId,
+        model: 'hidden-model',
+      }),
     ).toThrow();
-    const anotherWorkspace = f.sessions.create({ workspaceId: 'other', principalId: 'owner' });
+    const anotherWorkspace = f.sessions.create({ workspaceId: 'other', principalId: 'local-user' });
     expect(() =>
       f.access.resolveSelection(anotherWorkspace, {
         harnessId: 'codex',
@@ -300,11 +310,11 @@ test('explicit profile models are account-specific, visible-only and safe; lazy 
       }),
     ).toThrow();
     f.profile.expiresAt = Date.now() + 1000;
-    await f.access.route(request('/api/v1/providers/chatgpt/profiles', {}), f.owner);
+    await f.access.route(request('/api/v1/providers/chatgpt/profiles', {}), f.localUser);
     const context = {
-      principalId: 'owner',
+      principalId: 'local-user',
       workspaceId: 'local',
-      ...f.access.resolveSelection(f.owner, { harnessId: 'codex' }),
+      ...f.access.resolveSelection(f.localUser, { harnessId: 'codex' }),
     };
     expect(
       await collect(
@@ -345,30 +355,30 @@ test('API-key funding requires explicit save/load and cannot fall back to plan c
   const f = await fixture();
   try {
     expect(() =>
-      f.access.resolveSelection(f.owner, { harnessId: 'ai-sdk', model: 'fixture-model' }),
+      f.access.resolveSelection(f.localUser, { harnessId: 'ai-sdk', model: 'fixture-model' }),
     ).toThrow();
     await f.access.route(
       request('/api/v1/providers/ai-sdk/key', { key: 'EXPLICIT-API-KEY-SECRET' }),
-      f.owner,
+      f.localUser,
     );
-    const selection = f.access.resolveSelection(f.owner, {
+    const selection = f.access.resolveSelection(f.localUser, {
       harnessId: 'ai-sdk',
       model: 'fixture-model',
     });
     expect(selection).toEqual({ providerAccount: 'ai-sdk-api', model: 'fixture-model' });
     await collect(
       f.access.harnesses.find((harness) => harness.id === 'ai-sdk')!,
-      { principalId: 'owner', workspaceId: 'local', ...selection },
+      { principalId: 'local-user', workspaceId: 'local', ...selection },
     );
     expect(f.apiOptions).toEqual({ apiKey: 'EXPLICIT-API-KEY-SECRET', model: 'fixture-model' });
     expect(
-      await (await f.access.route(request('/api/v1/providers'), f.owner))!.text(),
+      await (await f.access.route(request('/api/v1/providers'), f.localUser))!.text(),
     ).not.toContain('SECRET');
-    await f.access.route(request('/api/v1/providers/ai-sdk/disconnect', {}), f.owner);
+    await f.access.route(request('/api/v1/providers/ai-sdk/disconnect', {}), f.localUser);
     await expect(
       collect(
         f.access.harnesses.find((harness) => harness.id === 'ai-sdk')!,
-        { principalId: 'owner', workspaceId: 'local', ...selection },
+        { principalId: 'local-user', workspaceId: 'local', ...selection },
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   } finally {
@@ -379,7 +389,7 @@ test('API-key funding requires explicit save/load and cannot fall back to plan c
 test('provider catalog and inference failures discard provider exception text', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-provider-error-'));
   const sessions = new Sessions();
-  const owner = sessions.create({ workspaceId: 'local', principalId: 'owner' });
+  const localUser = sessions.create({ workspaceId: 'local', principalId: 'local-user' });
   const vault = new CountingVault();
   const access = await createProviderAccess({
     workspacePath: directory,
@@ -395,16 +405,16 @@ test('provider catalog and inference failures discard provider exception text', 
   try {
     await access.route(
       request('/api/v1/providers/ai-sdk/key', { key: 'EXPLICIT-API-KEY-SECRET' }),
-      owner,
+      localUser,
     );
-    const selection = access.resolveSelection(owner, {
+    const selection = access.resolveSelection(localUser, {
       harnessId: 'ai-sdk',
       model: 'fixture-model',
     });
     try {
       await collect(
         access.harnesses.find((harness) => harness.id === 'ai-sdk')!,
-        { principalId: 'owner', workspaceId: 'local', ...selection },
+        { principalId: 'local-user', workspaceId: 'local', ...selection },
       );
       throw new Error('Unexpected success');
     } catch (error) {

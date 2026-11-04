@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { owner, stranger, testWorkspaces, viewer } from './support';
+import { localUser, stranger, testWorkspaces, viewer } from './support';
 
 const open = testWorkspaces('customer');
 const nordhafen = { account: 'U1042', name: 'Stadtwerke Nordhafen', phone: '+49 40 5550 1042' };
@@ -8,12 +8,12 @@ test('the desk adds and changes utilities; members list and search them', async 
   const app = await open();
   const created = await app.invokeRaw(
     { operation: 'customer.create', input: nordhafen, idempotencyKey: 'create-1' },
-    owner,
+    localUser,
   );
   expect(created.result).toEqual({
     id: 'id-1',
     ...nordhafen,
-    createdBy: 'owner',
+    createdBy: 'local-user',
     createdAt: 1_000,
   });
   await app.invokeRaw(
@@ -22,7 +22,7 @@ test('the desk adds and changes utilities; members list and search them', async 
       input: { id: 'id-1', phone: '+49 40 5550 2000' },
       idempotencyKey: 'update-1',
     },
-    owner,
+    localUser,
   );
   const found = await app.queryRaw(
     { operation: 'customer.list', input: { search: 'nordhafen' } },
@@ -43,7 +43,7 @@ test('an account is U and four digits, and one utility holds it', async () => {
   const app = await open();
   await app.invokeRaw(
     { operation: 'customer.create', input: nordhafen, idempotencyKey: 'a' },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -52,7 +52,7 @@ test('an account is U and four digits, and one utility holds it', async () => {
         input: { ...nordhafen, name: 'Copy' },
         idempotencyKey: 'b',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
   await expect(
@@ -62,7 +62,7 @@ test('an account is U and four digits, and one utility holds it', async () => {
         input: { ...nordhafen, account: 'U104' },
         idempotencyKey: 'c',
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
 });
@@ -71,16 +71,16 @@ test('a repeated key returns the first receipt and a stale revision is refused',
   const app = await open();
   const first = await app.invokeRaw(
     { operation: 'customer.create', input: nordhafen, idempotencyKey: 'once' },
-    owner,
+    localUser,
   );
   const again = await app.invokeRaw(
     { operation: 'customer.create', input: nordhafen, idempotencyKey: 'once' },
-    owner,
+    localUser,
   );
   expect(again.result).toEqual(first.result);
-  expect((await app.queryRaw({ operation: 'customer.list', input: {} }, owner)).data).toMatchObject(
-    { total: 1 },
-  );
+  expect(
+    (await app.queryRaw({ operation: 'customer.list', input: {} }, localUser)).data,
+  ).toMatchObject({ total: 1 });
   const revision = first.revisions['customer:id-1']!;
   await app.invokeRaw(
     {
@@ -89,7 +89,7 @@ test('a repeated key returns the first receipt and a stale revision is refused',
       idempotencyKey: 'rename',
       expectedRevisions: { 'customer:id-1': revision },
     },
-    owner,
+    localUser,
   );
   await expect(
     app.invokeRaw(
@@ -99,7 +99,7 @@ test('a repeated key returns the first receipt and a stale revision is refused',
         idempotencyKey: 'stale',
         expectedRevisions: { 'customer:id-1': revision },
       },
-      owner,
+      localUser,
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
 });
@@ -116,6 +116,6 @@ test('viewers cannot write, strangers cannot read, and a missing utility is NOT_
     app.queryRaw({ operation: 'customer.list', input: {} }, stranger),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    app.queryRaw({ operation: 'customer.get', input: { id: 'missing' } }, owner),
+    app.queryRaw({ operation: 'customer.get', input: { id: 'missing' } }, localUser),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

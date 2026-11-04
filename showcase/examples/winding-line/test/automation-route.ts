@@ -105,7 +105,7 @@ export async function automationRoute(options: {
     await options.stopMachine();
     await observe();
     await command('line.bridge.set-mode', { station: 'winder-1', mode: 'actuate' }, supervisor);
-    await command('line.control.request', { station: 'winder-1', holder: 'agent' });
+    await command('line.control.request', { station: 'winder-1', controlledBy: 'agent' });
   };
   return { command, query, observe, deliver, ready, close: () => driver.close() };
 }
