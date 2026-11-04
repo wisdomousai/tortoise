@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
+import { formatDate } from '@/lib/fields';
 
 /** A stored photo or document, read with the page's session; the hub checks who may read it. */
 export const blobUrl = (digest: string) => `/api/v1/blobs/${encodeURIComponent(digest)}`;
 
-export const when = (at: number) =>
-  new Date(at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+export const when = (at: number) => formatDate(at);
 
 export function Page({
   title,

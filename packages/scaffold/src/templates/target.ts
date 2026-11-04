@@ -91,6 +91,7 @@ export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] 
             store.insert(item.id, {
               ...item,
               status: 'open',
+              retired: false,
               createdBy: ctx.context.principalId,
               createdAt: now(ctx),
             });

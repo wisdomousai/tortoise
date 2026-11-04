@@ -18,11 +18,12 @@ The build rejects:
 - Unknown workflow references
 - Colliding MCP names
 
-Display metadata names the operation and describes the records its output holds. A list's metadata describes the items of its `items` array. The build rejects a title field, key or shown field that the output record does not have, a repeated field and a label longer than one line. A generated collection read takes its display metadata from the collection's label, type, title field and fields.
+Display metadata names the operation and describes the records its output holds. A list's metadata describes the items of its `items` array. Each shown field has a name, an optional label and an optional kind: `text`, `date`, `date-time`, `status` with the tones of its values, `reference` with the resource kind it names, or `file`. The build rejects a title field, key or shown field that the output record does not have, a repeated field, a label longer than one line, an unknown kind or tone, tones on a field that is not a status, and a reference without a resource kind. A generated collection read takes its display metadata from the collection's label, type, title field and fields.
 
 Who reads the metadata:
 
-- `CollectionScreen` and `RecordScreen` take their columns, headings and record title from it, and link a record to its screen through `screens.resources`
+- `CollectionScreen` and `RecordScreen` take their columns, headings and record title from it, render each field by its kind, show a reference by the referenced record's title, and link a record to its screen through `screens.resources`
+- The capability form takes each field's label and kind from it: a date input, a status choice, a picker over the referenced collection's list, a file input
 - The capability form and the command palette show the label
 - The MCP adapter puts the label in the tool title and adds the resource kind and fields to the tool description
 - The generated reference and application skill list each operation's display line and the operations that return records

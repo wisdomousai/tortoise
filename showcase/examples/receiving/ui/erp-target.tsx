@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
+import { formatDate } from '@/lib/fields';
 
 /** Goods receipts to the ERP: what is waiting, accepted and rejected, and the last notice import. */
 export function ErpScreen() {
@@ -9,10 +10,7 @@ export function ErpScreen() {
     ['Waiting', String(status.data?.pending ?? 0)],
     ['Accepted', String(status.data?.accepted ?? 0)],
     ['Rejected', String(status.data?.rejected ?? 0)],
-    [
-      'Last notice import',
-      status.data?.lastSyncAt ? new Date(status.data.lastSyncAt).toLocaleString() : 'Never',
-    ],
+    ['Last notice import', status.data?.lastSyncAt ? formatDate(status.data.lastSyncAt) : 'Never'],
   ];
   return (
     <div className="space-y-6">

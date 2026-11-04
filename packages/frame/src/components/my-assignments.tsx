@@ -1,17 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AnyCapability, JsonObject } from '@tortoise/contracts';
-import { fieldsOf } from '@/components/capability-form';
+import { FieldControl, fieldsOf, toTyped } from '@/components/capability-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
-import { Textarea } from '@/components/ui/textarea';
 import { client, live } from '@/lib/session';
 
 type Query = AnyCapability & { kind: 'query' };
 type Command = AnyCapability & { kind: 'command' };
-type Field = ReturnType<typeof fieldsOf>[number];
 
 /** An assignment sent to the signed-in person, as the feed lists it. */
 export interface FeedItem {
@@ -42,19 +39,6 @@ const refusal = (error: unknown) => {
   return error instanceof Error ? error.message : 'The command failed.';
 };
 
-function typed(fields: Field[], values: Record<string, string>) {
-  const body: Record<string, unknown> = {};
-  for (const field of fields) {
-    const raw = values[field.name] ?? '';
-    if (raw === '' && !field.required) continue;
-    if (field.kind === 'number') body[field.name] = Number(raw.replace(',', '.'));
-    else if (field.kind === 'boolean') body[field.name] = raw === 'true';
-    else if (field.kind === 'json') body[field.name] = JSON.parse(raw || 'null');
-    else body[field.name] = raw;
-  }
-  return body;
-}
-
 /**
  * The report body's fields, generated from the report command's input schema, and the subject
  * when the kind names one. The worklist's screen uses it too.
@@ -83,9 +67,9 @@ export function GeneratedReportForm({
         event.preventDefault();
         let body: Record<string, unknown>;
         try {
-          body = typed(fields, values);
+          body = toTyped(fields, values);
         } catch {
-          return setInvalid('A field holds JSON that does not parse.');
+          return setInvalid('A field holds a value that does not parse.');
         }
         setInvalid(undefined);
         void submit(body, subject || undefined).then((done) => {
@@ -108,39 +92,15 @@ export function GeneratedReportForm({
         </div>
       )}
       {fields.map((field) => (
-        <div
+        <FieldControl
           key={field.name}
-          className={field.kind === 'json' ? 'space-y-1 sm:col-span-2' : 'space-y-1'}
-        >
-          <Label htmlFor={id(field.name)}>{field.label}</Label>
-          {field.kind === 'choice' || field.kind === 'boolean' ? (
-            <NativeSelect
-              id={id(field.name)}
-              value={values[field.name] ?? ''}
-              onChange={(event) => set(field.name)(event.target.value)}
-            >
-              <option value="">Select…</option>
-              {(field.kind === 'boolean' ? ['true', 'false'] : field.choices).map((choice) => (
-                <option key={choice} value={choice}>
-                  {choice}
-                </option>
-              ))}
-            </NativeSelect>
-          ) : field.kind === 'json' ? (
-            <Textarea
-              id={id(field.name)}
-              className="font-mono"
-              value={values[field.name] ?? ''}
-              onChange={(event) => set(field.name)(event.target.value)}
-            />
-          ) : (
-            <Input
-              id={id(field.name)}
-              value={values[field.name] ?? ''}
-              onChange={(event) => set(field.name)(event.target.value)}
-            />
-          )}
-        </div>
+          field={field}
+          id={id(field.name)}
+          value={values[field.name] ?? ''}
+          errors={[]}
+          {...(kind.report.blobs ? { limits: kind.report.blobs } : {})}
+          onChange={set(field.name)}
+        />
       ))}
       <div className="flex items-center gap-3 sm:col-span-2">
         <Button type="submit" variant="secondary">

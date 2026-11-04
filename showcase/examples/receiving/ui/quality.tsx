@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
+import { formatDate } from '@/lib/fields';
 
 /** Incoming inspection in quality inspection: where the inspection requests stand. */
 function InspectionStatus() {
@@ -13,10 +14,7 @@ function InspectionStatus() {
     ['Being inspected', String(status.data?.inspecting ?? 0)],
     ['Passed', String(status.data?.passed ?? 0)],
     ['Failed', String(status.data?.failed ?? 0)],
-    [
-      'Last outcome import',
-      status.data?.lastSyncAt ? new Date(status.data.lastSyncAt).toLocaleString() : 'Never',
-    ],
+    ['Last outcome import', status.data?.lastSyncAt ? formatDate(status.data.lastSyncAt) : 'Never'],
   ];
   return (
     <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">

@@ -14,6 +14,8 @@ import {
   defineDataProvider,
   defineModule,
   jsonSchema,
+  listFilters,
+  listSortFields,
   type DisplayDeclaration,
 } from '../src';
 
@@ -77,6 +79,65 @@ test('display fields are checked against the output record, or a list item', () 
   expect(() => catalogOf({ resource: 'Thing' })).toThrow('resource kind');
   expect(() => catalogOf({ key: 'id' })).toThrow('needs a resource');
   expect(() => catalogOf({ label: 'two\nlines' })).toThrow('one line');
+});
+
+test('display fields carry a kind, status tones and a reference, each checked', () => {
+  expect(() =>
+    catalogOf({
+      fields: [
+        { name: 'title', kind: 'reference', reference: 'thing' },
+        { name: 'size', kind: 'status', tones: { big: 'warning' } },
+      ],
+    }),
+  ).not.toThrow();
+  expect(() => catalogOf({ fields: [{ name: 'size', tones: { big: 'warning' } }] })).not.toThrow();
+  expect(() => catalogOf({ fields: [{ name: 'size', kind: 'badge' as 'status' }] })).toThrow(
+    'kind of size is unknown',
+  );
+  expect(() => catalogOf({ fields: [{ name: 'size', kind: 'date', tones: {} }] })).toThrow(
+    'tones need a status field',
+  );
+  expect(() =>
+    catalogOf({ fields: [{ name: 'size', tones: { big: 'loud' as 'warning' } }] }),
+  ).toThrow('tone of size is unknown');
+  expect(() => catalogOf({ fields: [{ name: 'title', kind: 'reference' }] })).toThrow(
+    'names no collection',
+  );
+  expect(() => catalogOf({ fields: [{ name: 'title', reference: 'Thing' }] })).toThrow(
+    'must be a resource kind',
+  );
+  expect(() =>
+    catalogOf({ fields: [{ name: 'title', kind: 'text', reference: 'thing' }] }),
+  ).toThrow('needs a reference field');
+});
+
+test('a list declares sort fields as a sortBy choice, and an update clears optional fields with null', async () => {
+  const things = defineCollection({
+    type: 'thing',
+    resourceType: 'Thing',
+    item: z.strictObject({
+      id: z.string(),
+      title: z.string(),
+      size: z.number(),
+      note: z.string().optional(),
+      owner: z.string().nullable(),
+    }),
+  });
+  const list = collectionList(things, { id: 'thing', description: 'List.', sort: ['size'] });
+  expect(listSortFields(list)).toEqual(['size']);
+  expect(listFilters(list)).toEqual([]);
+  expect(() =>
+    collectionList(things, { id: 'thing', description: 'List.', sort: ['weight' as 'size'] }),
+  ).toThrow('sort field is not an item field');
+  const update = collectionUpdate(things, {
+    id: 'thing',
+    description: 'Save.',
+    fields: ['title', 'note', 'owner'],
+  });
+  const accepts = (input: object) => update.input['~standard'].validate(input);
+  expect(await accepts({ id: 't', note: null })).not.toHaveProperty('issues');
+  expect(await accepts({ id: 't', owner: null })).not.toHaveProperty('issues');
+  expect(await accepts({ id: 't', title: null })).toHaveProperty('issues');
 });
 
 test('a collection title field must be an item field', () => {

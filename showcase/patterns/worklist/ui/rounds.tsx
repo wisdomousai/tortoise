@@ -5,6 +5,7 @@ import { Worklist, type WorklistReport } from '@/components/worklist';
 import { live } from '@/lib/session';
 import { sampling, worklistOperations } from '../contracts';
 import { BriefRound, SampleForm, SampleTransformer, SampleView } from './round';
+import { formatDate } from '@/lib/fields';
 
 const ISSUER = 'the oil lab';
 
@@ -47,7 +48,7 @@ function RoundScreen() {
       <header className="space-y-1">
         <h1 className="text-xl font-semibold">{assignment.title}</h1>
         <p className="text-sm text-muted-foreground">
-          Sent {new Date(assignment.sentAt).toLocaleString()}
+          Sent {formatDate(assignment.sentAt)}
           {assignment.done ? ', done here' : assignment.open ? '' : `, closed by ${ISSUER}`}
         </p>
         {assignment.note && <p className="text-sm">{assignment.note}</p>}

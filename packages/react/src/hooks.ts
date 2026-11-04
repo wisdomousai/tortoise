@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
   canonicalJson,
   type AnyCapability,
@@ -44,4 +44,17 @@ export function useCommand<C extends AnyCapability>(
     [transport, capability],
   );
   return { execute, pending: pending > 0, error };
+}
+
+/**
+ * `value` once it has stayed unchanged for `delay` milliseconds, so a search box or filter sends
+ * one query per pause rather than one per keystroke.
+ */
+export function useDebouncedValue<T>(value: T, delay = 250): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return settled;
 }

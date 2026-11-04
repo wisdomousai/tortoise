@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/fields';
 import { List } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { defineFeatureScreens } from '@tortoise/frame/feature-screens';
@@ -13,7 +14,7 @@ import {
 import { live } from '@/lib/session';
 import { handoverOperations } from './contracts';
 
-const when = (at: number) => new Date(at).toLocaleString();
+const when = (at: number) => formatDate(at);
 const words = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
 /** The form to record an entry above the entries, latest first. */

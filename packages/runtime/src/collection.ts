@@ -2,6 +2,7 @@ import {
   ApplicationError,
   listFilters,
   listSearches,
+  listSortFields,
   type AnyCapability,
   type Collection,
   type CollectionPage,
@@ -112,6 +113,21 @@ export interface CollectionReadOptions<State, Services, Stored, Item> {
 /** The default page size of a generated list. */
 export const DEFAULT_PAGE = 50;
 
+const field = (record: unknown, name: string) => (record as Record<string, unknown>)[name];
+/**
+ * Order two field values for a requested sort: numbers and booleans by value, strings by code
+ * point, anything else by its JSON; a missing or null value sorts last either way.
+ */
+export function compareValues(a: unknown, b: unknown): number {
+  const aMissing = a === undefined || a === null;
+  const bMissing = b === undefined || b === null;
+  if (aMissing || bMissing) return aMissing === bMissing ? 0 : aMissing ? 1 : -1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  if (typeof a === 'boolean' && typeof b === 'boolean') return Number(a) - Number(b);
+  if (typeof a === 'string' && typeof b === 'string') return byCodePoint(a, b);
+  return byCodePoint(JSON.stringify(a), JSON.stringify(b));
+}
+
 type ReadCapability = AnyCapability & { readonly kind: 'query' };
 const presenter =
   <State, Services, Stored>(options: CollectionReadOptions<State, Services, Stored, unknown>) =>
@@ -157,6 +173,7 @@ export function collectionListHandler<State, Services, C extends ReadCapability,
     throw new Error(`List search and searchText must be declared together: ${capability.id}`);
   const keyOf = (record: Stored) => String((record as Record<string, unknown>)[collection.key]);
   const order = options.order ?? ((a: Stored, b: Stored) => byCodePoint(keyOf(a), keyOf(b)));
+  const sortable = new Set(listSortFields(capability));
   return {
     capability,
     handle(input, context) {
@@ -164,8 +181,18 @@ export function collectionListHandler<State, Services, C extends ReadCapability,
         search?: string;
         offset?: number;
         limit?: number;
+        sortBy?: string;
+        sortDirection?: 'asc' | 'desc';
       };
       const search = args.search?.toLowerCase();
+      // A requested sort field orders first; the handler's order breaks ties.
+      const sortBy =
+        args.sortBy !== undefined && sortable.has(args.sortBy) ? args.sortBy : undefined;
+      const sign = args.sortDirection === 'desc' ? -1 : 1;
+      const sort = sortBy
+        ? (a: Stored, b: Stored) =>
+            sign * compareValues(field(a, sortBy), field(b, sortBy)) || order(a, b)
+        : order;
       const rows = Object.values(options.store(context.state))
         // Scope first: nothing the caller may not see is filtered, counted or paged.
         .filter((record) => options.visible(record, context))
@@ -177,7 +204,7 @@ export function collectionListHandler<State, Services, C extends ReadCapability,
           ),
         )
         .filter((record) => !search || options.searchText!(record).toLowerCase().includes(search))
-        .sort(order);
+        .sort(sort);
       const offset = args.offset ?? 0;
       const page = rows.slice(offset, offset + (args.limit ?? DEFAULT_PAGE));
       const result: CollectionPage<unknown> = {

@@ -195,7 +195,7 @@ implemented · [`packages/react`](../packages/react/README.md)
 
 ### Display metadata
 
-_How screens show a capability and its records: label, resource kind, key, title field and fields._
+_How screens show a capability and its records: label, resource kind, key, title field and fields, each field with a label and a kind (date, date-time, status with tones, reference, file)._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/adapters`](../packages/adapters/README.md)
 

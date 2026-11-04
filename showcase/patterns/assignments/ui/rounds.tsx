@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/fields';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
 import { Inbox, Route } from 'lucide-react';
@@ -154,7 +155,7 @@ function ReportScreen() {
       <SampleView body={report.body} />
       <AcceptedMethod report={report} />
       <p className="text-xs text-muted-foreground">
-        Reported by {report.reportedBy} at {new Date(report.reportedAt).toLocaleString()}
+        Reported by {report.reportedBy} at {formatDate(report.reportedAt)}
         {report.reviewedBy ? ` · reviewed by ${report.reviewedBy}` : ''}
         {report.reason ? ` · ${report.reason}` : ''}
       </p>

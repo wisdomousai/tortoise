@@ -37,9 +37,10 @@
       "name": "capability-form",
       "type": "registry:component",
       "title": "Capability form",
-      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors. A prefill from an OS request fills the fields and shows its provenance; the person still submits.",
+      "description": "A complete form for any command capability, generated from its JSON Schema and display metadata, with contract validation, a per-form idempotency key and field-level server errors. Fields render by kind: date and date-time inputs, a checkbox, a picker over a referenced collection, a file input that uploads to the blob store. With a record's values it edits that record, and emptying a field clears it. A prefill from an OS request fills the fields and shows its provenance; the person still submits.",
       "dependencies": [
         "@tanstack/react-form",
+        "@tanstack/react-query",
         "@tortoise/react",
         "@tortoise/client",
         "@tortoise/contracts"
@@ -57,6 +58,14 @@
         {
           "path": "src/components/capability-form.tsx",
           "type": "registry:component"
+        },
+        {
+          "path": "src/lib/fields.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/references.ts",
+          "type": "registry:lib"
         }
       ]
     },
@@ -78,12 +87,20 @@
       "name": "collection-screen",
       "type": "registry:component",
       "title": "Collection screens",
-      "description": "Default list and record screens for a collection's generated get and list queries and its create, update, move and retire commands, with a delivery-status column; replace them one route at a time.",
-      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "@tortoise/contracts"],
+      "description": "Default list and record screens for a collection's generated get and list queries and its create, update, move and retire commands. The list renders the filters, sort and search the query declares and formats cells by kind; the record screen edits the record's values and confirms a retire. Replace them one route at a time.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@tortoise/contracts",
+        "@tortoise/react"
+      ],
       "registryDependencies": [
         "badge",
         "button",
         "input",
+        "label",
+        "native-select",
+        "@tortoise/native-dialog",
         "@tortoise/capability-form",
         "@tortoise/live-data-table",
         "@tortoise/session"

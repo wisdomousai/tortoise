@@ -1,5 +1,6 @@
 import {
   ApplicationError,
+  clearable,
   isBlobRef,
   MAX_TREE,
   type AnyCapability,
@@ -133,7 +134,7 @@ export interface CollectionWriteOptions<State, Services, Stored> {
  * before the handler runs.
  */
 export function collectionCommandHandlers<State, Services, Stored>(
-  collection: Pick<Collection, 'type' | 'key' | 'label' | 'parent' | 'retiredField'>,
+  collection: Pick<Collection, 'type' | 'key' | 'label' | 'parent' | 'retiredField' | 'item'>,
   commands: CollectionCommands,
   options: CollectionWriteOptions<State, Services, Stored>,
 ): HandlerContribution<State, Services>[] {
@@ -234,6 +235,13 @@ export function collectionCommandHandlers<State, Services, Stored>(
         const previous = existing(ctx, id);
         const fields = supplied(input);
         const record = { ...structuredClone(previous), ...fields } as Stored;
+        // Null clears a field the item may leave out; a nullable field stores the null.
+        for (const [name, value] of Object.entries(fields))
+          if (
+            value === null &&
+            clearable(collection.item.shape[name] as Parameters<typeof clearable>[0])
+          )
+            delete (record as Fields)[name];
         return write(ctx, update, id, record, previous, 'updated', fields) as OutputOf<Command>;
       },
     });

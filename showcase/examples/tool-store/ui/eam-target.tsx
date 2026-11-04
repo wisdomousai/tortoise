@@ -4,6 +4,7 @@ import { ReconciliationReview, type HeldEffect } from '@/components/reconciliati
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
 import { eamTarget, type RepairOrderPayload } from '../contracts/eam-target';
+import { formatDate } from '@/lib/fields';
 
 /** A held repair order by its asset tag, so the person knows which tool to look up in the EAM. */
 const describe = (effect: HeldEffect) =>
@@ -22,10 +23,7 @@ export function EamScreen() {
     ['Held for a decision', String(status.data?.held ?? 0)],
     ['Accepted', String(status.data?.accepted ?? 0)],
     ['Rejected', String(status.data?.rejected ?? 0)],
-    [
-      'Last feed sync',
-      status.data?.lastSyncAt ? new Date(status.data.lastSyncAt).toLocaleString() : 'Never',
-    ],
+    ['Last feed sync', status.data?.lastSyncAt ? formatDate(status.data.lastSyncAt) : 'Never'],
   ];
   return (
     <div className="space-y-6">

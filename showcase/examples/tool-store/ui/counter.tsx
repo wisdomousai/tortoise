@@ -18,6 +18,7 @@ import { OverdueList } from './overdue';
 import { RunReview, TerminalAgent } from './terminal-agent';
 import { toolResource, type SelectedTool } from './terminal-runs';
 import { TerminalTools } from './terminal-tools';
+import { formatDate } from '@/lib/fields';
 
 /*
  * The work of the counter terminal. The sign-in plugin shows it at /terminal once an attendant has
@@ -29,7 +30,7 @@ import { TerminalTools } from './terminal-tools';
  */
 
 const PAST = 10;
-const when = (at?: number) => (at === undefined ? '' : new Date(at).toLocaleString());
+const when = (at?: number) => (at === undefined ? '' : formatDate(at));
 /** A repair order in one cell: its number, the EAM's refusal code, or that it waits. */
 const orderCell = (order?: RepairOrder) =>
   !order

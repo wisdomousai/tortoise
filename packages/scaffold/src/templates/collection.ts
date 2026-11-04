@@ -16,7 +16,8 @@ import {
   collectionCreate,
   collectionGet,
   collectionList,
-${only(tree, '  collectionMove,', '  collectionRetire,', '  collectionTree,')}  collectionUpdate,
+${only(tree, '  collectionMove,')}  collectionRetire,
+${only(tree, '  collectionTree,')}  collectionUpdate,
   defineCollection,
   recordKeySchema,
 } from '@tortoise/contracts';
@@ -26,7 +27,8 @@ export const ${one.camel}Schema = z.strictObject({
   id: recordKeySchema,
   title: z.string().min(1).max(200),
   status: z.enum(['open', 'done']),
-${only(tree, '  parentId: recordKeySchema.optional(),', '  retired: z.boolean(),')}  createdBy: z.string(),
+${only(tree, '  parentId: recordKeySchema.optional(),')}  retired: z.boolean(),
+  createdBy: z.string(),
   createdAt: z.number().int().nonnegative(),
 });
 export type ${one.pascal} = z.output<typeof ${one.camel}Schema>;
@@ -37,14 +39,22 @@ export const ${many.camel} = defineCollection({
   item: ${one.camel}Schema,
   label: { one: '${one.title}', many: '${many.title}' },
   titleField: 'title',
-${only(tree, "  parent: 'parentId',", "  retiredField: 'retired',")}});
+  // How generated screens and tool descriptions show a ${one.words}; a kind formats the cell.
+  fields: [
+    { name: 'title' },
+    { name: 'status', kind: 'status', tones: { open: 'neutral', done: 'positive' } },
+    { name: 'createdAt', label: 'Created', kind: 'date-time' },
+  ],
+${only(tree, "  parent: 'parentId',")}  retiredField: 'retired',
+});
 
 /** Reads and writes of ${many.words}. Browser-safe. */
 export const ${one.camel}Operations = {
   ${one.camel}List: collectionList(${many.camel}, {
     id: '${one.kebab}',
-    description: 'List ${many.words}, newest first. Filter by status or search the title.',
+    description: 'List ${many.words}, newest first. Filter by status, sort by title or creation, or search the title.',
     filters: ['status'],
+    sort: ['title', 'createdAt'],
     search: true,
   }),
   ${one.camel}Get: collectionGet(${many.camel}, {
@@ -73,11 +83,11 @@ ${only(
   `    id: '${one.kebab}',`,
   `    description: 'Move ${one.a} and its subtree under another ${one.words}, or to the root with parentId null. Editors only.',`,
   `  }),`,
-  `  ${one.camel}Retire: collectionRetire(${many.camel}, {`,
-  `    id: '${one.kebab}',`,
-  `    description: 'Retire ${one.a}; its children must be retired or moved first. Editors only.',`,
-  `  }),`,
-)}} as const;
+)}  ${one.camel}Retire: collectionRetire(${many.camel}, {
+    id: '${one.kebab}',
+    description: ${tree ? `'Retire ${one.a}; its children must be retired or moved first. Editors only.'` : `'Retire ${one.a}; it keeps its history and takes no more changes. Editors only.'`},
+  }),
+} as const;
 `;
 
 const handlers = (one: Names, many: Names, tree: boolean) => `import {
@@ -103,6 +113,7 @@ export function ${one.camel}Handlers(): HandlerContribution<AppState, Services>[
     collectionListHandler<AppState, Services, List, ${one.pascal}>(${many.camel}, operations.${one.camel}List, {
       store,
       visible,
+      // The default order; a caller's sortBy orders first and this breaks ties.
       order: (a, b) => b.createdAt - a.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
       searchText: (record) => record.title,
     }),
@@ -122,14 +133,16 @@ ${only(
       {
         create: operations.${one.camel}Create,
         update: operations.${one.camel}Update,
-${only(tree, `        move: operations.${one.camel}Move,`, `        retire: operations.${one.camel}Retire,`)}      },
+${only(tree, `        move: operations.${one.camel}Move,`)}        retire: operations.${one.camel}Retire,
+      },
       {
         store,
         newKey: newId,
         // The fields a person does not choose: a new ${one.words} is open and records who made it.
         defaults: (ctx) => ({
           status: 'open',
-${only(tree, '          retired: false,')}          createdBy: ctx.context.principalId,
+          retired: false,
+          createdBy: ctx.context.principalId,
           createdAt: now(ctx),
         }),
       },
@@ -164,6 +177,8 @@ export const ${one.camel}Routes = [
         title="${one.title}"
         get={operations.${one.camel}Get}
         update={operations.${one.camel}Update}
+        retire={operations.${one.camel}Retire}
+        list="/${many.kebab}"
       />
     ),
   },
@@ -200,6 +215,7 @@ export const ${one.camel}Routes = [
         update={operations.${one.camel}Update}
         move={operations.${one.camel}Move}
         retire={operations.${one.camel}Retire}
+        list="/${many.kebab}"
       />
     ),
   },
@@ -230,6 +246,22 @@ test('${many.words} form a tree: moves refuse cycles, and retiring needs the chi
 });
 `;
 
+const flatTest = (one: Names) => `
+test('a retired ${one.words} keeps its record and takes no more changes', async () => {
+  const app = await open();
+  await app.invokeRaw(
+    { operation: '${one.kebab}.create', input: { title: 'Old' }, idempotencyKey: 'create-old' },
+    owner,
+  );
+  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'retire-old' }, owner);
+  const retired = await app.queryRaw({ operation: '${one.kebab}.get', input: { id: '${one.kebab}-1' } }, viewer);
+  expect(retired.data).toMatchObject({ retired: true });
+  await expect(
+    app.invokeRaw({ operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', title: 'Late' }, idempotencyKey: 'late' }, owner),
+  ).rejects.toMatchObject({ code: 'CONFLICT' });
+});
+`;
+
 const test = (
   app: AppNames,
   one: Names,
@@ -256,7 +288,7 @@ async function open() {
   const instance = await openEmbeddedInstance(
     create${app.app.pascal}Application({
       members: { viewer: 'viewer' },
-      services: { newId: () => \`${one.kebab}-\${++ids}\`, now: () => 1_000 },
+      services: { newId: () => \`${one.kebab}-\${++ids}\`, now: () => 1_000 + ids },
     }),
     { workspacePath },
   );
@@ -265,7 +297,7 @@ async function open() {
   return instance.application;
 }
 
-test('editors create and update ${many.words}; members list, filter and search them', async () => {
+test('editors create and update ${many.words}; members list, filter, sort and search them', async () => {
   const app = await open();
   const created = await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'First' }, idempotencyKey: 'create-1' },
@@ -273,11 +305,17 @@ test('editors create and update ${many.words}; members list, filter and search t
   );
   expect(created.result).toMatchObject({ id: '${one.kebab}-1', title: 'First', status: 'open', createdBy: 'owner' });
   await app.invokeRaw(
+    { operation: '${one.kebab}.create', input: { title: 'Another' }, idempotencyKey: 'create-2' },
+    owner,
+  );
+  await app.invokeRaw(
     { operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', status: 'done' }, idempotencyKey: 'update-1' },
     owner,
   );
   const done = await app.queryRaw({ operation: '${one.kebab}.list', input: { status: 'done' } }, viewer);
   expect(done.data).toMatchObject({ total: 1, items: [{ id: '${one.kebab}-1', status: 'done' }] });
+  const byTitle = await app.queryRaw({ operation: '${one.kebab}.list', input: { sortBy: 'title' } }, viewer);
+  expect((byTitle.data as { items: { title: string }[] }).items.map((item) => item.title)).toEqual(['Another', 'First']);
   const found = await app.queryRaw({ operation: '${one.kebab}.list', input: { search: 'fir' } }, viewer);
   expect(found.data).toMatchObject({ total: 1 });
 });
@@ -294,16 +332,81 @@ test('viewers cannot write, strangers cannot read, and a missing ${one.words} is
     app.queryRaw({ operation: '${one.kebab}.get', input: { id: 'missing' } }, owner),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });
-${tree ? treeTest(one, many) : ''}`;
+${tree ? treeTest(one, many) : flatTest(one)}`;
 
 /**
- * A collection with generated get and list, create and update commands, screens and a test. A
- * `tree` collection also gets a parent, move, retire and a tree read, and a tree screen.
+ * A browser test of the collection's default screens against the real host: create, filter,
+ * open, edit and retire. A tree collection's list is the tree screen, so its spec opens the
+ * record from the tree instead of a table row.
+ */
+const browserTest = (
+  app: AppNames,
+  one: Names,
+  many: Names,
+  tree: boolean,
+) => `import { expect, test } from '@playwright/test';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { startService } from '../../../../tests/e2e/service';
+
+test('the default ${many.words} screens create, ${tree ? '' : 'filter, '}open, edit and retire ${one.a}', async ({ page }) => {
+  const workspace = await mkdtemp(join(tmpdir(), '${app.app.kebab}-${many.kebab}-'));
+  const host = await startService('${app.packageName}', workspace);
+  try {
+    await page.goto(host.launchUrl);
+    await page
+      .getByRole('navigation', { name: 'Sections' })
+      .getByRole('link', { name: '${many.title}' })
+      .click();
+    await expect(page.getByRole('heading', { name: '${many.title}', level: 1 })).toBeVisible();
+    await page.getByRole('textbox', { name: 'Title', exact: true }).fill('First ${one.words}');
+    await page.getByRole('button', { name: 'Create' }).click();
+    // The list is live: the new record appears without a reload.
+    const row = ${
+      tree
+        ? `page.getByRole('list', { name: '${many.title}' }).getByRole('button', { name: 'First ${one.words}' })`
+        : `page.getByRole('row', { name: 'First ${one.words}' })`
+    };
+    await expect(row).toBeVisible();
+${
+  tree
+    ? ''
+    : `    // The declared status filter is a control, and the instance applies it before paging.
+    const status = page.getByRole('group', { name: 'Filters' }).getByLabel('Status');
+    await status.selectOption('done');
+    await expect(row).toBeHidden();
+    await status.selectOption('');
+    await expect(row).toBeVisible();
+`
+}    await row.click();
+    await expect(page.getByRole('heading', { name: /^${one.title} / })).toBeVisible();
+    // The edit form holds the record's values; every update field is optional, so the label says so.
+    const title = page.getByRole('textbox', { name: /^Title/ });
+    await expect(title).toHaveValue('First ${one.words}');
+    await title.fill('Renamed ${one.words}');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('definition').filter({ hasText: 'Renamed ${one.words}' })).toBeVisible();
+    // Retiring asks first, then returns to the list.
+    await page.getByRole('button', { name: 'Retire ${one.title}' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Retire ${one.title}' }).click();
+    await expect(page.getByRole('heading', { name: '${many.title}', level: 1 })).toBeVisible();
+  } finally {
+    await host.stop();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+`;
+
+/**
+ * A collection with generated get and list, create, update and retire commands, screens, a test
+ * and a browser test of its screens. A `tree` collection also gets a parent, move and a tree
+ * read, and a tree screen.
  */
 export function collection(app: AppNames, one: Names, tree = false): Generated {
   const many = plural(one);
   const reads = tree ? ['List', 'Get', 'Tree'] : ['List', 'Get'];
-  const writes = tree ? ['Create', 'Update', 'Move', 'Retire'] : ['Create', 'Update'];
+  const writes = tree ? ['Create', 'Update', 'Move', 'Retire'] : ['Create', 'Update', 'Retire'];
   const id = (op: string) => `operations.${one.camel}${op}.id`;
   return {
     files: {
@@ -311,6 +414,7 @@ export function collection(app: AppNames, one: Names, tree = false): Generated {
       [`handlers/${one.kebab}.ts`]: handlers(one, many, tree),
       [`ui/${one.kebab}.tsx`]: tree ? treeScreen(one, many) : flatScreen(one, many),
       [`test/${one.kebab}.test.ts`]: test(app, one, many, tree),
+      [`e2e/${many.kebab}.pw.ts`]: browserTest(app, one, many, tree),
     },
     insertions: {
       'contracts.ts': {

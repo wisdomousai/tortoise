@@ -125,7 +125,8 @@ export type CollectionCreateInput<Item, Fields extends keyof Item, ClientKey ext
 } & (ClientKey extends true ? { readonly id: string } : unknown);
 
 /**
- * Generate `<id>.update`: change `fields` of one record; a field left out keeps its value. A
+ * Generate `<id>.update`: change `fields` of one record; a field left out keeps its value, and a
+ * field the item may leave out takes `null` to remove it. A
  * missing or hidden record is `NOT_FOUND`, a retired one `CONFLICT`. Requires `write` (or
  * `action`) on the collection's resource type.
  */
@@ -136,8 +137,17 @@ export function collectionUpdate<
   const Fields extends keyof Item['shape'] & string,
 >(collection: Collection<Type, Item>, spec: CollectionFieldsSpec<Id, Fields>) {
   const shape = picked(collection, spec.fields, false);
+  // A field the item may leave out also takes null, which the handler removes from the record.
   const optional = Object.fromEntries(
-    Object.entries(shape).map(([field, schema]) => [field, schema.optional()]),
+    Object.entries(shape).map(([field, schema]) => [
+      field,
+      clearable(schema)
+        ? schema
+            .optional()
+            .nullable()
+            .describe(`${schema.description ? `${schema.description} ` : ''}Null clears it.`)
+        : schema.optional(),
+    ]),
   );
   const input = z.strictObject({
     id: recordKeyOf(collection),
@@ -153,8 +163,13 @@ export function collectionUpdate<
   );
 }
 export type CollectionUpdateInput<Item, Fields extends keyof Item> = {
-  readonly [F in Fields]?: Item[F];
+  readonly [F in Fields]?: Item[F] | (undefined extends Item[F] ? null : never);
 } & { readonly id: string };
+
+/** Whether an item field may be left out and does not take null, so null can mean "clear". */
+export function clearable(schema: z.ZodType): boolean {
+  return schema.safeParse(undefined).success && !schema.safeParse(null).success;
+}
 
 /**
  * Generate `<id>.retire` for a collection with a `retiredField`: mark one record retired. It

@@ -8,6 +8,7 @@ import {
   defineModule,
   jsonSchema,
   listFilters,
+  listSortFields,
 } from '@tortoise/contracts';
 import {
   collectionGetHandler,
@@ -45,6 +46,7 @@ const getNote = collectionGet(notes, { id: 'note', description: 'Read one note.'
 const listNotes = collectionList(notes, {
   id: 'note',
   filters: ['status'],
+  sort: ['status', 'text'],
   description: 'List notes in your teams.',
 });
 const fixture = { ui: { exception: 'test fixture' } } as const;
@@ -130,6 +132,24 @@ describe('collections', () => {
     expect(closed.data.total).toBe(2);
     const second = await app.query({ operation: 'note.list', input: { offset: 1 } }, bob);
     expect(second.data.items.map((item) => item.id)).toEqual(['c']);
+  });
+
+  test('a declared sort field orders the page either way; the handler order breaks ties', async () => {
+    const app = setup();
+    expect(listSortFields(listNotes)).toEqual(['status', 'text']);
+    const byStatus = await app.query(
+      { operation: 'note.list', input: { sortBy: 'status', sortDirection: 'desc' } },
+      ann,
+    );
+    expect(byStatus.data.items.map((item) => item.id)).toEqual(['a', 'b', 'c', 'd']);
+    const byText = await app.query(
+      { operation: 'note.list', input: { sortBy: 'text', sortDirection: 'desc' } },
+      ann,
+    );
+    expect(byText.data.items.map((item) => item.id)).toEqual(['d', 'c', 'b', 'a']);
+    await expect(
+      app.query({ operation: 'note.list', input: { sortBy: 'secret' } } as never, ann),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
 
   test('get hides a record the caller may not see as if it were missing', async () => {

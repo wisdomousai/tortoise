@@ -97,9 +97,15 @@ export interface CollectionReadSpec<Id extends string> {
 export interface CollectionListSpec<
   Id extends string,
   Filters extends string,
+  Sort extends string = never,
 > extends CollectionReadSpec<Id> {
   /** Item fields a list may filter on by equality. Each becomes an optional input field. */
   readonly filters?: readonly Filters[];
+  /**
+   * Item fields a caller may sort by. Adds the optional inputs `sortBy` (one of them) and
+   * `sortDirection` (`asc` or `desc`); without `sortBy` the handler's own order applies.
+   */
+  readonly sort?: readonly Sort[];
   /**
    * Adds an optional `search` input: case-insensitive text the server matches against each
    * visible record's search text (`searchText` in the handler). Never match hidden fields.
@@ -144,13 +150,30 @@ export function collectionList<
   Type extends string,
   Item extends z.ZodObject,
   const Filters extends keyof Item['shape'] & string = never,
->(collection: Collection<Type, Item>, spec: CollectionListSpec<Id, Filters>) {
+  const Sort extends keyof Item['shape'] & string = never,
+>(collection: Collection<Type, Item>, spec: CollectionListSpec<Id, Filters, Sort>) {
   const filterShape: Record<string, z.ZodOptional> = {};
   for (const field of spec.filters ?? []) {
     const schema = collection.item.shape[field] as z.ZodType | undefined;
     if (!schema) throw new Error(`Collection filter is not an item field: ${field}`);
+    if (listControls.has(field))
+      throw new Error(`Collection filter ${field} collides with a list control`);
     filterShape[field] = schema.optional();
   }
+  for (const field of spec.sort ?? [])
+    if (!(field in collection.item.shape))
+      throw new Error(`Collection sort field is not an item field: ${field}`);
+  const sortShape = spec.sort?.length
+    ? {
+        sortBy: z
+          .enum(spec.sort as unknown as [string, ...string[]])
+          .optional()
+          .describe(
+            `The field to order ${collection.label.many} by; the default order when left out.`,
+          ),
+        sortDirection: z.enum(['asc', 'desc']).optional().describe('Ascending when left out.'),
+      }
+    : {};
   return defineCapability({
     id: `${spec.id}.list` as `${Id}.list`,
     kind: 'query',
@@ -158,6 +181,7 @@ export function collectionList<
     input: jsonSchema(
       z.strictObject({
         ...filterShape,
+        ...sortShape,
         ...(spec.search
           ? {
               search: z
@@ -184,7 +208,7 @@ export function collectionList<
           .describe(
             `Most records on the page, 1 to ${MAX_PAGE}. The output's total counts every match.`,
           ),
-      }) as unknown as z.ZodType<CollectionListInput<z.output<Item>, Filters>>,
+      }) as unknown as z.ZodType<CollectionListInput<z.output<Item>, Filters, Sort>>,
     ),
     output: jsonSchema(
       z.strictObject({
@@ -198,24 +222,32 @@ export function collectionList<
     display: readDisplay(collection, collection.label.many),
   });
 }
-export type CollectionListInput<Item, Filters extends keyof Item> = {
+export type CollectionListInput<Item, Filters extends keyof Item, Sort extends string = never> = {
   readonly [F in Filters]?: Item[F];
-} & { readonly search?: string; readonly offset?: number; readonly limit?: number };
+} & { readonly search?: string; readonly offset?: number; readonly limit?: number } & ([
+    Sort,
+  ] extends [never]
+    ? unknown
+    : { readonly sortBy?: Sort; readonly sortDirection?: 'asc' | 'desc' });
 export interface CollectionPage<Item> {
   readonly items: Item[];
   /** Visible records matching the filters, before paging. */
   readonly total: number;
 }
 
-/** The equality filters of a generated list: its input fields other than search and paging. */
-export function listFilters(list: { readonly input: { readonly jsonSchema: object } }): string[] {
-  return listInputFields(list).filter((field) => !listControls.has(field));
+type ListShape = { readonly input: { readonly jsonSchema: object } };
+/** The equality filters of a generated list: its input fields other than the list controls. */
+export function listFilters(list: ListShape): string[] {
+  return Object.keys(listInputProperties(list)).filter((field) => !listControls.has(field));
 }
 /** Whether a generated list accepts `search`. */
-export const listSearches = (list: { readonly input: { readonly jsonSchema: object } }) =>
-  listInputFields(list).includes('search');
-const listControls = new Set(['search', 'offset', 'limit']);
-function listInputFields(list: { readonly input: { readonly jsonSchema: object } }) {
-  const properties = (list.input.jsonSchema as { properties?: Record<string, unknown> }).properties;
-  return Object.keys(properties ?? {});
+export const listSearches = (list: ListShape) => 'search' in listInputProperties(list);
+/** The fields a generated list may sort by: the choices of its `sortBy` input, if any. */
+export function listSortFields(list: ListShape): string[] {
+  const sortBy = listInputProperties(list).sortBy as { enum?: unknown[] } | undefined;
+  return (sortBy?.enum ?? []).map(String);
+}
+const listControls = new Set(['search', 'offset', 'limit', 'sortBy', 'sortDirection']);
+function listInputProperties(list: ListShape): Record<string, unknown> {
+  return (list.input.jsonSchema as { properties?: Record<string, unknown> }).properties ?? {};
 }

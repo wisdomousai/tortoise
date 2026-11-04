@@ -137,12 +137,19 @@ export const noteRecords = defineCollection({
 export const listNotes = collectionList(noteRecords, {
   id: 'note',
   filters: ['folder'],
+  sort: ['title', 'createdAt'],
   description: '…',
 });
 
 // In a command handler: records(ctx, noteRecords, ctx.state.notes).update(input.id, { title: input.title });
 // For the list: collectionListHandler(noteRecords, listNotes, { store: (s) => s.notes, visible: canSee });
 ```
+
+A list's `filters` are equality filters on item fields; each becomes an optional input. `sort` names the fields a caller may order by and adds the optional inputs `sortBy` and `sortDirection`; the handler's own `order` applies without `sortBy` and breaks ties. `search` adds a text input the handler matches with `searchText`. The generated list screen renders each of these as a control, and an agent gets them as tool parameters.
+
+`collectionUpdate` makes every listed field optional, so a call changes only the fields it names. A field the item may leave out also accepts `null`, which removes it from the record; a required item field does not.
+
+The collection's `fields` carry display metadata for generated screens and tools: a `label`, a `kind` (`text`, `date`, `date-time`, `status`, `reference`, `file`), `tones` for a status field's values (`neutral`, `positive`, `warning`, `negative`) and, for a reference, the resource kind of the collection it names. Without a kind, the screens infer one from the field's name and schema: a field named like a timestamp shows as a date, a `status` enum as a badge, a blob reference as a file.
 
 ## Wire it up
 

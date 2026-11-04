@@ -29,6 +29,7 @@ interface Place {
   team: string;
   retired: boolean;
   plan?: z.output<typeof blobRefSchema>;
+  note?: string;
   createdBy: string;
 }
 interface State {
@@ -45,6 +46,7 @@ const places = defineCollection({
     team: z.string(),
     retired: z.boolean(),
     plan: blobRefSchema.optional(),
+    note: z.string().max(80).optional(),
     createdBy: z.string(),
   }),
   label: { one: 'Place', many: 'Places' },
@@ -69,7 +71,7 @@ const ops = {
   update: collectionUpdate(places, {
     id: 'place',
     description: 'Rename a place or replace its plan.',
-    fields: ['name', 'plan'],
+    fields: ['name', 'plan', 'note'],
     blobs: limits,
   }),
   retire: collectionRetire(places, { id: 'place', description: 'Retire a place.' }),
@@ -226,6 +228,17 @@ describe('generated collection commands', () => {
       'CONFLICT',
     );
     expect(await run(app, 'place.retire', { id: 'bay' }).catch(code)).toBe('CONFLICT');
+  });
+
+  test('update takes null to clear a field the item may leave out, never a required one', async () => {
+    const { app } = setup();
+    const noted = await run(app, 'place.update', { id: 'bay', note: 'Door sticks' });
+    expect(noted.result).toMatchObject({ note: 'Door sticks' });
+    const cleared = await run(app, 'place.update', { id: 'bay', note: null });
+    expect(cleared.result).not.toHaveProperty('note');
+    expect(await run(app, 'place.update', { id: 'bay', name: null }).catch(code)).toBe(
+      'INVALID_INPUT',
+    );
   });
 
   test('retire needs the children retired or moved first', async () => {

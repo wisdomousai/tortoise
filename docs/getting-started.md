@@ -103,7 +103,7 @@ bun test showcase/examples/inspection-desk
 
 You should see `3 fail` with `Input does not match operation schema`. The old tests create inspections without an equipment ID.
 
-**9. Fix the tests.** In `test/inspection.test.ts` and `test/conformance.test.ts`, add `equipmentId: 'PUMP-4'` to every `inspection.create` input. In `e2e/default-screens.pw.ts`, fill the new field after the title:
+**9. Fix the tests.** In `test/inspection.test.ts` and `test/conformance.test.ts`, add `equipmentId: 'PUMP-4'` to every `inspection.create` input. In `e2e/inspections.pw.ts`, fill the new field after the title:
 
 ```ts
 await page.getByRole('textbox', { name: 'Equipment Id', exact: true }).fill('PUMP-4');

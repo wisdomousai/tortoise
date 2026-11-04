@@ -5,9 +5,9 @@ import { live } from '@/lib/session';
 import { operations } from '../contracts';
 import { ActivityForm } from './account/activity-form';
 import { LocalStatusBadge } from './local-status';
+import { formatDate } from '@/lib/fields';
 
-const when = (at: number) =>
-  new Date(at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+const when = (at: number) => formatDate(at);
 
 /** One followed account: what the CRM holds, and the activities logged here with their outcome. */
 export function AccountScreen() {
