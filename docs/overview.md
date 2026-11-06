@@ -1,6 +1,6 @@
 # Overview
 
-An application serves one specialized business process change and runs at the edge, on a computer or phone. The host runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
+An application serves one specialized business process and runs at the edge, on a computer or phone. The host runs it. People use its screens, agents call its CLI or MCP server, and scripts call its HTTP API. All of them reach the same instance.
 
 Each instance has one workspace, by default a SQLite database in a directory. Every change to a record is a command. The host validates input, checks access and commits. No other process writes the workspace while the instance is open.
 

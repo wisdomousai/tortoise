@@ -1,6 +1,6 @@
 # Working on this starter
 
-Tortoise is a framework for small applications that run at the edge and serve a process change so specialized that no standard application fits it. Building that change into a standard application costs as much as custom software without its benefits, so Tortoise exists to make the custom application cheap to build and keep running. Judge a change by whether it keeps the next application that cheap.
+Tortoise is a framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Building that process into a standard application costs as much as custom software without its benefits. Claude Code or Codex can vibe-code the custom application cheaply, but an application that starts from an empty folder has access checks, an audit log and reliable sending of results to the central systems only if someone asks for each one, and only as well as the model builds it. Tortoise runs the application locally and supplies everything beyond the process itself, so the generated code covers only the process.
 
 Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
 
@@ -42,7 +42,7 @@ Advice. Depart from it when the code is better for it, and say why in the commit
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts. Use an outbox effect when another system decides.
-- An application serves one process change. Keep its code to that change.
+- An application serves one process. Keep its code to that process.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
 - Do not add an owner, a term or a renewal record.
 - Document what a workspace is for, what it trusts and how to test it. Comment the non-obvious: transaction and authorization order, trust boundaries, failure behavior.

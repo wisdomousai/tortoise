@@ -2,7 +2,9 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-Tortoise is a TypeScript framework for small applications that run at the edge and serve a process change so specialized that no standard application fits it. Building that change into an ERP or another standard application costs as much as custom software, and the result neither matches the new process exactly nor changes again when the process does. Tortoise makes the custom application cheap enough to build: the framework contains everything beyond the process change itself, including the controls IT needs before it allows the application to run, so the code written for one application stays small enough to build quickly and run with little maintenance.
+Tortoise is a TypeScript framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Building that process into an ERP or another standard application costs as much as custom software, and the result neither matches the process exactly nor changes when the process does.
+
+Claude Code or Codex can vibe-code the custom application cheaply, but an application that starts from an empty folder has access checks, an audit log and reliable sending of results to the central systems only if someone asks for each one, and only as well as the model builds it. Hosted app builders such as Lovable run the application and its records in their cloud, away from the devices, files and local network at the edge. Tortoise is a framework for the edge. It runs the application locally, on the computer or phone where the process takes place, and contains everything beyond the process itself, including the controls IT needs before it allows the application to run. Claude Code or Codex writes only the code for the process, in a fixed pattern, so the application stays small and keeps its access checks, audit log and delivery to the central systems through each later prompt.
 
 | Principle  | Behavior |
 | ---------- | -------- |
@@ -11,7 +13,7 @@ Tortoise is a TypeScript framework for small applications that run at the edge a
 | Headless   | Each process step is one capability, written once in a fixed pattern. All logic for the step is in the capability. Screens, agents and scripts only call it. |
 | Portable   | The same application runs on a desktop, in a browser, on a hosted server and, with native screens, on a phone. |
 | AI native  | Agents run the same commands as people under a grant narrowed from a person's, and a person approves the changes an agent asks for. |
-| Generated  | Skills, the scaffold, the shadcn registries and `bun run check` give Claude Code and Codex what they need to generate an application with little effort. |
+| Generated  | Skills, the scaffold and the shadcn registries give Claude Code and Codex the pattern for each part. `bun run check` fails when generated code crosses a layer, reaches the network or a child process outside the host, or breaks a test. |
 
 ## Quickstart (5 minutes)
 

@@ -14,7 +14,7 @@ The scaffold starts an application and its parts. `scaffold new` exports the fra
   - record ownership;
   - the difference between capture and acceptance;
   - the exception path.
-- An application serves one process change. Keep its code to that change.
+- An application serves one process. Keep its code to that process.
 - Deliver what it captures through a target. Set a shelf life on the manifest.
 - Do not add any of these records:
   - an owner
