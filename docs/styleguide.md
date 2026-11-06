@@ -20,7 +20,7 @@ Agents read this file, not personal settings, so every rule that matters is here
 
 ## Examples in a page
 
-- The root README says what this repository is for: small applications at the edge that serve a specialized process, why building it as a custom application costs less than putting it into a standard application, and how the framework lets Claude Code or Codex vibe-code that application and run it locally without losing access control, audit or delivery. Leave each sample application in its own README.
+- The root README says what this repository is for: small applications at the edge that serve a specialized process, why Claude Code or Codex writes it as custom software, why that software is fragile when it starts from scratch, and what Tortoise gives it as a starting point at the edge. Leave each sample application in its own README.
 - On any other page, an example shows that page's mechanism only.
 - An example's README names the job in the domain's words, then what the application adds beyond the framework. Framework terms come after, where the README says how the application is built. Policy role names such as editor and viewer are not job titles.
 

@@ -2,15 +2,15 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-Tortoise is a TypeScript framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Building that process into an ERP or another standard application costs as much as custom software, and the result neither matches the process exactly nor changes when the process does.
-
-Claude Code or Codex can vibe-code the custom application cheaply, but an application that starts from an empty folder has access checks, an audit log and reliable sending of results to the central systems only if someone asks for each one, and only as well as the model builds it. Hosted app builders such as Lovable run the application and its records in their cloud, away from the devices, files and local network at the edge. Tortoise is a framework for the edge. It runs the application locally, on the computer or phone where the process takes place, and contains everything beyond the process itself, including the controls IT needs before it allows the application to run. Claude Code or Codex writes only the code for the process, in a fixed pattern, so the application stays small and keeps its access checks, audit log and delivery to the central systems through each later prompt.
+Tortoise is a TypeScript framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Adapting a standard application to such a process costs as much as writing custom software, and Claude Code or Codex now writes custom software cheaply. But what it writes from scratch is fragile: whether the application checks access, keeps an audit log or gets its results into the central systems depends on what the prompts happened to ask for. Hosted app builders such as Lovable write the application the same way and run it and its records in their cloud, away from the devices, files and local network at the edge. Tortoise gives Claude Code or Codex a starting point that already does those things and runs on the computer or phone at the edge, so it writes only the code for the process.
 
 | Principle  | Behavior |
 | ---------- | -------- |
 | Sandboxed  | The application builds to a CLI binary that runs inside any agent sandbox. It serves its commands over MCP in-process and delivers its outbox before the sandbox closes. |
 | Zero trust | Every API call needs a session or device credential, whether a person, a script or an agent sends it. |
-| Headless   | Each process step is one capability, written once in a fixed pattern. All logic for the step is in the capability. Screens, agents and scripts only call it. |
+| Headless   | Each process step is one capability with a fixed pattern: contract, handler, policy rule and test. All logic for the step is in the capability. Screens, agents and scripts only call it. |
+| Audited    | The host writes an entry to the audit log for every command, whoever sends it. |
+| Outbox     | A command that has a result for a central system commits it to the outbox in the same transaction. The dispatcher delivers it, retries after a failure and asks a person when the outcome is uncertain. |
 | Portable   | The same application runs on a desktop, in a browser, on a hosted server and, with native screens, on a phone. |
 | AI native  | Agents run the same commands as people under a grant narrowed from a person's, and a person approves the changes an agent asks for. |
 | Generated  | Skills, the scaffold and the shadcn registries give Claude Code and Codex the pattern for each part. `bun run check` fails when generated code crosses a layer, reaches the network or a child process outside the host, or breaks a test. |

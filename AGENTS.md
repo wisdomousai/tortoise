@@ -1,6 +1,6 @@
 # Working on this starter
 
-Tortoise is a framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Building that process into a standard application costs as much as custom software without its benefits. Claude Code or Codex can vibe-code the custom application cheaply, but an application that starts from an empty folder has access checks, an audit log and reliable sending of results to the central systems only if someone asks for each one, and only as well as the model builds it. Tortoise runs the application locally and supplies everything beyond the process itself, so the generated code covers only the process.
+Tortoise is a framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Adapting a standard application to such a process costs as much as writing custom software, and Claude Code or Codex now writes custom software cheaply. But what it writes from scratch is fragile: whether the application checks access, keeps an audit log or gets its results into the central systems depends on what the prompts happened to ask for. Tortoise gives Claude Code or Codex a starting point that already does those things and runs on the computer or phone at the edge, so it writes only the code for the process.
 
 Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
 
