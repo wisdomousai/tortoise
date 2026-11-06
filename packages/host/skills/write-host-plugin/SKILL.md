@@ -1,17 +1,16 @@
 ---
 name: write-host-plugin
-description: Write a host plugin in plugins/<name> for a cross-cutting concern (deployment policy, network, audit, compliance, notifications, a third-party integration) that several applications compose. Use when behavior is not one application's domain but needs its own state slice, policy, settings, lifecycle hooks, CLI verbs, screens or a host port. plugins/webhook is the template.
+description: Implement a cross-cutting host plugin with its own lifecycle or ports. Use when several applications need the same host facility or a plugin needs settings, ingress, CLI commands or screen contributions.
 ---
 
 # Write a host plugin
 
-A host plugin is a feature with settings, lifecycle hooks and ports: it adds modules, a state slice, a policy and connections like a feature, and reaches the host through its ports. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one.
+A host plugin is a feature with settings, lifecycle hooks and ports: it adds modules, a state slice, a policy and connections like a feature, and reaches the host through its ports. The application composes its manifest and server entrypoints and registers its screen contribution when present.
 
 ## Before writing
 
 - Decide whether the concern is a plugin. Domain behavior for one application is a capability in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). A reusable domain part that needs no port, setting or lifecycle hook, and reads the application through an access view, is a feature; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`).
 - Put generic host or frame behavior that every application needs in the framework packages.
-- `showcase/patterns/host-plugin/plugins/activity` is a plugin with no network, device or process, written next to the application that composes it.
 - Look in `plugins/*` and in [primitives](../../../../docs/primitives.md#host-plugin) for a plugin that already covers the concern.
 - A plugin imports the framework and the plugins it requires. It never imports `apps/*` or `showcase/examples/*`.
 
@@ -25,7 +24,7 @@ A host plugin is a feature with settings, lifecycle hooks and ports: it adds mod
 6. Implement the lifecycle hooks it needs: `open`, `ready`, `start` and `close`. [Lifecycle](../../../../docs/architecture.md#lifecycle) says when each runs; `open` may refuse startup. In a built binary, `open` also receives `build`, the build time and best-before date, for a plugin that reports or checks them.
 7. Reach the network, ingress, identity, processes, exchange folders and the audit log only through `HostPorts`. Never reach them through another plugin's imports.
 8. Write from a loop or job only through the plugin's own commands, as a caller under a delegated grant. Never write into application state.
-9. For a plugin that issues its own credentials, as the device link and the peer link do:
+9. For a plugin that issues its own credentials:
    - pair by a one-use code with `@tortoise/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
    - serve the code exchange from `publicRoute`, which runs before the session check;
    - resolve the credential on every request in `authenticate(token, request)`, which returns the caller's context and grant;
@@ -58,4 +57,3 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 ## References
 
 - [Architecture](../../../../docs/architecture.md#host-plugins)
-- [Host plugin pattern](../../../../showcase/patterns/host-plugin/README.md)

@@ -1,11 +1,13 @@
 # @tortoise/testing
 
-Test helpers: behavioral scenarios that run the same on every channel, UI-binding checks, connector and storage conformance suites, and agent scenarios judged by command results and approval requests. Scenarios take the `ExecutionContext` from the test, which stands in for the trusted host.
+`@tortoise/testing` supplies conformance helpers for application behavior and framework ports. Behavioral scenarios run against the selected channel drivers using trusted context supplied by the test. Separate helpers check the screen bindings declared by an application.
 
-- Primitives: [Behavioral scenario](../../docs/primitives.md#behavioral-scenario), [Model entry](../../docs/primitives.md#model-entry), [Storage](../../docs/primitives.md#storage), [Feature](../../docs/primitives.md#feature), [Agent scenario](../../docs/primitives.md#agent-scenario).
+Storage conformance exercises transaction behavior and persistence through an adapter. Agent scenarios assert command outcomes and approval requests on a configured harness. Those assertions establish the behavior exercised by the fixture; provider execution and device operation require their own evidence.
 
 ## References
 
-- [check-a-change](skills/check-a-change/SKILL.md)
-- [Development and testing](../../docs/development-and-testing.md)
-- Test: `bun test packages/testing`, `bun run test:conformance`
+[check-a-change](skills/check-a-change/SKILL.md)
+
+[Development and testing](../../docs/development-and-testing.md)
+
+Test: `bun test packages/testing`, `bun run test:conformance`

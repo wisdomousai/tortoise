@@ -61,6 +61,18 @@ function detail(
 }
 
 export const layers: View = (element, data, links) => {
+  const workspaces = data.workspaces.filter(
+    (workspace) => !workspace.layer.startsWith('showcase/'),
+  );
+  const visible = new Set(workspaces.map((workspace) => workspace.name));
+  data = {
+    ...data,
+    layers: data.layers.filter((layer) => !layer.directory.startsWith('showcase/')),
+    workspaces: workspaces.map((workspace) => ({
+      ...workspace,
+      dependsOn: workspace.dependsOn.filter((name) => visible.has(name)),
+    })),
+  };
   const byName = new Map(data.workspaces.map((workspace) => [workspace.name, workspace]));
   const chips = new Map<string, HTMLButtonElement>();
   const overlay = s('svg', { class: 'ov-overlay', 'aria-hidden': 'true' });

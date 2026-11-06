@@ -1,11 +1,11 @@
 ---
 name: bridge-station-screen
-description: Bridge a workstation application (vendor HMI, test-bench software, MES client) that has no API and must stay unmodified, so an application can observe it and run declared procedures on it. Use when writing or changing a StationProfile, an extractor, a screen connector or the golden test, or when choosing the screen route or a driver. Covers workstations/screen-bridge, packages/observation and showcase/examples/winding-line.
+description: Connect a workstation application through its screen. Use when defining a station profile or extractor, composing observed input and procedure delivery, or checking a profile against labeled frames.
 ---
 
 # Bridge a workstation application through its screen
 
-A workstation application that has no API is a system of record the application reaches through its screen. A model may read the screen or suggest an on-screen target; deterministic code acts and verifies.
+A screen bridge observes a workstation application through declared extractors. Its connector executes the procedures in a station profile and checks the required readback. The profile defines the interaction permitted with that workstation.
 
 ## Before writing
 
@@ -19,12 +19,12 @@ A workstation application that has no API is a system of record the application 
 
 ### Screen route
 
-1. Make each command record the desired state and enqueue an outbox effect on the target `legacy-hmi:<station>`.
+1. Make a command that requests a workstation change record its desired state and enqueue an effect on the station's declared target.
 2. Deliver those effects with the screen connector, `createStationConnector`, which implements the system-of-record port. It uses the convergent delivery in `packages/integration`, so a readback of the desired value is acceptance. The `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers that side.
-3. Report what the screen shows through an observer, `createStationObserver`, that submits an ingest command under `station-bridge:<station>`.
+3. Use `createStationObserver` to submit screen observations through an ingest command under a narrowly scoped integration principal.
 4. Keep each reading's provenance: extractor, model, confidence and frame digest.
 5. Turn an uncertain reading into an attention item for a person. It never becomes a silent value.
-6. Put the station particulars in a versioned station profile, `StationProfile`, as in `showcase/examples/winding-line/station-profile.json`. It lists screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, risk level and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
+6. Put the station particulars in a versioned station profile, `StationProfile`. It lists screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, risk level and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
 7. Set the bridge mode to `monitor-only` by default.
 8. Make starting procedures that need a person, reconciling held effects and taking over the screen person-only commands. Deny them to agent runs and grants.
 9. Give the computer-use agent no catalog write tools beyond ingest and complete, under its own integration principal.
@@ -39,13 +39,13 @@ A workstation application that has no API is a system of record the application 
 
 ### Automation route
 
-A station whose software has an automation interface is reached through a driver instead of its screen. Handlers, contracts and screens stay the same on either route.
+Use a driver for an available automation interface. Review its observation and action contracts before changing the connection. Existing application operations can remain when the new interface preserves their declared behavior.
 
 1. Give the driver's contract the same fields and procedures, with the same preconditions, readback and risk levels.
 2. Run its bridge as the same station principal, with the same grant and target.
 3. Use the contract's `control` field in place of the screen's local input check.
-4. Configure each station on one route, as `showcase/examples/winding-line` does. Its C# driver reaches a COM server (`showcase/examples/winding-line/drivers/automation`).
-5. Write the driver with the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`), and read the [hardware drivers examples](../../../../docs/hardware-drivers.md#examples).
+4. Configure the selected route for each station and verify its ownership and readback behavior.
+5. Write the driver with the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`), and read the [driver contract](../../../../docs/hardware-drivers.md#driver-contract).
 
 ## Checks
 
@@ -65,7 +65,6 @@ Report deterministic, browser, device and live-model evidence separately in [imp
 
 ## References
 
-- [`showcase/examples/winding-line`](../../../../showcase/examples/winding-line/README.md)
 - [Operator workstations](../../../../docs/operator-workstations.md)
 - [`@tortoise/screen-bridge`](../../README.md)
 - [Operator workstations](../../../../docs/operator-workstations.md#automation-route)

@@ -1,60 +1,32 @@
 ---
 name: create-agent-native-app
-description: Create a new agent-native application from this framework with `bun run scaffold new`, export a reference example, or decide which skill fits a change to an existing application. Use when starting an application, choosing between the examples, or shaping a generated application into the user's business domain.
+description: Create an application with the scaffold or export a selected existing application. Use when starting a process-specific application, choosing its export mode, or routing further work to the appropriate task skill.
 ---
 
 # Create an agent-native application
 
-The scaffold starts an application and its parts. `scaffold new` exports the framework and a thin starter with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents, assignment kinds and features. `scaffold --example <name>` exports one reference example instead.
+Use the scaffold to create an application in a new directory. The application defines the requested process; the framework supplies its execution infrastructure. Establish the process from the user's requirements before choosing records or screens. Hypothetical demonstration applications do not establish those requirements.
 
-## Before writing
+## Application design
 
-- For a bounded task or workflow over existing systems of record, establish these before shaping the UI:
-  - the real-world trigger;
-  - record ownership;
-  - the difference between capture and acceptance;
-  - the exception path.
-- An application serves one process. Keep its code to that process.
-- Deliver what it captures through a target. Set a shelf life on the manifest.
-- Do not add any of these records:
-  - an owner
-  - a term
-  - a renewal
-- Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
+Identify the event that starts the work and the records the application must retain. Determine who may perform each operation and what should happen when it cannot complete. Keep the application scoped to that process.
 
-## Steps
+When an external system decides a write, establish its acceptance and recovery behavior and use a target. A local-only application does not require an external delivery path. Use the [integration skill](../../../integration/skills/connect-system-of-record/SKILL.md) for that connection.
 
-1. Pick the closest example from the table below and read it as the pattern. `bun run dev:showcase <name>...` starts the ones to compare side by side, each on its own port.
-2. Export the application with `scaffold new`, or one example with `scaffold --example <name>`, as [the setup reference](references/new-application.md) describes.
-3. To install the framework packages at the checkout's version instead of copying their source, pass `--registry <url>`, or `--published` for npm's registry.
-4. To try a registry install before anything is published, serve the packages on loopback with `bun run release:serve`.
-5. Extend the application with `scaffold add`.
-6. Shape the generated parts into the requested domain.
-7. Set `shelfLifeDays` in the manifest to how long one build should serve before it is rebuilt or removed. The scaffold writes 180.
-8. Pick the skill for each further change from `AGENTS.md` at the application root. The tutorials order those skills into a build, with a prompt per step.
+Set `shelfLifeDays` according to the intended lifetime of a build; the scaffold initializes it to 180. Do not add an application ownership or renewal register. Provider credentials must come from an explicitly configured deployment.
 
-| Example | Shows |
-| --- | --- |
-| `showcase/examples/field-service` | the smallest whole application: capabilities, policy, OS handlers and actions, agent definitions, a background job |
-| `showcase/examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
-| `showcase/examples/crm-capture` | live search of a CRM and following its records |
-| `showcase/examples/winding-line` | an operator workstation over workstation application reached through its screen or a .NET driver |
-| `showcase/examples/asset-survey` and `showcase/examples/asset-survey-field` | a hub with blob evidence, a declared workflow, assignments and a paired mobile field application that takes them |
-| `showcase/examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
-| `showcase/examples/fleet` | the fleet that instances report to: enrollment, signed releases on channels, audit forwarding and relayed access |
-| `showcase/examples/parts-desk` | the parts desk tutorial's application: quotes and an assistant panel beside every screen, served from a local model |
-| `showcase/examples/tool-store` | the tool store tutorial's application: loans, a counter terminal with scanning and sign-in, repair orders to an EAM, a triage agent, cycle counts, a deployment policy |
-| `showcase/patterns/*` | one concept each on an oil lab's test requests for power transformers in service, as `docs/patterns.md` lists them. Exports leave them out |
+## Creating the workspace
 
-`bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@tortoise/`. There, the steps that change framework source apply in the framework checkout instead.
+Run `scaffold new` from the framework checkout, following the [setup reference](references/new-application.md). The destination must not exist. Choose source export or a configured package registry according to how the application will receive framework changes. The registry route requires framework packages at the checkout's version.
 
-## Checks
+Initialize Git in the exported directory and install its dependencies. Continue work from that directory. Preserve the scaffold markers when extending the generated application with `scaffold add`. Review every generated policy rule after renaming roles; later insertions still use the scaffold's `editor` rule.
 
-Run the checks the `check-a-change` skill names and report what actually passed. Report provider login, live inference, native packaging, real hardware and release as unchecked unless they ran.
+A request to export a particular existing demonstration can use `scaffold --example <name>`. Treat its application behavior as source to inspect and adapt. The export does not establish that it meets the user's process requirements.
 
-## References
+Choose the task skill for the next change from the exported application's `AGENTS.md`. Framework mechanisms are explained in [Architecture](../../../../docs/architecture.md). The [tutorials](../../../../docs/tutorials/index.md) document agent-led construction in their own hypothetical workspaces.
 
-- [Setup reference](references/new-application.md)
-- [Getting started](../../../../docs/getting-started.md#new-application)
-- [Tutorials](../../../../docs/tutorials/index.md)
-- [Implementation status](../../../../docs/implementation-status.md)
+## Verification
+
+Run the checks printed by the scaffold and the focused application tests after changing its behavior. Inspect the generated reference under `dist/reference` for the operations and external requirements the application declares. Follow [check-a-change](../../../testing/skills/check-a-change/SKILL.md) for repository checks and reporting their limits.
+
+`bun install` links workspace skills for Claude Code and Codex. A registry application loads framework skills from its installed packages under `node_modules/@tortoise/`. Framework-source changes belong in the framework checkout.

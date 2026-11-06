@@ -1,14 +1,16 @@
 ---
 name: check-a-change
-description: Choose and run the checks for a change in this repository and report the evidence honestly. Use before saying a change is done, before committing, or when deciding whether docs/implementation-status.md, docs/primitives.md, a README or a skill must change with the code.
+description: Select checks for a repository change and report their actual evidence. Use before reporting completion or preparing a commit, including review of affected skills and implementation-status entries.
 ---
 
 # Check a change
 
+Choose checks for the changed behavior and its execution boundary. Use the table below for focused verification, then run the required repository check before reporting completion. State what each result establishes.
+
 ## Before writing
 
 - In an application that installs the framework from a registry, the framework rows of the table do not apply. `bun run check` there runs what the export keeps, and `bun run check:framework` fails when two framework versions are installed.
-- A source export that leaves out examples and patterns currently reports those missing paths and changed root scripts in `check:skills`. Run the applicable focused checks too, and report the full-check failure rather than treating those checks as equivalent.
+- A source export that leaves out examples and patterns currently reports those missing paths and changed root scripts in `check:skills`. Run the applicable focused checks too, and report the unresolved full-check failure.
 - Subprocess tests can time out under load. Rerun one before treating a timeout as a regression.
 - A sandbox that blocks listening sockets makes the `test:service` suites report `EADDRINUSE`.
 
@@ -20,9 +22,9 @@ description: Choose and run the checks for a change in this repository and repor
 4. Update the entry in `docs/primitives.md` when a building block's meaning, status or location changes.
 5. Keep the relevant README's purpose, entrypoints, trust boundaries, failure behavior and test instructions accurate.
 6. When `bun run check:skills` reports a changed public API, read each skill it names. Update it for what changed: new or renamed entrypoints, exports, steps, commands and checks.
-7. Review the skills the same way for a changed behavior with an unchanged public API, such as a new rule, a changed default or a new limit. The check does not prompt for it.
-8. Run `bun run skills:stamp <workspace>` once the skills are reviewed.
-9. Commit the skill and `scripts/reviewed-api.json` with the code.
+7. Review the skills the same way for a changed behavior with an unchanged public API, including policy or default changes. The check does not prompt for it.
+8. When the public API review is complete, run `bun run skills:stamp <workspace>` for the workspace named by the check.
+9. Keep the reviewed skill edits and `scripts/reviewed-api.json` with the implementation change.
 10. Leave generated references out of the commit. `bun run generate` writes them to `dist/reference/`.
 11. Report each kind of evidence separately:
     - **Deterministic:** what `bun run check` and the focused suites showed.
@@ -33,6 +35,8 @@ description: Choose and run the checks for a change in this repository and repor
 12. Say which checks were skipped and why.
 
 ## Checks
+
+Commands that name an application use the scaffold's `showcase/examples/<app>` layout. Substitute the selected application's actual workspace path when its layout differs.
 
 | Change | Run first |
 | --- | --- |
@@ -56,4 +60,4 @@ description: Choose and run the checks for a change in this repository and repor
 | A framework package's imports, dependencies or packed files | `bun run check:manifests`; `bun scripts/check-manifests.ts --write` rewrites the manifests |
 | A change that should reach the next framework release | `bun run changeset` to record it; the release scripts are in [development and testing](../../../../docs/development-and-testing.md#framework-packages) |
 | The scaffold or what it exports | `bun run test:scaffold`; `SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold/src/generate.test.ts -t "from a registry"` for an export that installs the framework |
-| A README, doc link or skill | `bun run check:skills`, `bun run check:words`, `bun run docs:build`; review prose and links against `docs/styleguide.md` |
+| A README, doc link or skill | `bun run check:skills`, `bun run docs:build`; review prose and links against `docs/styleguide.md` |

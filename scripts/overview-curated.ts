@@ -2,11 +2,11 @@
  * The parts of the overview map that no manifest declares: the request paths, the operating
  * properties, the port table and each example's input route and system of record. Every entry
  * names the files and tests that back it, and `scripts/overview.ts` refuses to generate when a
- * file is missing, a test name is absent from its file or a doc anchor does not exist. A claim
- * here therefore stays true of the code, or `bun run check` fails.
+ * file is missing, a test name is absent from its file or a doc anchor does not exist. These
+ * reference checks do not establish that a test executes or proves the accompanying prose.
  */
 
-/** A test that proves a statement: the file and the exact name passed to `test(...)`. */
+/** A related test: the file and the exact name passed to `test(...)`. */
 export interface TestReference {
   readonly file: string;
   readonly test: string;
@@ -47,7 +47,7 @@ const live: Step = {
   title: 'Live query',
   summary:
     'Every open screen whose reads changed refetches from the journal, filtered by current read access.',
-  doc: 'state-and-reactivity#live-queries',
+  doc: 'capability-authoring#live-queries',
   sources: ['packages/client/src', 'packages/react/src'],
   tests: [
     {

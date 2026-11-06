@@ -1,215 +1,135 @@
 # Security and compliance
 
-Your app declares what it needs outside the process. A deployment policy allows some of it. The network guard blocks the rest, and the audit log records everything in a hash chain.
+Security controls are supplied by the host and its composed plugins. An application's requirements declare the external resources its operations use. A deployment policy binds those declarations to the installation. The plugins enforcing the policy must be present before the host can accept work.
 
-Try it on the default app (field-service), from the repo root, after `bun run dev:web` has run once:
-
-```sh
-bun run cli policy check --policy apps/desktop/deployment-policy.json
-bun run cli network export --policy apps/desktop/deployment-policy.json --format json
-bun run cli audit verify --log .workspace/audit
-bun run cli compliance report --log .workspace/audit --policy apps/desktop/deployment-policy.json --format markdown
-```
-
-You should see `{"ok":true,"profile":"desktop-local",...}` with `HOSTNAME_ONLY` warnings, a JSON rule set with `"defaultNetwork": "deny"`, `{"ok":true,"segments":1,...,"problems":[]}`, and a "Compliance status: field-service" report with a checks table.
+The runtime's application authorization is specified in [Authorization](authorization.md). Deployment configuration controls the environment and credentials through which that runtime is reached.
 
 ## Controls and plugins
 
-1. **Declare** what you need (destinations, folders, devices, processes).
-2. **Bind** it in the deployment policy. Unbound means unreachable.
-3. **Enforce** with the network guard, plus exported firewall rules.
-4. **Record** in the audit log.
+The deployment plugin loads policy and checks its hardening requirements. The network plugin supplies guarded outbound connections and configured ingress. The audit plugin supplies the persistent event log. The compliance plugin exposes control findings and monitors the configured log.
 
-| Plugin       | Does                                                       | CLI verb            |
-| ------------ | ---------------------------------------------------------- | ------------------- |
-| `deployment` | Loads the deployment policy; enforces profile floors and identity | `policy check` |
-| `network`    | Network guard, proxy for child processes, TLS/mTLS ingress  | `network export`    |
-| `audit`      | Hash-chained audit log, forwarding, crash recovery         | `audit verify`      |
-| `compliance` | Auditor queries, compliance monitor, Compliance screen        | `compliance report` |
-
-Without `network`, nothing leaves the host. Startup refuses a policy setting that no composed plugin would enforce.
+Startup rejects settings that no composed plugin declares. Omitting the network provider leaves its port refusing outbound requests. Omitting persistent audit leaves no persistent audit log; the runtime does not create one independently of the configured provider.
 
 ## Declarations
 
-Declare each outside need as data. Real example from `plugins/audit/src/plugin-manifest.ts`:
+Requirements are browser-safe data declared by modules and host components. A network requirement states its destination identifier and intended scope. It also declares the protocol and the data classes sent there. Availability and offline behavior determine whether a missing resource prevents operation or leaves work queued.
 
-```ts
-export const auditCollectorComponent = defineHostComponent({
-  id: 'audit',
-  description: 'Audit plugin: forwards audit events off the host as RFC 5424 syslog.',
-  requirements: {
-    network: [
-      {
-        id: 'audit-collector',
-        purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
-        direction: 'outbound',
-        scope: 'local', // loopback | local | internet
-        protocol: 'tcp',
-        dataClasses: ['audit-event'],
-        availability: 'optional', // or required
-        offline: 'degrade', // queue | degrade | unavailable
-      },
-    ],
-  },
-});
-```
+Fixed vendor endpoints can declare their hostname. Deployment-specific addresses belong in policy. A target must be associated with a declared external resource. A destination used for outbox delivery requires `offline: 'queue'`.
 
-Rules (`packages/contracts/src/requirements.ts`):
-
-- Name a host only for a fixed vendor endpoint. The policy names the customer's own systems.
-- Every target needs a declared destination, folder or process. A destination that delivers outbox effects must use `offline: 'queue'`.
-- Code reaches a folder by ID through the folder port, never by path.
-- A capability lists the input fields safe to log in plain text; the audit log stores the rest as a digest.
+Folder access uses the folder port and a declared folder identifier. The policy resolves that identifier to an absolute path. A capability's `audit.fields` declaration identifies input fields allowed in plaintext audit data. Other input values contribute to the digest; the digest does not make low-entropy sensitive input safe to publish. Requirement validation is implemented in `packages/contracts/src/requirements.ts`.
 
 ## Deployment policy
 
-The policy is one JSON file per host. Pass it with `--deployment-policy` or `TORTOISE_DEPLOYMENT_POLICY`. Check it with `app policy check --policy <file>` (exit 2 on errors).
+Pass the policy file with `--deployment-policy` or `TORTOISE_DEPLOYMENT_POLICY`. The policy selects a hardening profile and binds the declared destinations. It can disable a destination with a reason. In connected mode, required destinations must be bound or explicitly disabled.
 
-```json
-{
-  "profile": "sandbox",
-  "mode": "connected",
-  "destinations": {
-    "mes-api": { "url": "https://mes.plant.local:8443", "addresses": ["10.20.0.15/32"] },
-    "audit-collector": { "url": "tcp://10.20.0.40:6514", "addresses": ["10.20.0.40/32"], "tls": true },
-    "openai-api": { "disabled": true, "reason": "No cloud inference on the line." }
-  },
-  "audit": { "mode": "fail-closed", "forwardTo": "audit-collector" },
-  "identity": "grant-file",
-  "grants": { "maxTtlSeconds": 3600 }
-}
-```
+A destination binding's `addresses` limits DNS results to the declared CIDRs. A binding without addresses produces `HOSTNAME_ONLY` and cannot yield an address-based firewall rule. `ca` and `certificatePins` configure destination trust. The default timeout is 30 seconds; the default response limit is 32 MiB. A binding can override these with `timeoutMs` and `maxResponseBytes`.
 
-| Key                  | Use                                                                   |
-| -------------------- | --------------------------------------------------------------------- |
-| `addresses`          | CIDRs the host may resolve to. Without them you get `HOSTNAME_ONLY` and no firewall rule. |
-| `ca`, `certificatePins` | Custom trust for one destination.                                  |
-| `timeoutMs`          | Per-destination timeout (default 30 s).                               |
-| `maxResponseBytes`   | Per-destination response cap (default 32 MiB).                        |
-| `folders`            | Folder ID → absolute directory, or disabled with a reason.            |
-| `mode: connected`    | You must bind or disable every required destination.                 |
-
-A real file: [`showcase/examples/quality-inspection/deployment-policy.sandbox.json`](../showcase/examples/quality-inspection/deployment-policy.sandbox.json).
+Folder bindings resolve declared identifiers to absolute directories or disable them explicitly. Process bindings identify an executable and its allowed arguments and environment. [Hardware drivers](hardware-drivers.md#process-binding) describes driver processes.
 
 ### Hardening profiles
 
-Each profile is a floor; startup refuses a weaker policy (`plugins/deployment/src/policy/floors.ts`).
+A profile sets minimum policy requirements. Startup rejects a policy below its floor, as implemented in `plugins/deployment/src/policy/floors.ts`.
 
-| Floor                   | desktop-local      | hub, sandbox                        | zero-trust                   |
-| ----------------------- | ------------------ | ---------------------------------------- | ---------------------------- |
-| Plain HTTP off the host | if declared        | refused                                  | refused; TLS with CA or pins |
-| Credentials off host    | TLS                | TLS                                      | TLS with CA or pins          |
-| Ingress                 | loopback           | loopback, TLS, mTLS                      | loopback, mTLS               |
-| Identity                | any                | hub: any; sandbox: grant or external | external                    |
-| Audit log               | fail-closed or best-effort | fail-closed                      | fail-closed and forwarded    |
-| Delegated grants        | `maxTtlSeconds` if set | `maxTtlSeconds` required             | ≤ 1 hour                     |
+| Constraint | `desktop-local` | `hub` / `sandbox` | `zero-trust` |
+| --- | --- | --- | --- |
+| Plain HTTP off host | Permitted when declared | Refused | Refused |
+| Off-host credentials | TLS required | TLS required | TLS with CA or pins |
+| Ingress | Loopback | Loopback, TLS or mTLS | Loopback or mTLS |
+| Identity | Any declared mode | Hub permits any; sandbox requires grant or external | External |
+| Audit | Fail-closed or best-effort | Fail-closed | Fail-closed and forwarded |
+| Delegated grants | TTL limit when configured | TTL limit required | TTL at most one hour |
 
-Use `hub` for a hub that paired phones reach (see [device-link](../plugins/device-link/README.md)).
+The `hub` profile supports ingress for paired devices. The `zero-trust` profile requires destination trust through a CA or pins in addition to its TLS floor.
 
 ### Identity
 
-| `identity`    | Who gets in                                                                   |
-| ------------- | ----------------------------------------------------------------------------- |
-| `local-user` | The local user gets a session.                                               |
-| `grant-file`  | Only a launcher's delegated grant. No local-user session.     |
-| `external`    | People sign in through OpenID Connect (workforce sign-in). Never falls back to the local user. |
+`local-user` permits issuance of the local user's session. `grant-file` requires a launcher's delegated grant and issues no local-user session. `external` uses configured OpenID Connect workforce sign-in. Failed external identity configuration does not fall back to the local user.
 
 ### Ingress and certificates
 
-`tls` serves the host's certificate to anyone; `mtls` also requires a client certificate from `clientCa`. Every API call still needs a session or device credential. The host reads certificates but never issues or renews them. Expired certificates refuse startup; within 30 days of expiry you get a warning.
+TLS ingress presents the configured server certificate. mTLS additionally requires a client certificate trusted by `clientCa`. API calls still need the applicable session or device credential. The host reads certificates supplied by deployment administration and does not issue or renew them. Expired certificates refuse startup. Certificates within 30 days of expiry produce a warning.
 
 ## Network access
 
 ### Network guard
 
-All outbound traffic from the host goes through the guard. It allows only bound scheme, host, port and addresses, checks every redirect, and caps size and time. Child processes go through a loopback proxy that only reaches their declared destinations. A refusal returns `UNAVAILABLE` (HTTP 503, CLI exit 8) and logs `network.denied`.
+Server code is required to reach the network through the host port. The network plugin checks requests against the destination's bound scheme and host, including its port and permitted addresses. It checks redirects and applies configured time and size limits. Its child-process proxy restricts proxy traffic to the process's declared destinations.
 
-`bun run check:boundaries` fails if server code opens sockets, fetches or spawns processes directly. `scripts/boundary-rules.ts` lists the exemptions.
+A refused guarded connection returns `UNAVAILABLE` and records `network.denied` when an audit provider is configured. The HTTP error status is 503; the CLI maps this error to exit 8. `bun run check:boundaries` detects forbidden direct network and process APIs outside the reviewed exceptions in `scripts/boundary-rules.ts`.
+
+The guard operates in the host process. It does not contain another process that opens its own raw socket. Apply OS enforcement when that isolation is required.
 
 ### Generated rules
 
-`app network export --format <f>` renders OS rules from the same policy. All deny by default. You apply them yourself.
+`app network export --format <format>` renders policy-derived OS configuration. The command does not apply that configuration. Address-based enforcement requires the corresponding policy addresses.
 
-| Format              | Output                                         |
-| ------------------- | ---------------------------------------------- |
-| `nftables`          | Outbound connections of the host user, by address and port. |
-| `windows-firewall`  | Program-scoped rules.                          |
-| `systemd`           | A hardened unit.                               |
-| `k8s-networkpolicy`, `k8s-pod` | Pod outbound and inbound traffic; pod hardening.  |
-| `compose`           | Container hardening only.                      |
-| `json`              | Neutral rule set.                              |
+| Format | Configuration produced |
+| --- | --- |
+| `nftables` | Outbound rules for the host user |
+| `windows-firewall` | Program-scoped rules |
+| `systemd` | Hardened service unit |
+| `k8s-networkpolicy` | Pod network policy |
+| `k8s-pod` | Pod hardening |
+| `compose` | Container hardening |
+| `json` | Neutral rule set |
 
-Golden files: `plugins/network/test/golden`. None has run on a real firewall here.
+Golden output is stored in `plugins/network/test/golden`. Recorded live firewall evidence and its limits belong in [Implementation status](implementation-status.md#security-and-compliance).
 
 ### Agent tool sandboxes
 
-The execution host runs agent tools in bubblewrap sandboxes: new namespaces, only declared tools on disk, seccomp, loopback-only network. Two relays lead out: the host API (token bound to the run's grant) and the network proxy. Linux only.
+The execution-host plugin can run declared agent tools in Linux bubblewrap sandboxes. Its namespaces restrict the available filesystem, and seccomp limits system calls. The sandbox's external access passes through relays for the granted host API and network proxy. This implementation requires Linux; the host's ordinary in-process network guard does not provide the same process isolation.
 
 ### Local models
 
-The [model server](../plugins/model-server/README.md) hashes weights before each start and refuses files that don't match the model entry.
+The model-server plugin verifies the declared weight digests before starting its process. A mismatch refuses startup. The deployment still needs an allowed process binding and loopback inference destination, as specified by the [model-server package](../plugins/model-server/README.md).
 
 ## Peer applications
 
-The peer link lets another app call your peer API.
+Peer enrollment requires a one-use code. Its default lifetime is ten minutes, and the endpoint allows ten failed attempts per minute. The issued peer grant is limited to the declared peer API.
 
-| Threat                         | Control                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| A stranger enrolls             | One-use code, 10 min, 10 failed tries per minute.                       |
-| Peer calls beyond the API      | Its grant includes only the peer API's operations.                          |
-| Peer acts as anyone            | Needs a signed subject assertion and a subject mapping. |
-| Peer does more than the person may | The mapped person's own policy applies.                             |
-| Assertion replayed             | Binds to audience, request and body; 120 s; one use.                    |
-| Revoked peer keeps calling     | The host resolves credential and mapping on every request.              |
-| Credential sent in clear       | Peer destinations are `authenticated`; the host refuses plaintext off loopback. |
+Calling on behalf of a person requires a signed subject assertion and an administrator's subject mapping. The mapped person's current policy applies to the operation. Assertions bind the audience and request body, expire after 120 seconds and can be used once. Credential and subject mappings are resolved on each request, so revocation takes effect on the next call.
 
-Tests: `plugins/peer-link/test/security.test.ts`, `link.test.ts`, `tls.test.ts`.
+Peer destinations are authenticated. Off-loopback plaintext connections are refused. [Systems of record](systems-of-record.md#peer-applications) explains target composition; `plugins/peer-link/test/security.test.ts` covers the security boundary.
 
 ## Audit log
 
-The audit log records commands, queries, denials, outbox transitions, network decisions, child processes, sessions, grants, agent runs, OS actions and startup. Event kinds: `packages/contracts/src/audit.ts`. It stores inputs as a digest plus the allowed fields.
-
-The log lives in `.workspace/audit/` (SHA-256 chain, synced on every append, one writer).
+When configured, the audit provider records runtime events defined in `packages/contracts/src/audit.ts`. Input records include the input digest and the fields the capability permits in plaintext. The default persistent location is `.workspace/audit/`. The event log has a SHA-256 chain and a single writer; each append is synced.
 
 ### Fail-closed ordering
 
-The audit plugin writes the record inside the command's transaction. If the record fails, nothing commits. A query whose record fails returns nothing; a connection whose record fails doesn't open. `best-effort` trades this for availability; only `desktop-local` allows it.
+A command appends `command.accepted` inside the storage transaction after its final authorization check. If that required append fails, the transaction aborts with `UNAVAILABLE`. Once storage commits, the runtime appends `command.committed` and related effect events. A failure of this later append cannot undo the committed transaction.
+
+A crash between these appends leaves an accepted event without a recorded outcome. Startup recovery checks retained command and journal evidence to resolve it. The file log and workspace database do not share one storage transaction.
+
+In required mode, a query's audit append must succeed before the runtime returns the data. Guarded connections likewise require the applicable audit step before opening. `best-effort` permits an operation to proceed after its audit append fails; only the `desktop-local` profile accepts that policy mode.
 
 ### Attestation and forwarding
 
-At startup the log records the executable, catalog and policy digests. `audit.forwardTo` sends events as RFC 5424 syslog to a bound collector.
+Startup records executable and catalog digests with the policy digest. `audit.forwardTo` forwards events as RFC 5424 syslog to the bound collector. The local OS user can modify or delete local files; off-host forwarding is needed for independently retained evidence.
 
 ## Compliance bundle
 
-`bun run generate` writes, per app, to `dist/reference/<id>/`:
+Catalog generation writes the security manifest to `dist/reference/<id>/security-manifest.json`. It identifies external requirements and the operations that use them. `data-flows.md` renders those declarations. `controls.json` and `controls.md` associate controls with their test references and standard mappings.
 
-| File                           | Contents                                                       |
-| ------------------------------ | -------------------------------------------------------------- |
-| `security-manifest.json`       | Every destination, device and process, and every operation that leaves the host. |
-| `data-flows.md`                | The same as a diagram and tables.                              |
-| `controls.json`, `controls.md` | Controls mapped to ISO 27001, NIST 800-53, NIST CSF, IEC 62443-4-2 (indicative), with test evidence. |
-
-`bun run bundle create` adds `sbom.cdx.json` (CycloneDX 1.6) to each bundle.
+The mappings include ISO 27001 and NIST controls, with indicative IEC 62443-4-2 mappings. Generated mappings do not establish a deployment's certification. Bundle creation adds its CycloneDX SBOM. Generated references remain outside version control.
 
 ## Checks
 
-| Command                                                         | Fails with                      |
-| --------------------------------------------------------------- | ------------------------------- |
-| `app policy check --policy <file>`                                  | exit 2 on any error finding     |
-| `app network export --policy <file> --format nftables --resolver 10.20.0.53` | exit 2 on policy errors |
-| `app audit verify --log <dir>`                                  | exit 10 if the chain is damaged |
-| `app compliance report --log <dir> --policy <file> --format markdown` | exit 10 if compliance status fails    |
+Use the application's CLI from its repository root. In the framework checkout, `app` means `bun run cli`.
 
-From the repo, `app` is `bun run cli`. While running, the compliance monitor re-checks the chain; auditors see it on the Compliance screen. Only listed auditors (at first, the local user) may read the log.
+| Command | Failure outcome |
+| --- | --- |
+| `app policy check --policy <file>` | Exit 2 on error findings |
+| `app network export --policy <file> --format nftables` | Exit 2 on policy errors |
+| `app audit verify --log <directory>` | Exit 10 on a damaged chain |
+| `app compliance report --log <directory> --policy <file> --format markdown` | Exit 10 on failing compliance status |
+
+The compliance monitor checks the configured chain while the host runs. Its queries require auditor access. The initial auditor is the local user unless the application configures otherwise.
 
 ## Isolated operation
 
-Without a policy, the app listens on loopback only, outbox targets queue, and model providers report unavailable. `bun run test:isolated` fails on any non-loopback connection. `bun run test:sandbox` runs the compiled binary in an empty environment and checks it made no outbound connection.
+Without deployment bindings, the local host listens on loopback and guarded external dependencies remain unavailable. Outbox effects wait for a usable target. `bun run test:isolated` traps non-loopback connections made in the test process. Child-process traffic is outside that trap. `bun run test:sandbox` checks the compiled application in an empty environment.
 
 ## Limits
 
-- The guard is in-process. Real containment needs the exported rules or an OS sandbox.
-- The local user's OS account can read and delete the log. Forward it off the host.
-- Workforce sign-in is OpenID Connect only.
-- The isolated-test trap doesn't cover child processes.
-- Apps declare devices; the host does not mediate access to them.
+Workforce sign-in currently supports OpenID Connect. Device declarations describe access but the host does not mediate every device API. The host guard and exported rules enforce different parts of the process boundary; deployment administration must configure the OS controls it needs. Current deployment evidence is recorded in [Implementation status](implementation-status.md).

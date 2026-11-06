@@ -1,47 +1,19 @@
 # @tortoise/driver-sdk-python
 
-`tortoise-driver`: write a hardware driver in Python. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action, and the SDK does not repeat that check.
+`tortoise-driver` implements the hardware-driver protocol for Python processes. `Driver` dispatches host requests to registered equipment handlers over JSON-RPC. The host validates action inputs against its declared contract before sending them. The SDK checks the protocol and contract digest; action handlers remain responsible for equipment-specific refusal and effects.
 
 ## Writing a driver
 
-Write the contract file from the host application and generate the stub from it:
+Export the application's driver contract with `app driver contract <id> --out <file>`. Generate Python bindings from that file:
 
 ```sh
-app driver contract chamber --out chamber.json
-python -m tortoise_driver.stubgen chamber.json -o chamber_contract.py
+python -m tortoise_driver.stubgen <contract-file> -o <output-file>
 ```
 
-The stub contains `DIGEST`, `CONTRACT` and a `TypedDict` per action input, result and event payload. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then register handlers and run:
+The generated module contains `DIGEST` and `CONTRACT`. Typed payload definitions correspond to the contract's action and event schemas. The generator recomputes the canonical JSON digest and refuses a file whose declared digest does not match its document.
 
-```python
-from tortoise_driver import ActionResult, Device, Driver, Refusal
-from chamber_contract import CONTRACT, DIGEST, SetpointSetInput
+Construct `Driver` with that contract and the driver's identity. Register equipment initialization with `on_initialize` and requested field reads with `on_state`. `action(name)` registers a handler for a declared action. A handler can be synchronous or return a coroutine. Its context identifies the effect being executed.
 
-driver = Driver(CONTRACT, DIGEST, driver_id="chamber", version="1.0.0", journal="/var/lib/chamber/journal.jsonl")
+Configure the journal path for delivery modes that need persistent effect lookup. `Refusal` reports a declared refusal category to the host. `emit(name, payload)` sends a declared event from an equipment-reading thread. `run()` starts the protocol loop on standard input and output; diagnostic output must not corrupt that stream.
 
-@driver.on_initialize
-def open_chamber(configuration):
-    return [Device(serial=port.serial, firmware=port.firmware)]
-
-@driver.on_state
-def read(fields):
-    return {"setpoint": port.setpoint(), "door": port.door()}
-
-@driver.action("setpoint.set")
-def set_setpoint(input: SetpointSetInput, context):
-    if input["setpoint"] > port.maximum:
-        raise Refusal("rejected", "Out of range", "OUT_OF_RANGE")
-    port.write_setpoint(input["setpoint"])
-
-driver.run()
-```
-
-Handlers are plain functions or coroutines. `driver.emit(name, payload)` sends a declared event from any thread, such as a serial reader.
-
-- Primitives: [Driver SDK](../../docs/primitives.md#driver-sdk).
-
-## References
-
-- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
-- [Hardware drivers](../../docs/hardware-drivers.md)
-- Test: `bun test sdks/driver-python`
+The [driver task guide](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) covers contract changes and host binding. The [protocol guide](../../docs/hardware-drivers.md) specifies delivery semantics. From the repository root, `bun test sdks/driver-python` runs the simulated-driver contract checks.

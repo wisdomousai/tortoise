@@ -1,12 +1,11 @@
 # @tortoise/connector-http
 
-Reaches a REST system of record through the network port. You describe the system as data: the request per effect, the rejection statuses, lookup by key and the change list; `connect` turns that into a connector. Every request goes through `network.client(destination).fetch`, so the network guard sees it and the deployment policy supplies the address and credentials. The port never reads a credential.
+`@tortoise/connector-http` implements a system-of-record port over HTTP. The connector specification supplies the request mapping for each effect and identifies business rejection responses. It can also declare an outcome lookup and inbound change feed.
 
-Primitives:
-
-- [Connector](../../docs/primitives.md#connector)
+`connect` binds that specification to a destination-scoped network client. The deployment policy supplies the origin and configured credential handling. Connector code sends requests through the network port and does not read provider credentials directly.
 
 ## References
 
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- `bun test plugins/connector-http`
+[connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+
+`bun test plugins/connector-http`

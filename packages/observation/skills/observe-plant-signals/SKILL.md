@@ -1,11 +1,11 @@
 ---
 name: observe-plant-signals
-description: Read values from plant control systems into an agent-native application as debounced readings, through an MQTT broker (plain topics or Sparkplug B) or an OPC UA server. Use when a module needs machine state, counters or process values that only a broker or controller gateway has, when writing an ingest command for such readings, or when binding a broker or OPC UA server in a deployment policy. Covers packages/observation, plugins/connector-mqtt and plugins/connector-opcua.
+description: Read MQTT, Sparkplug B or OPC UA values as observations. Use when defining stable readings and their ingest command, configuring connector destinations, or testing loss and uncertain source values.
 ---
 
 # Observe plant signals
 
-A broker or an OPC UA server is a source that can be read but not queried for history or written. Its values become readings: claims about the source, with provenance and confidence. An ingest command decides what they change.
+The MQTT and OPC UA connectors consume current values as observations. Their interfaces provide read access and do not implement controller writes or history queries. An application ingest command decides how an observation changes local records.
 
 ## Before writing
 
@@ -13,8 +13,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
   - a Sparkplug group, node, optional device and metric;
   - a plain topic and JSON pointer;
   - an OPC UA node ID such as `ns=2;s=Press.Temperature`.
-- Decide what an `uncertain` reading means in the domain. A stale Sparkplug value, an uncertain or bad OPC UA status, and a lost connection are all ingested as `uncertain`. Route them to a person, not to a record.
-- `showcase/patterns/signals` reads climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes into one ingest command, and shows the steps below in a running application.
+- Decide what an `uncertain` reading means in the domain. A stale Sparkplug value, an uncertain or bad OPC UA status, and a lost connection are all ingested as `uncertain`. Define the attention or recovery behavior for uncertain readings; do not store an uncertain value as a confirmed measurement.
 - Both connectors only read. A write to a controller is a declared procedure with readback, which these connectors do not offer. For actions on equipment, see the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
 ## Steps
@@ -49,4 +48,3 @@ Record a run against a real broker, edge node or server separately in [implement
 - [`@tortoise/observation`](../../README.md)
 - [MQTT](../../../../plugins/connector-mqtt/README.md)
 - [OPC UA](../../../../plugins/connector-opcua/README.md)
-- [Signals pattern](../../../../showcase/patterns/signals/README.md)

@@ -51,7 +51,7 @@ test('new writes one generated application and copies no example', async () => {
     expect(await read(join(app, path))).not.toContain('{{');
   expect(await read(join(app, 'manifest.ts'))).toContain('title: "Field notes"');
   expect(await read(join(app, 'test/conformance.test.ts'))).toContain("name: 'note_list'");
-  // The overview map cites the examples the export leaves out; the page keeps its prose.
+  // The architecture map references the full checkout; the export keeps the guide's prose.
   expect(await readdir(join(target, 'scripts'))).not.toContain('overview.ts');
   const site = await readdir(join(target, 'docs/site/src'));
   expect(site).not.toContain('overview');
@@ -61,9 +61,11 @@ test('new writes one generated application and copies no example', async () => {
   // The rest of the site goes along, so the export's docs still build.
   expect(await readdir(join(target, 'docs/site/src/components'))).toContain('Tortoise.astro');
   expect(site).not.toContain('content');
-  const page = await read(join(target, 'docs/overview.md'));
-  expect(page).toContain('## Outbox phases');
+  const page = await read(join(target, 'docs/architecture.md'));
+  expect(page).toContain('# Architecture');
   expect(page).not.toContain('<OverviewView');
+  expect(await readdir(join(target, 'scripts'))).not.toContain('overview-ownership.ts');
+  expect(await readdir(join(target, 'scripts'))).not.toContain('docs-migrations.test.ts');
   // The tutorials show the examples' files, so only their index goes along.
   expect(await readdir(join(target, 'docs/tutorials'))).toEqual(['index.md']);
   // The skeleton ships as templates in the export, so the export can run `scaffold new` again.

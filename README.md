@@ -2,78 +2,55 @@
 
 <img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
 
-Tortoise is a TypeScript framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Adapting a standard application to such a process costs as much as writing custom software, and Claude Code or Codex now writes custom software cheaply. But what it writes from scratch is fragile: whether the application checks access, keeps an audit log or gets its results into the central systems depends on what the prompts happened to ask for. Hosted app builders such as Lovable write the application the same way and run it and its records in their cloud, away from the devices, files and local network at the edge. Tortoise gives Claude Code or Codex a starting point that already does those things and runs on the computer or phone at the edge, so it writes only the code for the process.
+Tortoise is a TypeScript framework for custom applications that serve specialized processes at the edge. Local procedures and equipment can make a process too specific for a standard application. Claude Code and Codex can write the application code, but starting from an empty project also leaves them to establish the infrastructure that controls access and keeps records consistent.
 
-| Principle  | Behavior |
-| ---------- | -------- |
-| Sandboxed  | The application builds to a CLI binary that runs inside any agent sandbox. It serves its commands over MCP in-process and delivers its outbox before the sandbox closes. |
-| Zero trust | Every API call needs a session or device credential, whether a person, a script or an agent sends it. |
-| Headless   | Each process step is one capability with a fixed pattern: contract, handler, policy rule and test. All logic for the step is in the capability. Screens, agents and scripts only call it. |
-| Audited    | The host writes an entry to the audit log for every command, whoever sends it. |
-| Outbox     | A command that has a result for a central system commits it to the outbox in the same transaction. The dispatcher delivers it, retries after a failure and asks a person when the outcome is uncertain. |
-| Portable   | The same application runs on a desktop, in a browser, on a hosted server and, with native screens, on a phone. |
-| AI native  | Agents run the same commands as people under a grant narrowed from a person's, and a person approves the changes an agent asks for. |
-| Generated  | Skills, the scaffold and the shadcn registries give Claude Code and Codex the pattern for each part. `bun run check` fails when generated code crosses a layer, reaches the network or a child process outside the host, or breaks a test. |
+Tortoise supplies a runtime that executes declared operations against a workspace. Application code defines the process through those operations and its screens. The host provides the execution boundary, so a command uses the same authorization and transaction handling through every supported channel. Host plugins add configured facilities such as an audit log or access to external systems. The application declares its dependencies and the deployment policy binds them to the environment in which it runs.
 
-## Quickstart (5 minutes)
+The framework runs on a local computer and has a hosted-server platform. The mobile host uses its own storage and native screens; its current limits are documented in [Mobile](docs/mobile.md). Application-specific behavior stays outside the framework packages.
 
-You need [Bun](https://bun.sh) and Git.
+## Start the host
+
+Install [Bun](https://bun.sh) and Git, then run:
 
 ```sh
-git clone <this repository> tortoise && cd tortoise
-bun install
+git clone https://github.com/wisdomousai/tortoise.git
+cd tortoise
+bun install --frozen-lockfile
 bun run dev:web
 ```
 
-`dev:web` builds the screens and starts the app named in `app.config.json` (Field Service). It prints one JSON line:
+`dev:web` builds the web frame and starts the application selected by `app.config.json`. Open the `launchUrl` in its `listening` output. The link creates a browser session, works once and expires after a minute. Restart the host to issue another link.
 
-```text
-{"type":"listening","application":"field-service","url":"http://127.0.0.1:4317",...,"launchUrl":"http://127.0.0.1:4317/#launch=...",...}
-```
-
-Open the `launchUrl` in a browser. The link signs you in once and expires after one minute; restart for a new one.
-
-In a second terminal, use the CLI on the same data:
+The CLI can attach to the running instance. From the repository root in another terminal:
 
 ```sh
-export TORTOISE_CONNECTION="$(pwd)/.workspace/.connection.json"
-bun run cli work-order create --name "Pump 4 service" --site "Hall B" --key wo-1
-bun run cli work-order list --output text
+export TORTOISE_CONNECTION="$PWD/.workspace/.connection.json"
+bun run cli help
 ```
 
-You should see:
+`bun run dev` starts the desktop host. [Getting started](docs/getting-started.md) constructs a small application in a separate directory.
 
-```text
-id                                    revision  name            site    closed
-41076e12-...                          1         Pump 4 service  Hall B  false
-```
+## Documentation
 
-`bun run cli help` lists every command. `bun run dev` opens the same app in an Electron window instead of a browser.
+| Subject | Guide |
+| --- | --- |
+| Application composition | [Architecture](docs/architecture.md) |
+| Execution and state | [Operations and state](docs/capability-authoring.md) |
+| Caller protocol | [Channels and interaction](docs/interaction-contract.md) |
+| Application policy | [Authorization](docs/authorization.md) |
+| External integration | [Systems of record](docs/systems-of-record.md) |
+| Running an instance | [Deployment and operation](docs/hosting.md) |
+| Terminology | [Concept reference](docs/primitives.md) |
 
-## Where to go next
+The [tutorials](docs/tutorials/index.md) explain how to build applications with Claude Code or Codex. Dated execution evidence and known gaps are recorded in [Implementation status](docs/implementation-status.md).
 
-| You want to                                         | Read                                                             |
-| --------------------------------------------------- | ---------------------------------------------------------------- |
-| Make your own app, step by step                     | [Getting started](docs/getting-started.md)                       |
-| Build a larger app with Claude Code or Codex        | [Tutorials](docs/tutorials/index.md)                             |
-| Write commands, queries and screens                 | [Capability authoring](docs/capability-authoring.md)             |
-| Send data to an ERP or other system                 | [Systems of record](docs/systems-of-record.md)                   |
-| See how the pieces fit                              | [Overview](docs/overview.md), [Architecture](docs/architecture.md) |
-| Look up a term                                      | [Glossary](docs/glossary.md)                                     |
-| See what works and what is untested                 | [Implementation status](docs/implementation-status.md)           |
-| Browse complete apps                                | [Examples](showcase/examples), [patterns](docs/patterns.md)      |
-
-## Scope
-
-- One app per instance, one computer per workspace. A [hosted instance](docs/hosting.md#hosted-instance) uses shared Postgres instead.
-- Not included: managed cloud hosting, a public registry, signed distribution.
-- Each commit loads the whole workspace state into memory, so very large apps need a different storage design.
-
-## Checks
+## Development
 
 ```sh
-bun run check       # format, types, boundaries, skills, plain words, generated docs, unit tests, build
-bun run test:e2e    # Playwright; run `bunx playwright install chromium` once first
+bun run check
+bun run test:e2e
 ```
 
-Claude Code or Codex editing this repository reads [AGENTS.md](AGENTS.md) first.
+The browser suite requires `bunx playwright install chromium`. [Development and testing](docs/development-and-testing.md) describes the checks and their prerequisites. Claude Code and Codex follow [AGENTS.md](AGENTS.md) when changing this code.
+
+Each storage transaction currently loads the workspace state. Applications whose state cannot fit that execution model require a different storage design.

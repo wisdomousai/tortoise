@@ -1,11 +1,13 @@
 # @tortoise/frame-native
 
-The React Native frame around an application's native screens on Android and iOS: navigation, session and live updates, plus glove-sized components as a shadcn registry. It imports no application and no plugin; the starter passes the screens in from its generated entry.
+`@tortoise/frame-native` supplies navigation and client bindings for native React Native screens. The generated mobile entry passes in the application's screen contribution. The frame obtains its session and live data through the mobile host.
 
-- Primitives: [Native frame](../../docs/primitives.md#native-frame), [Application](../../docs/primitives.md#application), [OS handler](../../docs/primitives.md#os-handler), [OS action](../../docs/primitives.md#os-action), [Feature](../../docs/primitives.md#feature), [Host plugin](../../docs/primitives.md#host-plugin), [UI registry](../../docs/primitives.md#ui-registry).
+Import native screens through the package's explicit entrypoints. Native components are distributed as a shadcn registry and become application-owned copies when installed. Platform support and the current evidence for device execution are documented in [Mobile](../../docs/mobile.md).
 
 ## References
 
-- [extend-mobile-host](../mobile/skills/extend-mobile-host/SKILL.md)
-- [Mobile](../../docs/mobile.md)
-- Test: `bun test packages/frame-native`, `bun run check:mobile-bundle`
+[extend-mobile-host](../mobile/skills/extend-mobile-host/SKILL.md)
+
+[Mobile](../../docs/mobile.md)
+
+Test: `bun test packages/frame-native`, `bun run check:mobile-bundle`

@@ -1,6 +1,8 @@
 # Parts desk
 
-The spare parts desk of a power transformer plant takes calls from utilities about bushings, tap changer parts, gaskets and relays for transformers in service, and quotes the parts. A desk member finds the transformer by the serial on its rating plate, often from the first digits the caller reads out, looks up the parts that fit its design and builds a quote. A discount above 10 percent needs a supervisor. An assistant panel beside every screen finds transformers and parts, fills the quote builder for the person to check, and requests approval for a larger discount or a cancellation. It runs on a local model through the model server plugin; by default a llama-server stand-in plays the model.
+This hypothetical quoting application keeps transformer and part records for a spare-parts desk. A quote must use parts that fit the selected transformer. The application policy requires supervisor authority for a discount above its desk limit.
+
+The assistant uses catalog queries to find records and can prepare the quote form for a person to submit. Approval requests pass through the application's approval policy. Development starts a model-server stand-in; configured local weights enable a separate live-model route. Submitting a quote changes local state and does not deliver it to an external customer system.
 
 ```sh
 cd showcase/examples/parts-desk
@@ -11,10 +13,13 @@ The launch seeds three utilities, six transformers, 24 parts and the supervisor 
 
 ## What to try
 
-- Open **TR-40417**: the assembly cards list the parts that fit, with stock and lead time.
-- Ask the assistant "TR-404". Two serials match, so it asks which one.
-- Ask for a quote of two HV bushings for TR-40417. The quote builder opens filled in, and nothing exists until **Create draft**.
-- Ask for 15 percent off the draft. The assistant requests approval, and a supervisor approves or rejects it on **Approvals**.
+Open **TR-40417**: the assembly cards list the parts that fit, with stock and lead time.
+
+Ask the assistant "TR-404". Two serials match, so it asks which one.
+
+Ask for a quote of two HV bushings for TR-40417. The quote builder opens filled in, and nothing exists until **Create draft**.
+
+Ask for 15 percent off the draft. The assistant requests approval, and a supervisor approves or rejects it on **Approvals**.
 
 ## Live run on Gemma 4 E4B
 
@@ -26,7 +31,10 @@ Dictation has run only against the browser test's stub recognizer. Chrome and Pl
 
 ## References
 
-- [Parts desk tutorial](../../../docs/tutorials/parts-desk-1-records-and-quotes.mdx)
-- [Agents](../../../docs/agents.md)
-- [Model server](../../../plugins/model-server/README.md)
-- `bun test showcase/examples/parts-desk`, `bunx playwright test showcase/examples/parts-desk`
+[Parts desk tutorial](../../../docs/tutorials/parts-desk-1-records-and-quotes.mdx)
+
+[Agents](../../../docs/agents.md)
+
+[Model server](../../../plugins/model-server/README.md)
+
+`bun test showcase/examples/parts-desk`, `bunx playwright test showcase/examples/parts-desk`

@@ -1,13 +1,11 @@
 # @tortoise/os-shortcuts
 
-Serves the app's `shortcut` OS handlers: launcher entries such as "New task". Compose `openOsShortcuts` beside the OS plugin. Any app or web page can open a shortcut link, as any page can open the launch page, so the plugin treats a shortcut as an unsolicited OS request.
+`@tortoise/os-shortcuts` registers launcher shortcuts for declared `shortcut` handlers. Compose `openOsShortcuts` with the OS plugin so incoming shortcut links reach the application's frame.
 
-Primitives:
-
-- [OS handler](../../docs/primitives.md#os-handler)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+A shortcut can be opened by other software on the device. Its payload is an unsolicited OS request and does not establish authorization to execute a command.
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
-- `bun test plugins/os-shortcuts`
+[add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+
+`bun test plugins/os-shortcuts`

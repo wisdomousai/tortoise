@@ -1,10 +1,11 @@
 # @tortoise/devices
 
-Turns scanner input (keyboard wedge, serial, HID POS, camera) into the same command a button sends, with no model involved. A scan is input data and grants no permission. The application registers each source; the package discovers none.
+`@tortoise/devices` decodes scanner input and routes a matching scan to an application command. The package is browser-safe. Sources are registered by the application, and scanner profiles describe the configured device's decoding and routing rules.
 
-- Primitives: [Input source](../../docs/primitives.md#input-source), [Scanner profile](../../docs/primitives.md#station-and-scanner-profiles), [Device configuration](../../docs/primitives.md#device-configuration).
+A scan supplies input to the command under the current session. It grants no access of its own. Host-side vendor integrations connect through `HostScannerBridge`; device-configuration UI is supplied by the operator registry.
 
 ## References
 
-- [add-scanner-input](skills/add-scanner-input/SKILL.md)
-- [Operator input](../../docs/operator-input.md)
+[add-scanner-input](skills/add-scanner-input/SKILL.md)
+
+[Operator input](../../docs/operator-input.md)

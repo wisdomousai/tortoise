@@ -1,11 +1,11 @@
 ---
 name: add-os-integration
-description: Let the operating system reach an agent-native application, or let the application ask the OS for something. Use when adding a link, file type, share target, Android intent, launcher shortcut or notification reply as an OS handler, or an open, share, notify or intent OS action; when composing plugins/os, plugins/share-target, plugins/os-shortcuts, plugins/android-intents or plugins/notifications; or when the generated platform registrations (Expo, electron-builder, the web manifest, association files) need to change. Covers showcase/examples/<app>/os.ts, packages/contracts/src/os.ts and packages/shell.
+description: Declare how an application receives operating-system requests or performs OS actions. Use when adding a handler or action and generating its platform registration.
 ---
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its module. The first kind is an OS handler, the second an OS action. `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. Host plugins serve each kind. `showcase/examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `showcase/examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its module. The first kind is an OS handler, the second an OS action. `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. Host plugins serve the declared kinds. Read [the OS contract](../../README.md) when selecting a handler or action.
 
 ## Before writing
 

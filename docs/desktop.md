@@ -1,83 +1,56 @@
 # Desktop host
 
-The Electron window in `apps/desktop` and its packaged build run an application on one person's machine.
+The desktop host embeds the application's web interface in Electron. Its main process starts a Bun host or attaches to an existing local instance. The renderer reaches that instance over loopback and uses its normal capability interface.
 
 ## Window and renderer
 
-The desktop is an Electron window around the same loopback instance that browsers, the CLI and MCP clients use. Electron owns the window and the trusted bootstrap. The Bun host owns sessions, authorization, storage, provider credentials and runs. Renderer code has no Node integration, generic IPC, file access or token bridge. Only immutable platform metadata reaches the preload.
+Electron owns the window and trusted bootstrap. The Bun host keeps the workspace and authorizes requests. Renderer code has no Node integration or generic IPC. The preload exposes immutable platform metadata and does not carry credentials.
 
-The window runs with:
+The window enables context isolation and sandboxing. Web security and a self-only content security policy restrict renderer resources. Permission requests are denied. Navigation and redirects outside the instance origin are blocked, as are webviews and new windows. Declared open actions use the system browser.
 
-- Context isolation and sandboxing
-- Web security and a self-only content security policy
-- Every permission denied
-- Navigation, redirects and webviews blocked outside the instance's origin
-- No new windows
-
-Network requests reach only the local instance. URLs leave only as declared open actions (such as the provider sign-in) in the system browser.
-
-`app.config.json` is the product identity. It sets the web build's title, the application name and ID, the window title, the Windows application model ID and the URL scheme. The scaffold rewrites it for an exported application.
+`app.config.json` supplies the application identity used by the build and desktop registration. It determines the displayed title and application identifiers. The scaffold rewrites this file when exporting an application.
 
 ## Instance ownership
 
-The workspace is a canonical path on a local filesystem. A dedicated lock database takes an exclusive OS lock for the host's lifetime, separate from business transactions. A crash releases the lock, and no stale PID or timeout removes a live one. When two windows race to start, the lock decides.
+The host canonicalizes its local workspace path and acquires an exclusive lock in a dedicated lock database. That lock remains open for the host's lifetime and is separate from record transactions. A crashed process releases its OS lock. PID or elapsed-time checks do not remove a live owner's lock.
 
-The window first tries to attach:
+The desktop first reads the private connection file and checks that its endpoint is loopback. It verifies the application contract using the connection credential and requests a one-time launch credential. If attachment fails, it starts the host named by the runtime manifest and waits for the host's ready output before attempting the same handshake.
 
-- Reads the private connection file
-- Checks that the endpoint is loopback
-- Verifies the contract with the bearer token
-- Asks for a one-time launch credential
+Closing an attached window leaves the independently started host running. Electron stops a host it launched only if the instance file still identifies that host. A competing failed launch therefore cannot stop the process that acquired ownership.
 
-If attaching fails, Electron launches the compiled host from the runtime manifest and waits for its ready line, then performs the same handshake and loads the bootstrap URL. Secrets go to the host and never through the preload.
-
-An attached host stays owned by the process that started it; closing an attaching window never stops the host. Electron stops a host it started only when the instance file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests point `TORTOISE_WORKSPACE` elsewhere; the renderer cannot.
+The default workspace is under Electron's `userData` directory. A trusted launcher can set `TORTOISE_WORKSPACE`; renderer code cannot change that path.
 
 ## Deployment policy
 
-The build ships `apps/desktop/deployment-policy.json` under the `desktop-local` hardening profile. It binds only the OpenAI and Anthropic provider endpoints and asks for a fail-closed audit log. An application that composes the deployment plugin also needs the network and audit plugins, or startup refuses (`plugins/deployment/src/needs.ts`). `desktop-local` is the only profile that accepts a best-effort audit log ([security and compliance](security-and-compliance.md#hardening-profiles)). `TORTOISE_DEPLOYMENT_POLICY` in the trusted host environment substitutes another policy.
+The packaged policy is `apps/desktop/deployment-policy.json`, using the `desktop-local` profile. It binds the bundled provider destinations and requires a fail-closed audit log. A composed deployment plugin requires its network and audit dependencies; startup refuses an incomplete composition.
+
+`TORTOISE_DEPLOYMENT_POLICY` in the trusted host environment can select another policy. The hardening floor is specified in [Security and compliance](security-and-compliance.md#hardening-profiles).
 
 ## OS integration
 
-The main process receives OS handler links and files from Electron's open-URL and open-file events, the command line and a second instance's hand-over. The desktop shell adapter in [`packages/shell`](../packages/shell/README.md) submits each one to the shell port as the connection file's session. Because the window's launch URL signs in as that session, the input reaches only this window.
+The main process receives registered OS links and file openings. It also handles requests forwarded by another instance. The desktop shell adapter submits these through the shell port using the connection session, matching the window's launch session.
 
-The adapter runs relayed OS actions:
+Declared open actions use the system browser. Reveal and open-file actions require a regular file with no executable or runnable extension. Share uses the macOS share menu. Notifications can include buttons on macOS and Windows. Declared shortcuts become dock-menu entries on macOS or jump-list entries on Windows.
 
-- **Open** — uses the system browser
-- **Reveal and open-file** — acts only on a regular file that is not executable and has no runnable extension
-- **Share** — opens the share menu on macOS only
-- **Notify** — shows an Electron notification with buttons on macOS and Windows
-
-Declared shortcuts become the macOS dock menu and the Windows jump list.
-
-Windows registers the scheme at startup with `--` before the link. A packaged macOS bundle declares the scheme and document types in `Info.plist`, from the `os-registrations.json` that `package:stage` writes.
+Windows registers its URL scheme with a command separator before the incoming link. Packaged macOS builds declare their scheme and document types in `Info.plist`, derived from `os-registrations.json` produced by staging. The [shell package](../packages/shell/README.md) defines the declarations and validation.
 
 ## Packaged resources
 
-Targets are macOS arm64 and x64, Windows x64 and Linux x64 with glibc. Each stage contains:
+The staging targets are macOS arm64 and x64, Windows x64, and Linux x64 with glibc. A stage includes its compiled host and web assets alongside its policy and runtime manifest. Bundled provider executables keep their required assets and licenses. The credential addon is staged for the target platform.
 
-- The compiled host and the web assets
-- The deployment policy
-- Native Codex and Claude distributions
-- The credential addon
-- A runtime manifest
-- The bundled Electron scripts
+Staging downloads pinned distributions over HTTPS and checks registry integrity hashes. Extraction refuses traversal paths and unsupported file kinds. The runtime manifest records relative paths and SHA-256 digests. Startup verifies the primary executables and policy; the smoke test checks all staged files. Release signing remains a separate step.
 
-It needs no developer Bun, Node, Codex or Claude installation. The staging configuration and the lockfile pin the versions.
-
-- **Acquisition.** Native distributions keep adjacent assets and licenses. The distributions come only from the npm registry over HTTPS, at pinned versions, and the stage verifies the registry's integrity hash.
-- **Extraction** rejects path traversal, links and device files.
-- **The runtime manifest** records relative paths and SHA-256 digests. Startup checks the primary executables and the deployment policy; the offline smoke test checks every file. Digests detect a damaged stage; signing is a separate release step.
-- **The credential addon** loads through a generated static require, because Bun cannot follow npm's dynamic platform loader.
-- **Provider binaries** stay outside the archive; the host invokes them by absolute path. The native Claude executable brings its own runtime.
+Provider executables stay outside the archive and are invoked by absolute path. The credential addon is loaded through a generated static require because its npm loader resolves native platforms dynamically. The packaged host requires no developer Bun installation.
 
 ## Development
 
-`bun run dev`, from the repository root or an example, opens the window without packaging. The launcher builds the web assets, bundles the main and preload scripts and starts Electron in development mode. Electron starts the host from source in that workspace, or attaches when one already runs there. An example's dev script keeps its fakes alive until the window closes.
+Run `bun run dev` from the repository root to build the web assets and Electron bootstrap. Electron opens a source host or attaches to the instance already serving the workspace. `bun run dev:web` starts the browser interface without Electron.
 
-A packaged build ignores development mode. The source host inherits the developer's environment, but workspace, port, web root, runtime manifest and deployment policy from Electron take precedence. The desktop deployment policy is the default, so provider sign-in behaves as in a packaged build. Set `TORTOISE_DEPLOYMENT_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
+The source host inherits the developer's environment, with Electron's workspace and bootstrap settings taking precedence. Development uses the desktop policy by default. An empty `TORTOISE_DEPLOYMENT_POLICY` selects isolated development. Packaged builds ignore the development-mode flag.
 
 ## Build and smoke test
+
+From the repository root, stage for the required platform in a new directory:
 
 ```sh
 bun install --frozen-lockfile
@@ -87,43 +60,24 @@ bun scripts/package-smoke.ts artifacts/desktop/review-darwin-arm64
 bun run package:desktop darwin-arm64 artifacts/desktop/review-darwin-arm64
 ```
 
-Run the smoke test on the target platform. A stage refuses an existing directory — use a new name after changes instead of deleting earlier evidence. Building needs registry access; the packaged application does not.
+The stage command refuses an existing destination. Building needs registry access; execution of the staged host uses the bundled resources. Run smoke verification on the target platform.
 
-The smoke test checks every hash and runs each provider with `--version` in a clean environment, starts the compiled host in a fresh workspace, checks the shipped HTML and stops the host. It does not sign in, run inference or use the credential store.
+Smoke verification checks file hashes and provider version commands in a clean environment. It starts the compiled host on a fresh workspace, checks the shipped HTML and shuts the host down. It does not exercise provider sign-in or inference. Credential-store behavior also requires separate execution.
 
-The packaged-window tests take the absolute path of the executable:
+The packaged-window suite takes an absolute executable path:
 
 ```sh
 DESKTOP_EXECUTABLE='/absolute/path/to/packaged/executable' bunx playwright test tests/e2e/desktop.pw.ts
 ```
 
-The packaged-window tests check window isolation, live UI updates, persistence across reopen, shutdown of an owned host and survival of an attached one. Rerun on the final stage after any change.
+The suite checks isolation and record persistence through the real window. It exercises ownership during reopen and shutdown. Rerun against the final stage after changes.
 
 ## Platform gates
 
-Before claiming support for a target, run on that platform:
+Platform support requires a smoke run and packaged-window run on that target. Exercise a disposable credential entry, including unavailable or locked-store responses. Process-tree cancellation and workspace contention also require platform evidence.
 
-- the smoke test and the packaged-window tests
-- set, get and delete on a disposable credential-store entry, plus locked and denied store behavior
-- process-tree cancellation
-- instance contention and crash recovery
-
-On Linux, a missing or locked Secret Service leaves credential-free work usable and refuses provider connections. Live ChatGPT enrollment, refresh, revocation and inference are separate opt-in checks ([providers](providers.md)).
+A missing or locked Linux Secret Service leaves credential-free application work available but refuses provider connections. Live provider enrollment and inference require explicit configuration, as specified in [Agents](agents.md#evaluation).
 
 ## Limits
 
-- Packaging produces an unsigned directory. Signed installers, notarization, updates and release identity are separate work.
-- The Linux and Windows `dir` targets register no file types, and Linux gets no desktop actions.
-
-## References
-
-- [`apps/desktop`](../apps/desktop/README.md)
-- [Security and compliance](security-and-compliance.md)
-- [Implementation status](implementation-status.md#desktop)
-- [Electron security recommendations](https://www.electronjs.org/docs/latest/tutorial/security)
-- [Electron application packaging](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
-- [Bun standalone executables and native addons](https://bun.com/docs/bundler/executables)
-- [SQLite locking](https://www.sqlite.org/lockingv3.html)
-- [Native credential adapter](https://github.com/Brooooooklyn/keyring-node)
-- [Architecture](architecture.md#instances-and-hosts)
-- [add-os-integration](../packages/shell/skills/add-os-integration/SKILL.md)
+Packaging currently produces an unsigned directory. Installer signing and notarization require release work. The Linux and Windows directory targets register no file types; Linux has no desktop actions. Dated runs and remaining platform gaps are recorded in [Implementation status](implementation-status.md#desktop).

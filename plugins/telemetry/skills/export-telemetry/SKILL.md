@@ -1,6 +1,6 @@
 ---
 name: export-telemetry
-description: Export OpenTelemetry metrics and traces from an agent-native instance. Use when composing the telemetry plugin, binding the telemetry destination to an OpenTelemetry Collector in a deployment policy, reading command, delivery, backlog and run metrics in an observability backend, or adding a metric or span attribute without exporting record contents. Covers plugins/telemetry.
+description: Export instance telemetry through OTLP/HTTP. Use when composing the telemetry plugin, binding its collector destination, or adding a metric while preserving the exported-data boundary.
 ---
 
 # Export telemetry
@@ -17,8 +17,8 @@ The telemetry plugin turns the audit log and the outbox into OpenTelemetry metri
 ### Export
 
 1. Add `telemetryPluginManifest` to the manifest's `plugins`, after the deployment, network and audit plugins.
-2. Add `telemetryPlugin`, or `createTelemetryPlugin({ intervalMs })`, to the application's `plugins` in the same order. `showcase/patterns/operations/application.ts` composes all four.
-3. Run a collector on the same machine with an OTLP/HTTP receiver, for example on `127.0.0.1:4318`. The collector stores any vendor credential and forwards to the backend; the instance never does. In tests and development, `startCollector` from `@tortoise/telemetry/testing` stands in for it on loopback. `showcase/patterns/operations/dev.ts` starts it on port 4318 when nothing listens there.
+2. Add `telemetryPlugin`, or `createTelemetryPlugin({ intervalMs })`, to the application's `plugins` in the same order.
+3. Run a collector with an OTLP/HTTP receiver at the address configured for this deployment. The collector stores any vendor credential and forwards to the backend; the instance never does. In tests and development, `startCollector` from `@tortoise/telemetry/testing` stands in for it on loopback.
 4. Bind `destinations.telemetry` to the collector's address in the deployment policy. The `deploy-an-application` skill (`plugins/deployment/skills/deploy-an-application/SKILL.md`) covers the policy. Without the binding, the instance runs without exporting.
 5. Read `services.telemetry.status()`. `exports` counts successful exports, and `lastError` says why the last one failed.
 
@@ -46,4 +46,3 @@ The telemetry plugin turns the audit log and the outbox into OpenTelemetry metri
 
 - [Architecture](../../../../docs/architecture.md#telemetry)
 - [`@tortoise/telemetry`](../../README.md)
-- [Operations pattern](../../../../showcase/patterns/operations/README.md)

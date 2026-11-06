@@ -1,4 +1,4 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import toolReturn from '@repo/showcase/examples/tool-store/handlers/tool-return.ts?raw';
 import eamTarget from '@repo/showcase/examples/tool-store/contracts/eam-target.ts?raw';
@@ -9,36 +9,39 @@ import counter from '@repo/showcase/examples/tool-store/ui/counter.tsx?raw';
 
 # Tool store 3: connections and agents
 
-The plant's EAM owns the tool master data and the repair orders, so a damaged return becomes a repair order there. An agent proposes retiring worn-out tools, attendants count bins, Claude Code pulls tools due for calibration over MCP, and a run started from the terminal asks the attendant to review a change instead of writing it. This part connects the application from [part 2](tool-store-2-counter-terminal.mdx) to a fake EAM and adds its agents.
+A damaged return requests a repair order from the plant's EAM. This chapter adds that behavior to the completed [counter terminal](tool-store-2-counter-terminal.mdx). The EAM is an in-memory implementation supplied by the demo, so its responses can be controlled in tests.
+
+The chapter also adds delegated work to this Tool Store. Repair triage proposes a retirement for an attendant to approve. A cycle count records an employee's report about a shelf bin and lets an attendant accept its changes. The terminal agent section introduces a UI review; the [Parts Desk tutorial](parts-desk-1-records-and-quotes.mdx) develops assistant interaction in more detail.
 
 ## Setup
 
-Open Claude Code or Codex at the root of the exported `tool-store` repository. Every step's check starts with these commands, which end with no errors and `0 fail`:
+Start in the exported repository at the completed chapter 2 checkpoint. Its server must already supply the counter's members and the terminal must execute tool commands as the signed-in operator. Stop any host left running before changing the application definition.
+
+Run the usual export checks after every prompt:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/tool-store
 ```
 
-Steps that change screens add:
+For a screen change, also run:
 
 ```sh
 bun run build
 bunx playwright test showcase/examples/tool-store
 ```
 
-To try the application by hand, run it in one terminal and point the CLI at it from another:
-
-```sh
-bun run --cwd showcase/examples/tool-store dev:web
-export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
-```
+Use a checkpoint commit after the behavioral checks. Preserve failure output with the repair that made the checkpoint pass. The reference application contains all the sections below; a passing run against that completed application does not validate the preceding version in your export.
 
 ## Repair orders
 
-**Goal:** a damaged return sends a repair order to the plant's EAM through the outbox. The EAM is a fake. **Skill:** [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md).
+The existing return closes a loan and changes the tool status. Extend only the damaged-return branch. The repair request belongs to that return, so the demo stores its delivery state on the loan as `repairOrder`. A later return of the same tool can create another loan with its own repair request.
 
-A system of record is an outside system that owns records the application changes. The command never calls it: `tool.return` writes an outbox effect in its own transaction, and a dispatcher delivers it afterwards. The target declares the operations only its integration principal may call: `complete` records the EAM's answer, `sync` applies an inbound batch, and `status` shows the pending, accepted and rejected counts to everyone. A delivery whose outcome is unknown is held, and a person resolves it on the reconciliation screen, because the dispatcher must not guess what the EAM decided. [Systems of record](../systems-of-record.md) covers targets, the outbox, held effects and inbound sync.
+The EAM supplies the repair-order number. The return command therefore commits a pending request without claiming to know that number. It must not wait for the EAM inside the command transaction. In this application the tool remains `in-repair` after either acceptance or rejection; EAM master-data sync is not allowed to change that local status.
+
+Use [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md):
 
 ```text prompt
 Use the connect-system-of-record skill. For the application in showcase/examples/tool-store, run
@@ -49,7 +52,7 @@ bun run scaffold add target eam --collection tool
 The plant EAM owns the tool master data and the repair orders. A return with condition damaged
 enqueues a repair order effect in the same transaction, with the asset tag, the note and the
 attendant who took the tool back. The EAM accepts it with a repair order number, which the tool
-screen shows; it rejects an asset tag it does not know with ASSET_UNKNOWN, which the tool screen
+screen reads from the returned loan and shows; it rejects an asset tag it does not know with ASSET_UNKNOWN, which the tool screen
 shows as needing attention. The outbox holds a delivery whose outcome is unknown, and a
 reconciliation screen resolves it. Inbound sync takes description, category, bin and calibration due date
 from the EAM's inbound sync by asset tag, and never changes status.
@@ -60,38 +63,57 @@ a lost reply the dispatcher holds and a person resolves, and a stale inbound ite
 connect-system-of-record skill names and report what passed.
 ```
 
-The return enqueues the repair order in the same transaction that closes the loan:
+Inspect the changed return handler after the prompt. The finished reference enqueues the effect against the resource for the loan it just closed:
 
-<Code code={region(toolReturn, 'enqueue')} lang="ts" title="handlers/tool-return.ts" />
+<Code code={region(toolReturn, 'enqueue')} lang="ts" title="Finished reference: handlers/tool-return.ts" />
 
-The target names the records each direction changes and the status it reports:
+The payload includes the tool's tag and the attendant's recorded identity. `closed.repairOrder` receives the effect ID and `sync: 'pending'` in the return transaction. That ID is also used to deduplicate the EAM request. Returning with condition `ok` must leave the repair-order field absent and enqueue nothing.
 
-<Code code={region(eamTarget, 'target')} lang="ts" title="contracts/eam-target.ts" />
+The target contract names the records changed by each direction. Completion changes a loan. Inbound EAM items can change tools. The inbound schema deliberately has no tool status field, so the external master-data update cannot mark a checked-out tool available.
 
-<FileTree>
+<Code code={region(eamTarget, 'target')} lang="ts" title="Finished reference: contracts/eam-target.ts" />
 
-- showcase/examples/tool-store/
-  - contracts/eam-target.ts the target, the repair order payload and the inbound item
-  - eam-port.ts the fake EAM
-  - handlers/eam-target.ts completion, inbound sync and the reconciliation hook
-  - handlers/tool-return.ts enqueues the repair order
-  - ui/eam-target.tsx the EAM screen
-  - test/eam-port.test.ts
-  - test/eam-target.test.ts
+Follow this declaration into `application.ts`. `connectTarget` receives the target and the EAM port, then creates the target integration under `eamPrincipal`. The application policy must admit that principal only for the EAM completion/sync operations. A normal attendant cannot forge a completion by calling `eam.effect.complete`, and the connector cannot use its integration identity to create arbitrary tools.
 
-</FileTree>
+The completion callback in `handlers/eam-target.ts` finds the loan named by the effect resource and calls `completeDelivery` on that loan's `repairOrder`. The helper checks the effect identity before applying the outcome. This prevents a reply for another request from being recorded on the loan merely because the resource ID was supplied.
 
-![The counter shows the damaged drill TC-00605 in repair, with repair order RO-000001 from the fake EAM](../assets/screenshots/tool-store/repair-order.png)
+Mount the reconciliation feature with its Tool Store access view. Its `onResolved` hook must use the same outcome-writing path as normal completion when the attendant records that the request was applied or refused. A `not-applied` decision releases the effect for delivery and leaves the loan pending. Without this hook, the held effect can be resolved while the loan's displayed repair state remains stale.
 
-![The EAM screen counts the repair orders and lists the held ones](../assets/screenshots/tool-store/eam.png)
+Run the application tests from the export root. The reference assertions are in [`eam-target.test.ts`](../../showcase/examples/tool-store/test/eam-target.test.ts) and [`eam-port.test.ts`](../../showcase/examples/tool-store/test/eam-port.test.ts); the export may organize them differently:
 
-**Check:** the standard checks. Return a tool as damaged: its screen shows a repair order number. Start the app with `DEMO_EAM_UNKNOWN_TAGS=TC-00601` and do the same: the screen shows the tool as needing attention.
+```sh
+bun test showcase/examples/tool-store
+```
+
+The reference target test opens an embedded instance without a background dispatcher. Its fixture creates `TC-00601` and checks it out. The damaged return initially yields a loan containing a pending repair request while the fake EAM's order list is empty. A deliberate dispatcher pass then creates `RO-000001`, after which `loan.get` returns `sync: 'accepted'` with that number as `sorRef`. Keep those assertions on either side of the dispatcher pass; an eventual accepted state alone does not test the pending stage.
+
+In the rejection test, configure the fake to reject `TC-00601`. The dispatcher records `ASSET_UNKNOWN` on the loan and a later pass leaves the fake's order list empty. Assert that the tool still has status `in-repair`. The rejection is an external decision for this request; the application has no automatic retry that would turn it into an acceptance after the tag is fixed.
+
+The lost-reply test calls the fake's `loseNextReply()` before returning the tool. The fake creates an order but cannot supply a usable delivery outcome. The reference's first dispatcher pass schedules a retry; the next lookup causes the effect to become held. Further passes must leave one EAM order. An attendant supplies the number found in the EAM and resolves the effect as `applied`, which updates the loan through the reconciliation hook. Test the viewer's refusal to resolve it and a delegated attendant's `PERSON_ONLY` refusal. The fake also supports a loss before an order is created; that case can be released as `not-applied` and sent again after the attendant's decision.
+
+Inbound sync has a separate checkpoint. The reference applies a higher item version for an existing asset tag, then supplies an older version with another bin value. The older item must not overwrite the newer fields. A batch whose `from` watermark is stale must fail with `CONFLICT` and leave the recorded watermark unchanged. A successful master-data update must still preserve the tool status and any open loan.
+
+For a browser check, restart the host, open an available tool at the signed-in counter, lend it and return it damaged. Read its past-loan row and repair-order section after delivery. The number is stored on the loan even though the screen presents it beside the tool.
+
+To check the rejection screen, stop the host and start it with:
+
+```sh
+DEMO_EAM_UNKNOWN_TAGS=TC-00601 bun run --cwd showcase/examples/tool-store dev:web
+```
+
+Use a fresh disposable fixture with an available `TC-00601`; a previously completed damaged return is not resent on restart. After the new damaged return, the screen must show `ASSET_UNKNOWN` and the EAM status must count a rejection. This demo environment variable changes the fake. It does not configure an HTTP connection to a real EAM.
+
+The screenshots show the finished reference after deterministic fixture actions:
+
+![Finished reference: a returned tool with the repair-order number shown from its loan](../assets/screenshots/tool-store/repair-order.png)
+
+![Finished reference: EAM delivery counts and held requests](../assets/screenshots/tool-store/eam.png)
 
 ## Repair triage agent
 
-**Goal:** an agent that proposes retiring worn-out tools; an attendant approves. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+Repair triage reads a tool in repair and its loan history. The demo's retirement rule uses the latest return's note or the damaged-return history in the interval ending at that return. The agent's instructions describe that rule; the command policy and approval feature limit what the agent can change.
 
-An agent is one more caller. It calls the same commands and queries as a person, through the same validation and authorization, inside an agent run whose grant lists the operations the definition allows. This agent reads tools and loans and may only request approval for `tool.retire`; the approval feature keeps the request, and an attendant decides it on the Approvals screen, where the command then runs as the attendant. Scripted scenarios run the agent on the deterministic harness without a model and judge what the run read, committed and requested. [Agents](../agents.md) covers definitions, runs, approval requests and evaluation.
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md):
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -100,39 +122,36 @@ from the repository root:
 bun run scaffold add agent repair-triage --collection tool
 
 Rewrite the agent for repair triage. For a tool in repair, it reads the tool's loans and repair
-orders. It requests approval to retire the tool when the tool came back damaged three times in 90
-days or the last note says it is beyond repair, and requests nothing otherwise. It may only read
+orders. It requests approval to retire the tool when the tool came back damaged three times in the 90 days ending at its latest return or the last note says it is beyond repair, and requests nothing otherwise. It may only read
 tools and loans and request approval for tool.retire. Add tool.retire as an attendant command
 that sets the status to retired. An attendant approves or rejects on the Approvals screen. Write
 the agent's scripted scenarios for both outcomes. Run the checks the add-capability skill names
 and report what passed.
 ```
 
-The agent lists `tool.retire` among its operations, and `output: 'request-approval'` turns that command into an approval request:
+The finished definition lists `tool.retire` and sets `output: 'request-approval'`. That combination exposes a way to request the retirement. It does not give the run a direct tool-retirement write path.
 
-<Code code={region(triageAgent, 'agent')} lang="ts" title="contracts/repair-triage-agent.ts" />
+<Code code={region(triageAgent, 'agent')} lang="ts" title="Finished reference: contracts/repair-triage-agent.ts" />
 
-<FileTree>
+Inspect the approval feature mount and its allowed operation list. In this application the allowed command is `tool.retire`. The request names `tool:<id>` and includes `baseRevisions` from `tool.get`, so a decision based on an obsolete tool can be refused. `checkRetireRequest` refuses an unknown tool or a tool whose status already prevents retirement. In the reference, checked-out and retired tools are refused; the command also permits an attendant to retire an available tool. The triage instruction to work on tools in repair is therefore an agent workflow rule. The retire handler rechecks the current status when an attendant approves.
 
-- showcase/examples/tool-store/
-  - contracts/repair-triage-agent.ts
-  - contracts/tool-retire.ts
-  - handlers/tool-retire.ts the command and the request check
-  - ui/approvals.tsx the Approvals screen
-  - test/repair-triage-agent.test.ts the scripted scenarios
-  - test/tool-retire.test.ts
+The deterministic scenarios provide explicit calls on the fixture. One fixture's latest note says beyond repair. Another has a repairable damaged return and should produce no request. A healthy tool is left unchanged. The scenarios assert the submitted approval and the absence of tool commits. They do not establish that a real language model interprets every maintenance note correctly.
 
-</FileTree>
+Run the application tests and inspect the approval execution case. The reference uses [`repair-triage-agent.test.ts`](../../showcase/examples/tool-store/test/repair-triage-agent.test.ts) and [`tool-retire.test.ts`](../../showcase/examples/tool-store/test/tool-retire.test.ts):
 
-![The Approvals screen shows the request to retire TC-00605 with its rationale and the Approve and Reject buttons](../assets/screenshots/tool-store/approvals.png)
+```sh
+bun test showcase/examples/tool-store
+```
 
-**Check:** the standard checks; the scripted scenarios for both outcomes pass. Proposals appear on the **Approvals** screen.
+The requested tool remains `in-repair` until an attendant approves. The approval runs retirement as that attendant and changes it to `retired`. The stale-base-revision test must retain the tool's newer state when approval conflicts. Include a case that rejects the request so the approval screen's decision is exercised without executing retirement.
+
+![Finished reference: an attendant reviewing a requested retirement](../assets/screenshots/tool-store/approvals.png)
 
 ## Cycle counts
 
-**Goal:** hand a bin count to an attendant and accept the report. **Skill:** [assign-work](../../packages/assignments/skills/assign-work/SKILL.md).
+A cycle count names a shelf bin. When the assignment is sent, the application records the expected tools and their current statuses in its instructions. The employee reports tags found or missing. The report itself preserves what was submitted; accepting it runs the Tool Store commands that apply the decision.
 
-An assignment hands work to an assignee with instructions and takes structured reports back. A person reviews each report and accepts it into the records or discards it, so the count itself changes nothing: accepting the report runs the application's own tool commands. The kind declares its scope, instructions and report as schemas, and the assignment feature generates the plan, work, report and review operations from it. [Assignments](../assignments.md) describes kinds, the lifecycle and the assignee types.
+Use [assign-work](../../packages/assignments/skills/assign-work/SKILL.md):
 
 ```text prompt
 Use the assign-work skill. For the application in showcase/examples/tool-store, run
@@ -149,30 +168,31 @@ refuses a checked-out tool reported missing. Run the checks the assign-work skil
 what passed.
 ```
 
-The assignment kind declares the scope, the instructions and the report, and the commands accepting a report may run:
+The finished assignment kind declares its own scope and report payload. Its `invokes` names the tool operations the accept hook may execute:
 
-<Code code={region(cycleCount, 'kind')} lang="ts" title="contracts/cycle-count-assignment.ts" />
+<Code code={region(cycleCount, 'kind')} lang="ts" title="Finished reference: contracts/cycle-count-assignment.ts" />
 
-<FileTree>
+The scope hook rejects a bin with no tools and a bin exceeding the demo's declared maximum count. The assignee hook requires an attendant, because a viewer cannot execute this count workflow. Inspect the mounted `assignmentAccess` view: it permits members to read, with write actions reserved to a person acting as an attendant.
 
-- showcase/examples/tool-store/
-  - contracts/cycle-count-assignment.ts
-  - contracts/tool-missing.ts tool.mark-missing and tool.mark-found
-  - handlers/assignments.ts the instructions and the accept hook
-  - ui/cycle-count-assignments.tsx the Cycle counts and My cycle counts screens
-  - test/cycle-count-assignment.test.ts
+In `cycleCountHooks.accept`, the reported tags are matched against the tools in the bin at acceptance time. This check matters when a tool has moved since the assignment was sent. A tag outside the current bin must refuse the whole acceptance. A tag appearing in both `found` and `missing` is invalid. The hook calls `tool.mark-missing` and `tool.mark-found` for the required changes, and those commands enforce their own status transitions inside the same acceptance transaction.
 
-</FileTree>
+The reference lifecycle assertions are in [`cycle-count-assignment.test.ts`](../../showcase/examples/tool-store/test/cycle-count-assignment.test.ts). Run the export's application suite:
 
-![The Cycle counts screen shows a draft count of bin A-03 waiting for an assignee](../assets/screenshots/tool-store/cycle-counts.png)
+```sh
+bun test showcase/examples/tool-store
+```
 
-**Check:** the standard checks. Accepting a report that lists a tag as missing sets that tool to `missing`.
+The negative case that reports a checked-out tool missing must leave every tool unchanged and keep the report unaccepted. It is insufficient to check only the error code: another tag may already have been processed before the failing command, so the test must verify that the transaction rolled back those earlier changes.
+
+In the browser, plan a count for a bin containing an available tool and send it to an attendant. Work the assignment from My cycle counts and submit that tag as missing. Review the report from Cycle counts and accept it. The tool becomes `missing` only on acceptance. Submitting a second report for a tool already recorded missing can demonstrate the found transition back to `available`.
+
+![Finished reference: a cycle count being planned for a shelf bin](../assets/screenshots/tool-store/cycle-counts.png)
 
 ## Calibration over MCP and the CLI
 
-**Goal:** Claude Code uses the app over MCP while the CLI shows the records change. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+The calibration query reads a date-based slice of Tool Store records. The workflow text tells an external coding agent how this demo wants those tools moved. Its operation IDs must remain the application's IDs; MCP's transport naming is supplied by the adapter.
 
-The host generates the MCP tools, the CLI subcommands and the HTTP API from the catalog, so a capability's description is what a model reads when it picks a tool, and the input property descriptions are its arguments' help. Workflow text is an MCP resource the model reads before it acts. A command carries the revision a read returned as an expected revision, and the instance refuses a stale one with `CONFLICT` inside the transaction, so two callers cannot overwrite each other's change. [Adapters](../adapters.md) covers the generated channels and [Agents](../agents.md#application-tools) the tools a model sees.
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md):
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -197,57 +217,34 @@ revision a tool.get returned, and gets CONFLICT for a stale revision. Run the ch
 add-capability skill names and report what passed.
 ```
 
-The workflow text names operation IDs only; each channel shows them under its own tool names:
+The finished workflow is part of the contract module:
 
-<Code code={region(calibration, 'workflow')} lang="ts" title="contracts/tool-calibration-due.ts" />
+<Code code={region(calibration, 'workflow')} lang="ts" title="Finished reference: contracts/tool-calibration-due.ts" />
 
-<FileTree>
+Check the query's default interval and its fixed-clock tests. A tool without a calibration date is excluded, as is a retired tool. The date boundary is inclusive. The handler must filter before computing `total` or taking the page. Use dates relative to the fixed fixture clock so running the tests on another day preserves their meaning.
 
-- showcase/examples/tool-store/
-  - contracts/tool-calibration-due.ts the query and the workflow text
-  - handlers/tool-calibration-due.ts
-  - test/tool-calibration-due.test.ts a fixed clock
-  - test/calibration-pull-mcp.test.ts through the MCP adapter
-
-</FileTree>
-
-**Check:** the standard checks. Then start the app, register three tools due for calibration and lend one:
+For a deterministic MCP check, run the application tests and inspect the query and adapter assertions. The reference uses [`tool-calibration-due.test.ts`](../../showcase/examples/tool-store/test/tool-calibration-due.test.ts) and [`calibration-pull-mcp.test.ts`](../../showcase/examples/tool-store/test/calibration-pull-mcp.test.ts):
 
 ```sh
-bun run --cwd showcase/examples/tool-store dev:web
-export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
-bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --calibration-due 2026-10-31 --key create-wrench
-bun run cli tool create --asset-tag TC-00602 --description "Insulation tester 5 kV" --category insulation-tester --bin B-01 --calibration-due 2026-11-05 --key create-tester
-bun run cli tool create --asset-tag TC-00603 --description "Crimper 6-50 mm2" --category crimper --bin C-02 --calibration-due 2026-11-09 --key create-crimper
-bun run cli tool check-out --tool-id <crimper id> --borrower E104233 --work-order WO-58812 --due-at 2026-10-30T14:00:00Z --key lend-crimper
+bun test showcase/examples/tool-store
 ```
 
-Give Claude Code the app's MCP tools only, and the task:
+The MCP test discovers `tool.calibration-due` and reads the `calibration-pull` workflow resource. It gets a tool revision, updates that tool with the matching revision and then submits a stale revision. The final request must fail with `CONFLICT`. This verifies the adapter contract for these operations without making a model decide which calls to issue.
+
+A live calibration pull is optional. Start the exported host and set `TORTOISE_CONNECTION` to its connection file before attaching your configured coding agent's MCP connection with `bun run mcp`. Supply only the application tools for this check. Seed available tools whose dates fall inside the current interval, and one checked-out tool due in that interval. Ask the agent to read `calibration-pull` and follow it. Afterwards inspect the tool list from the CLI:
 
 ```sh
-claude mcp add --scope project tool-store -e TORTOISE_CONNECTION=$TORTOISE_CONNECTION -- bun run mcp
-claude -p "Pull the tools due for calibration in the tool-store application. Read the calibration-pull workflow resource first and follow it." \
-  --allowedTools mcp__tool-store ListMcpResourcesTool ReadMcpResourceTool \
-  --disallowedTools Bash Edit Write
-bun run --silent cli tool list --output text
+bun run cli tool calibration-due --days 14 --output text
+bun run cli tool list --output text
 ```
 
-The list shows the wrench and the tester moved to bin `CAL-01`, and the lent crimper still in `C-02` (columns trimmed):
-
-```text
-assetTag  description              bin     status       calibrationDue
-TC-00603  Crimper 6-50 mm2         C-02    checked-out  2026-11-09
-TC-00602  Insulation tester 5 kV   CAL-01  available    2026-11-05
-TC-00601  Torque wrench 20-100 Nm  CAL-01  available    2026-10-31
-```
-
-The model chooses its own calls, so another run can differ. Remove the server with `claude mcp remove --scope project tool-store`.
+The available tools selected by that workflow should be in `CAL-01`; the checked-out tool keeps its bin. Inspect the actual calls and refused revisions if the result differs. The model may choose a different sequence, and the deterministic MCP test does not establish that this live task succeeds. Do not configure or discover provider credentials merely to complete the deterministic tutorial route.
 
 ## Selection and UI intents
 
-**Goal:** the attendant selects tools, starts an agent run on them, and the run opens a tool and asks the attendant to review a change. The run never writes. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+This step lets the attendant select tools inside the terminal and ask a run to open a selected tool for review. The demo run sends a UI intent. The attendant enters the bin value and submits the ordinary update form.
 
-A screen shares what the person has in front of them through the UI session: the selected records, each as `tool:<id>` with the revision the row shows, become the run's context. A run started with a UI session gets the UI intent tools `ui.open`, `ui.select`, `ui.prepare` and `ui.request-review`, which reach that session only; the host refuses an intent that names a record the run may not read. The screen handles each intent itself, so inside the terminal an open shows the tool at the counter instead of navigating away, and a review puts the proposed change in front of the attendant, who submits the command as themselves. [Interaction contract](../interaction-contract.md#ui-intents) lists the intents and [Agents](../agents.md) the runs.
+Use [build-screens](../../packages/frame/skills/build-screens/SKILL.md):
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/tool-store, let an attendant signed in at the
@@ -279,38 +276,29 @@ the demo run, see the counter open with the review, submit the bin and see the t
 change. Run the checks the build-screens skill names and report what passed.
 ```
 
-The work area shares the ticked tools and handles the run's intents itself:
+The Tools tab stores selected resource IDs with the revisions returned by its reads. When a run starts, the UI session captures that selection. A later checkbox change affects the next run; it must not change the context of a run already in progress.
 
-<Code code={region(counter, 'session')} lang="tsx" title="ui/counter.tsx" />
+The terminal's UI session and agent panel use the host session. Counter commands use the operator client introduced in chapter 2. Keep that distinction visible in the implementation review: the selected records must be authorized for the run's issuer, and the subsequent bin update must still identify the attendant submitting it.
 
-<FileTree>
+The finished counter handles an open intent inside the work area so navigation does not leave the terminal route. A review is displayed beside the update form. The intent ID associates the acknowledgment with that particular review.
 
-- showcase/examples/tool-store/
-  - ui/terminal-tools.tsx the Tools tab with a checkbox per row
-  - ui/terminal-agent.tsx the agent panel and the review
-  - ui/terminal-runs.ts the selection and the demo scripts
-  - ui/counter.tsx useUiSession
-  - e2e/terminal-agent.pw.ts
-  - test/terminal-agent-run.test.ts
+<Code code={region(counter, 'session')} lang="tsx" title="Finished reference: ui/counter.tsx" />
 
-</FileTree>
+Run the application and browser tests. The reference captured-session assertions are in [`terminal-agent-run.test.ts`](../../showcase/examples/tool-store/test/terminal-agent-run.test.ts) and [`terminal-agent.pw.ts`](../../showcase/examples/tool-store/e2e/terminal-agent.pw.ts):
 
-The run added a framework change for this step: an intent a run sent carries the run's ID, so the review names the run.
+```sh
+bun test showcase/examples/tool-store
+bunx playwright test showcase/examples/tool-store
+```
 
-![The counter shows the review Pull TC-00601 for calibration above the edit form, with the bin field focused](../assets/screenshots/tool-store/agent-review.png)
+The HTTP test must show that intents reach only the captured UI session. It must also refuse an unknown tool and verify that a run without a session does not receive UI tools. The browser test signs in, selects a tool, runs the deterministic review, then submits the new bin from the operator form. Assert that the tool is unchanged before the attendant submits and that the resulting command is attributed to the attendant.
 
-**Check:** the standard checks and the Playwright run, including the new spec.
+This is the introductory UI-review flow for Tool Store. The detailed assistant panel and form-preparation walkthrough remains in Parts Desk.
 
-## Limits
+![Finished reference: the calibration review displayed above the counter's edit form](../assets/screenshots/tool-store/agent-review.png)
 
-The EAM is an in-memory fake with deterministic answers, the triage agent and the terminal run use the deterministic harness, and only the calibration step uses a model: Claude Code as an MCP client. [Part 4](tool-store-4-deployment.mdx) deploys the store to its terminal.
+## Checkpoint
 
-## References
+Record the EAM pending/completion checks and the reconciliation refusals with this checkpoint. Record the cycle-count acceptance and its rollback case. The triage scenarios and terminal review use deterministic scripts. The EAM is a fake that loses its in-memory records on process restart; its role here is to exercise the application's integration behavior.
 
-- [Tool store 4: deployment](tool-store-4-deployment.mdx)
-- [Systems of record](../systems-of-record.md)
-- [Agents](../agents.md)
-- [Assignments](../assignments.md)
-- [Adapters](../adapters.md)
-- [Interaction contract](../interaction-contract.md)
-- [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)
+Continue with [Deployment](tool-store-4-deployment.mdx) after this version passes its application and browser checks.

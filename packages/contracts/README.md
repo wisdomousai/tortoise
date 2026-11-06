@@ -1,10 +1,11 @@
 # @tortoise/contracts
 
-Capabilities, modules and the catalog as browser-safe data: schemas, permissions, UI bindings and requirements, never handlers. Start with `defineCapability`, `defineModule` and `buildCatalog`. `jsonSchema` validation rejects input it would have to strip or transform; wire values must be JSON.
+`@tortoise/contracts` defines browser-safe operation declarations. A capability describes its input and output schemas with the permission the runtime must enforce. Application modules combine these declarations into the catalog used by the host and its channels.
 
-- Primitives: [Capability](../../docs/primitives.md#capability), [Display metadata](../../docs/primitives.md#display-metadata), [UI session context](../../docs/primitives.md#ui-session-context), [Module](../../docs/primitives.md#module), [Feature](../../docs/primitives.md#feature), [Catalog](../../docs/primitives.md#catalog), [Agent definition](../../docs/primitives.md#agent-definition), [Command](../../docs/primitives.md#command), [Requirement declaration](../../docs/primitives.md#requirement-declaration), [Remote query](../../docs/primitives.md#remote-query), [Data provider](../../docs/primitives.md#data-provider), [Membership](../../docs/primitives.md#membership), [Target](../../docs/primitives.md#target), [Peer target](../../docs/primitives.md#peer-target), [Approval request](../../docs/primitives.md#approval-request), [Reconciliation](../../docs/primitives.md#reconciliation), [Collection](../../docs/primitives.md#collection), [Blob store](../../docs/primitives.md#blob-store), [Audit log](../../docs/primitives.md#audit-log), [OS handler](../../docs/primitives.md#os-handler), [OS action](../../docs/primitives.md#os-action), [Shell port](../../docs/primitives.md#shell-port).
+`defineCapability` creates an operation declaration. `buildCatalog` validates the composed modules before use. Schemas must represent JSON without a transformation step; `jsonSchema` rejects a value that validation would silently strip or transform. Server handlers belong in a separate entrypoint.
 
 ## References
 
-- [add-capability](../runtime/skills/add-capability/SKILL.md)
-- [Capability authoring](../../docs/capability-authoring.md)
+[add-capability](../runtime/skills/add-capability/SKILL.md)
+
+[Capability authoring](../../docs/capability-authoring.md)

@@ -1,14 +1,13 @@
 # @tortoise/audit
 
-Keeps the host's hash-chained audit log, forwards it when the deployment policy names a collector, and records what runs before the first request. Compose `openAudit`. The `audit-log` setting (`--audit-log` or `TORTOISE_AUDIT_LOG`) is a trusted launcher input. In required mode, a command whose `command.accepted` append fails rolls back. `bun run cli audit verify --log <dir>` checks a log offline.
+`@tortoise/audit` opens the host's configured event log through `openAudit`. The trusted launcher supplies `audit-log` through the setting, CLI option or environment variable. A configured collector can receive forwarded events.
 
-Primitives:
-
-- [Audit log](../../docs/primitives.md#audit-log)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+In required mode, failure to append `command.accepted` prevents the command transaction from committing. The later `command.committed` append records the committed outcome; its failure has separate recovery behavior. `bun run cli audit verify --log <dir>` verifies a stored log without starting the application.
 
 ## References
 
-- [Security and compliance: audit log](../../docs/security-and-compliance.md#audit-log)
-- [deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
-- `bun run test:sandbox`
+[Security and compliance: audit log](../../docs/security-and-compliance.md#audit-log)
+
+[deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
+
+`bun run test:sandbox`

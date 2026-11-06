@@ -1,6 +1,8 @@
 # Goods receiving
 
-A receiving team counts deliveries against advance shipping notices from an ERP. When a count differs, an editor records a reason before posting the goods receipt. The application saves the count and the posting locally; the ERP decides later whether to accept the receipt. A line marked for inspection also creates a request in the [quality-inspection application](../quality-inspection/README.md). Three exchange folders stand in for the ERP.
+This hypothetical receiving application imports advance shipping notices through exchange folders. An editor records a discrepancy reason when the counted quantity differs from the notice, then submits the posting. The local posting remains pending until the simulated ERP returns its outcome.
+
+A line marked for inspection can request work through the configured [quality-inspection application](../quality-inspection/README.md). The exchange folders act as a file-based ERP fixture. They are not evidence of a deployed ERP connection.
 
 Make the folders and a deployment policy:
 
@@ -31,15 +33,22 @@ TORTOISE_DEPLOYMENT_POLICY=/tmp/erp/deployment-policy.json bun run dev:web
 
 ## What to try
 
-- `bun run --silent cli delivery list --output text` lists `ASN-1-1` with status `expected`. An `inspect` column set to `true` sends a line to quality inspection.
-- Count and post: `bun run --silent cli delivery receive --id ASN-1-1 --counted 10 --key r1`, then `bun run --silent cli erp send --id ASN-1-1 --key p1`. The line shows `sync: pending` and a file `<effect id>.csv` appears in `/tmp/erp/goods-receipts`. A count that differs from `expected` needs a reason first.
-- Answer as the ERP: write `{ "status": "accepted", "externalRef": "GR-1001" }` to `/tmp/erp/receipts/<effect id>.json`. After the next poll, `cli delivery get --id ASN-1-1` shows `status: posted` and `sorRef: GR-1001`. `{ "status": "rejected" }` reopens the line.
-- Until you bind the folders, the inbox imports nothing and posted receipts wait in the outbox.
-- On a line whose count differs, ask the discrepancy classifier in the assistant panel. It proposes a reason as an approval request, which an editor approves on **Approvals** or on the line. Without a model, the panel runs the deterministic demo, which takes a script instead of a request.
+`bun run --silent cli delivery list --output text` lists `ASN-1-1` with status `expected`. An `inspect` column set to `true` sends a line to quality inspection.
+
+Count and post: `bun run --silent cli delivery receive --id ASN-1-1 --counted 10 --key r1`, then `bun run --silent cli erp send --id ASN-1-1 --key p1`. The line shows `sync: pending` and a file `<effect id>.csv` appears in `/tmp/erp/goods-receipts`. A count that differs from `expected` needs a reason first.
+
+Answer as the ERP: write `{ "status": "accepted", "externalRef": "GR-1001" }` to `/tmp/erp/receipts/<effect id>.json`. After the next poll, `cli delivery get --id ASN-1-1` shows `status: posted` and `sorRef: GR-1001`. `{ "status": "rejected" }` reopens the line.
+
+Until you bind the folders, the inbox imports nothing and posted receipts wait in the outbox.
+
+On a line whose count differs, ask the discrepancy classifier in the assistant panel. It proposes a reason as an approval request, which an editor approves on **Approvals** or on the line. Without a model, the panel runs the deterministic demo, which takes a script instead of a request.
 
 ## References
 
-- [Systems of record](../../../docs/systems-of-record.md): why the local commit and the ERP's acceptance are separate
-- [connector-files: delivery](../../../plugins/connector-files/README.md)
-- Real parts and stand-ins: [implementation status](../../../docs/implementation-status.md)
-- `bun test showcase/examples/receiving`, `bunx playwright test showcase/examples/receiving`
+[Systems of record](../../../docs/systems-of-record.md): why the local commit and the ERP's acceptance are separate
+
+[connector-files: delivery](../../../plugins/connector-files/README.md)
+
+Real parts and stand-ins: [implementation status](../../../docs/implementation-status.md)
+
+`bun test showcase/examples/receiving`, `bunx playwright test showcase/examples/receiving`

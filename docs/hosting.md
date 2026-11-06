@@ -1,125 +1,120 @@
-# Hosting
+# Deployment and operation
 
-The host runs on a server with its workspace in Postgres, and an instance connects to a fleet for health reports, audit forwarding and release staging. Application code does not change for either.
+A deployment binds an application's declared requirements to the environment that runs it. The Bun host normally keeps its workspace in a local directory. A hosted instance uses Postgres for workspace storage and takes a database lease before accepting work. The application retains the same capability contracts, but the platform must supply the facilities its requirements declare.
+
+## Local workspace
+
+A local instance owns its workspace directory while open. Stop the serving host before opening that workspace with an embedded maintenance command. `backup`, `restore` and `migrate` operate local storage; they cannot operate a hosted workspace through its local directory.
+
+The deployment policy binds declared destinations and local resources. Its identity and ingress configuration determine how callers receive sessions. [Security and compliance](security-and-compliance.md) specifies the enforcement rules. The desktop and mobile hosts have platform-specific ownership behavior documented in their host guides.
 
 ## Hosted instance
 
-`serve --hosted-workspace <name>` starts the host with Postgres storage (`packages/host/src/platform/hosted.ts`). It runs on any server with Postgres 15 or newer, targets no managed cloud and has no Cloudflare Workers entry.
+`serve --hosted-workspace <name>` selects the hosted platform in `packages/host/src/platform/hosted.ts`. Configure `TORTOISE_DATABASE_URL` from the deployment's secret store with a Postgres database in which the host can create its tables. Instances addressing the same workspace must use the same name.
 
-### Run one
-
-1. Create a Postgres database the instance can create tables in.
-2. Put its URL in `TORTOISE_DATABASE_URL`, from your secret store. The host reads it only from there.
-3. Start the instance. Every instance of one workspace uses the same `<name>`:
-
-   ```sh
-   bun run cli serve --workspace ./instance --hosted-workspace <name> --port 4317
-   ```
-
-   For development, from an app directory: `bun ../../scripts/dev-example.ts --port 4317 --hosted-workspace <name>`.
-
-4. Supervise it. Restart on exit code 1 (lease lost). Exit code 5 means another instance has the lease ([exit codes](systems-of-record.md#exit-codes)).
-5. In the deployment policy, set `ingress.listen` to `tls` with your certificate and key, `identity: external`, the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
-6. Back up the database with its own tools (`pg_dump`, point-in-time recovery).
-
-People sign in through workforce sign-in; nobody gets a local user session. The instance keeps sessions by token digest in `workforce-sessions.sqlite` in its local directory, so a restart keeps people signed in until their sessions expire. A takeover on another machine without that directory signs everyone out. Reach the instance in attached mode; `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` work on local workspaces only.
-
-Check it:
+From the application repository root:
 
 ```sh
-bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts
-STORAGE_POSTGRES_URL=postgres://user:password@localhost:5432/scratch bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts
+bun run cli serve --workspace ./instance --hosted-workspace <name> --port 4317
 ```
 
-The first line runs on PGlite, in process. The second needs a real Postgres.
+For development from an application directory, the equivalent launcher is `bun ../../scripts/dev-example.ts --port 4317 --hosted-workspace <name>`. The hosted platform requires Postgres 15 or newer. It has no managed-cloud-specific entrypoint.
+
+Configure TLS ingress and `identity: external` in the deployment policy. The `workforce` setting identifies the OpenID Connect provider, and `workforce-idp` binds its origin. Hosted callers use workforce sign-in. The platform does not issue the local-user browser session used by a local deployment.
+
+Reach a hosted instance in attached mode. The local-only commands `backup`, `restore`, `migrate`, `sync` and `drain`, as well as `--embedded`, do not open its Postgres workspace. Back up the database through its own tools and include the instance's local files in the deployment's backup procedure.
 
 ### Workspace lease and fence
 
-Only one instance commits to a workspace at a time.
+The instance acquires a lease using the database clock. A held, unexpired lease causes a competing instance to return `CONFLICT` and exit with code 5. The default lease lifetime is 30 seconds and renewal occurs every ten seconds.
 
-- An instance takes the lease when it is free or expired. A second instance gets `CONFLICT` and exits with code 5.
-- The lease lasts 30 s; the holder renews it every 10 s, by the database's clock.
-- Each new holder gets a fence one higher than the last. Every commit checks the fence inside its transaction, under an advisory lock on the workspace. A paused instance that wakes after a takeover fails its next commit before it reads or writes.
-- A renewal that finds the lease gone logs `lease-lost` on stderr and exits with code 1. A clean shutdown releases the lease at once.
+Each acquisition increments a fencing token. Every Postgres commit checks that token inside its transaction under a workspace advisory lock. An instance that resumes after another has taken its lease fails its next commit before accessing the workspace state. A renewal that detects lost ownership logs `lease-lost` and exits with code 1. Process supervision should restart that failure; a clean shutdown releases the lease.
 
-Code: `packages/adapters/src/postgres-lease.ts`. Tests: `packages/testing/test/postgres-lease.test.ts`, `packages/host/test/hosted-platform.test.ts`.
+The lease implementation is in `packages/adapters/src/postgres-lease.ts`. Storage and lease conformance run without a server through PGlite:
+
+```sh
+bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts
+```
+
+Setting `STORAGE_POSTGRES_URL` to an explicitly configured disposable database enables checks against a Postgres server. Fixture success does not establish a deployed database's availability or backup behavior.
 
 ### Instance layout
 
-- One instance serves one workspace. For many workspaces, run one instance each behind a router.
-- Blobs are stored in the database (`workspace_blobs`). If an earlier release left a blob in the local directory, the instance reads it from there and copies it into the database.
-- The local `--workspace` directory still contains agent run history, workforce sessions, the audit log and plugin files. Put it on a volume that follows the instance.
-- Don't host an app that is tied to one location: a local-scoped destination, a device, an exchange folder or a station process. Nothing refuses it at startup; check the requirements in the security manifest from `bun run generate`.
+One serving instance addresses one workspace. Multiple workspaces require separate instances and routing. Blobs are stored in `workspace_blobs`. When a prior release left a blob locally, a read copies it into the database.
+
+The `--workspace` directory still contains run history and plugin files, including workforce sessions and the configured audit log. Keep this directory on a volume that follows the instance. Sessions are stored by token digest in `workforce-sessions.sqlite`, so restarting with that directory preserves unexpired sessions. A takeover without it requires people to sign in again.
+
+Review the generated security manifest before moving a locally bound application to a hosted server. The host does not currently refuse every local-scoped requirement at startup. A local device, folder or workstation process remains tied to the machine that supplies it.
 
 ## Fleet
 
+A fleet connection is optional. The fleet-agent plugin makes outbound calls through the declared `fleet` destination and does not require inbound access to the instance. Losing that connection leaves local application execution available.
+
 ### Fleet agent
 
-The fleet agent host plugin (`plugins/fleet-agent`) connects outbound only, through the `fleet` destination. The instance needs no inbound rule and keeps working when the fleet is down.
+The plugin's default cycle runs each minute. It reports instance health and outbox counts without effect payloads, then forwards the audit events missing at the fleet in batches of 100. When assigned a release, it downloads the files and checks them against the signed manifest and configured trust keys before staging them. Staging does not activate the release. Activation requires `app install`.
 
-Every minute it:
+Compose the fleet-agent manifest and server plugin after its deployment, network and audit dependencies. Bind `destinations.fleet` to the fleet's HTTPS origin and `folders['fleet-releases']` to a writable directory. Obtain a device-link enrollment code from the configured fleet service and supply it on initial startup through `--fleet-enrollment-code` or `TORTOISE_FLEET_ENROLLMENT_CODE`.
 
-1. reports health: application, instance, outbox counts per target (no payloads), audit head, staged release, best-before date;
-2. forwards the audit events the fleet lacks, 100 at a time, unchanged so the fleet can check the hash chain;
-3. downloads the assigned release, checks every file against the signed manifest and the `fleet-trust` keys, and only then moves it into the releases folder.
+Set `TORTOISE_FLEET_TRUST` to the publisher's public key file to permit staging. Activate a staged release with `app install <release-directory> --trust <public-key-file>`. `createFleetAgentPlugin({ intervalMs, relayMs })` configures polling intervals.
 
-It never activates a release; you run `app install`. It writes nothing to the workspace. A failed cycle sets `lastError` in `services['fleet-agent']` status and retries next cycle. The plugin stores the credential in the platform secret store, or in `<workspace>/fleet-agent/credential` with mode 0600.
-
-Set up the fleet agent:
-
-1. Add `fleetAgentPluginManifest` to the manifest's plugins and `fleetAgentPlugin` to the application's plugins, after the deployment, network and audit plugins.
-2. In the deployment policy, bind `destinations.fleet` to the fleet's https origin and `folders['fleet-releases']` to a writable directory.
-3. On the fleet's **Devices** screen, create a `field-sync` enrollment code (the screen calls it a phone).
-4. Start the instance once with `--fleet-enrollment-code <code>` or `TORTOISE_FLEET_ENROLLMENT_CODE`. Later starts need no code.
-5. Set `TORTOISE_FLEET_TRUST` to the publisher's `key.pub.json`. Without it the agent stages nothing.
-6. Activate a staged release: `app install <releases folder>/<release id> --trust key.pub.json`.
-
-`createFleetAgentPlugin({ intervalMs, relayMs })` changes the intervals. Test: `bun test plugins/fleet-agent`.
+A failed cycle sets `lastError` in the fleet-agent service status and retries on the next cycle. The plugin keeps its credential in the platform secret store when available; otherwise it uses `<workspace>/fleet-agent/credential` with mode 0600. The plugin writes no application records. Its protocol implementation is tested by `bun test plugins/fleet-agent`.
 
 ### Relay
 
-Remote access to an instance through the fleet. Off by default; set `TORTOISE_FLEET_RELAY=on` to enable it.
+The relay is disabled by default. `TORTOISE_FLEET_RELAY=on` enables polling, which defaults to every two seconds. It forwards a single request at a time to the instance's `/api/v1/` routes with a body limit of 1 MiB. Event streams are unsupported.
 
-- The instance polls every 2 s and forwards one request at a time to its own `/api/v1/`, bodies up to 1 MiB, no event streams.
-- Cookies never go in, `set-cookie` never comes out, and the instance follows no redirects.
-- A request reaches a capability only with a session the instance issued. The instance refuses the fleet credential as a session (403).
-- Relaying needs a person at the fleet, so an agent run cannot reach an instance.
+Relayed requests omit cookies and responses omit `set-cookie`; redirects are not followed. Capability access still requires a session issued by the instance. The fleet credential is refused as that session. The fleet-side relay requires a person, so an agent run cannot use it to reach an instance.
 
 ### Fleet protocol
 
-One module, `fleetInstanceModule`. Instances enroll through device link and call as `device:<id>`. Each call returns data about that instance only.
+`fleetInstanceModule` defines the interface used by enrolled instances. Device-link enrollment issues the `device:<id>` identity, and its requests are scoped to that instance.
 
-| Capability            | Kind    | Use                                         |
-| --------------------- | ------- | ------------------------------------------- |
-| `fleet.instance.report`   | command | Send health.                                |
-| `fleet.instance.desired`  | query   | Read the release to run.                    |
-| `fleet.audit.cursor`  | query   | Where the fleet's copy of the audit log ends. |
-| `fleet.audit.ingest`  | command | Send events after that point.               |
-| `fleet.relay.claim`   | command | Take the oldest queued relay request.       |
-| `fleet.relay.respond` | command | Return the response.                        |
+| Capability | Kind | Protocol responsibility |
+| --- | --- | --- |
+| `fleet.instance.report` | Command | Record health |
+| `fleet.instance.desired` | Query | Return the assigned release |
+| `fleet.audit.cursor` | Query | Return the position of the fleet's audit copy |
+| `fleet.audit.ingest` | Command | Import subsequent events |
+| `fleet.relay.claim` | Command | Claim a queued request |
+| `fleet.relay.respond` | Command | Record its response |
 
-A release is the signed bundle manifest and signature from `packages/bundle`; each file is the blob `sha256:<file sha256>`.
+A release uses the signed bundle manifest and signature from `@tortoise/bundle`. Each file is identified by its SHA-256 blob reference. The fleet-agent protocol does not prescribe a fleet application's UI roles or health thresholds.
 
-### Fleet application
+## Shelf life and best-before date
 
-[`showcase/examples/fleet`](../showcase/examples/fleet/README.md) is a working fleet. It can run as a hosted instance.
+A manifest can declare shelf life as a whole number of days. A production build stamps its build time, and the best-before date is that time plus the shelf life in UTC. A source launch has no build stamp. A manifest without shelf life produces no best-before date. Mobile builds currently have no stamp.
 
-- Operators update instances, publish, assign and relay; viewers read.
-- The health screen flags: no report for 15 minutes, [held effects](systems-of-record.md#held-effects), a broken audit chain, audit more than 1,000 events behind, release drift, and a build past its best-before date. Thresholds are in `showcase/examples/fleet/handlers/instances.ts`.
-- A forged or broken audit event stops collection for that instance for good. The fleet keeps the newest 1,000 events per instance.
-- The fleet checks a release's blobs match its manifest; each instance checks the signature. A compromised fleet can withhold releases but not install one.
-- `instance.remove` deletes an instance record. Revoke the device first, or the instance re-adds itself on its next report.
+The generated application entry stamps CLI builds and desktop sidecars. Bundle creation uses the same timestamp for the binary and bundle, then signs the date in `bundle.json`. Changing the date invalidates verification. A replacement build receives its own timestamp.
 
-Publish a release over HTTP with an operator's session:
+The serving host includes build metadata in its `listening` record and returns it to a session from `GET /api/v1/build`. The web frame displays the date and a notice after it passes. A configured audit log records it in `config.loaded`; verified release status and fleet health expose it as well.
 
-1. `POST /api/v1/blobs` each file under `files/` with `Content-Type: application/octet-stream`.
-2. Call `release.publish` with `release` (ID, version, parsed `bundle.json` as `manifest`, parsed `bundle.sig` as `signature`) and `files` (the blob references).
-3. Call `channel.assign` to point a channel at it.
+The compliance `best-before` check warns from 30 days before the date. It reports `info` when there is no date. Passing the date does not stop commands or prevent installation. The date supplies an operational warning.
 
-Test: `bun test showcase/examples/fleet`. To test against real instances, compose `fleetNetworkFixture` from `@tortoise/fleet-agent/testing` in place of the network plugin, as `showcase/examples/fleet/test/instance.ts` does.
+## What decommissioning removes
 
-## See also
+Uninstalling removes the installed release and can purge its data directory. An empty outbox establishes that no unresolved delivery remains there. It does not establish that every local record or attachment has an external copy. Review retention requirements and copy the data that must survive removal.
 
-- [deploy-an-application](../plugins/deployment/skills/deploy-an-application/SKILL.md) and [connect-an-instance-to-a-fleet](../plugins/fleet-agent/skills/connect-an-instance-to-a-fleet/SKILL.md) skills
-- [Storage adapters](adapters.md#storage), [instances and hosts](architecture.md#instances-and-hosts), [security and compliance](security-and-compliance.md)
-- What has run: [hosted instance](implementation-status.md#hosted-instance), [fleet agent](implementation-status.md#fleet-agent)
+`app uninstall --purge` verifies the installed release against `--trust` and invokes that release's own `drain` command. This lets the installed code interpret its own effect types. That binary runs with the installer's rights. With `--apply`, the service stops before draining. Without it, a serving host still owns the workspace and embedded drain refuses access.
+
+Drain counts pending effects, held effects and acknowledged deliveries awaiting a decision. Any unresolved count blocks purge with `CONFLICT` and leaves files in place. `--discard-undelivered` explicitly overrides this check and reports the deleted counts. The refusal and override are covered in `plugins/deployment/test/install.test.ts`.
+
+## Decommissioning procedure
+
+Resolve held effects through the application's reconciliation interface while it is running. Stop the service before opening its local workspace with drain. In a systemd installation the command is `systemctl stop tortoise-<app>.service`.
+
+Run the installed application's CLI against its workspace and deployment policy:
+
+```sh
+app drain --workspace /var/lib/tortoise/<app>/workspace --deployment-policy /etc/tortoise/<app>/deployment-policy.json --audit-log /var/lib/tortoise/<app>/audit
+```
+
+Retain the workspace while drain exits with code 75. Confirm the required backup before running `app uninstall --purge --trust <public-key-file> --apply`. Revoke enrollment at the fleet and peers before removing their instance records, so the retired instance cannot reconnect. Remove the external accounts and credentials assigned to this installation.
+
+A desktop workspace lives under Electron's `userData`. Close the window before draining or copying it. The desktop uninstaller does not remove that workspace. A paired phone must deliver the records required at its hub before its device credential is revoked and the app is uninstalled. OS removal then deletes the local sandbox.
+
+A hosted instance delivers while serving. Verify its unresolved delivery through the running host before stopping it. Hosted removal and backups use database administration; the local purge command cannot remove a hosted workspace. Also retain its local run history and audit files where required.
+
+A list's CSV export omits history and attachments. It cannot replace a workspace backup when those records must survive. The framework keeps no application ownership or renewal register.
+
+The [deployment skill](../plugins/deployment/skills/deploy-an-application/SKILL.md) describes bundle preparation. Use the [decommissioning skill](../plugins/deployment/skills/decommission-an-application/SKILL.md) for removal. Known deployment gaps and dated runs are recorded in [Implementation status](implementation-status.md).

@@ -1,15 +1,13 @@
 # @tortoise/connector-files
 
-Reaches a system of record through shared folders. `deliver` writes each effect as a hidden partial file and renames it into place; `lookup` reads the receipt folder, then the drop folder, then the archive, so the other system must write its receipt or archive the file before it removes the file from the drop folder, and must ignore names that start with a dot. The dispatcher looks up before every resend because that system may already have the file. A receipt is JSON with `status` `accepted`, `rejected` or `pending`; an unreadable receipt puts the effect in `held` for a person. An inbox folder inbound syncs inbound sync. The parsers accept only the declared format, and the XML reader refuses DOCTYPE, attributes and nesting.
+`@tortoise/connector-files` implements a target port over configured exchange folders. Delivery writes a hidden partial file and renames it into place. The external reader must ignore dot-prefixed files and preserve delivery evidence until it has written a receipt or archived the delivery.
 
-Primitives:
-
-- [Connector](../../docs/primitives.md#connector)
-- [Inbound sync](../../docs/primitives.md#inbound-sync)
-- [Requirement declaration](../../docs/primitives.md#requirement-declaration)
+Lookup checks the receipt location before the delivery folders. The dispatcher uses that evidence before resending an effect. A malformed receipt produces an uncertain outcome requiring reconciliation. An inbox supplies batches for inbound sync through the configured parser. The XML parser rejects DOCTYPE declarations and unsupported document structure.
 
 ## References
 
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
-- `bun test plugins/connector-files`
+[connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+
+[deploy-an-application](../deployment/skills/deploy-an-application/SKILL.md)
+
+`bun test plugins/connector-files`

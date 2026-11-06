@@ -1,191 +1,88 @@
 # Systems of record
 
-A system of record is an outside system (ERP, MES, CRM, quality system) that owns records your app changes. Your command never calls it directly. The command writes an outbox effect in its own transaction, and a dispatcher delivers it afterwards.
+An application integrates with an external system through a declared target. The target identifies the delivery interface and the operations used to record external outcomes. It may also declare inbound synchronization. The application decides which commands need external delivery and which local records reflect the external system's state.
 
-Examples: `quality-inspection` (fake quality system), `crm-capture` (fake CRM, live reads), `receiving` (ERP over shared folders).
-
-To add one to your app, follow [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md).
+An external write executes after the local command commits. Its delivery outcome is recorded by a later command, so local commit and external acceptance are separate events. [Operations and state](capability-authoring.md#commands) defines the local transaction.
 
 ## Targets
 
-A target declares one system of record. It creates three capabilities that only the integration principal can call (status is open to everyone).
+`defineTarget` creates a completion command and a status query. It creates a sync command only when the declaration includes `inbound`. The declaration supplies stable operation identifiers and the resource types affected by each direction. Its status schema can add application-defined fields to the stored watermark and last-sync timestamp.
 
-```ts
-// showcase/examples/quality-inspection/contracts/target.ts
-export const qualityTarget = defineTarget({
-  target: 'quality-system',
-  resourceType: 'Synchronization',
-  operations: {
-    complete: 'inspection.effect.complete', // dispatcher records the outcome
-    sync: 'inspection.lot.sync', // inbound sync applies a batch
-    status: 'inspection.sync.status', // anyone: pending, accepted, rejected counts
-  },
-  changes: ['lot', 'result', 'defect'],
-  inbound: { item: lotSnapshotSchema, max: 200, changes: ['lot'] },
-  // status: ..., descriptions: ...
-});
-```
+`targetHandlers` implements these operations using application hooks. The completion hook decides how an external outcome changes local records. The inbound hook applies an item to local state. The status hook scopes any application counts to the current caller.
 
-Without an `inbound` declaration, the target only delivers. `targetHandlers(qualityTarget, {...})` builds the three handlers; you supply how an outcome changes your record and how an inbound item changes local state.
+`targetRules` marks completion and sync as integration-only operations. It marks status `open`, which still requires the caller to pass the policy's caller gate. Status data must be scoped by its handler. `targetAllowlist` gives the configured integration principal access to the target's operations, and `targetContext` binds that identity to the workspace with a narrowed grant.
+
+`connectTarget` connects the declaration to a `SystemOfRecordPort` and returns the workers managed by the host lifecycle. The port performs delivery outside the storage transaction. Its description states whether delivery is idempotent; a port without idempotent delivery must implement outcome lookup. The [integration package](../packages/integration/README.md) specifies the server helpers. Use the [integration skill](../packages/integration/skills/connect-system-of-record/SKILL.md) when adding this composition.
 
 ## Outbox and completion
 
-A handler enqueues an effect next to the record it changed:
+A command handler calls `ctx.enqueue` for an external write it intends to request. The effect identifies its target and type, carries a JSON payload, and names the local resource to which it belongs. The effect commits with the command's state changes and stored result. Replaying a retained command result does not enqueue another effect.
 
-```ts
-// showcase/examples/quality-inspection/handlers/capture.ts
-const defect = {
-  id, lotId: lot.id, code: input.code, quantity: input.quantity,
-  sync: 'pending' as const,
-  effectId: ctx.enqueue({
-    target: TARGET,
-    type: 'defect.post',
-    resource: `defect:${id}`,
-    payload: { lot: lot.id, code: input.code, quantity: input.quantity },
-  }),
-};
-```
+The dispatcher claims pending effects and delivers them through the port. Delivery is at least once. The receiving system must deduplicate by effect ID, or its connector must look up a previous attempt before sending. A transport acknowledgement alone does not establish business acceptance.
 
-Then wire the target in `application.ts`:
+An accepted or rejected delivery causes the dispatcher to invoke the target's completion command. That command records the effect outcome under the integration principal and runs the application's completion hook. Application record fields are chosen by that hook; the framework does not prescribe a particular record layout.
 
-```ts
-connect: ({ application, workspaceId }) => ({
-  integrations: [
-    connectTarget({ target: qualityTarget, application, port: demoSystemOfRecord(),
-      workspaceId, principalId: INTEGRATION_PRINCIPAL, toInput: toSyncInput }),
-  ],
-}),
-```
-
-What happens next:
-
-| Step                               | Rule                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------- |
-| Commit                             | State, command result, journal and effect commit together. A replayed command adds no effect. |
-| Delivery                           | Every second. At least once, so the target must dedupe by effect ID or offer a lookup. |
-| Transient failure                  | The dispatcher retries with backoff from 1 s to 60 s.                                 |
-| Business rejection                 | The complete command records `rejected`. No retry.                                    |
-| Outcome                            | The complete command writes it. The record gets `sync`, `sorRef` or `rejection`.      |
-
-To see it, start the example and ask for the target's status:
-
-```sh
-bun run --cwd showcase/examples/quality-inspection dev:web
-# second terminal, from the repo root:
-export TORTOISE_CONNECTION=$PWD/showcase/examples/quality-inspection/.workspace/.connection.json
-bun run cli inspection sync status --output text
-```
-
-You should see `watermark`, `lastSyncAt`, then `pending`, `accepted`, `rejected` and `retrying` counts.
+`createTargetIntegration.start` polls delivery every second by default. Its `deliverMs` option changes that interval. The dispatcher defaults to exponential retry backoff capped at 60 seconds, configurable through its `backoff` option. A transient failure schedules another attempt. A business rejection completes the effect without retry.
 
 ## Worker claims
 
-Before sending, the dispatcher claims the effect for 120 s with a growing fencing token. A stalled worker's late write fails with `CONFLICT`. Two dispatchers on one target need different worker names.
+A claim gives an effect to a named worker for a bounded lease. The default lease lasts 120 seconds and can be changed through `leaseMs`. Each claim increments its fencing token. Attempt updates use that token to reject a stalled worker's late write. The completion command generated by `defineTarget` accepts the token so completion is fenced as well. A custom completion command must pass the token to `ctx.completeEffect` to preserve that check.
 
-Before the first claim, the dispatcher re-checks that the committer is still allowed. If not, it puts the effect in `held`.
+Workers dispatching the same target need distinct identities; the dispatcher generates an identity when none is supplied. Before the first claim, dispatch authorization is rechecked by default. Losing permission holds the effect. This behavior is controlled by the dispatcher's `recheck` option.
 
 ## Held effects
 
-The dispatcher puts an effect in `held` when nobody knows if the target applied it:
+A held effect requires an explicit decision before further delivery. An interrupted send can leave the connector unable to determine whether the receiving system acted. Lookup can also report uncertainty or fail to recover the outcome of an acknowledged delivery. A dispatch authorization refusal holds an effect even though no uncertain external action occurred.
 
-- delivery broke off mid-send;
-- the lookup can't tell;
-- the target forgot an effect it acknowledged;
-- the re-check before the first claim denied the committer.
+The dispatcher does not resend held effects. The reconciliation feature exposes decisions to authorized people through an application-supplied `ReconciliationAccess` view. An `applied` decision records acceptance. A `refused` decision records rejection. A `not applied` decision releases the effect for delivery again. The application can use `onResolved` to update its records consistently with that decision. Delegated callers cannot resolve an effect.
 
-The dispatcher never retries a held effect. A person resolves it through the `reconciliation` feature: **applied** (accepted), **refused** (rejected) or **not applied** (the dispatcher sends it again). Mount it with `reconciliationFeature`, a `ReconciliationAccess` view and an `onResolved` hook. Delegated callers (agents) can't resolve.
-
-A target may also return `pending` (acknowledged). The dispatcher then polls its lookup instead of resending.
+A port can return a pending acknowledgement while the external decision is outstanding. The dispatcher records the acknowledgement and polls lookup instead of resending the original request.
 
 ## Effect phases
 
-`effectPhase(effect)` returns one of:
+`effectPhase(effect)` derives the delivery phase from its stored state:
 
-| Phase                    | Meaning                                    |
-| ------------------------ | ------------------------------------------ |
-| `queued`                 | committed, never tried                     |
-| `claimed`                | a worker has claimed it                          |
-| `retrying`               | failed, waiting for backoff                |
-| `acknowledged`           | target has it, hasn't decided              |
-| `held`                   | waiting for a person                       |
-| `accepted` / `rejected`  | done                                       |
-| `cancelled`              | withdrawn with `ctx.cancelEffect` before any claim |
+| Phase | Stored delivery condition |
+| --- | --- |
+| `queued` | Committed without a delivery attempt |
+| `claimed` | Leased to a worker |
+| `retrying` | A failed attempt awaits its retry |
+| `acknowledged` | The target received the delivery but has not decided |
+| `held` | Further delivery requires reconciliation |
+| `accepted` | The target accepted the effect |
+| `rejected` | The target rejected the effect |
+| `cancelled` | The command withdrew the effect before any claim |
+
+`ctx.cancelEffect` can cancel only an unclaimed effect. The phase declaration is implemented in `packages/runtime/src/effect-phase.ts`.
 
 ## Inbound sync
 
-Inbound sync pulls changes after the stored watermark every 5 s and submits them through the target's sync command. A stale range fails with `CONFLICT`, so two pullers can't apply the same page. If inbound sync can send old versions late, set the `versions` option on `targetHandlers`.
+Inbound sync asks the port for changes after the stored watermark and submits the returned batch through the target's sync command. `createTargetIntegration.start` defaults to a five-second sync interval; `syncMs` configures it.
+
+The sync command compares the batch's `from` watermark with the stored watermark. A stale range returns `CONFLICT`, preventing competing pullers from applying the same page under an obsolete cursor. When source items can arrive out of version order, configure `versions` in `targetHandlers` so older items cannot overwrite newer local copies. The application's apply hook defines which fields inbound sync may change.
 
 ## Connectors
 
-A connector implements `SystemOfRecordPort`. Ready-made ones:
+The [HTTP connector](../plugins/connector-http/README.md) implements delivery to an API using its idempotency header or outcome lookup. The [file connector](../plugins/connector-files/README.md) exchanges delivery files and receipts through declared folders. Equipment uses the [driver connector](../plugins/connector-driver/README.md), whose action contract governs safe redelivery. A [screen bridge](operator-workstations.md) operates a declared workstation procedure. Peer applications use the peer port described below.
 
-| Connector                                                       | Talks to                                             |
-| --------------------------------------------------------------- | ---------------------------------------------------- |
-| [connector-http](../plugins/connector-http/README.md)           | REST APIs. Needs an idempotency header or a lookup.  |
-| [connector-files](../plugins/connector-files/README.md)         | Shared folders: drop files, read receipt files.      |
-| [connector-driver](../plugins/connector-driver/README.md)       | Equipment behind a [driver](hardware-drivers.md).    |
-| [screen bridge](../workstations/screen-bridge/README.md)        | A desktop application, through its screen.           |
-| [peer port](../packages/integration/README.md#peer-applications) | Another agent-native app ([below](#peer-applications)). |
-
-[connector-mqtt](../plugins/connector-mqtt/README.md) and [connector-opcua](../plugins/connector-opcua/README.md) only read, as observations. Each connector ships a fake for tests.
+The MQTT and OPC UA connectors consume observations. They provide no delivery path for external writes. Connector fixtures establish their behavior against the test interface; live external-system behavior requires a separate configured run.
 
 ## Remote queries
 
-A remote query reads the outside system when the caller asks and stores nothing. Use it when callers must only see what the source lets them see (`crm-capture`).
-
-Declare a data provider for one target and build both handlers with `implementDataProvider`. The source call runs outside the transaction with a 10 s deadline, and the runtime authorizes the result again before returning it.
+A remote query reads an external system on demand without importing the result into workspace state. Declare a data provider for its target and create the handlers with `implementDataProvider`. The source call runs outside the storage transaction. Its deadline defaults to ten seconds and is configurable through the runtime's `remoteDeadlineMs`. Before returning the result, the runtime checks current authorization again.
 
 ### Credentials and paging
 
-The query uses the caller's own credential. An agent uses the delegating person's. The query uses a service credential only if it declares that fallback. Paging uses the source's opaque cursor; the list ends when no cursor comes back.
+The query uses the caller's source credential. A delegated agent uses its issuer's credential. A service credential is available only when the declaration permits that fallback. Paging follows the source's opaque cursor and stops when no cursor is returned.
 
 ### Failures and followed records
 
-A down or slow source returns status `unavailable` with a short safe message. To keep a result, the caller runs a domain command (in `crm-capture`, "follow"), which enqueues an effect; inbound sync then brings the record in.
+An unavailable or timed-out source returns an `unavailable` result with a bounded message suitable for the caller. A remote result has no persisted local copy. Persisting or following it requires an application command with its own declared behavior; any subsequent delivery or inbound synchronization follows that application's integration contract.
 
 ## Peer applications
 
-A peer target is another agent-native app in the role of a system of record. Follow [connect-two-applications](../plugins/peer-link/skills/connect-two-applications/SKILL.md).
+A peer target reaches another Tortoise application through its declared peer API. The called application composes the peer-link plugin and declares its API with `definePeerApi`. The caller declares `definePeerTarget` and connects it with `connectPeerTarget`.
 
-1. The called app declares a peer API with `definePeerApi` and composes the [peer link](../plugins/peer-link/README.md) plugin.
-2. The calling app declares `definePeerTarget` and wires it with `connectPeerTarget`.
-3. An admin of the called app creates a one-use enrollment code on its Peers screen; enter it on the caller's Peers screen.
-4. The called app's admin maps each subject to a local person with `peer.subject.map`.
-5. Commands enqueue `target.effect(command, { resource, payload })`. They run at the peer as `peer:<id>` or as the mapped person.
+Enrollment uses a one-use code issued by the called application's administrator. A subject assertion can associate the call with a person only after that administrator maps the subject through `peer.subject.map`. Calls then execute under the peer service principal or the mapped person's current policy, according to the declared operation.
 
-If the peer's schema drifts, its effects stay pending and its reads go unavailable until the contracts match again.
-
-## Command line
-
-`bun run build:cli` builds a single binary at `dist/bin/<name>` that needs no Bun. Every capability is a subcommand with typed flags:
-
-```sh
-app inspection result record --lot-id 4000001 --characteristic-id C10 --value 220.01 --occurred-at 1791370306000 --key r-1
-```
-
-- `--json '{...}'` passes the whole input; `--dry-run` only validates.
-- `help`, `list`, `schema`, `workflows` work without an instance.
-- `serve`, `mcp`, `sync` (pull once), `drain` (deliver until empty), `backup`, `restore`, `migrate` operate the workspace.
-
-An orchestrator keeps a sandbox's workspace until `drain` exits 0. `bun run test:sandbox` tests the compiled binary.
-
-### Exit codes
-
-| Exit | Error code                   | Meaning                                                                    |
-| ---- | ---------------------------- | -------------------------------------------------------------------------- |
-| 0    |                              | success                                                                    |
-| 1    | `INTERNAL`, `INVALID_OUTPUT` | internal failure; `app status` unverified release; `driver check` failed; lease lost |
-| 2    | `INVALID_INPUT`              | bad input or usage; `policy check` / `network export` errors                 |
-| 3    | `NOT_FOUND`                  | not found                                                                  |
-| 4    | `FORBIDDEN`                  | forbidden                                                                  |
-| 5    | `CONFLICT`                   | conflict, including a workspace another instance has                     |
-| 6    | `IDEMPOTENCY_CONFLICT`       | key reused with different input                                            |
-| 7    | `CANCELLED`                  | cancelled                                                                  |
-| 8    | `UNAVAILABLE`                | unavailable                                                                |
-| 10   |                              | `audit verify` chain damaged; `compliance report` failing                  |
-| 75   |                              | `drain`: effects still waiting                                             |
-
-## Limits
-
-- The fake quality system and fake CRM live in memory, per process.
-- The peer link can't rotate its key; revoke the peer and connect again.
+Commands enqueue peer effects through the target's `effect` helper. A peer schema mismatch prevents pending delivery and makes remote reads unavailable until the declarations match. The peer credential cannot rotate in place; revoke the peer and enroll it again. The [peer-link skill](../plugins/peer-link/skills/connect-two-applications/SKILL.md) describes the enrollment procedure.

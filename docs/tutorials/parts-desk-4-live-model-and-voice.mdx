@@ -1,21 +1,31 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import dictation from '@repo/showcase/examples/parts-desk/ui/assistant-dictation.tsx?raw';
 
 # Parts desk 4: live model and voice
 
-One real conversation with a model on the desk's machine, and a microphone button that dictates into the composer. This part runs the application from [part 3](parts-desk-3-context-and-scenarios.mdx) on `llama-server` with real weights, records what the model did, and adds on-device speech recognition.
+This chapter continues Parts Desk from [chapter 3](parts-desk-3-context-and-scenarios.mdx). It describes an optional run with a local model and adds dictation to the application's message composer. The dictation step can use the deterministic stand-in without supplying a weight file.
+
+Use the exported repository whose stand-in runs and UI-session tests passed at the preceding checkpoint. The live route requires an explicitly selected GGUF file and a compatible `llama-server` executable. Obtain those files yourself and use the license that applies to the weights. The dictation step can be implemented and tested while the application still uses its stand-in.
+
+No new live-model or microphone result is established by this documentation revision. The recorded conversation below is dated evidence from an earlier run.
 
 ## Setup
 
-Open Claude Code or Codex at the root of the exported `parts-desk` repository. Install llama.cpp's `llama-server` and download a GGUF instruction model that calls tools, such as Gemma 4 E4B. The standard check, from the export root, ends with `0 fail`:
+To continue without live weights, follow [Voice input](#voice-input) manually from the completed chapter 3 application. The tutorial runner executes the live prompt first and cannot record an optional skip.
+
+Run the normal application checks from the export root:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/parts-desk
 ```
 
-Steps that change screens add:
+The default test suite skips the real-model cases unless their weight file and executable are configured. Inspect the skipped cases in the output; a successful deterministic suite does not report a real model's result.
+
+A dictation screen change also requires:
 
 ```sh
 bun run build
@@ -24,9 +34,20 @@ bunx playwright test showcase/examples/parts-desk
 
 ## Live run
 
-**Goal:** one real conversation with a local model. **Skill:** [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md).
+The development launcher reads `LOCAL_MODEL_GGUF`, measures that file, and writes the model configuration consumed through `PARTS_DESK_MODEL`. It binds the `llm` process to the supplied executable and the local inference destination in its temporary policy. Set `LOCAL_MODEL_LICENSE` to the actual weights' license; the launcher's default value does not establish a file's license.
 
-With `LOCAL_MODEL_GGUF` set, the launch measures the weights into the model entry and starts `llama-server` on them through the process port; the run records keep the model's digest as verified. The conversation goes through the same panel, runs and approvals as the stand-in, and the command results show what the model called, asked and requested. A live run is evidence to record, not a test to pass: a small model fails some turns, and the README says where. [Agents](../agents.md#evaluation) describes live scenarios and [Providers](../providers.md#local-models) the local harness.
+The model-server plugin verifies the files against the selected entry when starting the process. Inspect the model entry and measured digest in the resulting run. Verification identifies the loaded file. Model correctness must be assessed from its actual tool calls and saved application outcomes.
+
+Use [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md) for the implementation and its required checks. Start development from the export root after replacing the paths below:
+
+```sh
+LOCAL_MODEL_GGUF=/absolute/path/to/model.gguf \
+LLAMA_SERVER=/absolute/path/to/llama-server \
+LOCAL_MODEL_LICENSE=the-weights-license \
+bun run --cwd showcase/examples/parts-desk dev:web
+```
+
+The reference development launch uses port `4389`. Its policy gives local inference a 300-second request timeout, and the assistant definition bounds the run's wall time. Long inference can still exhaust that budget. If a deployment policy is already configured in the environment, inspect its destination and process binding because the launcher keeps that policy.
 
 ```text prompt
 Use the serve-a-local-model skill. Start showcase/examples/parts-desk with bun run dev:web and
@@ -34,41 +55,60 @@ LOCAL_MODEL_GGUF set to the GGUF weights of an instruction model that calls tool
 Playwright, hold this conversation in the assistant panel, each message after the previous run
 ends:
 
-1. On the Inquiries screen: "A caller from Northgrid reads TR-404 off the plate. Which
+On the Inquiries screen, start with: "A caller from Northgrid reads TR-404 off the plate. Which
    transformer is it?" Answer its question with TR-40471.
-2. "Which HV bushings fit it, and are they in stock?"
-3. "Prepare a quote for two of them."
-4. Create the draft in the builder, then: "They want 15 percent off because of a late delivery."
-5. "Cancel that quote, the utility found spares in its own store."
+Continue with "Which HV bushings fit it, and are they in stock?"
+Then send "Prepare a quote for two of them."
+Create the draft in the builder, then send: "They want 15 percent off because of a late delivery."
+Finish with "Cancel that quote, the utility found spares in its own store."
 
 Report for each turn the calls with their outcomes, the questions, the approval requests, the
 text and the time it took, and say where the model went wrong. Save a screenshot of the panel
-after each turn. Add an opt-in test that holds turns 1 and 4 through the run route when
-LOCAL_MODEL_GGUF is set and judges the command results, not the text. Run the checks the
+after each turn. Add opt-in checks for the ambiguity request and discount approval through the run route when
+LOCAL_MODEL_GGUF is set and judges the command results. Run the checks the
 serve-a-local-model skill names and report what passed. Do not change prompts or code to make the
 model succeed; record what it did in the README.
 ```
 
-On 3 November 2026 the run held the conversation on Gemma 4 E4B-it Q4_0 through llama-server on an Apple M3, with a new workspace of trial records:
+Keep the request sequence in one panel conversation. The ambiguity request concerns `TR-404`; answer its host question with `TR-40471` when it asks. Continue by asking for compatible HV bushings and a prepared quote. Inspect the builder before creating the draft. After creation, copy its saved number so the discount and cancellation requests can be checked against the actual quote.
 
-| Turn | Calls | Time | What the assistant did |
+For every message, inspect the completed run through the host and query the relevant application records. Record the run ID with its model digest. A response that says it prepared a quote must correspond to a form intent in the captured UI session. A discount request must name the saved quote ID and contain a complete input. Approving that request as the supervisor must execute the intended command before the request can be treated as successful.
+
+The reference's opt-in `test/assistant-live.test.ts` contains an ambiguity check and a discount-approval check. The latter creates a known draft fixture, checks that the assistant did not directly change it, and attempts supervisor approval. It reports malformed revision resources and approval failures. It does not run the entire browser conversation.
+
+To execute those cases with your configured files, run from the export root:
+
+```sh
+LOCAL_MODEL_GGUF=/absolute/path/to/model.gguf \
+LLAMA_SERVER=/absolute/path/to/llama-server \
+LOCAL_MODEL_LICENSE=the-weights-license \
+bun test showcase/examples/parts-desk
+```
+
+Record failures as observed. Changing the prompt or fixture creates a different run and should be recorded with that change. Keep evidence of the initial attempt when repairing an application defect.
+
+### Recorded conversation
+
+On 3 November 2026, Gemma 4 E4B-it Q4_0 ran through `llama-server` on an Apple M3 using a fresh trial workspace. The following results describe that run and do not predict a later execution:
+
+| Request | Completed calls | Duration | Observed outcome |
 | --- | --- | --- | --- |
-| 1 | `transformer.find` | 147 s | Listed TR-40417 and TR-40471 and asked which one in its text, not through the question tool, so the panel showed no choices. |
-| 1, answer TR-40471 | `inquiry.list` | 199 s | Said that TR-40471 belongs to Alpental Energie, which has no open inquiry. |
-| 2 | `part.search` | 96 s | Named BSH-145-1250 with 2 in stock and 84 days of lead time, as the records hold. |
-| 3 | `ui.prepare` | 86 s | Filled the builder with 2 × BSH-145-1250 at €29,600.00, and named a draft ID that no record holds. |
-| 4 | `approval.request` | 65 s | Requested 15 percent for a late delivery. Its base revisions named the record with a token of Gemma's tool-call format in the key, so a supervisor's approval fails with `FORBIDDEN`. |
-| 5 | `approval.request` refused with `INVALID_INPUT`, then `approval.request` | 122 s | Requested the cancellation of Q-00001 with the caller's reason; a supervisor's approval cancelled it. |
+| Identify `TR-404` | `transformer.find` | 147 s | The text listed `TR-40417` and `TR-40471` and asked for a choice. It did not use the question tool, so the panel displayed no choice controls. |
+| Clarify with `TR-40471` | `inquiry.list` | 199 s | The reply identified Alpental Energie and said that it had no open inquiry. |
+| Find its HV bushings | `part.search` | 96 s | The reply named `BSH-145-1250` with stock `2` and a lead time of 84 days, matching the trial records. |
+| Prepare a quote | `ui.prepare` | 86 s | The builder received quantity `2` of `BSH-145-1250`, totaling `€29,600.00`. The text also named an ID for a draft that did not exist. |
+| Request a 15 percent discount | `approval.request` | 65 s | The request's base revisions included a resource key containing a model tool-format token. Supervisor approval failed with `FORBIDDEN`. |
+| Cancel the quote | `approval.request` refused with `INVALID_INPUT`, then `approval.request` | 122 s | The subsequent request named `Q-00001` and the caller's reason. Supervisor approval cancelled it. |
 
-A first attempt called `transformer.get` and `transformer.list` instead of `transformer.find`, so the same model makes different calls for the same messages. `test/assistant-live.test.ts` holds turns 1 and 4 when `LOCAL_MODEL_GGUF` is set, and failed both on this model.
+An earlier attempt with the same model called `transformer.get` and `transformer.list` for the initial request. The opt-in ambiguity and discount tests both failed on the recorded model. Keep those failures when reviewing the live route; deterministic responder results do not close them.
 
-**Check:** the report lists each turn's calls, questions and approvals, with screenshots. A small model may fail some turns; the README records where. When the script drives the browser, open the launch link at once: it works once, for one minute.
+The printed launch link signs in once and expires after a minute. A browser script must open it promptly. When the model-server startup outlasts that sign-in window, sign in from a newly issued launch link according to the host's normal procedure.
 
 ## Voice input
 
-**Goal:** dictate into the composer; the person still sends. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+Dictation writes into the message composer. The person can edit the resulting text before sending it through the existing run route. This application does not add a model capability for recording audio.
 
-The browser's speech recognition runs on the device when the browser offers an on-device model for the language, so no audio leaves the machine; the button hides otherwise. Dictation only fills the text area, and sending stays with the person, so the run and its grant are unchanged. Headless Chromium has no on-device recognition, so the browser tests stub the recognizer.
+The reference checks whether the browser recognizer exposes `available()` and supports `processLocally`. It requests English recognition with `processLocally: true`. A missing API or an unavailable local recognizer hides the button. A supported downloadable language pack can be installed through the browser before dictation begins. The application has no configured remote speech-service fallback.
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, add a microphone button to the
@@ -82,31 +122,20 @@ dictation ran against a real microphone. Run the checks the build-screens skill 
 report what passed.
 ```
 
-The button shows only for a recognizer that can check for and require on-device recognition:
+The finished-reference capability check is:
 
-<Code code={region(dictation, 'recognizer')} lang="tsx" title="ui/assistant-dictation.tsx" />
+<Code code={region(dictation, 'recognizer')} lang="tsx" title="Finished reference: ui/assistant-dictation.tsx" />
 
-<FileTree>
+`useDictation` retains the text present when listening starts and appends the recognizer's current transcript. It sets `processLocally` on the recognition session as well as on the availability request. Typing into the composer while listening calls `abort()` on that session. The browser fixture checks that the person's edit remains in the composer. The composer still requires the normal send action.
 
-- showcase/examples/parts-desk/
-  - ui/assistant-dictation.tsx
-  - e2e/recognizer.ts the stub recognizer
-  - e2e/assistant.pw.ts
+The browser test installs the recognizer stub from `e2e/recognizer.ts`. It checks the requested language and the local-processing flag. With recognition unavailable, the button should be absent. With a supported stub, dictated words should appear in **Message** while the host's run list remains unchanged. The test then edits the text and verifies that dictation was aborted.
 
-</FileTree>
+Run the assistant browser specification after the build. Inspect its dictation case and confirm that it asserts no run was submitted. During the earlier documentation run, headless Chromium crashed when calling the real `SpeechRecognition.available()` method; the fixtures therefore report recognition as unavailable unless the test installs its stub. Those fixtures establish UI handling of recognizer events. They do not establish speech accuracy or successful use of a physical microphone.
 
-**Check:** the standard check and Playwright. Headless Chromium crashes on `SpeechRecognition.available()`, so the specs report recognition as unavailable.
+For a microphone check, record the browser and operating system with the installed language pack. Verify that a permission refusal is displayed without sending a run, then test that recognized text remains editable. State whether that check was performed. Leave the existing microphone limitation open if only the stub ran.
 
-## Limits
+## Verification record
 
-- The parts desk's panel is application code on the run route, run events and the UI session; the frame's assistant panel has no dictation.
-- The panel keeps its conversation ID in memory, so a reload starts a new conversation.
-- A run keeps its last 256 events. A model asks questions only in a run started with a UI session.
+Keep the deterministic fixture results with the exported application's checks. Record any real-model run separately with its selected weight digest and the observed application outcomes. Preserve the dated failures above until a later run provides evidence about them.
 
-## References
-
-- [Tutorials](index.md)
-- [Agents](../agents.md)
-- [Providers](../providers.md)
-- [Implementation status](../implementation-status.md)
-- [showcase/examples/parts-desk](../../showcase/examples/parts-desk/README.md)
+The panel's conversation ID is stored in memory, so a browser reload begins a new conversation. A run retains its last 256 events. Inspect longer runs with that retention limit in mind; absence from the retained event list does not establish that an earlier event never occurred.

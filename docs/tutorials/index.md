@@ -1,45 +1,45 @@
 # Tutorials
 
-Each tutorial builds one whole application for a transformer plant with Claude Code or Codex, one prompt per step. A step names the skill the prompt uses, explains the framework part it touches, gives the prompt to paste, shows what the finished example contains, and ends with a check. The finished applications are committed as examples, so every excerpt and screenshot on these pages comes from code that `bun run check` tests.
+The tutorials use Claude Code or Codex to build applications. Each prompt changes the application in an exported repository. The explanation around it describes the implementation the reader needs to inspect and gives actions for checking the resulting behavior.
 
-| Tutorial                                             | Application                                                                                                                                                                                                        | Steps | Skills                                                                                                                                                                                              |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Tool store](tool-store-1-records-and-screens.mdx)   | The plant tool store: attendants lend tools to employees and take them back, a counter terminal with a scanner and badge sign-in, repair orders to the plant's EAM, a triage agent, cycle counts, a deployment policy. | 14    | create-agent-native-app, add-capability, build-screens, write-a-feature, add-scanner-input, sign-in-at-a-terminal, connect-system-of-record, assign-work, deploy-an-application, decommission-an-application |
-| [Parts desk](parts-desk-1-records-and-quotes.mdx)    | The spare parts desk: transformers, parts and quotes, and an assistant panel beside every screen that runs on a local model, fills forms for the person to check and asks for approval.                             | 13    | create-agent-native-app, add-capability, build-screens, serve-a-local-model                                                                                                                         |
+[Tool Store](tool-store-1-records-and-screens.mdx) teaches application construction through a counter application with an external maintenance-system connection. Work through its chapters in order in the same exported workspace.
 
-[Getting started](../getting-started.md) comes first: it builds a small application by hand, so the prompts here read as familiar steps.
+[Parts Desk](parts-desk-1-records-and-quotes.mdx) develops an assistant for a quoting application. It assumes familiarity with the construction mechanics taught in Tool Store, but creates its own workspace. Its later chapters explain how the assistant interacts with the current screen. Real model execution is optional and has separate prerequisites.
 
-## Prerequisites
+## Starting a series
 
-- Bun, Git and the browser for Playwright: `bunx playwright install chromium`.
-- Claude Code or Codex. The prompts name the skill to use; `bun install` links the skills into `.claude/skills/` and `.agents/skills/` of the repository the agent works in.
-- For the parts desk's live run only: llama.cpp's `llama-server` and a GGUF instruction model that calls tools.
-
-## Working through a tutorial
-
-1. Open Claude Code or Codex at the root of this repository for the first step. From the second step on, open it at the root of the exported application.
-2. Paste the prompt, wait for the report, run the check and commit. One commit per step lets a failed step start over with `git reset --hard HEAD`.
-3. Compare the result with the excerpts on the page. An agent writes each step differently each time, so names, file splits and tests differ in detail from the committed example while the check passes.
-
-The export leaves out the other examples, so `bun run check:skills` fails there on links to them. The pages name the checks to run instead.
-
-The finished applications start from the repository without the prompts:
+Complete [Getting started](../getting-started.md) if you have not used the scaffold. Install Bun and Git. Browser checks use Playwright's Chromium installation:
 
 ```sh
-bun run --cwd showcase/examples/tool-store dev:web
-bun run --cwd showcase/examples/parts-desk dev:web
+bunx playwright install chromium
 ```
 
-`bun run scaffold /tmp/my-store --name my-store --example tool-store` exports one of them as the start of an application.
+Open the coding agent at the framework repository root for the export prompt. Use a destination outside that checkout which does not already exist. After export, open the agent at the new repository root. `bun install` links the task skills into that repository's agent discovery directories.
 
-## References
+Each chapter requires the previous chapter's application state. Read the starting requirements before submitting a prompt. Inspect the agent's changes and run the stated checks before continuing. Keep a Git checkpoint after a verified step. A failed attempt may contain useful changes; inspect its diff before deciding how to repair it.
 
-- [Tool store 1: records and screens](tool-store-1-records-and-screens.mdx)
-- [Tool store 2: counter terminal](tool-store-2-counter-terminal.mdx)
-- [Tool store 3: connections and agents](tool-store-3-connections-and-agents.mdx)
-- [Tool store 4: deployment](tool-store-4-deployment.mdx)
-- [Parts desk 1: records and quotes](parts-desk-1-records-and-quotes.mdx)
-- [Parts desk 2: assistant](parts-desk-2-assistant.mdx)
-- [Parts desk 3: context and scenarios](parts-desk-3-context-and-scenarios.mdx)
-- [Parts desk 4: live model and voice](parts-desk-4-live-model-and-voice.mdx)
-- [Skills](../../AGENTS.md#skills)
+The exported repository contains only its selected application. Some skills retain links to omitted framework demonstrations, which can make the full skill check fail there. The chapters identify focused checks; report the full-check limitation separately.
+
+## Reviewing the implementation
+
+The code excerpts come from the finished reference applications committed in this repository. They show an implementation to inspect. A coding agent can organize the generated application differently, and later reference code can depend on a feature that the current step has not introduced. The chapter identifies those dependencies.
+
+Source test filenames identify the finished reference implementation. The export commands run the application suite so they also work when the coding agent organizes its tests differently. Inspect the generated assertions for the required behavior.
+
+Use the stated behavior to judge the result. An agent's report that tests passed does not establish the manual checks on the page. Run the relevant commands and inspect the observable state. The chapter's failure cases explain which operations must be refused or require recovery.
+
+Screenshots show the reference application at the time of capture. The documentation build checks source imports and internal links. Application tests exercise their declared assertions. Neither check establishes that the generated interface matches a screenshot or that a real external system behaves like the tutorial's fixture.
+
+## Scripted execution
+
+`scripts/tutorial-run.ts` can execute a chapter with a locally configured Claude Code CLI. This helper invokes that CLI and may consume provider usage. It does not run Codex. Run the initial Tool Store chapter from the framework root:
+
+```sh
+bun scripts/tutorial-run.ts docs/tutorials/tool-store-1-records-and-screens.mdx --export /tmp/tool-store-walkthrough
+```
+
+The helper executes every prompt in the supplied chapter. It cannot skip the optional live-model prompt in Parts Desk chapter 4. Follow that chapter manually when continuing from the stand-in to the dictation step without a live model.
+
+The initial export directory must not exist. Later invocations require the successful preceding checkpoint and a clean Git state in the same export. `--from` resumes after the recorded successful step. The runner refuses a different commit, and a failed attempt needs inspection before resuming.
+
+Reports go into a timestamped directory under `artifacts/tutorial-runs/<application>/<chapter>/`. They retain the agent output and complete check output. The runner formats the export and executes its generic checks before recording a checkpoint. The chapter's manual acceptance checks still need to be run separately. A successful recorded walkthrough is evidence of that execution; coding-agent output can vary on another run.

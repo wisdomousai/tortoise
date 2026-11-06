@@ -4,7 +4,7 @@
  * pages resolves as it does on GitHub; a README or SKILL.md becomes its directory's index page.
  * Each page gets the frontmatter Starlight needs: the title from the H1, which the page then
  * drops, the first paragraph as the description and the GitHub URL as the edit link.
- * `docs/overview.md` becomes MDX with the overview component imported, or loses its view tags
+ * Pages using `<OverviewView>` become MDX with the component imported, or lose those tags
  * when the export has no `scripts/overview.ts`.
  *
  *   bun scripts/docs-collect.ts [--watch]

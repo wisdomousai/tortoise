@@ -1,10 +1,11 @@
 # @tortoise/workstation-sign-in
 
-Badge-and-PIN sign-in at a shared terminal. Each operator gets a short-lived session of their own; the terminal's session only signs people in. Each attempt is a recorded command with the badge ID, the terminal and whether the PIN matched; the audit log stores no badge value, PIN or token digest.
+`@tortoise/workstation-sign-in` issues operator sessions at shared terminals after badge-and-PIN authentication. The terminal credential has access to sign-in operations; subsequent application commands use the signed-in person's operator session.
 
-- Primitives: [Workstation sign-in](../../docs/primitives.md#workstation-sign-in), [Host plugin](../../docs/primitives.md#host-plugin).
+Sign-in attempts run as commands. Audit fields describe the attempt without disclosing the badge value or PIN. Session expiry and revocation are checked by the host on later requests.
 
 ## References
 
-- [sign-in-at-a-terminal](skills/sign-in-at-a-terminal/SKILL.md)
-- [Operator workstations](../../docs/operator-workstations.md)
+[sign-in-at-a-terminal](skills/sign-in-at-a-terminal/SKILL.md)
+
+[Operator workstations](../../docs/operator-workstations.md)

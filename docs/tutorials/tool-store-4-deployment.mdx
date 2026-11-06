@@ -1,52 +1,163 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
-import { region } from '@site/region';
+import { Code } from '@astrojs/starlight/components';
 import deploymentPolicy from '@repo/showcase/examples/tool-store/deployment-policy.store-terminal.json?raw';
 
 # Tool store 4: deployment
 
-The store terminal runs the application at the counter, with the EAM as its only destination. This part writes the deployment policy for the application from [part 3](tool-store-3-connections-and-agents.mdx), builds a signed bundle, installs it under a temporary prefix and removes it again.
+This chapter packages the Tool Store application built through [Connections and agents](tool-store-3-connections-and-agents.mdx). The installation is staged under a temporary prefix on the development machine. It exercises bundle admission and the installed application's lifecycle without configuring a plant terminal.
+
+The application's EAM port remains the fake from the previous chapter. Binding `eam-api` to a URL in the deployment policy does not replace that port with an HTTP connector. A real EAM integration would need its own implementation and live verification.
 
 ## Setup
 
-Open Claude Code or Codex at the root of the exported `tool-store` repository. The check starts with these commands, which end with no errors and `0 fail`:
+Start at the completed chapter 3 checkpoint in the exported repository. Stop its development host. All commands below run from the export root in a POSIX shell. The command paths assume the export is named `tool-store`, as in the initial prompt.
+
+Run the application checks before packaging:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/tool-store
 ```
 
+Choose a temporary directory that contains no other work:
+
+```sh
+deployment_root="$(mktemp -d "${TMPDIR:-/tmp}/tool-store-deployment.XXXXXX")"
+stage_prefix="$deployment_root/prefix"
+policy_file="$PWD/showcase/examples/tool-store/deployment-policy.store-terminal.json"
+```
+
+The signing key and staged install stay beneath `deployment_root`. Keep that shell open for the rest of the chapter. The staging commands always pass `--prefix`; omitting it would select the installer's default root prefix.
+
 ## Deployment
 
-**Goal:** a signed install bundle, installed under a temporary prefix and removed again. **Skills:** [deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md), [decommission-an-application](../../plugins/deployment/skills/decommission-an-application/SKILL.md).
+The policy check resolves the catalog's declared requirements against deployment settings. For this terminal the demo policy selects the `hub` profile with loopback ingress. Its EAM destination is bound, while the other declared destinations are explicitly disabled. The audit policy is fail-closed. The local-user identity allows the launch session that enrolls counter badges; operator sign-in still supplies the attendant identity for counter operations.
 
-The application declares what it needs outside the process: the EAM destination, the audit log, the ingress. A deployment policy binds those declarations to the addresses and certificates of one installation, and the deployment plugin resolves the policy against the composed catalog, so a destination the policy leaves out is blocked by the network guard rather than reached. A release is a signed bundle; `app install` admits it by signature before the install writes the service and firewall files under the prefix. Removal drains the outbox first and refuses the purge while effects remain unresolved, because records waiting for the EAM would be lost. [Security and compliance](../security-and-compliance.md) covers policies, the network guard and the audit log; [Application lifecycle](../application-lifecycle.md) the shelf life and decommissioning.
+Use [deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md) and [decommission-an-application](../../plugins/deployment/skills/decommission-an-application/SKILL.md):
 
 ```text prompt
 Use the deploy-an-application skill and the decommission-an-application skill. In the tool-store
 repository, write a deployment policy for the store terminal that binds the EAM destination to
 https://eam.plant.example, and disables every other destination. Check it with the policy check,
-export the network rules, build the CLI, and create, verify and admit a signed bundle with a
-throwaway key. Install the bundle under a temporary prefix with no service, show its status,
+export the network rules. Build a signed bundle with a throwaway key. Verify its payload and
+review the admission result before supplying the requirements approval. Install the bundle under a temporary prefix with no service, show its status,
 drain it and uninstall it with purge. Do not apply anything outside the prefix. Report each
 command and what it printed, and say which steps only stage on this operating system. Run the
 checks the deploy-an-application skill names and report what passed.
 ```
 
-The counter terminal's policy binds the EAM and disables every other destination:
+The finished reference policy is shown in full so the declaration and binding names can be inspected:
 
-<Code code={deploymentPolicy} lang="json" title="deployment-policy.store-terminal.json" />
+<Code code={deploymentPolicy} lang="json" title="Finished reference: deployment-policy.store-terminal.json" />
 
-**Check:** the report lists each command and its output, ending with the uninstall. Nothing outside the prefix changed. On macOS the install writes the service and firewall files but does not load them.
+Check the generated security manifest in `dist/reference/tool-store/`. Confirm that the policy names each destination it binds or disables. A disabled provider destination makes that provider unavailable at this installation even if the application presents an account component. Do not remove a required destination declaration merely to make this policy pass.
 
-## Limits
+Run the policy check and export the resolved network rules:
 
-Everything in the four parts runs on fakes: no real EAM, scanner, badge reader or model, except Claude Code in the calibration step. These skills need hardware or services a laptop lacks and have no step here: `run-agent-tools-in-a-sandbox` (Linux with bubblewrap), `run-a-hosted-instance` (Postgres and a TLS certificate), `extend-mobile-host` (a phone or emulator), `bridge-station-screen`, `connect-an-instance-to-a-fleet` and `write-host-plugin`. [AGENTS.md](../../AGENTS.md#skills) lists the skills.
+```sh
+bun run cli policy check --policy "$policy_file"
+bun run cli network export --policy "$policy_file" --format json --out "$deployment_root/network.json"
+```
 
-## References
+The policy report must have no error findings. The reference policy produces `HOSTNAME_ONLY` for `eam-api`, because the policy does not configure address ranges for that destination. The binding appears in the resolved policy, while IP-based firewall export cannot include that destination until its addresses are configured. Inspect the exported JSON alongside that warning. This is an offline policy export; it does not establish that the EAM address exists or that an operating-system firewall has loaded the rules.
 
-- [Tutorials](index.md)
-- [Security and compliance](../security-and-compliance.md)
-- [Application lifecycle](../application-lifecycle.md)
-- [Hosting](../hosting.md)
-- [showcase/patterns/fleet-agent](../../showcase/patterns/fleet-agent/README.md)
-- [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)
+Create a copy of the policy in the temporary directory and remove the `eam-api` destination entry from that copy. Run `policy check` against the copy. It must fail with an error finding for the unresolved required destination. Keep the reference policy intact and continue with `policy_file` pointing to it. This refusal checks that adding requirements to the application cannot silently widen an installation's network access.
+
+### Bundle creation and admission
+
+Create a throwaway signing key, then build the selected application's web assets and bundle:
+
+```sh
+bun run bundle keygen --out "$deployment_root/key.json"
+bun run build:web
+bun run bundle create --key "$deployment_root/key.json" --out "$deployment_root/bundle" --version 0.1.0
+bun run bundle verify "$deployment_root/bundle" --trust "$deployment_root/key.pub.json"
+```
+
+`keygen` refuses to overwrite an existing private key. `bundle create` compiles the selected application CLI and includes its web build. It writes the operation contract and security manifest from the selected catalog, then signs the payload manifest. Inspect `app.config.json` if the bundle reports another application ID.
+
+The bundle's executable is `files/bin/tool-store` for this export on macOS or Linux. A native Windows bundle uses the `.exe` suffix. Build for the current machine when exercising the install commands below.
+
+Verification checks the payload against the trusted public key. Admission additionally checks the requirements and target compatibility. A first install has no previous admitted requirements, so the unapproved admission is expected to be refused:
+
+```sh
+bun run bundle admit "$deployment_root/bundle" --trust "$deployment_root/key.pub.json" > "$deployment_root/admission.json"
+```
+
+Inspect `admission.json`, including its `refusals` and `changes`. It also contains an `approval` object naming this application's requirements digest. After reviewing those requirements, copy that object into the approval file:
+
+```sh
+bun -e 'const report = await Bun.file(process.argv[1]).json(); await Bun.write(process.argv[2], JSON.stringify(report.approval, null, 2) + "\n");' "$deployment_root/admission.json" "$deployment_root/approval.json"
+bun run bundle admit "$deployment_root/bundle" --trust "$deployment_root/key.pub.json" --approval "$deployment_root/approval.json"
+```
+
+The second admission must report `admitted: true`. An approval for another digest does not approve this bundle's requirements. Preserve the original refusal in the checkpoint report after the approved command succeeds.
+
+### Staged installation
+
+Set the bundled binary path and install under the temporary prefix:
+
+```sh
+bundle_binary="$deployment_root/bundle/files/bin/tool-store"
+"$bundle_binary" install "$deployment_root/bundle" --trust "$deployment_root/key.pub.json" --deployment-policy "$policy_file" --approval "$deployment_root/approval.json" --prefix "$stage_prefix" --service none
+"$bundle_binary" status --prefix "$stage_prefix" --trust "$deployment_root/key.pub.json"
+```
+
+`install` verifies the bundle again, checks its application ID, admits its requirements and validates the policy before switching the current release. It runs the release's state migration before activating that release. A migration conflict caused by a running workspace owner must refuse activation; do not bypass that lock to continue the tutorial.
+
+Inspect these locations under `stage_prefix`:
+
+| Path | Contents |
+| --- | --- |
+| `opt/tortoise/tool-store/releases/0.1.0` | The placed, verified release |
+| `opt/tortoise/tool-store/current` | The active-release link |
+| `etc/tortoise/tool-store/deployment-policy.json` | The installed policy |
+| `var/lib/tortoise/tool-store/workspace` | The installed application's workspace |
+| `var/lib/tortoise/tool-store/audit` | The installed audit directory |
+| `var/lib/tortoise/tool-store/install.json` | The installation record |
+
+The explicit `--service none` stages no service-manager integration. The command also omits `--apply`, so it does not start a service or load firewall rules. On macOS, a native applied service install is not implemented by this procedure. The staged install itself must still create a verified release and workspace successfully.
+
+`status` must show the installed version and successful verification. Its best-before date is derived from the build time and the manifest's shelf life. That date is reported operational information; the host does not stop executing commands merely because the date passes.
+
+### Drain and removal
+
+The staged workspace is separate from the development workspace used in earlier chapters. No development records are copied into it by installation. Its outbox may therefore be empty even though the development application has repair orders. Record which workspace each check inspected.
+
+Drain the installed workspace with the installed settings:
+
+```sh
+installed_workspace="$stage_prefix/var/lib/tortoise/tool-store/workspace"
+installed_audit="$stage_prefix/var/lib/tortoise/tool-store/audit"
+installed_policy="$stage_prefix/etc/tortoise/tool-store/deployment-policy.json"
+"$bundle_binary" drain --workspace "$installed_workspace" --deployment-policy "$installed_policy" --audit-log "$installed_audit"
+```
+
+An empty outbox should produce no pending effects and exit successfully. If pending effects remain, inspect their per-target state before removal. A held repair request requires the application's reconciliation decision; repeated draining must not invent an EAM outcome.
+
+Before a purge, retain the installed data directory if its local records or audit history are needed. A cleared outbox only establishes that no counted effects remain unresolved. It does not establish that every locally retained record exists in an external system. This demo's handover notes, for instance, have no EAM delivery path.
+
+Remove the staged installation and its disposable data:
+
+```sh
+"$bundle_binary" uninstall --prefix "$stage_prefix" --purge --trust "$deployment_root/key.pub.json"
+"$bundle_binary" status --prefix "$stage_prefix" --trust "$deployment_root/key.pub.json"
+```
+
+Uninstall uses the installed release's drain path before a purge. It refuses to delete the data if unresolved effects remain. Keep the trust key until that check completes. The final status should report that this application is no longer installed under the prefix. The original bundle and key remain in `deployment_root`; they were not part of the installed data.
+
+The framework installation tests cover purge refusal with unresolved effects and a successful purge after the backlog clears. Run them with the export's application suite. The application-specific reference assertion is in [`deployment-policy.test.ts`](../../showcase/examples/tool-store/test/deployment-policy.test.ts):
+
+```sh
+bun test plugins/deployment/test/install.test.ts
+bun test showcase/examples/tool-store
+```
+
+Those installation tests use signed stand-in binaries and a staged prefix. They establish the tested refusal and file behavior; they do not show that this application's compiled binary was exercised unless you ran the staged commands above. Save that command output with the tutorial checkpoint.
+
+## Checkpoint
+
+The report should identify the application and platform of the built bundle and retain the admission refusal. Include the staged install status and the drain/removal results. Report a failed or skipped stage directly. A policy export does not establish live EAM access, and a staged install does not establish a running plant service.
+
+This completes the Tool Store construction route. The [Parts Desk tutorial](parts-desk-1-records-and-quotes.mdx) starts a separate application and develops its assistant implementation in detail.

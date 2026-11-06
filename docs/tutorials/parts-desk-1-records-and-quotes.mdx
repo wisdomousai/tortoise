@@ -1,4 +1,4 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import partSearch from '@repo/showcase/examples/parts-desk/handlers/part-search.ts?raw';
 import policy from '@repo/showcase/examples/parts-desk/policy.ts?raw';
@@ -6,36 +6,54 @@ import transformerFind from '@repo/showcase/examples/parts-desk/contracts/transf
 
 # Parts desk 1: records and quotes
 
-The spare parts desk of a transformer plant takes calls from utilities about bushings, tap changer parts, gaskets and relays for transformers in service, and quotes the parts. A desk member finds the transformer by its serial, looks up the parts that fit its model, builds a quote and submits it; a discount above 10 percent needs a supervisor. This part exports the application, adds the records, the quotes and the desk screens, and writes the capability descriptions a model will pick tools by. The finished application is `showcase/examples/parts-desk`; [Tutorials](index.md) explains how to work through the steps, and the [tool store](tool-store-1-records-and-screens.mdx) tutorial covers records, screens and integrations in more depth.
+Build a spare-parts application for a transformer plant. A utility calls about equipment in service; a desk member identifies the transformer and prepares a quote for compatible parts. The application applies a supervisor rule to discounts above 10 percent.
+
+The series uses Claude Code or Codex to implement the application in an independent exported workspace. It assumes familiarity with the mechanics in [Getting started](../getting-started.md). The [Tool Store foundation chapter](tool-store-1-records-and-screens.mdx) explains collection and screen authoring in more detail. Completing its application is not a prerequisite.
+
+This chapter establishes the domain code used by the later assistant. The completed reference is [the Parts Desk application](../../showcase/examples/parts-desk/README.md). Every source excerpt below comes from that finished reference. The coding agent may organize the application differently; inspect whether the resulting behavior satisfies the requirements at the checkpoint you have reached.
 
 ## Setup
 
-Open Claude Code or Codex at the root of this repository for the first step, and at the root of the exported `parts-desk` repository from the second step on. The standard check, from the export root, ends with `0 fail`:
+Use the framework repository for the export step. Open subsequent coding-agent sessions at the root of the exported repository. Replace `/path/to/parts-desk` in the first prompt with an unused directory outside the framework checkout.
+
+Run the following checks from the exported repository after each change:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/parts-desk
 ```
 
-Steps that change screens add:
+Browser fixtures must call `startService` with the application selected by the export's `app.config.json`. The committed reference uses `@tortoise/parts-desk`; copying that selector into an export whose application package has another name leaves an unresolved package.
+
+A screen change also needs the web build and its browser specification:
 
 ```sh
 bun run build
 bunx playwright test showcase/examples/parts-desk
 ```
 
-To try the application by hand, run it in one terminal and point the CLI at it from another:
+Read failures before continuing. The prompts ask the agent to update tests, so a passing suite still needs to be compared with the behavior stated in the chapter. The committed reference's final tests do not establish that your intermediate application works.
+
+For a manual check, start the application in one terminal from the export root:
 
 ```sh
 bun run --cwd showcase/examples/parts-desk dev:web
-export TORTOISE_CONNECTION=$PWD/showcase/examples/parts-desk/.workspace/.connection.json
 ```
+
+Open the printed `launchUrl` promptly. It signs in once and expires after a minute. In another terminal at the export root, direct the CLI to this instance:
+
+```sh
+export TORTOISE_CONNECTION="$PWD/showcase/examples/parts-desk/.workspace/.connection.json"
+bun run cli help
+```
+
+Stop the serving instance before replacing its disposable workspace or running a script that opens that same workspace in embedded mode. Tests should create their own temporary workspaces.
 
 ## Export the app
 
-**Goal:** a new repository with an `inquiry` collection. **Skill:** [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
-
-`scaffold new` writes one application with its browser-safe manifest, its server and its screens, a first collection with generated operations, a policy, tests and a Playwright spec. The CLI and the MCP bridge call the running instance through its connection file. [Architecture](../architecture.md) describes the parts of the export.
+Use [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) to create the initial repository. At this point `inquiry` is a generated collection with generic fields. Its call-specific schema is introduced in the next section.
 
 ```text prompt
 Use the create-agent-native-app skill. Create the application for the spare parts customer
@@ -52,13 +70,22 @@ each command and what it printed. Run the checks the create-agent-native-app ski
 report what passed.
 ```
 
-**Check:** the report shows `bun test` passing and the same inquiry in the CLI and MCP lists.
+Inspect `app.config.json` in the export and confirm that it selects the new application. The generated `manifest.ts` declares its browser-safe contract. `application.ts` supplies the server composition. The browser loads the routes from `screens.tsx`. The generated collection declaration connects its schema to the operations in `contracts.ts`; its handlers and policy are registered by the server entrypoint.
+
+Start the instance and create the generated inquiry before changing its schema:
+
+```sh
+bun run cli inquiry create --title "HV bushings for TR-40417" --key tutorial-inquiry
+bun run cli inquiry list --output text
+```
+
+Repeat the create with the same key and input. The list should still contain a single created record. Ask the coding agent to list that record through the MCP bridge attached to this host and include the returned ID in its report. Check that it matches the CLI result. An embedded MCP process tries to own the workspace itself; use the attached bridge while this host is running.
 
 ## Transformers and parts
 
-**Goal:** the records the desk looks up, plus seed data. Two serials share a prefix, so `TR-404` is ambiguous. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+The inquiry needs a customer reference because a caller's utility determines which transformer may appear on a quote. The transformer stores the plant model used to select compatible parts. Each part stores the models it fits and a unit price in euro cents.
 
-Each collection declares its record and generates its reads and writes; a query such as `transformer.find` adds its own input and output schemas and a handler that filters the rows before it pages them. A handler refuses what it cannot answer with an application error code the channels and the model read alike, such as `NOT_FOUND`. The seed script opens the workspace as an embedded instance and creates the records through the commands with fixed idempotency keys, so a second launch returns the stored command results and adds nothing. [Capability authoring](../capability-authoring.md) covers collections and queries.
+The search operations serve different inputs. `transformer.find` accepts the serial as read from a rating plate, including a prefix. `part.search` accepts a complete transformer serial when it must filter by compatibility. An ambiguous prefix therefore needs to be resolved before selecting parts.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -94,46 +121,46 @@ Add showcase/examples/parts-desk/dev.ts, which dev:web runs before the launch: i
 workspace with openEmbeddedInstance and creates, through the commands with fixed idempotency
 keys, three utilities, six transformers of three models (two of them TR-40417 and TR-40471) and
 twenty-four parts across the four categories and six assemblies, some out of stock. A relaunch
-adds nothing. The workspace holds only trial records, so delete
-showcase/examples/parts-desk/.workspace instead of writing a state migration. Update the tests,
+adds nothing. After stopping the host, reset only this disposable tutorial workspace at
+showcase/examples/parts-desk/.workspace; it contains the generated trial inquiry. Update the tests,
 the Playwright spec and the application README. Run the checks the add-capability skill names
 and report what passed.
 ```
 
-The search filters by the transformer's model, the category and the text before it counts and pages:
+Preserve the generated `// scaffold:` markers while editing application files. Later scaffold commands insert declarations at those markers; removing the policy access marker, for instance, prevents the assistant step from adding its approval feature.
 
-<Code code={region(partSearch, 'handler')} lang="ts" title="handlers/part-search.ts" />
+Inspect the generated collections before reviewing the search handlers. In the finished reference, `contracts/transformer.ts` declares the stored transformer and its generated reads. The custom contract `contracts/transformer-find.ts` extends a returned transformer with `customerName`; that field is derived from the customer record. It does not become another stored copy of the customer.
 
-<FileTree>
+The query handler normalizes the serial text and checks stored serials. It orders an exact match first, reports the number of matches, and limits the returned items. Prefix matching can produce more than one item. No match produces an empty result. The later assistant must interpret that result; the query itself does not choose a transformer for the caller.
 
-- showcase/examples/parts-desk/
-  - contracts/customer.ts
-  - contracts/transformer.ts
-  - contracts/part.ts
-  - contracts/inquiry.ts
-  - contracts/transformer-find.ts
-  - contracts/part-search.ts
-  - handlers/transformer-find.ts
-  - handlers/part-search.ts
-  - trial-records.ts the seed records
-  - dev.ts seeds them before the launch
-  - policy.ts
+The finished part-search handler performs compatibility filtering before it computes `total` or slices the requested page:
 
-</FileTree>
+<Code code={region(partSearch, 'handler')} lang="ts" title="Finished reference: handlers/part-search.ts" />
 
-**Check:** the standard check. Start the app with `bun run --cwd showcase/examples/parts-desk dev:web`, set `TORTOISE_CONNECTION` to `showcase/examples/parts-desk/.workspace/.connection.json`, then:
+`transformerSerial` is resolved against the stored transformer to obtain its model. A serial that does not exist raises `NOT_FOUND`. The category and text filters further narrow the compatible records. The result's `total` therefore describes the matching set before pagination. Inspect the returned records as well as the count; a count alone would not show whether an incompatible part slipped through.
+
+The seed script is part of development startup. It opens the workspace before the serving host, creates records through their commands and then closes its embedded instance. Fixed idempotency keys make a repeated seed return existing command results. A host already owning the workspace must cause this seed attempt to fail with a workspace ownership conflict.
+
+The first schema change replaces the generated inquiry. Keep that reset confined to the disposable tutorial workspace. Stop its host before allowing the coding agent to remove it. The new development launch creates the trial customer data; the generic inquiry created in the preceding checkpoint is no longer needed.
+
+Start the new application and run:
 
 ```sh
 bun run cli transformer find --serial TR-404 --output text
+bun run cli transformer find --serial TR-40417 --output text
+bun run cli part search --transformer-serial TR-40417 --category bushing --output text
+bun run cli part search --transformer-serial TR-99999 --output text
 ```
 
-The output shows two rows: `TR-40417` and `TR-40471`. If the flag differs, `bun run cli help transformer find` shows it.
+The prefix query should return `TR-40417` and `TR-40471`. The complete serial identifies the transformer owned by Stadtwerke Nordhafen. The bushing search must contain only parts fitting that transformer's model. The final command should report `NOT_FOUND` and exit unsuccessfully. Restart development and repeat the first query to check that seeding did not duplicate the transformers.
+
+In the generated tests, use an isolated application fixture with a viewer and a non-member. The viewer may search; the non-member receives `FORBIDDEN`. Verify paging with a filter whose result spans pages and assert that `total` remains the unpaged matching count.
 
 ## Quotes
 
-**Goal:** quotes, and the rule that a discount above 10 percent needs a supervisor. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+A quote copies its line descriptions and prices from stored parts when it is created. Its caller supplies part numbers and quantities. Accepting a price from the caller would bypass the desk's price data. The quote also records the utility that owns the transformer, so the handler must reject a transformer belonging to another customer.
 
-The policy authorizes the operation, the object and the fields inside the transaction, so a rule can read the input: `quote.discount` above 10 percent is `FORBIDDEN` unless the caller holds the supervisor role. A run under an agent definition carries a grant that names the agent, and the policy sees that grant whoever started the run, so the assistant can never set more than 10 percent itself. A quote's status changes only through the commands that name the change, and any other transition is a `CONFLICT`. [Authorization](../authorization.md#command-checks) covers rules on input and [Agents](../agents.md) the grant of a run.
+The application keeps each quote's status locally. In this demonstration, submitting a quote changes it to `submitted`; there is no connector that sends a document to a utility. The command name and its description must not imply evidence of an external delivery.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -141,7 +168,7 @@ repository root:
 
 bun run scaffold add collection quote
 bun run scaffold add capability quote.discount --kind command --description "Set the discount of a draft quote. Above 10 percent, supervisors only."
-bun run scaffold add capability quote.submit --kind command --description "Send a draft quote to the utility. Desk."
+bun run scaffold add capability quote.submit --kind command --description "Mark a draft quote submitted. Desk."
 bun run scaffold add capability quote.cancel --kind command --description "Cancel a draft or submitted quote with a reason. Desk."
 
 A quote records number (Q- followed by five digits, assigned in order), customerId,
@@ -156,7 +183,8 @@ transformer's model with INVALID_INPUT, creates a draft with no discount, and se
 quoted in the same transaction. quote.update replaces the lines of a draft. quote.discount takes
 id, percent and reason for a draft. quote.submit sets a draft to submitted. quote.cancel takes id
 and reason and sets a draft or submitted quote to cancelled. Every other change of status is a
-CONFLICT.
+CONFLICT. Keep the new custom commands under a headless UI exception until the desk screens
+step binds them; run the UI-binding test at this checkpoint.
 
 Add a supervisor role that may do what desk members do. The policy refuses quote.discount above
 10 percent with FORBIDDEN unless the caller is a supervisor. A run under an agent definition, whose
@@ -167,31 +195,33 @@ a discount, and the inquiry set to quoted. Run the checks the add-capability ski
 report what passed.
 ```
 
-The rule reads the role from stored state and the percent from the validated input, and refuses a run under an agent definition more than the desk's limit:
+Review `handlers/quote.ts` from the reference while checking your agent's implementation. `customerTransformer` resolves the serial and checks customer ownership. `linesFor` looks up every requested part and verifies its `fits` field before copying its current price. `nextNumber` assigns the next quote number inside command execution. A missing source record raises `NOT_FOUND`; a known record that violates the quote's ownership or compatibility rule raises `INVALID_INPUT`.
 
-<Code code={region(policy, 'discount')} lang="ts" title="policy.ts" />
+When `inquiryId` is present, the create handler verifies that the inquiry belongs to the same utility. It inserts the quote and invokes `inquiry.update` in the existing transaction to set the inquiry to `quoted`. The quote-create contract declares that nested invocation. Check that the result reports changes to both resources and that a denied nested update leaves no quote behind.
 
-<FileTree>
+The reference's discount policy reads the requested percentage after schema validation:
 
-- showcase/examples/parts-desk/
-  - contracts/quote.ts
-  - contracts/quote-discount.ts
-  - contracts/quote-submit.ts
-  - contracts/quote-cancel.ts
-  - handlers/quote.ts numbering, fitting parts and the inquiry set to quoted
-  - handlers/quote-discount.ts
-  - policy.ts the supervisor role and the discount rule
-  - test/quote-discount.test.ts
+<Code code={region(policy, 'discount')} lang="ts" title="Finished reference: policy.ts" />
 
-</FileTree>
+A desk member can set a percentage within `DESK_DISCOUNT_LIMIT`. A larger value requires the supervisor role and a context without an agent identity. The assistant added in the next chapter will therefore remain subject to the desk limit even when a supervisor starts its run. The policy enforces that rule; instructions to the model describe the permitted procedure.
 
-**Check:** the standard check. The new tests cover 10 percent allowed and 12 percent refused for desk, and 12 percent allowed for a supervisor.
+At this checkpoint the custom quote commands need a headless UI exception, because their screens are added in the following section. The reference helper `quoteCommand` uses its `binding` option for that declaration. Set the binding only when the corresponding screen calls the operation.
+
+The discount handler separately requires a draft quote. A caller may pass the percentage rule and still receive `CONFLICT` because the quote has already been submitted. Keep both checks in the tests. A denial of the operation does not establish that the status-transition rule works.
+
+Run the application suite after checking that the agent added the quote specifications. The finished reference keeps them in files named for each quote operation:
+
+```sh
+bun test showcase/examples/parts-desk
+```
+
+Inspect the assertions for incompatible parts and cross-customer ownership. A refused create must leave the quote list unchanged. Check that an allowed discount recalculates the integer-cent total, and that replacing draft lines preserves its existing discount. Reusing a successful create's idempotency key must return the same quote. A later command with an obsolete expected revision must return `CONFLICT`.
+
+For the role-dependent cases, create the application with explicit fixture memberships as `test/support.ts` does in the reference. The normal development CLI runs as the local desk member; a CLI flag must not be used to impersonate the supervisor.
 
 ## Desk screens
 
-**Goal:** the screens the desk uses during a call. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
-
-A custom screen is TSX from the starter's shadcn components and Tailwind classes, reading through live queries and writing through catalog commands. Color comes from the starter's tokens, so light and dark need no second set of rules, and the instance's content security policy rejects inline scripts and injected styles, which is why the components render native elements. Every command a screen issues needs a UI binding, and the UI-binding test fails for an operation that has neither a screen nor a declared headless exception.
+The browser needs a serial lookup during a call and a quote builder that uses the same application commands as the CLI. The coding agent can use the default collection screens while constructing the records. This step replaces them with layouts suited to the desk.
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, replace the default list and record
@@ -226,40 +256,29 @@ set 8 percent, create the draft and submit it. Run the checks the build-screens 
 report what passed.
 ```
 
-<FileTree>
+Follow a selected part through your implementation. The parts lookup adds its part number to an unsaved quote draft in browser state. The builder resolves the displayed line details for that draft and sends `quote.create` when the person selects **Create draft**. The server looks up compatibility and prices again. Browser state is not an authority for a quote's saved price.
 
-- showcase/examples/parts-desk/
-  - screens.tsx routes and navigation
-  - ui/inquiry.tsx Inquiries and the call form
-  - ui/transformer.tsx the rating plate and the assembly cards
-  - ui/part.tsx the parts lookup
-  - ui/outline.tsx the assembly outlines
-  - ui/quote-builder.tsx
-  - e2e/screens.pw.ts
+In the reference, `ui/quote-drafts.ts` keeps the unsaved lines. `ui/quote-builder.tsx` renders them and calls the command through the screen transport. `screens.tsx` registers the builder route and the resource screens. A successful create navigates to the saved quote, whose ID is different from its display number. Check that the operation's UI binding points to the screen that actually issues it.
 
-</FileTree>
+The reference screenshots below show the finished application. Its assistant panel is added in the next chapter, so it is not part of this checkpoint's screen requirements.
 
-A call on Inquiries, where the first digits of a serial match two transformers:
+![Reference inquiry form resolving the prefix TR-404 to TR-40417 and TR-40471](../assets/screenshots/parts-desk/inquiries.png)
 
-![The Log a call form with TR-404 in the serial field and the two matching transformers TR-40417 and TR-40471 below it](../assets/screenshots/parts-desk/inquiries.png)
+![Reference transformer screen showing TR-40417 and its compatible parts](../assets/screenshots/parts-desk/transformer.png)
 
-The transformer with the parts that fit each assembly:
+![Reference parts lookup with BSH-145-1250 selected for the quote](../assets/screenshots/parts-desk/parts.png)
 
-![TR-40417 with its rating plate and assembly cards for HV bushings, LV bushings, tap changer, tank cover, conservator and protection, each part with a stock badge and lead time](../assets/screenshots/parts-desk/transformer.png)
+![Reference builder displaying a 12 percent discount requiring a supervisor](../assets/screenshots/parts-desk/quote-builder.png)
 
-![The parts lookup on the Bushings tab, with BSH-145-1250 added twice to the quote](../assets/screenshots/parts-desk/parts.png)
+Start from **Inquiries**, look up `TR-40417`, and follow its parts link. Add `BSH-145-1250` with quantity `2` to the builder. With no discount, the displayed total should be `€29,600.00` for the reference trial price. Create the draft and confirm the saved lines through `quote.get` or the quote screen.
 
-At 12 percent the builder says that a supervisor must approve:
+Set an allowed discount while the quote is a draft, then submit it. Trying to change its lines or discount after submission must fail without altering the saved values. A discount above the local desk member's limit must show a refusal or the application's approval guidance; moving a slider must not grant the supervisor role.
 
-![The quote builder with two HV bushings and a discount of 12 percent above the 10 percent mark on its track](../assets/screenshots/parts-desk/quote-builder.png)
-
-**Check:** the standard check and Playwright. Open `TR-40417` in the browser: the assembly cards show parts and stock badges.
+The browser specification should inspect the saved quote, not finish at a successful click. Keep the application policy tests even when a form prevents invalid input. A caller can reach the same operation through another channel.
 
 ## Capability descriptions
 
-**Goal:** descriptions a model can pick tools by. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
-
-The host generates the MCP tool list from the catalog, so a capability's description and the descriptions of its input properties are everything a model knows about a tool before it calls it. A description says what the capability does, when to call it, what it returns or changes and what it refuses; the application's own test then keeps every capability and property described as the application grows. [Agents](../agents.md#application-tools) describes what a model sees of the application.
+The assistant will choose tools from the catalog's descriptions. This step documents the application's actual query semantics in the contracts. It does not add new authority or validation.
 
 ```text prompt
 Use the add-capability skill. In showcase/examples/parts-desk, rewrite the description of every
@@ -267,33 +286,29 @@ command and query, and of every input property, for a model that picks tools by 
 Each says what the capability does, when to call it, what it returns or changes and what it
 refuses. transformer.find says it takes a serial as a caller reads it off the rating plate, whole
 or partial, and that more than one match means asking the person which one. part.search says it
-needs a serial for fitting parts. quote.discount says that above 10 percent an agent requests
-approval instead. quote.cancel says it needs a reason. Keep each description under 400 characters.
+needs a serial for fitting parts. quote.discount describes the approval procedure for an agent requesting
+a percentage above 10. quote.cancel says it needs a reason. Keep each description under 400 characters.
 Add a test that every capability and every input property of the application has a description.
 Run the checks the add-capability skill names and report what passed.
 ```
 
-<Code code={region(transformerFind, 'description')} lang="ts" title="contracts/transformer-find.ts" />
+In the finished contract below, the description tells the model to resolve a caller's serial first and to ask when the result is ambiguous. The input property's `.describe()` text becomes part of the exported schema:
 
-<FileTree>
+<Code code={region(transformerFind, 'description')} lang="ts" title="Finished reference: contracts/transformer-find.ts" />
 
-- showcase/examples/parts-desk/
-  - contracts/ every description
-  - test/descriptions.test.ts
+Review `part.search` with the same care. Omitting a serial allows a general parts search in this application. A serial is necessary when the caller asks what fits a particular transformer. The description must explain that distinction without pretending the schema requires the field in every query.
 
-</FileTree>
+The reference's `test/descriptions.test.ts` walks nested input properties and rejects a missing description. It enforces a length limit chosen for this application. It cannot determine whether a description matches the handler, so compare the text with the behavior already checked in this chapter. A comment beside a schema field does not reach the exported property description.
 
-**Check:** the standard check, including the new test that every capability and input property has a description.
+Inspect the generated tests for the description assertions, then run the application suite and regenerate its reference:
 
-## Limits
+```sh
+bun test showcase/examples/parts-desk
+bun run generate
+```
 
-The desk runs on its seeded records; no model is involved yet. [Part 2](parts-desk-2-assistant.mdx) defines the assistant, serves it from a local model and docks its panel beside every screen.
+Inspect the generated tool/schema material for `transformer.find` and `quote.discount`. Confirm that the serial instructions and discount approval rule appear on the interfaces the assistant will read. Leave generated reference files outside version control.
 
-## References
+## Next chapter
 
-- [Parts desk 2: assistant](parts-desk-2-assistant.mdx)
-- [Getting started](../getting-started.md)
-- [Capability authoring](../capability-authoring.md)
-- [Authorization](../authorization.md)
-- [Agents](../agents.md)
-- [showcase/examples/parts-desk](../../showcase/examples/parts-desk/README.md)
+The application now has the records and quote operations required by the assistant. No model behavior has been established at this checkpoint. Continue with [Assistant execution](parts-desk-2-assistant.mdx).

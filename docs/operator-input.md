@@ -1,164 +1,87 @@
 # Operator input
 
-Two kits support operator screens at a workstation:
+The devices package converts registered scanner sources into decoded scans and routes them to application actions. Scanner configuration belongs to a station. The application remains responsible for the operation it submits from a routed scan and the policy authorizing that operation.
 
-- [`packages/devices`](../packages/devices/README.md) — scanner profiles, sources, decoding, calibration, routing, and a reusable module for per-station device configuration.
-- [`packages/operator-ui`](../packages/operator-ui/README.md) — the `operator` UI registry of glove-sized parts.
-
-`winding-line` uses both kits, and the `quality-inspection` capture screen uses parts of the registry.
+The operator UI registry supplies screen components with density and input behavior intended for workstation use. Applications can use those components with the devices package without changing the framework's command boundary.
 
 ## Design guidelines
 
-- **No precision gestures.** Targets follow the operator size tokens, larger at glove density. Gloves break:
-  - drag
-  - double-tap
-  - long text entry
-  - small close buttons
-  - hover-only affordances
-  - swipes
-- **Scanner and keypad first.** A task works with a scanner, a numeric keypad or a pedal mapped to keys. Touch is the fallback. Typing is the last resort.
-- **Fixed layout.** The screen shows:
-  - the operator and the station at the top
-  - station signals
-  - the current task
-  - what needs a person
-  - screen control
+Choose target sizes through the operator density tokens. A layout must remain stable while a control is pressed. Actions that require confirmation can use `hold-to-confirm`, which cancels when the pointer leaves its target. The tap guard suppresses repeated taps and input received during scrolling or layout movement, including while a request is pending.
 
-  The layout stays fixed during a press.
-- **`hold-to-confirm`.** Starting an order, confirming counts or reporting a held procedure takes a long press instead of a tap. The press cancels when the finger slides off.
-- **Tap guard.** A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
-- **Icon plus text.** State readable from 1–2 m. Color is never the only signal. Observed values show age and confidence.
-- **Feedback by sound.** Distinct tones mark scanned, accepted, rejected and attention, with vibration where available. Each device mutes independently.
-- **Digit keys.** Where digit hotkeys pick tiles, the numeric pad is touch-only. A wedge scanner's keystroke burst, including its final Enter, never fires a hotkey.
+A scanner route must remain usable without precise pointer input. Numeric entry can use the scan-safe keypad or declared keyboard and pedal bindings. When digit hotkeys select screen items, a wedge scanner's key burst and final Enter must not invoke those shortcuts. The numeric pad supports touch entry independently.
 
-Delivery state shows as one of:
+Status needs readable text in addition to its color. Observed values need their age and confidence where a person uses them to decide. The feedback hook provides distinct tones for scan and operation outcomes. Vibration depends on the device, and each device can mute feedback independently.
 
-- pending
-- retrying
-- held
-- accepted, with the system of record's reference
-- rejected, with the code
+An application's displayed delivery state should follow its stored effect outcome. A pending local command result does not establish that an external system accepted the work. [Systems of record](systems-of-record.md#effect-phases) defines the framework phases.
 
 ## Operator UI registry
 
-The `operator` registry uses stock shadcn primitives and adds glove sizing through variants and theme tokens. It forks no primitive.
+The registry uses stock shadcn primitives with operator variants and theme tokens. It includes numeric entry and scanner-setup components. The supporting hooks implement confirmation and guarded input, with feedback and idle-return behavior available to the screen.
 
-| Kind | Items |
-| --- | --- |
-| Theme | Target, gap and text tokens; glove density and high-contrast scopes; ok, pending, attention and fault states. |
-| Hooks | `hold-to-confirm`, tap guard, feedback tones, idle return, scan-safe keypad and pedal bindings, scanner. |
-| Library | Decimal entry with comma or period, decimals and tolerance verdicts. |
-| Components | Operator surface, big action, tile picker, numeric pad, scan prompt, status strip, attention queue, takeover button. |
-| Blocks | Scanner setup with calibration, profile and live test; the station layout. |
+`bun run build:registry:operator` generates the registry from its manifest. Generation rejects an undeclared item dependency. `bun run check:registry:operator` checks the generated files for drift. Within this repository, the frame's Vite plugin resolves registry source at the import path used by an installed item.
 
-`bun run build:registry:operator` generates and builds the registry from its manifest. The generator fails when an item imports something it does not declare. `bun run check:registry:operator` fails on drift. Inside this repository, the frame's Vite plugin resolves registry sources in place, matching the import paths an application gets after `shadcn add`.
-
-The scanner items depend on `packages/devices`, not yet on a public registry. Outside this repository, install it from a registry as [framework packages](development-and-testing.md#framework-packages) describes, or vendor it.
-
-A gallery route, `station/kit` in `winding-line`, renders every part at desk, touch and glove density. The `winding-line` browser specs use it for interaction tests.
+Scanner items require `packages/devices`. An external application must install that framework dependency or vendor it with the application. The [operator UI README](../packages/operator-ui/README.md) identifies registry entrypoints.
 
 ## Scanner profiles
 
-A scanner profile describes one scanner as the station sees it. Fields:
+A profile describes the scanner transport as observed by the station. It configures any prefix and suffix along with its terminator. Wedge profiles specify the maximum inter-key gap used to identify a scan burst and the keyboard layout the scanner emulates. The profile also records minimum data length and AIM-identifier behavior. A group-separator substitute supports scanners whose keyboard output cannot deliver the GS1 separator directly.
 
-- the transport
-- the prefix, suffix and terminator it adds, and the maximum gap between keys
-- the minimum length, and whether it sends AIM symbology identifiers
-- the GS1 group-separator substitute
-- the keyboard layout it emulates
-
-Profiles are configuration without secrets. Each station stores its own.
+Profiles contain configuration and no secrets. Each station stores its own profile.
 
 ## Sources
 
-Each transport is a source the application registers explicitly.
+The application explicitly registers each source it uses.
 
-| Transport | Reached through | Notes |
+| Transport | Interface | Source behavior |
 | --- | --- | --- |
-| `wedge` | Keyboard events | Any scanner that emulates a keyboard; the cheapest and most common kind. Timing tells it apart from typing. |
-| `serial` | Web Serial | USB-COM and RS-232 adapters. |
-| `hid-pos` | WebHID, barcode usage page | The source reassembles reports. |
-| `camera` | `BarcodeDetector` or an injected decoder | The source drops repeated reads. |
-| `host-plugin` | A host scanner bridge | For vendor SDKs on the station PC. Only a fake bridge exists. |
-| `intent` | An Android broadcast intent | Rugged Android devices; the receiver ships in [`plugins/intent-scanner`](../plugins/intent-scanner/README.md). |
+| `wedge` | Keyboard events | Identifies scanner bursts by configured timing |
+| `serial` | Web Serial | Reads the serial data stream |
+| `hid-pos` | WebHID barcode usage page | Reassembles scanner reports |
+| `camera` | `BarcodeDetector` or injected decoder | Filters repeated camera reads |
+| `host-plugin` | Host scanner bridge | Exposes a vendor integration port; only a fixture bridge ships |
+| `intent` | Android broadcast receiver | Reads a configured intent's data extra |
 
-Sources that need a user gesture to connect:
+Serial and HID sources require a user gesture to connect. Camera acquisition requires one as well. The setup block offers connection controls. Wedge and intent sources do not require a device declaration; the other sources do.
 
-- serial
-- HID
-- camera
-
-The setup block offers a connect button for each. Every source except wedge and intent is a device requirement, listed in the security manifest.
-
-An intent profile names:
-
-- the broadcast action
-- the string extra that contains the data
-- an optional sender permission
-
-Any app on the device can send the action unless the profile sets a sender permission that only the scanner app has.
+An intent profile names the broadcast action and its string data extra. It can require a sender permission. Without that restriction, another app on the device can send the configured action. The native receiver is supplied by [intent-scanner](../plugins/intent-scanner/README.md).
 
 ## Decoding
 
-Every source decodes through the same steps:
+The decoder removes the configured prefix and suffix before interpreting the data. It reads an AIM identifier when present and parses GS1 element strings with check-digit validation. Wedge data is corrected using its keyboard-layout configuration.
 
-1. Strip the prefix and suffix.
-2. Parse an AIM identifier into a symbology.
-3. Parse GS1 element strings and validate their check digits.
-4. Correct keyboard-layout mismatches for wedge input.
-
-A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, swaps punctuation and loses characters to dead keys. It often drops or replaces the group separator. The decoder supports US, German and Swiss German layouts.
+The supported layouts are US, German and Swiss German. A scanner and host using different layouts can produce substituted letters or punctuation and lose characters through dead keys. The configured separator substitute restores the GS1 group separator when the scanner cannot type it directly.
 
 ## Calibration
 
-The setup block shows a calibration barcode containing the characters most likely to break. From one scan, calibration infers:
+The setup block displays a calibration barcode containing diagnostic characters. A scan lets calibration infer the layout mismatch and the scanner's delimiters. Timing and AIM behavior contribute to the proposed profile. The result reports problems that profile settings cannot repair.
 
-- the terminator and the key timing
-- any prefix or suffix
-- AIM identifiers
-- the layout mismatch
-- the separator substitute
-
-Calibration suggests a profile and reports problems no setting fixes. It also works for wedge scanners without configuration software. No vendor programming barcodes ship; those come from vendor data supplied with the deployment.
+Calibration can operate with a wedge scanner that has no configuration software. Vendor programming barcodes are not supplied; deployments must obtain the appropriate programming data from their vendor.
 
 ## Scan routing
 
-A scan router maps a scan to an intent without a model turn. A route matches a GS1 application identifier or a regular expression, optionally limited to certain symbologies. First match wins. A capture group becomes the routed value. The application submits the same command a button or tool call would; policy still authorizes it.
+The router chooses the first route matching the decoded scan. Routes can match a GS1 application identifier or a regular expression and restrict the accepted symbologies. A capture group supplies the routed value.
+
+Routing selects an application intent without invoking a model. The application then submits its command through the normal runtime. The scan does not establish trusted identity or bypass policy.
 
 ## Device configuration
 
-The `device` feature reads and saves scanner profiles and scan routes per station. Writes include expected revisions — a stale writer conflicts. The feature compiles routes before storing them, so an invalid pattern fails at configuration time.
+The `device` feature stores profiles and routes per station through ordinary capabilities. A write includes expected revisions so a stale edit conflicts. Route compilation happens before storage, causing an invalid pattern to fail during configuration.
 
-The mounting application decides who may change the configuration through a station relation. In `winding-line`, supervisors administer their station; others with a role read it.
+The mounting application's station relation determines who can read or change that configuration. The feature does not infer the application's supervisory roles.
 
 ## Use
 
+Run package checks from the repository root:
+
 ```sh
-bun test packages/devices
-bun test packages/operator-ui
-bun test plugins/intent-scanner
+bun test packages/devices packages/operator-ui plugins/intent-scanner
 bun run check:registry:operator
 ```
 
-- `packages/devices/test/scanner.test.ts`: decoding, check digits, AIM parsing, layout repair, calibration, serial and HID assembly, camera repeat filtering, wedge bursts and routing.
-- `packages/devices/test/config.test.ts`: the device module's policy and stale route writers.
-- `packages/operator-ui/test/primitives.test.ts`: numeric entry, the tap guard, key-burst filtering and registry drift.
-- `plugins/intent-scanner/test/source.test.ts`: the intent source over a fake receiver.
-
-`showcase/examples/winding-line/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
+Scanner tests exercise decoding and source assembly with fixtures. Configuration tests cover authorization and stale writers. The operator UI tests cover numeric input and the guard hooks. These checks do not establish behavior with a physical scanner.
 
 ## Limits
 
-- No source has run with a physical scanner.
-- The desktop shell does not grant Web Serial or WebHID permissions.
-- Apps declare device access; the host does not mediate it.
-- Nobody has compiled or run the intent receiver.
+Physical scanner execution remains unverified. The desktop shell does not grant Web Serial or WebHID permissions. Device declarations do not mediate platform device access. The Android intent receiver has no recorded compiled-device run. Dated evidence belongs in [Implementation status](implementation-status.md).
 
-## References
-
-- [Operator workstations](operator-workstations.md)
-- [Systems of record](systems-of-record.md)
-- [`packages/devices`](../packages/devices/README.md)
-- [`packages/operator-ui`](../packages/operator-ui/README.md)
-- [`plugins/intent-scanner`](../plugins/intent-scanner/README.md)
-- [add-scanner-input skill](../packages/devices/skills/add-scanner-input/SKILL.md)
+The [scanner-input skill](../packages/devices/skills/add-scanner-input/SKILL.md) describes the application binding. [Operator workstations](operator-workstations.md) describes screen observation and procedure execution.

@@ -1,11 +1,13 @@
 # @tortoise/frame
 
-The web frame: the browser shell around an application's screens, with sign-in, routing, navigation, the command palette, the agent run panel, the assistant panel and accounts. It imports no application, feature or plugin. `defineScreens({ features, plugins })` passes their screens in, and the Vite plugin resolves `virtual:tortoise/screens` from `app.config.json` at build time.
+`@tortoise/frame` supplies the browser shell around an application's screens. `defineScreens` registers routes and screen contributions supplied by the application. The frame manages the authenticated browser session and routes reads and commands through the client.
 
-- Primitives: [Web frame](../../docs/primitives.md#web-frame), [Application](../../docs/primitives.md#application), [UI registry](../../docs/primitives.md#ui-registry), [Approval request](../../docs/primitives.md#approval-request), [UI session context](../../docs/primitives.md#ui-session-context), [Display metadata](../../docs/primitives.md#display-metadata), [Reconciliation](../../docs/primitives.md#reconciliation), [OS handler](../../docs/primitives.md#os-handler), [OS action](../../docs/primitives.md#os-action), [Generator](../../docs/primitives.md#generator), [Feature](../../docs/primitives.md#feature), [Host plugin](../../docs/primitives.md#host-plugin), [Shelf life](../../docs/primitives.md#shelf-life), [Agent run](../../docs/primitives.md#agent-run).
+The Vite entrypoint resolves `virtual:tortoise/screens` from `app.config.json` at build time. Framework frame code imports no application content. An application can override a frame file at the corresponding path under `apps/web/src`. Shared behavior belongs in this package so an exported starter can receive it through framework updates.
 
 ## References
 
-- [build-screens](skills/build-screens/SKILL.md)
-- [Interaction contract](../../docs/interaction-contract.md)
-- Test: `bun test packages/frame`, `bun run test:e2e`
+[build-screens](skills/build-screens/SKILL.md)
+
+[Interaction contract](../../docs/interaction-contract.md)
+
+Test: `bun test packages/frame`, `bun run test:e2e`

@@ -1,6 +1,6 @@
 ---
 name: deploy-an-application
-description: Prepare an agent-native application for a plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, peer destinations, identity, workforce sign-in, process bindings with path and hash), building and signing a bundle, installing, checking or removing a release with app install, app status and app uninstall, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/deployment, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
+description: Configure and check a deployment policy for an application installation. Use for signed bundle preparation and admission, staged installation, network-rule export or compliance evidence.
 ---
 
 # Deploy an application
@@ -14,17 +14,16 @@ A deployment policy binds what the application declares to one host's addresses,
 - Pick the hardening profile from where the host runs: `desktop-local`, `hub` (paired devices over the local network), `sandbox` or `zero-trust`.
 - IT issues and renews certificates. The host only reads them and warns 30 days before expiry.
 - A secret never goes into the policy or a process environment by hand.
-- `showcase/patterns/fleet-agent` includes a connected `hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
 
 ## Steps
 
-1. Write the policy, starting from `showcase/examples/quality-inspection/deployment-policy.sandbox.json`, or from `apps/desktop/deployment-policy.json` in an exported application. Set:
+1. Write the policy against the generated security manifest. `apps/desktop/deployment-policy.json` is the starter's default policy. Configure:
    - `profile` and `mode`;
    - `destinations` with `url` and `addresses`, the CIDRs needed for DNS-rebinding checks and firewall exports;
    - `timeoutMs` on a destination that responds slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
    - `ca` or `certificatePins` where required;
    - `audit`;
-   - `identity`, either `grant-file` or `external` with `workforce` for workforce sign-in;
+   - `identity` according to the selected profile; hosted workforce sign-in uses `external` with `workforce`;
      Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@tortoise/deployment/testing` stands in for it with a certificate the binding's `ca` trusts;
    - `grants.maxTtlSeconds`;
    - the listener for TLS or mTLS.
@@ -39,7 +38,7 @@ A deployment policy binds what the application declares to one host's addresses,
 10. Run `bun run build:web`, then build and sign a bundle with `bun run bundle create --key key.json --out <dir>`. `create` compiles the application CLI into `<dir>/files/bin/<app>` and writes the contract, security manifest and SBOM from the catalog into the bundle.
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
 12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`. Without `--approval`, a bundle whose requirements widen is refused and the output prints the `approval` object; save that object as the approval file.
-13. Install with the bundled binary, `<bundle>/files/bin/<app> install <bundle> --trust key.pub.json --deployment-policy <file> --approval <file> --service systemd|windows|none`. `--prefix` defaults to `/`, so stage under a temporary `--prefix` first to read what install writes. Then install without `--prefix`, with `--apply` to run the service and firewall commands. A staged tree is for reading and is not promoted. On macOS the service is `none` and nothing is applied. A refused admission, policy check, render or migration leaves the previous release current.
+13. Install with the bundled binary, `<bundle>/files/bin/<app> install <bundle> --trust key.pub.json --deployment-policy <file> --approval <file> --service systemd|windows|none`. `--prefix` defaults to `/`, so stage under a temporary `--prefix` first to read what install writes. For an intended system installation, use the deployment's destination prefix and `--apply` to run its service and firewall commands. A staged tree is for reading and is not promoted. On macOS the service is `none` and nothing is applied. A refused admission, policy check, render or migration leaves the previous release current.
 14. Use `app status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
 15. Remove a release with `app uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/deployment/skills/decommission-an-application/SKILL.md`).
 16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --policy <file> --format markdown`. A running host re-checks compliance status, including certificate validity, on every check.
@@ -71,4 +70,3 @@ A deployment policy binds what the application declares to one host's addresses,
 - [`@tortoise/deployment`](../../README.md)
 - [Profiles table](../../../../docs/security-and-compliance.md#hardening-profiles)
 - [Desktop](../../../../docs/desktop.md)
-- [Fleet agent pattern](../../../../showcase/patterns/fleet-agent/README.md)

@@ -1,13 +1,13 @@
 # @tortoise/connector-opcua
 
-Polls an OPC UA server's node values and submits them as observations through the app's ingest command with `createOpcUaObserver`. It never writes to the server. The decoder caps messages at 16 MB and 512 chunks, bounds-checks every read, and skips an array or structured value exactly, reporting it unsupported.
+`@tortoise/connector-opcua` polls declared node values through `createOpcUaObserver` and submits accepted readings through an ingest operation. The connector implements a read-only OPC UA session; application requirements name the server it may reach.
 
-Primitives:
-
-- [Observation](../../docs/primitives.md#observation)
+The decoder bounds assembled messages and validates reads before consuming the binary payload. Unsupported structured values are reported as unsupported. Source health and stale readings must be handled through the observation contract.
 
 ## References
 
-- [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md)
-- [Implementation status: connector plugins](../../docs/implementation-status.md#connector-plugins)
-- `bun test plugins/connector-opcua`
+[observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md)
+
+[Implementation status: connector plugins](../../docs/implementation-status.md#connector-plugins)
+
+`bun test plugins/connector-opcua`

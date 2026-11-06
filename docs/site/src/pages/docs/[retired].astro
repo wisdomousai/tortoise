@@ -1,0 +1,31 @@
+---
+import { retiredDocs } from '../../../../../scripts/docs-migrations';
+
+export function getStaticPaths() {
+  return Object.keys(retiredDocs).map((retired) => ({ params: { retired }, props: { retired } }));
+}
+
+const entry = retiredDocs[Astro.props.retired]!;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const destination = `${base}/docs/${entry.target}/`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Documentation moved</title>
+    <link rel="canonical" href={new URL(destination, Astro.site)} />
+    <script is:inline define:vars={{ entry, base }}>
+      let fragment = '';
+      try { fragment = decodeURIComponent(location.hash.slice(1)); } catch {}
+      const reference = entry.fragments[fragment] || entry.target;
+      const [page, anchor] = reference.split('#');
+      location.replace(`${base}/docs/${page}/${location.search}${anchor ? '#' + anchor : ''}`);
+    </script>
+  </head>
+  <body>
+    <p><a href={destination}>Open the current documentation.</a></p>
+  </body>
+</html>

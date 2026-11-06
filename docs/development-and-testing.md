@@ -23,7 +23,6 @@ bun install --frozen-lockfile
 | `check:framework` | `node_modules` contains more than one framework version. |
 | `check:skills` | Skill metadata, links, paths or coverage are wrong, or a public API changed since its last skill review. Coverage: `scripts/skill-coverage.json`. |
 | `check:size` | A package `src/index.ts` contains more than re-exports. Long files and functions are hints only; split only when a file has a second job. |
-| `check:words` | Markdown outside code uses a word from the Plain words lists in the [styleguide](styleguide.md). `bun run check:words <file>` or `-` (stdin) checks one file or a draft. |
 | `generate` | A catalog fails to document. Output goes to `dist/reference/<id>/`; do not commit it. |
 | `check:registry:operator` | Operator registry files are stale. Fix with `bun run build:registry:operator`. |
 | `bun test` | Any test fails. |

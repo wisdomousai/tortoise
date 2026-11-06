@@ -1,45 +1,19 @@
 # @tortoise/driver-sdk-dotnet
 
-`Tortoise.Driver`: write a hardware driver in C#. The SDK speaks the driver protocol; you write the handlers that touch the equipment. The driver trusts the host's configuration and the effect IDs it sends; the host validates input against the contract's JSON Schema before it sends an action.
+`Tortoise.Driver` implements the hardware-driver protocol for C# processes. `Driver` dispatches host requests to registered equipment handlers over JSON-RPC. The host validates action input against its contract before sending it. The driver supplies equipment-specific behavior under the configured process binding.
 
 ## Writing a driver
 
-Write the contract file from the host application and generate the stub from it:
+Export the application's driver contract with `app driver contract <id> --out <file>`. From this SDK directory, generate C# bindings:
 
 ```sh
-app driver contract chamber --out chamber.json
-dotnet run --project src/Tortoise.Driver.Stubgen -- chamber.json --namespace Chamber -o ChamberContract.cs
+dotnet run --project src/Tortoise.Driver.Stubgen -- <contract-file> --namespace <namespace> -o <output-file>
 ```
 
-The stub contains `ChamberContract.Digest`, `ChamberContract.Document` and a record per action input, action result and event payload, bound to the JSON names with `JsonPropertyName`. The generator recomputes the digest the way the host does (canonical JSON, SHA-256) and refuses a file whose digest does not match its document. Then reference `src/Tortoise.Driver`, register handlers and run:
+The generated contract exposes its document and digest. Payload records use `JsonPropertyName` to retain the contract's field names. Stub generation recomputes the canonical JSON digest and refuses inconsistent input.
 
-```csharp
-using Tortoise.Driver;
-using Chamber;
+Reference `src/Tortoise.Driver` from the driver project. Construct `Driver` with the generated document and `DriverOptions`. `OnInitialize` registers equipment setup. `OnState` handles the requested field reads. `Action<TInput>` registers a synchronous action handler, and `ActionAsync<TInput>` accepts an asynchronous handler.
 
-using var driver = new Driver(ChamberContract.Document, ChamberContract.Digest, new DriverOptions
-{
-    Id = "chamber",
-    Version = "1.0.0",
-    Journal = @"C:\ProgramData\Chamber\journal.jsonl",
-});
-driver.OnInitialize(_ => [new Device(Serial: port.Serial, Firmware: port.Firmware)]);
-driver.OnState(_ => new Reading(new Dictionary<string, object?> { ["setpoint"] = port.Setpoint }));
-driver.Action<SetpointSetInput>("setpoint.set", (input, context) =>
-{
-    if (input.Setpoint > port.Maximum) throw new Refusal(RefusalKind.Rejected, "Out of range", "OUT_OF_RANGE");
-    port.WriteSetpoint(input.Setpoint);
-    return null;
-});
-return await driver.RunAsync();
-```
+The action context contains its cancellation token; a host `$/cancel` request signals it. `Refusal` returns a protocol refusal to the host. `Emit` sends a declared event from an equipment-reading thread. `RunAsync` starts the standard-input protocol loop and returns its process exit result. Keep diagnostic output off the protocol stream.
 
-`ActionAsync` takes an async handler. `$/cancel` from the host cancels `context.Cancellation`. `driver.Emit(name, payload)` sends a declared event from any thread.
-
-- Primitives: [Driver SDK](../../docs/primitives.md#driver-sdk).
-
-## References
-
-- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
-- [Hardware drivers](../../docs/hardware-drivers.md)
-- Test: `dotnet run --project sdks/driver-dotnet/tests/Tortoise.Driver.Tests`, `bun test sdks/driver-dotnet`
+The [driver task guide](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) describes host composition. The [protocol guide](../../docs/hardware-drivers.md) defines delivery modes and lookup requirements. From the repository root, run the SDK checks with `dotnet run --project sdks/driver-dotnet/tests/Tortoise.Driver.Tests` or the host contract suite with `bun test sdks/driver-dotnet`.

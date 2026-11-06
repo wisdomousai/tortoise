@@ -1,15 +1,11 @@
 # @tortoise/os
 
-Provides the shell port. `createOsPlugin` delivers incoming OS requests to the right screen and runs declared OS actions through the caller's shell adapter. A request never sets the principal, workspace or grant; the plugin attributes it to the session that submitted it and delivers it only to that session's frame.
+`@tortoise/os` provides the shell port through `createOsPlugin`. It matches incoming OS requests to declared handlers and delivers the resulting request to the submitting session's frame. Outgoing actions use the platform's configured shell adapter.
 
-Primitives:
-
-- [Shell port](../../docs/primitives.md#shell-port)
-- [OS handler](../../docs/primitives.md#os-handler)
-- [OS action](../../docs/primitives.md#os-action)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+Request data cannot establish a principal or widen the session's grant. A handler can prepare a screen, while a resulting record change still requires a catalog command under current authorization.
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
-- `bun test plugins/os`
+[add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+
+`bun test plugins/os`

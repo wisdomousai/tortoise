@@ -1,33 +1,42 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import assistantAgent from '@repo/showcase/examples/parts-desk/contracts/assistant-agent.ts?raw';
 import model from '@repo/showcase/examples/parts-desk/model.ts?raw';
+import assistantSession from '@repo/showcase/examples/parts-desk/ui/assistant-session.ts?raw';
 
-# Parts desk 2: assistant
+# Parts desk 2: assistant execution
 
-An assistant panel beside every desk screen finds a transformer by serial, looks up parts, fills the quote form for the person to check, and asks for approval before a discount above 10 percent or a cancellation. This part defines the assistant as an agent of the application from [part 1](parts-desk-1-records-and-quotes.mdx), serves it from a model on the desk's own machine, and builds the panel.
+The desk from [the preceding chapter](parts-desk-1-records-and-quotes.mdx) can create and change quotes through its commands. This chapter adds an assistant that calls those operations and presents its runs beside the application screens. Its permissions come from an agent definition and the application's policy.
+
+Use the exported Parts Desk repository from chapter 1. Its customer data must already include `TR-40417` and `TR-40471`, and the quote tests must establish the discount rule. The development user has the desk role. `mara` is the supervisor fixture used by policy and approval tests.
+
+The completed reference serves its assistant through a local model-server plugin. The default development process is a scripted stand-in, which allows the application wiring to be checked without downloading a model. Real weights are an optional later step. Source excerpts on this page show the finished reference; dependencies added later are identified beside the excerpt.
 
 ## Setup
 
-Open Claude Code or Codex at the root of the exported `parts-desk` repository. The standard check, from the export root, ends with `0 fail`:
+Run the chapter's commands from the export root. After each change, run:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/parts-desk
 ```
 
-Steps that change screens add:
+After changing the panel, build the browser application and run its specifications:
 
 ```sh
 bun run build
 bunx playwright test showcase/examples/parts-desk
 ```
 
+The generated file layout may differ from the reference. Ask the coding agent to identify where it registered each operation and how the panel reaches it. A list of files in its report is insufficient to establish that the composition uses them.
+
 ## Assistant agent
 
-**Goal:** define the assistant and what it may do. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) to declare `parts-desk.assistant`. The definition must permit the operations needed to look up transformers and work on quotes. It must also describe the commands for which the assistant can request a person's approval.
 
-An agent definition names the operations a run may call and the commands it may request approval for; the grant of every run comes from that list, so the assistant can read everything, create and submit quotes, and ask for a discount or a cancellation, but never cancel a quote itself. Budgets bound a run's turns, tool calls and wall time. A run started from a screen also gets the UI intents, and `ui.prepare` fills a form for the person to submit instead of running the command. The approval feature keeps each request for a desk member or supervisor to decide. [Agents](../agents.md#agent-definitions) covers definitions, grants and approval requests.
+The cancellation rule is visible in the agent definition: `quote.cancel` appears in `requests` and is absent from `operations`. A discount uses the application's input-dependent policy because `quote.discount` is also available for permitted percentages. The policy written in chapter 1 refuses a run's excessive percentage, including a run started by a supervisor.
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/parts-desk, run from the
@@ -35,8 +44,8 @@ repository root:
 
 bun run scaffold add agent assistant --collection quote
 
-Rewrite the generated agent as the desk's assistant, a direct agent. Its operations are every
-query of the application, quote.create, quote.update, quote.discount and quote.submit. Its
+Rewrite the generated agent as the desk's assistant, a direct agent. Its operations are the application record queries, quote.create, quote.update, quote.discount
+and quote.submit. Keep the screen-only member.current query outside the agent operations. Its
 requests are quote.discount and quote.cancel, so its grant adds approval.request and its
 instructions list both commands with their input schemas. Model any; budgets of 12 turns, 30
 tool calls and 300 seconds.
@@ -56,28 +65,33 @@ approval.request and not quote.cancel. Run the checks the add-capability skill n
 what passed.
 ```
 
-The operations and the requests make the grant; the model, budgets and output follow:
+Inspect the finished definition:
 
-<Code code={region(assistantAgent, 'grant')} lang="ts" title="contracts/assistant-agent.ts" />
+<Code code={region(assistantAgent, 'grant')} lang="ts" title="Finished reference: contracts/assistant-agent.ts" />
 
-<FileTree>
+The `model: 'local'` requirement and `models` entry in this excerpt are established by the following section. The first agent checkpoint can use the prompt's temporary model selection while running scripted tests. Its grant and approval rules must already be correct.
 
-- showcase/examples/parts-desk/
-  - contracts/assistant-agent.ts
-  - application.ts mounts the approval feature
-  - ui/approvals.tsx
-  - policy.ts approvalAccess
-  - test/assistant-agent.test.ts
+`agentGrant` derives the run's permissions from the definition and the person who starts it. The reference's grant test also finds `inquiry.update`, because `quote.create` declares that nested operation to update its inquiry in the transaction. Inspect this dependency if a quote-create run is unexpectedly refused after successfully finding its customer.
 
-</FileTree>
+Declaring a requested command makes its input schema available to the assistant's instructions. The host accepts a request through `approval.request`, which records the command and its proposed input. An approval request is a separate record. The quote remains unchanged while that request is pending.
 
-**Check:** the standard check. The grant test shows `approval.request` and no `quote.cancel`.
+In `application.ts`, the reference mounts `approvalFeature()` with `approvalAccess` from the application's policy. The access view lets members read requests and lets desk members request or approve them. Only supervisors may reject. An attempted approval still runs the requested command under the approver's own authorization, so a desk member cannot use approval to grant a percentage reserved for a supervisor. The later panel displays the supervisor requirement for such requests.
+
+Check the generated grant assertions, then run the application suite:
+
+```sh
+bun test showcase/examples/parts-desk
+```
+
+Inspect its resulting operation set. `approval.request` must be present and `quote.cancel` must not be granted for direct execution. Check that generated instructions contain the requested commands' input schemas. Preserve the chapter 1 discount test that starts an agent context as `mara` and verifies that an excessive percentage is refused. Instructions about asking a supervisor do not establish that refusal.
+
+At this checkpoint, use a scripted run to create a draft and assert its saved values. The full scripted evaluation is developed in chapter 3. This early test verifies that the agent's generated grant actually supports the permitted command path.
 
 ## Local model
 
-**Goal:** serve the assistant from a model on the desk's own machine. Tests use a stand-in for `llama-server`, so no weights are needed until the live run. **Skill:** [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md).
+The assistant needs a harness to execute a run. For this application, the model-server plugin starts the declared process and supplies a harness that the host can select when a request names the assistant. A model entry identifies the weight file by digest and restricts which agent definitions may use it.
 
-A model entry names the weights by digest. At each start the model server plugin proves that the files on disk are those weights, then starts `llama-server` through the process port, and the agent names the entry so it never runs on another model. The deployment policy binds the `local-inference` destination to a loopback address and the server process to the executable, with a timeout long enough for a model that reasons before it answers. A run a person starts with the assistant's agent ID and no harness runs on the plugin's harness. In tests and development launches the process is a stand-in that takes llama-server's flags and plays the model from a responder module. [Providers](../providers.md#local-models) covers local models and the `local` harness.
+The development path creates temporary stand-in weights. The stand-in process implements the server protocol and calls `responder.ts` to choose scripted replies. Its reported digest identifies those stand-in bytes. That measurement does not establish the behavior of a trained language model.
 
 ```text prompt
 Use the serve-a-local-model skill. In showcase/examples/parts-desk, serve the assistant from a
@@ -105,28 +119,32 @@ runs on the model server's harness, and that the stand-in's run for TR-40417 cal
 transformer.find. Run the checks the serve-a-local-model skill names and report what passed.
 ```
 
-The entry names the base weights by digest and admits only the assistant:
+The finished model entry is:
 
-<Code code={region(model, 'entry')} lang="ts" title="model.ts" />
+<Code code={region(model, 'entry')} lang="ts" title="Finished reference: model.ts" />
 
-<FileTree>
+Follow its use in the composition. `composePartsDesk` reads the entry and file paths, then passes them to `createModelServer` with process ID `llm`. The model-server plugin appears after the plugins that provide its network and process ports. The browser-safe manifest must declare the corresponding plugin manifests in compatible order. A server plugin that appears only in `application.ts` leaves the composition inconsistent.
 
-- showcase/examples/parts-desk/
-  - model.ts the entry and the stand-in weights
-  - responder.ts plays the model for the stand-in
-  - dev.ts writes the deployment policy
-  - application.ts composes the deployment, network, process and model server plugins
-  - test/assistant-model.test.ts
+The development launcher writes a temporary deployment policy. In the reference, `local-inference` is bound to `http://127.0.0.1:4389` and the `llm` process listens on that port. The configured timeout is 300 seconds. The process binding pins the executable by its SHA-256 digest. The launcher reports the selected process before the host starts, so inspect that output when diagnosing a model that never becomes ready.
 
-</FileTree>
+`PARTS_DESK_MODEL` identifies the runtime model configuration consumed by the application. Without that configuration, `assistantModelFrom()` returns the stand-in entry and files. The later live launch measures the supplied GGUF file and writes a configuration for that file. If you provide `TORTOISE_DEPLOYMENT_POLICY` yourself, the launcher keeps it; that policy must bind a compatible process and destination.
 
-**Check:** the standard check. `bun run --cwd showcase/examples/parts-desk dev:web` prints which model server runs (the stand-in by default).
+The reference's `test/assistant-model.test.ts` opens a real host with temporary storage and a stand-in server on a test port. It waits for the plugin's ready state, starts a run through `/api/v1/runs`, and asserts that the selected harness belongs to the model-server composition. It inspects `run.model` for the measured entry and digest. A run's successful creation alone would not establish which harness executed it.
+
+Run the application suite, including the model-server assertions, then start development:
+
+```sh
+bun test showcase/examples/parts-desk
+bun run --cwd showcase/examples/parts-desk dev:web
+```
+
+The launch output should identify the stand-in when you have supplied no live weights. For `TR-40417`, its run should finish with a `transformer.find` tool result and the stored transformer details. Add an assertion that the run recorded the expected model entry. Test a modified stand-in weight file separately if your agent changes file-loading behavior: the plugin must refuse a digest mismatch before serving the model.
+
+The stand-in's responder supports only the interactions implemented in this tutorial. A reply declining an unrelated request is part of that fixture. It is not a general claim about the capabilities of a model deployed later.
 
 ## Assistant panel
 
-**Goal:** the chat panel docked beside every screen. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
-
-The frame has an assistant panel (step 13 of [build-screens](../../packages/frame/skills/build-screens/SKILL.md)). The parts desk builds its own on the same run route: each message starts a run with `POST /api/v1/runs`, the run's events stream its text, tool starts and finishes, questions and approval requests, and the panel answers a question through the run's respond route. The host keeps each run's request and gives a harness without history the earlier turns of the conversation, so a follow-up sends only the new message. An approval request shows as a card that a supervisor decides; the browser has no role of its own to read, so a small query returns the caller's role. [Agents](../agents.md#runs) covers runs and their events.
+The application builds a custom panel using the host's run routes. The panel is mounted as the `aside` in `defineScreens`, so it remains present when the application changes routes. Each sent message creates a run. The host's response supplies the conversation ID used by follow-up messages.
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/parts-desk, add the assistant panel as the
@@ -155,7 +173,7 @@ classes.
   A supervisor sees Approve and Reject; others see that a supervisor must decide. The browser
   has no role to read yet, so add a `member.current` query that returns the caller's role.
 - Composer: a growing text area, Enter sends, Shift+Enter breaks the line, and a Stop button
-  cancels the running run. Before the first message, show three example requests.
+  cancels the running run. Offer initial requests appropriate to the desk tasks.
 
 Style: only the starter's color tokens, light and dark, compact type, subtle borders, no
 gradients or hero blocks. Add a Playwright spec against the stand-in model; the spec runs under
@@ -166,41 +184,42 @@ with TR-40471; ask for 15 percent off a draft and see the approval card. Run the
 build-screens skill names and report what passed.
 ```
 
-<FileTree>
+Review the request submitted by the finished panel:
 
-- showcase/examples/parts-desk/
-  - ui/assistant.tsx the aside, its width and the compact button
-  - ui/assistant-run.ts starts runs and joins their events
-  - ui/assistant-conversation.tsx messages
-  - ui/assistant-calls.tsx the call chips
-  - ui/assistant-approval.tsx the approval card
-  - contracts/member-current.ts
-  - e2e/prepare.ts the workspace and the stand-in for the browser test
-  - e2e/assistant.pw.ts
+<Code code={region(assistantSession, 'start-run')} lang="ts" title="Finished reference: ui/assistant-session.ts" />
 
-</FileTree>
+`ui.prepare()` synchronizes the panel's UI session before the run starts. The request names the resulting session version. At this chapter's checkpoint, that session can have an empty selection; chapter 3 connects the currently displayed records. The request names `assistantAgent.id` and omits `harnessId`, allowing the host to choose the harness compatible with the definition.
 
-The run added a framework change for this step: `asideButton` in `defineScreens` puts the panel's button in the compact bar, so the panel opens as a sheet on a narrow viewport.
+The first successful response supplies a `conversationId`. Later requests send that ID with the new message. The reference panel stores its conversation ID in component state. A reload therefore begins a new panel conversation, while the host still has its run records. Sending another message is disabled while the panel's active run has not ended.
 
-For TR-404 the assistant asks through the question tool, with a button per transformer:
+Run events are ordered by sequence. `ui/assistant-run.ts` joins adjacent text events and associates `tool-finish` with its `tool-start` using `callId`. A refused tool finish contains the application error code. The chip's success state means that call finished; it does not mean every action mentioned in the assistant's text occurred.
 
-![The assistant panel asks which transformer TR-404 means, with buttons for TR-40417 and TR-40471](../assets/screenshots/parts-desk/assistant-question.png)
+The panel uses the command result's resource IDs to link changed records. A query's finish does not provide those changed resources. For serials in text, the reference link component performs a lookup before navigation. Keep ordinary text rendering escaped; a model's reply must not become executable markup.
 
-For 15 percent it requests approval, and the card says that a supervisor decides:
+A question requires a host question event with its request ID. The panel posts the person's choice to `/api/v1/runs/<id>/respond`. Text that merely asks a question does not create an answerable host request. The stand-in's ambiguous-serial branch uses the question tool when the run has a UI session; the browser test verifies that it enters the waiting state and continues after the response.
 
-![The assistant panel shows an approval request for a 15 percent discount on Q-00001 with its reason, pending, and the note that a supervisor must decide](../assets/screenshots/parts-desk/assistant-approval.png)
+Approval cards read the saved request and the caller's role. The application supplies `member.current` as a query so the browser can render the controls appropriate to that member. The role comes from the current membership, not from a field supplied when the browser starts a run. The command policy still decides whether an attempted approval can execute its requested operation.
 
-**Check:** the standard check and Playwright. In the browser, ask "TR-404": the assistant asks which transformer is meant.
+The reference screenshots show the finished panel. The detailed source responsible for captured screen records and prepared quote forms is added in chapter 3.
 
-## Limits
+![Reference panel waiting for the person to choose TR-40417 or TR-40471](../assets/screenshots/parts-desk/assistant-question.png)
 
-The model is a stand-in that plays scripted replies; the panel, the runs and the approvals are real. [Part 3](parts-desk-3-context-and-scenarios.mdx) gives the assistant the screen's context and tests it with scripted scenarios.
+![Reference panel displaying a pending discount approval request requiring a supervisor](../assets/screenshots/parts-desk/assistant-approval.png)
 
-## References
+For a manual check, open the printed launch link and send `Which transformer is TR-40417?`. Inspect the run's `transformer.find` chip and follow the serial link. Send a message containing `TR-404` and answer the displayed question with `TR-40471`. Confirm that the reply names Alpental Energie. Inspect the same run for the completed host question response.
 
-- [Parts desk 3: context and scenarios](parts-desk-3-context-and-scenarios.mdx)
-- [Agents](../agents.md)
-- [Providers](../providers.md)
-- [plugins/model-server](../../plugins/model-server/README.md)
-- [showcase/patterns/local-model](../../showcase/patterns/local-model/README.md)
-- [showcase/examples/parts-desk](../../showcase/examples/parts-desk/README.md)
+Create a draft through the application, copy its quote number, and ask for 15 percent off that quote because of a late delivery. The panel should show a pending approval request containing the quote's actual ID and the requested percentage. Read the quote afterwards: its percentage must remain unchanged. The local desk user should see the supervisor requirement. Test supervisor approval with an explicitly configured test context; changing a role string in browser state cannot establish authorization.
+
+The browser specification should inspect the runs returned by the host. Messages sent before **New conversation** should share the conversation ID. Starting a new conversation clears the local transcript. Cancelling an active run should result in the host's cancelled state and should release the composer for another request.
+
+Run the browser specification against the built application:
+
+```sh
+bunx playwright test showcase/examples/parts-desk
+```
+
+The model-server process may still be starting when the first request arrives. The panel keeps a refused message in its composer so it can be retried. A test may wait for readiness or retry that specific startup refusal; it should not hide other failures behind an unconditional resend loop.
+
+## Next chapter
+
+This checkpoint establishes execution through the stand-in and the panel's connection to its run records. Continue with [Screen context and evaluation](parts-desk-3-context-and-scenarios.mdx) to connect the application's visible records and prepared quote form.

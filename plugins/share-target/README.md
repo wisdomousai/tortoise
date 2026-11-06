@@ -1,14 +1,11 @@
 # @tortoise/share-target
 
-Receives text, links or files shared from other apps (`share` handlers) and opens the system share sheet (`share` actions). Compose `createShareTargetPlugin` beside the OS plugin. The share target's POST is a top-level navigation from whichever app or page shared, with no session the host could trust, so the route runs before the host's origin and session checks and a held share only prefills a form.
+`@tortoise/share-target` receives data shared to declared OS handlers and supplies outgoing share actions. Compose `createShareTargetPlugin` with the OS plugin.
 
-Primitives:
-
-- [OS handler](../../docs/primitives.md#os-handler)
-- [OS action](../../docs/primitives.md#os-action)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+An incoming share POST can originate from another application without an authenticated host session. The route accepts a held share before the ordinary origin and session checks, then makes it available for form preparation. It does not use the share payload to authorize a record change.
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
-- `bun test plugins/share-target`
+[add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+
+`bun test plugins/share-target`

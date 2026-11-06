@@ -1,6 +1,8 @@
 # Monitor oil-sample conditioning
 
-Climate chambers condition oil samples before testing. This pattern adds the chambers to the [base lab desk](../base/README.md): the desk reads each chamber's temperature through OPC UA and its humidity through Sparkplug B over MQTT, and a chamber counts as conditioned only when it has both readings within tolerance. A lost gateway, a dead edge node or a sequence gap marks the value uncertain until the source confirms it again; the observers only read. The deployment policy must bind `chamber-gateway` and `chamber-broker`, and the OPC UA client uses an anonymous session with security policy None, so a real installation needs a segmented control network.
+This pattern submits plant readings through observation commands on the hypothetical [base application](../base/README.md). An OPC UA observer reads chamber temperature, and a Sparkplug B observer reads humidity. The application marks a chamber conditioned only when its required readings satisfy its configured tolerances.
+
+The launch uses loopback protocol fixtures. Source interruption or sequence loss makes the affected reading uncertain until the source confirms it again. The configured OPC UA session uses security policy None, so the fixture's network assumptions must be reviewed before any real deployment.
 
 ```sh
 cd showcase/patterns/signals
@@ -9,12 +11,16 @@ bun run dev:web
 
 ## What to try
 
-- The launch starts fake OPC UA and MQTT endpoints on loopback ports 4374 and 4373 and the app on 4356; chamber 2's humidity leaves tolerance and returns every two minutes.
-- Place a test request in a chamber and watch its condition change.
-- The OPC UA observer reports a temperature only after two equal reads.
+The launch starts fake OPC UA and MQTT endpoints on loopback ports 4374 and 4373 and the app on 4356; chamber 2's humidity leaves tolerance and returns every two minutes.
+
+Place a test request in a chamber and watch its condition change.
+
+The OPC UA observer reports a temperature only after two equal reads.
 
 ## References
 
-- [observe-plant-signals](../../../packages/observation/skills/observe-plant-signals/SKILL.md)
-- [OPC UA connector](../../../plugins/connector-opcua/README.md), [MQTT connector](../../../plugins/connector-mqtt/README.md)
-- `bun test showcase/patterns/signals` runs the real observers against the fake endpoints only
+[observe-plant-signals](../../../packages/observation/skills/observe-plant-signals/SKILL.md)
+
+[OPC UA connector](../../../plugins/connector-opcua/README.md), [MQTT connector](../../../plugins/connector-mqtt/README.md)
+
+`bun test showcase/patterns/signals` runs the real observers against the fake endpoints only

@@ -1,16 +1,11 @@
 # @tortoise/notifications
 
-Shows outbox effects as desktop or phone notifications and runs the matching command when a person taps an action button. Register `notificationsPlugin` from `@tortoise/notifications/plugin` with its `plugin-manifest`, beside the OS plugin. The application declares a `notify` action whose `targets` name outbox targets with `offline: queue`, one `<target>.effect.complete` command per target, and a command that enqueues an `OsNotificationPayload`: `principal`, `category`, `title`, optional `body`, and `replies` with the `{ operation, input }` each button continues with. A reply is an OS request like any other; whoever can submit to the shell port can send one, with any nonce.
+`@tortoise/notifications` delivers declared notification effects through the shell port. Compose `notificationsPlugin` with the OS plugin. The application declares a `notify` action and names the outbox targets it supports.
 
-Primitives:
-
-- [OS action](../../docs/primitives.md#os-action)
-- [OS handler](../../docs/primitives.md#os-handler)
-- [Connector](../../docs/primitives.md#connector)
-- [Dispatcher](../../docs/primitives.md#dispatcher)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+A notification payload identifies its recipient and contains the replies offered by the platform. Each reply names a continuation command and its input. The plugin validates the reply nonce and invokes that continuation as the notified person. Replies arrive through the untrusted OS request path, so their payload cannot supply execution authority.
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
-- `bun test plugins/notifications`
+[add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+
+`bun test plugins/notifications`

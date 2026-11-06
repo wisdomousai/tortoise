@@ -1,16 +1,13 @@
 # @tortoise/peer-link
 
-Calls between two agent-native apps. The called app publishes a peer API with `definePeerApi`; the calling app declares a peer target with `definePeerTarget`, enrolls with a one-use code and gets its own credential. Compose `createPeerLinkPlugin` from `@tortoise/peer-link/plugin` with its `plugin-manifest` and `plugin-screens`. The enrollment route runs before the session check, so anyone who reaches the listener reaches it; it redeems a code through the instance as the local user, narrowed to the redeem and resolve capabilities.
+`@tortoise/peer-link` authenticates calls between application instances. The receiving application declares its peer API, and the calling application declares a peer target. `createPeerLinkPlugin` manages enrollment and the resulting peer credentials.
 
-Primitives:
-
-- [Peer link](../../docs/primitives.md#peer-link)
-- [Host plugin](../../docs/primitives.md#host-plugin)
-- [Capability binding](../../docs/primitives.md#capability-binding)
-- [Peer target](../../docs/primitives.md#peer-target)
+Code redemption is exposed before ordinary session authentication and uses a restricted runtime context. Subsequent calls are checked against the enrolled peer's allowed API and the receiving application's policy. Mapping a peer subject to a person is a separately authorized operation.
 
 ## References
 
-- [connect-two-applications](skills/connect-two-applications/SKILL.md)
-- [Integration package: peer applications](../../packages/integration/README.md#peer-applications)
-- `bun test plugins/peer-link`
+[connect-two-applications](skills/connect-two-applications/SKILL.md)
+
+[Integration package: peer applications](../../packages/integration/README.md#peer-applications)
+
+`bun test plugins/peer-link`

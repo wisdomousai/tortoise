@@ -192,7 +192,13 @@ What has actually run, and what has not. No release exists yet. "Browser" means 
 - **Open gaps from those runs:** The generic form takes no expected revisions or transport. The PIN keypad takes no typed digits. An agent run in a terminal acts as the terminal, not the operator. In an export, `check:skills` fails on links to omitted examples and patterns.
 - **Limits:** `device-link` and the `device` feature do not compose together. No package is on npm. Packages ship TypeScript source. An instance hosts one application.
 
+The revised tutorials were worked through in fresh source exports on 6 November 2026. The authors consulted the finished reference applications and introduced their code at the relevant checkpoints, preserving failed attempts and repairs. These runs establish a sequential implementation route for the recorded checkpoints. They do not establish that a coding agent given only the prompts will independently produce the same application.
+
+The Tool Store walkthrough reached a compiled darwin-arm64 bundle and exercised admission refusal before the approved admission. It installed under a temporary prefix with no service, verified status, drained the workspace and purged the staged installation. Its terminal browser checks used typed scanner input. No plant service or firewall rules were applied, and no real EAM or physical reader was used. The Parts Desk walkthrough reached the assistant panel's captured context and prepared-form behavior, then tested dictation with the recognizer stub. The historical live-model results above remain the only live-model evidence recorded here; this revision used the model stand-in and no physical microphone.
+
 ## Known defects
+
+`scaffold add` generates command-policy entries that refer to the scaffold's `editor` rule. After an application renames that rule, later generated entries need to be updated to the application's current rule. The fresh Tool Store tutorial walkthrough on 6 November 2026 reproduced this; its prompts now require reviewing those insertions. The templates remain unchanged.
 
 - An example started with `dev` or `dev:web` titles its window with the display name in `app.config.json`, such as "Field Service".
 - Fixed without a regression test: Windows paths during staging, scanner default routes, scanner setup edits.

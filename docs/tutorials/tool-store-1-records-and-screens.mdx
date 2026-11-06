@@ -1,4 +1,4 @@
-import { Aside, Code, FileTree } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import { region } from '@site/region';
 import toolContract from '@repo/showcase/examples/tool-store/contracts/tool.ts?raw';
 import policy from '@repo/showcase/examples/tool-store/policy.ts?raw';
@@ -9,36 +9,56 @@ import application from '@repo/showcase/examples/tool-store/application.ts?raw';
 
 # Tool store 1: records and screens
 
-The tool store of a transformer plant is the room where attendants lend shared tools such as torque wrenches, crimpers and insulation testers to employees and take them back. Each tool carries an etched asset tag like `TC-00601`, sits in a shelf bin and is available, checked out, in repair, missing or retired. This part exports the application, replaces the generated record with the store's tool, adds the two commands that lend and return a tool, lists overdue loans and builds the counter screen. The finished application is `showcase/examples/tool-store`; [Tutorials](index.md) explains how to work through the steps.
+Tool Store records tool loans at a transformer plant. The attendant records which employee borrowed a tool against a work order. A return records the tool's condition. This tutorial constructs that application with Claude Code or Codex and explains the implementation produced at each step.
+
+The application's rules belong to this demo. A tool has one asset tag and at most one open loan. Its availability changes with the loan, so checkout and return must update the related records together. An attendant may make those changes; a viewer may read the records. Later chapters add the counter terminal and a fake EAM connection.
+
+The committed application at `showcase/examples/tool-store` is the finished reference. The excerpts below are imported from that source. They can contain declarations needed by later chapters; the surrounding explanation identifies those dependencies. Your coding agent may use another file layout. Compare its behavior with the checks here before continuing.
 
 ## Setup
 
-Open Claude Code or Codex at the root of this repository for the first step, and at the root of the exported `tool-store` repository from the second step on. Every step's check starts with these commands, which end with no errors and `0 fail`:
+Begin in the framework checkout with Bun installed. Read [Getting started](../getting-started.md) if you have not exported an application before. Choose an unused export directory and substitute it for `/path/to/tool-store` in the first prompt. The later prompts run in that exported repository, which has its own workspace and Git history.
+
+After each prompt, inspect the change and run the checks from the export root:
 
 ```sh
-bun run format && bun run generate && bun run typecheck
+bun run format
+bun run generate
+bun run typecheck
 bun test showcase/examples/tool-store
 ```
 
-Steps that change screens add:
+`format` rewrites source files. Review that diff with the implementation. A passing check is a checkpoint only when the behavior requested by the prompt is also present. Do not require a particular test count: the agent writes the tests and their organization can differ.
+
+For a screen change, also build the screens and run the application's browser specs:
 
 ```sh
 bun run build
 bunx playwright test showcase/examples/tool-store
 ```
 
-To try the application by hand, run it in one terminal and point the CLI at it from another:
+When a check fails, keep its output and the correction in the checkpoint report. Commit a completed checkpoint in the exported repository so the next step has a known starting state. Leave unrelated work outside that export.
+
+To inspect the current application, start it from the export root:
 
 ```sh
 bun run --cwd showcase/examples/tool-store dev:web
-export TORTOISE_CONNECTION=$PWD/showcase/examples/tool-store/.workspace/.connection.json
 ```
+
+Open the printed `launchUrl`. In another terminal at the export root, point the CLI at the same running workspace:
+
+```sh
+export TORTOISE_CONNECTION="$PWD/showcase/examples/tool-store/.workspace/.connection.json"
+bun run cli help
+```
+
+Stop the host before a step changes stored shapes. At this point the workspace contains only tutorial records. If it is replaced, record that reset; later instructions must not depend on records from before the reset.
 
 ## Export the app
 
-**Goal:** a new repository with a `tool` collection, default screens and tests. **Skill:** [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
+The first checkpoint is a new application with a generated `tool` collection. Its initial record is a scaffold placeholder. The domain-specific fields arrive in the following step.
 
-`scaffold new` writes one application with three entrypoints: the browser-safe `manifest`, the server `application` and the browser `screens`. The first collection comes with generated list, get, create and update operations, a policy with an editor and a viewer role, behavioral tests and a Playwright spec, and the application composes the deployment, network, audit and compliance host plugins. The CLI and the MCP bridge call the running instance through its connection file, so both lists in the report come from the same records. [Architecture](../architecture.md) describes the parts the export contains.
+Use [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md):
 
 ```text prompt
 Use the create-agent-native-app skill. Create the application for the tool store of a power
@@ -53,32 +73,19 @@ list the tools through the CLI and through the MCP bridge, and stop the instance
 command and what it printed.
 ```
 
-The export holds the framework packages, the starter under `apps/` and the application:
+Inspect `app.config.json` in the export. It must select the generated Tool Store application. The application manifest declares its catalog, while its server definition supplies the handlers and application state. The browser entrypoint registers the screens. The separation keeps handler code out of the browser bundle; the screen submits operations through the instance.
 
-<FileTree>
+The generated collection's create command and list query are sufficient to test the export. Start the host, create a record using the current generated fields, then list it from the CLI and MCP connection. Run `bun run cli help tool create` before choosing the input. A command suitable for the later Tool Store schema will not match this placeholder schema yet.
 
-- showcase/examples/tool-store/
-  - manifest.ts browser-safe identity, modules, features, plugins
-  - application.ts the server: state, handlers, policy, plugins
-  - screens.tsx the routes and navigation
-  - contracts.ts the module and its operations
-  - contracts/tool.ts the collection
-  - handlers/tool.ts
-  - policy.ts
-  - domain.ts the state and its upgrade
-  - test/
-  - e2e/default-screens.pw.ts
-- app.config.json selects the application
-
-</FileTree>
-
-**Check:** the report shows `bun test` passing and the same tool in the CLI list and the MCP list.
+Check the browser list against that same record. The CLI's connection file must belong to this export; a stale `TORTOISE_CONNECTION` value can attach it to another running application. Record the application ID printed by the host with the CLI/MCP observations. The host test suite tests its own fixtures, so it does not establish that your shell is attached to the intended workspace.
 
 ## Tool records
 
-**Goal:** replace the generated title and status with the store's real tool fields, and rename `editor` to `attendant`. **Skills:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md), [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+The new record represents a physical tool already known to the store. Its `assetTag` is the externally visible identifier. The generated `id` remains the key used to refer to the record in commands. The tag must be unique even when an older tool is retired, because retaining a loan must not make the same etched tag refer to another tool later.
 
-A collection declares its record as a strict Zod schema and display metadata: a label, the title field and the fields a list shows. The generated operations take their input and output from that schema, and the default screens, forms and the command palette read the metadata, so changing the record changes every channel at once. The policy lists each operation with a rule and denies everything it does not list; a read is `open` where the handler scopes the rows itself. The workspace holds trial records only, so deleting it replaces a state migration. [Capability authoring](../capability-authoring.md) covers collections and [Authorization](../authorization.md) the policy.
+A caller supplies the editable fields when adding a tool. The handler assigns `status: 'available'` and derives `createdBy` from the execution context. A later update can change the descriptive fields but cannot change the tag or force a loan status. Those restrictions are expressed by the create/update field declarations, with the domain checks in the collection handlers.
+
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) and [build-screens](../../packages/frame/skills/build-screens/SKILL.md):
 
 ```text prompt
 Use the add-capability skill and the build-screens skill. In showcase/examples/tool-store,
@@ -96,51 +103,48 @@ duplicate asset tag. tool.update changes description, category, bin and calibrat
 asset tag is the record's title. Rename the editor role to attendant; attendants write and
 viewers read. The tool list shows asset tag, description, bin and status, filters by status and
 category, and searches asset tag and description. The workspace holds only trial records, so
-delete showcase/examples/tool-store/.workspace instead of writing a state migration. Update the
+reset only showcase/examples/tool-store/.workspace after stopping its host, and record that reset. Update the
 tests, the Playwright spec and the application README for the new record. Run the checks the
 add-capability skill names and report what passed.
 ```
 
-The record in the finished example, with the description each field carries into the MCP tool list:
+The finished reference declares the record below. Its optional `revision` is a read-time projection used by the terminal's agent selection in a later chapter; it is not an editable property or a new stored counter in this step.
 
-<Code code={region(toolContract, 'record')} lang="ts" title="contracts/tool.ts" />
+<Code code={region(toolContract, 'record')} lang="ts" title="Finished reference: contracts/tool.ts" />
 
-The policy's rule for the commands, and the reads left open because their handlers scope the rows:
+Inspect the collection declaration beneath the schema. `titleField: 'assetTag'` identifies a tool in generated screens. Its field metadata supplies the labels. The list operation declares status/category filtering and search. The handler's `searchText` includes the tag and description, so a query for a description can find a record without searching every field.
 
-<Code code={region(policy, 'rules')} lang="ts" title="policy.ts" />
+The record schema checks the shape of a calibration date. The reference handler also checks that the date exists in the calendar: `2026-02-30` has the expected shape and still fails. The handler trims `description` and `bin` before storing them, then rejects a value that becomes empty. Keep that normalization in the handler because schema transformations cannot appear in the generated JSON Schema.
 
-<FileTree>
+The policy admits a member before it evaluates an operation rule. An attendant receives write access. The read handlers expose every tool to an admitted member, so their collection visibility predicate can return true. An `open` read rule on this application policy does not give a caller outside the membership gate access.
 
-- showcase/examples/tool-store/
-  - contracts/tool.ts the record, categories, statuses and the generated operations
-  - handlers/tool.ts the unique asset tag and the calendar date checks
-  - domain.ts the attendant and viewer roles
-  - policy.ts
-  - ui/tool.tsx the list with its filters and search
-  - test/tool.test.ts
-  - e2e/default-screens.pw.ts
-  - README.md
+The following policy excerpt comes from the finished application. It also contains operations introduced later. At this checkpoint, the relevant rules are the tool reads and the create/update commands; retain the default refusal for operations the current application has not declared.
 
-</FileTree>
+<Code code={region(policy, 'rules')} lang="ts" title="Finished reference: policy.ts" />
 
-The Tools screen in the finished app, with five tools:
-
-![The Tools screen lists five tools by asset tag, description, bin and status, with search, filters and the New form](../assets/screenshots/tool-store/tools.png)
-
-**Check:** the standard checks, then with the app running:
+Start the application after any tutorial workspace reset. From the export root with `TORTOISE_CONNECTION` set:
 
 ```sh
-bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --key t1
-bun run cli tool create --asset-tag TC-00601 --description "Copy" --category gauge --bin A-04 --key t2; echo "exit $?"
+bun run cli tool create --asset-tag TC-00601 --description "Torque wrench 20-100 Nm" --category torque-tool --bin A-03 --key tutorial-tool-1
+bun run cli tool list --search TC-00601 --output text
+bun run cli tool create --asset-tag TC-00601 --description "Duplicate" --category gauge --bin A-04 --key tutorial-tool-duplicate
 ```
 
-The first command prints the tool with `"status":"available"`; the second prints an error and a non-zero exit for the duplicate tag.
+The first command returns the new tool with status `available`. Save its generated `id` for checkout. The duplicate request must produce `CONFLICT`, with CLI exit status 5, and the list must still contain one record with that tag. The duplicate uses a different idempotency key so it actually exercises the unique-tag check.
+
+Read the tests for invalid calendar dates and the viewer's denied writes. When a viewer request is refused, assert that no tool was inserted or changed. This detects an authorization failure that occurs after a partial update.
+
+The screenshot is an illustration of the finished reference, populated with several tools. It is not the expected dataset at this checkpoint.
+
+![Finished Tool Store reference: the Tools list with search, filters and the create form](../assets/screenshots/tool-store/tools.png)
 
 ## Loans
 
-**Goal:** check a tool out and back in. Only these two commands write loans. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+A loan records the employee number and work order at the time of checkout. It copies the asset tag so a reader can identify the tool in the loan history. An unset `returnedAt` identifies an open loan. Only `tool.check-out` and `tool.return` create or close loans, which prevents a generic loan update from leaving the tool's status inconsistent.
 
-A command runs inside one workspace transaction: the instance validates the input, checks the policy and any expected revisions, runs the handler, then assigns a new revision to each changed resource and commits. A check-out therefore opens the loan and sets the tool to checked out as one change, and a second check-out of the same tool finds it already checked out. The command result names the revisions of `tool:<id>` and `loan:<id>`, a caller that passes a stale revision gets `CONFLICT`, and a repeated idempotency key returns the stored command result instead of running again. [State and reactivity](../state-and-reactivity.md) lists the steps of a command.
+Checkout returns the loan it created. The command envelope also reports revisions for changed resources. Read the tool with `tool.get` when checking its current status; the checkout result is not itself a tool record.
+
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md):
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -164,41 +168,46 @@ revision refused, a repeated idempotency key returning the same command result, 
 refused. Run the checks the add-capability skill names and report what passed.
 ```
 
-The check-out handler. `records` reads and writes a collection's rows and declares each changed resource, so the commit assigns their revisions:
+In the finished checkout handler, `records(ctx, tools, ctx.state.tools)` provides access to the tool collection inside the command. `getExisting` refuses a missing tool. The status check precedes insertion of the loan. `checkedOutBy` comes from `ctx.context.principalId`, which keeps the borrower field separate from the identity of the attendant executing the command.
 
-<Code code={region(checkOutHandler, 'handler')} lang="ts" title="handlers/tool-check-out.ts" />
+<Code code={region(checkOutHandler, 'handler')} lang="ts" title="Finished reference: handlers/tool-check-out.ts" />
 
-<FileTree>
+Inspect the policy references inserted by the scaffold after the role rename. A generated rule can still refer to the scaffold's `editor` variable; replace that reference with the application's attendant rule before typechecking.
 
-- showcase/examples/tool-store/
-  - contracts/loan.ts the loan record and its reads
-  - contracts/tool-check-out.ts
-  - contracts/tool-return.ts
-  - handlers/loan.ts
-  - handlers/tool-check-out.ts
-  - handlers/tool-return.ts
-  - ui/loan.tsx the read-only loan screens
-  - test/loan.test.ts no other command writes loans
-  - test/tool-check-out.test.ts
-  - test/tool-return.test.ts
+The inserted loan and updated tool belong to the same transaction. Register both handlers in the server contribution and their operations in the contract module. Remove the scaffold's generic loan create/update declarations and their UI bindings. Leaving one registered gives callers a write path that bypasses the checkout rules even if the counter never displays it.
 
-</FileTree>
+The return handler locates the open loan for the tool. It sets the return audit fields from the execution context, closes the loan and changes the tool status according to the recorded condition. Its optional note is trimmed. Chapter 3 extends the damaged-return branch to enqueue a repair request; that integration is not required for this checkpoint.
 
-**Check:** the standard checks, then with the tool from the previous step (`bun run cli tool list --output text` shows its id):
+With the application running, substitute the tool ID saved above:
 
 ```sh
-bun run cli tool check-out --tool-id <id> --borrower E104233 --work-order WO-58812 --due-at 2026-12-01T14:00:00Z --key out-1
-bun run cli tool check-out --tool-id <id> --borrower E104233 --work-order WO-58812 --due-at 2026-12-01T14:00:00Z --key out-2; echo "exit $?"
-bun run cli tool return --tool-id <id> --condition damaged --key back-1
+bun run cli tool check-out --tool-id <tool-id> --borrower E004217 --work-order WO-58812 --due-at 2000-01-01T14:00:00Z --key tutorial-out-1
+bun run cli tool check-out --tool-id <tool-id> --borrower E004217 --work-order WO-58812 --due-at 2000-01-01T14:00:00Z --key tutorial-out-1
+bun run cli loan list --tool-id <tool-id> --output text
+bun run cli tool check-out --tool-id <tool-id> --borrower E004217 --work-order WO-58812 --due-at 2000-01-01T14:00:00Z --key tutorial-out-2
 ```
 
-The commands print the tool `checked-out`, then `CONFLICT` with `exit 5`, then the tool `in-repair`.
+Reusing `tutorial-out-1` must return the stored command result and leave one open loan. The new request with `tutorial-out-2` must fail with `CONFLICT`. Read the tool to confirm that it remains `checked-out` and has not acquired another loan.
+
+Return it with:
+
+```sh
+bun run cli tool return --tool-id <tool-id> --condition damaged --note "Ratchet slips" --key tutorial-back-1
+bun run cli tool get --id <tool-id>
+bun run cli loan list --tool-id <tool-id> --output text
+```
+
+The return result contains the closed loan. Its condition is `damaged` and its note is `Ratchet slips`; `tool.get` shows `in-repair`. A second return with a new key must fail because no checked-out tool remains to return.
+
+Inspect the stale-revision test as well. It must submit an earlier `tool:<id>` revision and assert that the loan remains unchanged after refusal. Idempotency and revision checks solve different situations in this operation; the tests should exercise each through the command entrypoint.
 
 ## Overdue tools
 
-**Goal:** a query that lists loans past their due time. **Skill:** [add-capability](../../packages/runtime/skills/add-capability/SKILL.md).
+The overdue query selects open loans whose due instant is earlier than the query clock. The due date is stored as an ISO datetime with an offset, so the handler parses it before ordering. Lexical ordering of strings with different offsets can give the wrong result.
 
-A query reads one snapshot of the workspace. The policy's caller gate admits members only, and the handler filters the rows before it counts them and cuts the page, so the total a screen shows is the total the caller may see. The handler takes the time from the instance clock in `services`, which a test replaces with a fixed value. [Authorization](../authorization.md#lists) explains why lists filter before paging.
+The predicate uses a strict comparison: a loan due exactly at the current instant is not overdue. A returned loan must be excluded even when its earlier due date is in the past. The query accepts a borrower filter, applies that filter before paging, and returns the filtered total.
+
+Use [add-capability](../../packages/runtime/skills/add-capability/SKILL.md):
 
 ```text prompt
 Use the add-capability skill. For the application in showcase/examples/tool-store, run
@@ -213,24 +222,19 @@ ago, leaves out a loan due in one minute and a returned loan, and a viewer can c
 checks the add-capability skill names and report what passed.
 ```
 
-<Code code={region(overdueHandler, 'handler')} lang="ts" title="handlers/loan-overdue.ts" />
+The query remains headless at this checkpoint; the following screen step adds its UI binding. The finished query reads time through the application service. Its tests pass a fixed clock, which makes a due-time boundary reproducible.
 
-<FileTree>
+<Code code={region(overdueHandler, 'handler')} lang="ts" title="Finished reference: handlers/loan-overdue.ts" />
 
-- showcase/examples/tool-store/
-  - contracts/loan-overdue.ts
-  - handlers/loan-overdue.ts
-  - test/loan-overdue.test.ts a fixed clock
+Check the test with a loan due exactly now, then the tests that page a borrower-filtered list. The returned `total` must count every matching loan before paging. A viewer must be allowed to call the query, and a caller outside the store membership must be refused.
 
-</FileTree>
-
-**Check:** the standard checks. Check out a tool with `--due-at` in the past; `bun run cli loan overdue --output text` lists it.
+For a running application, create another available tool and check it out with the past due time used above. `bun run cli loan overdue --output text` must include that open loan. The returned wrench must be absent. Querying with another borrower must exclude it from both the rows and the total.
 
 ## Counter screen
 
-**Goal:** the screen the attendant uses at the window. **Skill:** [build-screens](../../packages/frame/skills/build-screens/SKILL.md).
+At this checkpoint the counter is an application screen reached from a tool. It reads the tool and the newest loan, displaying a checkout form only for an available tool. A checked-out tool displays the open loan and the return form. The later terminal chapter places this work behind operator sign-in; it should not be silently required here.
 
-Screens read through live queries and write only through catalog commands. A live query follows the workspace journal from the snapshot it read, so a check-out on the counter updates the Overdue screen without a reload; the overdue list also refetches on a timer, because a loan falls due by the clock alone. Every command a screen issues needs a UI binding on its capability, and the UI-binding test fails for an operation that has neither a screen nor a declared headless exception. The UI session shares the open tool with agent runs as `tool:<id>` with its revision, which is why `tool.get` returns the revision and the application lists `tool` among its selectable resources. [Interaction contract](../interaction-contract.md#ui-bindings) covers bindings and the UI session context.
+Use [build-screens](../../packages/frame/skills/build-screens/SKILL.md):
 
 ```text prompt
 Use the build-screens skill. In showcase/examples/tool-store, replace the default tool record
@@ -249,47 +253,26 @@ and see the status in-repair. Run the checks the build-screens skill names and r
 passed.
 ```
 
-The Overdue screen's query, live and on a timer:
+Inspect how the screen chooses the newest loan. The finished reference queries `loan.list` for the selected `toolId` and uses the first record when `returnedAt` is absent. Past loans are paged separately; the screen does not retrieve a partial list and calculate a total locally.
 
-<Code code={region(overdueScreen, 'query')} lang="tsx" title="ui/overdue.tsx" />
+The overdue screen needs a timer as well as journal-driven refresh. A loan becomes overdue when time passes, even if no command creates a journal event. This excerpt is from the finished reference:
 
-The application names the resource kind a screen may share with a run:
+<Code code={region(overdueScreen, 'query')} lang="tsx" title="Finished reference: ui/overdue.tsx" />
 
-<Code code={region(application, 'selectable')} lang="ts" title="application.ts" />
+The prompt also introduces selectable tool resources for later run context. The current finished-reference declaration includes assignment resource kinds added in chapter 3. At this step, only `tool: 'tool.get'` is required. The read must return the observed revision for that resource.
 
-<FileTree>
+<Code code={region(application, 'selectable')} lang="ts" title="Finished reference: application.ts" />
 
-- showcase/examples/tool-store/
-  - ui/tool.tsx the list and the counter screen
-  - ui/overdue.tsx
-  - screens.tsx the Overdue navigation item
-  - application.ts selectableResources
-  - contracts/tool.ts tool.get returns the revision
-  - test/ui-bindings.test.ts
-  - e2e/default-screens.pw.ts the overdue flow
+In the browser, create an available tool, check it out with a past due time, and open Overdue. Return it as damaged. The tool should leave the overdue list because the loan is closed. A page reload must preserve the recorded return. The browser spec should assert the absence from the overdue list as well as the new status.
 
-</FileTree>
+The screenshots below show the completed application's terminal tabs after the sign-in work in chapter 2. This checkpoint does not yet have that terminal wrapper.
 
-In the finished app the counter is a tab of the terminal, after the attendant signs in, and a scan has filled the borrower:
+![Finished reference: the Counter tab showing tool details and the checkout form](../assets/screenshots/tool-store/counter.png)
 
-![The counter shows tool TC-00601 with its details, the check-out form with the borrower filled, past loans and the edit form](../assets/screenshots/tool-store/counter.png)
+![Finished reference: the Overdue tab showing an open loan](../assets/screenshots/tool-store/overdue.png)
 
-The Overdue tab of the finished app:
+## Checkpoint
 
-![The Overdue tab lists the insulation tester TC-00602, lent to E004217 for WO-58812 and due on 30 October](../assets/screenshots/tool-store/overdue.png)
+The exported application now has its tool record and controlled loan operations. The overdue query is available through the CLI and the browser. Run the application tests and browser specs against this version before moving to [Counter terminal](tool-store-2-counter-terminal.mdx).
 
-**Check:** the standard checks and the Playwright run. In the browser, an open tool shows a check-out form when it is available and a return form when it is out. The **Overdue** tab is in the navigation.
-
-## Limits
-
-The store runs on its own records only; no scanner, badge reader, EAM or model is involved yet. The next part adds the counter terminal: a handover log, asset tag scanning and attendant sign-in.
-
-## References
-
-- [Tool store 2: counter terminal](tool-store-2-counter-terminal.mdx)
-- [Getting started](../getting-started.md)
-- [Capability authoring](../capability-authoring.md)
-- [Authorization](../authorization.md)
-- [State and reactivity](../state-and-reactivity.md)
-- [Interaction contract](../interaction-contract.md)
-- [showcase/examples/tool-store](../../showcase/examples/tool-store/README.md)
+Record the observed behavior with the checkpoint commit. The imported excerpts and screenshots describe the finished reference; their presence in this page does not validate the code produced in your export.

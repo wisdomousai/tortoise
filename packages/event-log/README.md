@@ -1,9 +1,9 @@
 # @tortoise/event-log
 
-The audit log: an append-only, hash-chained record of every command, query, denial, outbox change, sync, connection and run. Each event records an input digest; input values appear only for fields a capability allow-lists in `audit.fields`. Check a log with `bun run cli audit verify --log .workspace/audit`.
+`@tortoise/event-log` implements the audit event store used by configured host components. `openJsonlEventLog` opens an append-only JSONL log under a writer lock. Events form a hash chain, and `verifyEventLog` checks its ordering and integrity.
 
-- Primitives: [Audit log](../../docs/primitives.md#audit-log).
+The package also supplies an in-memory log for tests and forwarding to a configured sink. Audit input digests and field disclosure are determined by the component producing the event. The runtime's audit ordering is specified in [Security and compliance](../../docs/security-and-compliance.md#audit-log).
 
 ## References
 
-- [Security and compliance](../../docs/security-and-compliance.md#audit-log)
+[Security and compliance](../../docs/security-and-compliance.md#audit-log)

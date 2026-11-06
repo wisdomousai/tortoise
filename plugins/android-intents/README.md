@@ -1,14 +1,11 @@
 # @tortoise/android-intents
 
-Connects an app to Android intents both ways: it receives an intent with the app's own action, and it starts an explicit intent in another app. Compose `openAndroidIntents` beside the OS plugin. Any app on the device can send such an intent, so the plugin treats it as an unsolicited OS request: it only opens or prefills a form, and the person confirms there.
+`@tortoise/android-intents` connects declared OS handlers to Android intent delivery. `openAndroidIntents` is composed with the OS plugin. Outgoing actions start an explicit intent in the receiving application.
 
-Primitives:
-
-- [OS handler](../../docs/primitives.md#os-handler)
-- [OS action](../../docs/primitives.md#os-action)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+An intent can originate from other software on the device. The plugin handles it as an unsolicited request to open a screen or prepare a form. The person submits any resulting command through their session.
 
 ## References
 
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
-- `bun test plugins/android-intents`
+[add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+
+`bun test plugins/android-intents`

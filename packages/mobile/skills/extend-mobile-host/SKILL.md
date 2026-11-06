@@ -1,6 +1,6 @@
 ---
 name: extend-mobile-host
-description: Run an agent-native application on Android or iOS, or extend what it can do there. Use when an application should target mobile, when writing a host plugin with Kotlin or Swift code (an Expo module and config plugin), when an application needs its own Expo config plugin (camera, permissions), when writing native screens or native registry components, when pairing phones and tablets with a hub (plugins/device-link, plugins/hub-link), or when device management should supply settings (plugins/managed-config). Covers packages/mobile, packages/frame-native, apps/mobile and showcase/examples/asset-survey-field.
+description: Target the mobile host or extend its native capabilities. Use for native screens, Expo modules and application registrations, or optional pairing with a hub and managed-device configuration.
 ---
 
 # Extend the mobile host
@@ -11,24 +11,24 @@ The Expo project in `apps/mobile` runs one application's instance on the device.
 
 - Keep code that runs on the device portable: no `node:*` or `bun:*` imports and no Node or Bun globals. `bun run test:portable` runs the suites with the Web globals Hermes lacks removed, and `bun run check:boundaries` enforces the imports.
 - The device has no network guard, no listener and no child processes. The network port of the plugin that provides it is the only network path, and `plugins/hub-link` reaches only the paired origin.
-- Each side owns its workspace. A phone hands records to the hub through the outbox, and the hub decides on each one again as `device:<id>`. There is no multi-master synchronization.
+- Each side owns its workspace. When pairing is configured, a phone delivers records through its outbox and the hub authorizes them as `device:<id>`. Pairing is optional; the mobile host does not provide multi-master synchronization.
 
 ## Steps
 
 1. List `mobile` in the manifest's targets.
 2. Set `targets.mobile.application` in `app.config.json`, or `TORTOISE_MOBILE_APPLICATION` for one build.
 3. Add a `screens-native` entrypoint with `defineNativeScreens` from `@tortoise/frame-native/screens`. Screens read the session with `useSession()`.
-4. Build native screens from the `tortoise-native` UI registry in `packages/frame-native`, such as `hold-button`, `status-pill` and `list-row`. A phone that takes assignments shows the worklist kit's `<namespace>.assignment.list` with `worklist-list`, and its target status and `<namespace>.report.list` with `worklist-sync`.
+4. Build native screens from the `tortoise-native` UI registry in `packages/frame-native`, using the components appropriate to the device interaction. A phone that takes assignments shows the worklist kit's `<namespace>.assignment.list` with `worklist-list`, and its target status and `<namespace>.report.list` with `worklist-sync`.
 5. Run `bun run build:registry:native` after changing a registry item.
 6. Contribute a plugin's native screens with `definePluginNativeScreens` and a feature's with `defineFeatureNativeScreens`. Pass the application's `manifest` to `defineNativeScreens`, which checks unit screens against it.
-7. For a native plugin, follow "Writing a native plugin" in the [mobile package README](../../README.md#writing-a-native-plugin). In short:
+7. For a native plugin, follow "Writing a native plugin" in the [mobile package README](../../README.md#writing-a-native-plugin).
    - put an Expo module next to `src/`, with an optional `app.plugin.js` config plugin;
    - set `platforms` and `native: { module, expoPlugin? }` in `plugin-manifest`;
    - call `pluginNativeModule(manifest)` in `open`;
    - keep the logic in a module that takes the native module as a parameter, so Bun tests use a fake;
    - keep Expo imports under `src/expo/`, which `tsconfig.native.json` checks.
-8. For a build-time permission or resource of the application's own, list `expoPlugins` with options in its manifest, as `showcase/examples/asset-survey-field/manifest.ts` does for `expo-camera`.
-9. Compose `plugins/device-link` on the hub. Set `device-link-sync-operations`, or pass `syncOperations` to `createDeviceLinkPlugin`.
+8. For a build-time permission or resource of the application's own, list `expoPlugins` with options in its manifest.
+9. For paired operation, compose `plugins/device-link` on the hub. Set `device-link-sync-operations`, or pass `syncOperations` to `createDeviceLinkPlugin`.
 10. Compose `plugins/hub-link` on the device. The device names its outbox target `hub` and reaches it through `createPeerPort` in `packages/integration`. Records from the hub come back through inbound sync.
 11. Compose `plugins/managed-config` so that MDM values such as `hub-url` and `enrollment-code` become settings. A managed device then pairs on first start.
 12. Declare links, shares, intents, shortcuts and notifications in the application's OS declarations. The `add-os-integration` skill (`packages/shell/skills/add-os-integration/SKILL.md`) has the steps. A native screen asks for a declared action with `useOsAction` from `@tortoise/frame-native/os-actions`.
@@ -57,6 +57,5 @@ Bun tests run the mobile instance on Bun's SQLite and files with fake device bin
 ## References
 
 - [Mobile host](../../../../docs/mobile.md)
-- [`showcase/examples/asset-survey-field`](../../../../showcase/examples/asset-survey-field/README.md)
 - [`plugins/intent-scanner`](../../../../plugins/intent-scanner/README.md)
 - [`plugins/managed-config`](../../../../plugins/managed-config/README.md)

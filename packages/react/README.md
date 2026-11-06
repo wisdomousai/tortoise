@@ -1,10 +1,11 @@
 # @tortoise/react
 
-React bindings: `useCapabilityForm` turns one intent into exactly one command, and `useLiveQuery` keeps committed data live on screen. Forms validate with the capability's own schema. Nothing here is a security boundary; the bindings protect correctness on the client.
+`@tortoise/react` binds the client to React components. `useLiveQuery` subscribes a component to committed state through the client. `useCapabilityForm` validates form values with the capability schema and reuses an idempotency key when submission is retried.
 
-- Primitives: [Capability binding](../../docs/primitives.md#capability-binding), [Remote query](../../docs/primitives.md#remote-query), [Journal and live query](../../docs/primitives.md#journal-and-live-query), [UI session context](../../docs/primitives.md#ui-session-context).
+UI-session helpers register the screen's selected resources and handle intents delivered to that session. An intent that prepares a form does not submit its command. The runtime authorizes the command when the person submits it.
 
 ## References
 
-- [build-screens](../frame/skills/build-screens/SKILL.md)
-- [Interaction contract](../../docs/interaction-contract.md), [State and reactivity](../../docs/state-and-reactivity.md)
+[build-screens](../frame/skills/build-screens/SKILL.md)
+
+[Interaction contract](../../docs/interaction-contract.md), [Operations and state](../../docs/capability-authoring.md)

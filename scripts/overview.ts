@@ -1,10 +1,10 @@
 /**
- * The data behind the overview map in `docs/overview.md`, written by `bun run generate` to
+ * The data behind the architecture views, written by `bun run generate` to
  * `dist/reference/overview.json`. Workspaces, dependency edges, plugin requirements, example
  * compositions and each example's declared destinations come from manifests, READMEs and the
  * catalog. The request paths, properties and port table come from `overview-curated.ts`, and every
  * file, test name and doc anchor they name is checked here. A check that fails throws, so a stale
- * map fails `bun run check`. Reads files and pure manifests only, like the other generators.
+ * map fails `bun run check`. These checks establish reference validity, not the truth of prose.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,6 +13,7 @@ import { defaultPorts } from '@tortoise/kernel';
 import { deploymentCatalog, deploymentComponents } from '@tortoise/host/components';
 import { securityManifest } from '@tortoise/compliance';
 import * as curated from './overview-curated';
+import { primitivesByWorkspace } from './overview-ownership';
 import { importedPackages, workspaces, type Workspace } from './workspace-manifests';
 
 /** Display names for the layers the root `workspaces` field lists; others use the directory. */
@@ -45,14 +46,12 @@ function readmeLead(markdown: string): string {
   );
 }
 
-/** The primitives a README links, regardless of how the page is organized. */
-function readmePrimitives(markdown: string) {
-  const found = new Map<string, string>();
-  for (const [, title, anchor] of markdown.matchAll(
-    /\[([^\]]+)\]\([^)#]*primitives\.md#([\w-]+)\)/g,
-  ))
-    found.set(anchor!, title!);
-  return [...found].map(([anchor, title]) => ({ anchor, title }));
+/** The explicit ownership data keeps editorial changes out of map membership. */
+function workspacePrimitives(root: string, directory: string) {
+  return (primitivesByWorkspace[directory] ?? []).map((anchor) => ({
+    anchor,
+    title: checkDoc(root, `primitives#${anchor}`, directory).split(': ').slice(1).join(': '),
+  }));
 }
 
 function skillsOf(root: string, directory: string) {
@@ -373,7 +372,7 @@ export async function overview(root: string, manifests: readonly ApplicationMani
         depth: depth.get(workspace.manifest.name) ?? 0,
         dependsOn: edges.get(workspace.manifest.name)!,
         lead: readmeLead(markdown),
-        primitives: readmePrimitives(markdown),
+        primitives: workspacePrimitives(root, workspace.directory),
         skills: skillsOf(root, workspace.directory),
       };
     }),

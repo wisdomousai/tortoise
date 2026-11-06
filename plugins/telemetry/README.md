@@ -1,14 +1,11 @@
 # @tortoise/telemetry
 
-Derives OpenTelemetry metrics and traces from the audit log and the outbox and posts them as OTLP/HTTP JSON to a collector on the same machine. Compose `createTelemetryPlugin`; `startCollector` runs a stand-in for tests. Trace and span IDs are SHA-256 digests of correlation, effect and run IDs, and the resource has `service.name` (the application ID) and `service.instance.id`.
+`@tortoise/telemetry` exports measurements derived from runtime audit events and outbox state. `createTelemetryPlugin` sends OTLP/HTTP JSON through a destination bound to a collector on the same machine.
 
-Primitives:
-
-- [Telemetry](../../docs/primitives.md#telemetry)
-- [Requirement declaration](../../docs/primitives.md#requirement-declaration)
-- [Host plugin](../../docs/primitives.md#host-plugin)
+Exported resources identify the application and instance. Trace identifiers are derived from runtime correlation identifiers, and measurements exclude record contents. `startCollector` provides a fixture for checking the exporter without an external collector.
 
 ## References
 
-- [export-telemetry](skills/export-telemetry/SKILL.md)
-- `bun test plugins/telemetry`
+[export-telemetry](skills/export-telemetry/SKILL.md)
+
+`bun test plugins/telemetry`

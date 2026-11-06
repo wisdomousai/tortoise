@@ -1,15 +1,13 @@
 # @tortoise/intent-scanner
 
-Reads scans from rugged Android devices (Zebra, Honeywell, Datalogic) that broadcast each scan as an intent. Configure the intent in the vendor's scanner software and open the source with `createIntentSource`. The manifest exports the receiver because the scanner software runs in another process, so any other software on the device can send the action unless the profile sets `senderPermission`.
+`@tortoise/intent-scanner` receives scans broadcast by an Android scanner service. The application opens the source with `createIntentSource`, and the scanner profile identifies the broadcast action and payload fields.
 
-Primitives:
-
-- [Input source](../../docs/primitives.md#input-source)
-- [Host plugin](../../docs/primitives.md#host-plugin)
-- [Native frame](../../docs/primitives.md#native-frame)
+The receiver is exported so the scanner service can reach it from another process. Other applications can send that action unless the profile supplies `senderPermission`. Treat the decoded scan as untrusted command input under the operator's session.
 
 ## References
 
-- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
-- [Operator input: sources](../../docs/operator-input.md#sources)
-- `bun test plugins/intent-scanner`
+[add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
+
+[Operator input: sources](../../docs/operator-input.md#sources)
+
+`bun test plugins/intent-scanner`

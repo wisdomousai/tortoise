@@ -75,6 +75,7 @@ export function useAssistantConversation() {
     setSending(true);
     setError(undefined);
     try {
+      // #region start-run
       const session = await ui.prepare();
       const run = await hostJson<PanelRun>('runs', {
         agentId: assistantAgent.id,
@@ -84,6 +85,7 @@ export function useAssistantConversation() {
         ...(conversationId ? { conversationId } : {}),
       });
       sentRun.current = run.id;
+      // #endregion start-run
       setMessages((sent) => [...sent, { runId: run.id, text: request, at: Date.now() }]);
       setConversationId((current) => current ?? run.conversationId);
       setDraft('');

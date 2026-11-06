@@ -1,8 +1,10 @@
 # Working on this starter
 
-Tortoise is a framework for small applications that run at the edge and serve a process so specialized that no standard application fits it. Adapting a standard application to such a process costs as much as writing custom software, and Claude Code or Codex now writes custom software cheaply. But what it writes from scratch is fragile: whether the application checks access, keeps an audit log or gets its results into the central systems depends on what the prompts happened to ask for. Tortoise gives Claude Code or Codex a starting point that already does those things and runs on the computer or phone at the edge, so it writes only the code for the process.
+Tortoise is a TypeScript framework for custom applications serving specialized processes at the edge. Application code declares the operations for its process. The runtime executes those operations against a workspace under application policy. The host supplies the execution environment and composes the application's declared extensions.
 
-Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before you change a boundary.
+Claude Code and Codex use the framework's task skills when constructing an application. Hypothetical demonstrations exercise selected mechanisms. Framework documentation explains the actual contracts independently of those demonstrations.
+
+Read `docs/architecture.md` and the relevant entries in `docs/primitives.md` before you change a boundary.
 
 ## Layers
 
@@ -16,7 +18,7 @@ Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before 
 | driver SDKs  | `sdks/*`                                       | no application; nothing imports an SDK         |
 
 - The framework and the starter name no domain and import no workstation package, plugin, example or pattern.
-- An example is a whole application for a real case in a covered domain. A pattern is a small application that shows one technical concern. Every pattern imports `showcase/patterns/base` unchanged and adds one concern.
+- An example is a hypothetical demonstration application in a covered domain. It does not define the framework's purpose or required application behavior. A pattern demonstrates an extension mechanism and imports `showcase/patterns/base` unchanged.
 - An application has three entrypoints: browser-safe `manifest`, server `application`, browser `screens`. Its domain code, fakes, screens and tests stay in it. Framework tests never import one.
 - A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. It reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
 - Generic host or frame behavior goes in the framework, so a forked starter keeps getting it.
@@ -37,13 +39,13 @@ These protect data and security. `bun run check` and the conformance suites test
 Advice. Depart from it when the code is better for it, and say why in the commit message.
 
 - Look for an existing primitive before you add one.
-- A new primitive, plugin or integrated technology gets a pattern or example and a row in `docs/patterns.md`. Stay in the covered domains: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, test and quality.
+- A new primitive, plugin or integrated technology gets a focused demonstration with tests. Document its contract in the owning workspace and link the relevant framework explanation. Keep demonstration applications within the covered domains: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, test and quality. Do not turn them into a documentation catalogue.
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts. Use an outbox effect when another system decides.
 - An application serves one process. Keep its code to that process.
-- Deliver what it captures through a target. Set a shelf life on the manifest.
+- Use a target when an application's captured data must reach an external system. Set a shelf life on the manifest.
 - Do not add an owner, a term or a renewal record.
 - Document what a workspace is for, what it trusts and how to test it. Comment the non-obvious: transaction and authorization order, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and known gaps.
@@ -94,7 +96,7 @@ Keeping skills current:
 
 - For current library APIs: `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'`. Run network documentation requests outside the sandbox.
 - Run the checks in `docs/development-and-testing.md`.
-- Follow `docs/styleguide.md` and use the terms in `docs/glossary.md`.
+- Follow `docs/styleguide.md` and use the terms in `docs/primitives.md`. Write plain technical explanations without example catalogues or rhetorical patterns.
 - Do not discover or reuse provider credentials. Live probes need explicitly configured accounts. Never commit keys, data directories or generated launch credentials.
 - Concurrent agents own disjoint files, announce interface changes and preserve each other's work. The root owns dependency manifests and the lockfile.
 - Keep platform-specific cloud dependencies out of framework contracts and the runtime.

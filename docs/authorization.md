@@ -1,104 +1,75 @@
 # Authorization
 
-The instance decides who may run which capability on which records, and checks it inside the storage transaction. Screens, HTTP, MCP, the CLI and agent tools all hit the same check.
+The runtime authorizes a capability against the workspace state under which it executes. Application policy determines access to its records. The execution context supplied by the host identifies the caller and any delegated grant. Every channel reaches this runtime boundary.
 
 ## Write a policy
 
-`definePolicy` builds the policy from data and denies every operation it doesn't list. Abridged from `showcase/examples/receiving/policy.ts`:
+`definePolicy` compiles a `PolicySpec` into an `AuthorizationPort`. The policy declares the operations it decides and the resource types whose journal events it can release. An operation absent from that declaration is denied.
 
-```ts
-const editor: OperationRule<AppState, Role> = {
-  allow: ({ state, context }) => roleOf(state, context.principalId) === 'editor',
-};
+An operation marked `open` admits callers that pass the policy's caller gate; its handler remains responsible for authorized row scope. An operation marked `integration` admits only an integration principal whose allowlist names it. An `OperationRule` can resolve a container from stored state and check the caller's membership there. Its `allow` function can impose additional conditions on the current operation input.
 
-export const appPolicy = definePolicy<AppState, Role>({
-  integrations: [targetAllowlist(erpTarget, (_s, id) => id === 'erp-integration')],
-  caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
-  operations: {
-    [operations.deliveryList.id]: 'open', // handler scopes the rows
-    [operations.deliveryReceive.id]: editor, // a rule
-    ...targetRules(erpTarget), // integration-only operations
-  },
-  events: { delivery: () => true },
-});
-```
+An integration principal is confined to its allowlist. The policy checks this path before the ordinary caller rules. Configure an allowlist's additional predicate when an integration must act only on a particular station or target. Journal access for that principal can be constrained with its event predicate.
 
-Each operation is one of:
+At commit, an ordinary operation rule evaluates the prior state as well as the proposed state. `commit: 'previous'` restricts this evaluation to the prior state when a command removes the resource needed by its rule. A rule's `person` flag refuses a context with a grant or run. Resource-limited grants require the rule to resolve a resource included in that grant.
 
-- `open`: any caller who passes `caller`; the handler scopes rows.
-- `integration`: only an integration allowlist may call it.
-- a rule: resolves the record's container from stored state and names the allowed roles. It can also require that a limited grant contain the resource, or refuse delegated runs.
-
-A rule runs on both the current and the proposed state, so it can't skip the commit-time check. Roles come from membership; `set-member` refuses a change to your own role.
-
-Test it:
-
-```sh
-bun test packages/runtime/test packages/adapters/src/casl.test.ts
-bun test showcase/examples/field-service/test/security-conformance.test.ts
-```
+The declarations and evaluation order are implemented in `packages/runtime/src/policy.ts`. [Operations and state](capability-authoring.md) describes the handler contract.
 
 ## Who the caller is
 
-The host builds the execution context from the session. Capability input can't set the principal, workspace, roles or grant. The local host starts as the local user. A provider account grants no workspace access, and an approval never allows what the policy denies.
+The host constructs `ExecutionContext` from a validated session or other configured identity source. Capability input cannot establish the caller's principal or widen its grant. The local-user host issues the local identity; workforce sign-in and device enrollment have their own credential paths.
+
+A provider account authorizes access to that provider. Workspace policy continues to govern the resulting agent's operations. Approval also executes under current application policy.
 
 ## Command checks
 
-In `packages/runtime/src/application/commands.ts`:
+The runtime validates the request and execution context before opening the storage transaction. Inside the transaction it asks the policy to authorize against current state and checks expected revisions. Supplying an expected revision requires read access to the referenced resource.
 
-1. Validate input and context: workspace, principal, cancellation, grant operations, expiry, bindings.
-2. In the transaction, ask the policy on current state. An expected revision counts as a read.
-3. Run the handler. The runtime refuses a change to a resource outside the grant.
-4. Project and validate the output.
-5. Ask the policy again on the before and after state.
+The handler then executes within the transaction. Changes outside a delegated grant's resource scope fail. The runtime projects the returned value through output policy and validates the projected output schema. Before committing, it checks authorization against the relevant state snapshots again and rechecks cancellation and grant validity. A failure aborts the transaction.
 
-The runtime rechecks the context after every awaited step and before commit. Any failure rolls back everything.
+Each nested invocation runs its own authorization. The enclosing capability must declare the callee in `invokes`, and the caller's grant must permit it. Policy receives the enclosing operation path as `via`. A nested refusal fails the transaction even when handler code catches that error.
 
-A nested call (`ctx.invoke`, `ctx.query`, `continueWith`) runs steps 1–5 for its own operation. The grant must list it and the caller must list it in `invokes`. The policy sees `via`, the enclosing operations. A nested refusal fails the whole command even if the handler catches it.
-
-The policy also projects outputs to the fields the caller may read, and decides journal delivery. In `field-service`, only dispatchers see internal notes; response schemas make those fields optional so projected output still validates.
+A policy can remove unreadable fields from the response. The declared output schema must permit those fields to be absent so the projected value still validates. The same authorization port controls journal visibility. Runtime command ordering is implemented in `packages/runtime/src/application/commands.ts` and its frame helpers.
 
 ## Feature policies
 
-A feature such as approvals decides its own operations (`routeAuthorization` in `packages/runtime/src/compose.ts`). It reads an access view the application computes, which applies the app's membership, integration allowlists and grant scope. Person-only rules live there: approving, rejecting and resolving held effects refuse delegated callers. A caller who can't read an approval request gets `NOT_FOUND`. Test: `packages/runtime/test/approval-feature.test.ts`.
+A mounted feature authorizes its own operations through the access view supplied by the application. `routeAuthorization` in `packages/runtime/src/compose.ts` routes each request to the unit that owns it. The application's policy does not receive the feature's operations.
+
+The access view must apply the application's membership and relevant grant scope. Approval decisions and reconciliation require a person under their feature policies. A caller without access to an approval request receives `NOT_FOUND`, so the refusal does not confirm that a hidden request exists.
 
 ## Lists
 
-The handler scopes a list to what you may see before filtering, sorting, paging or counting. You can't filter or sort on protected fields. A delegated grant narrows lists further.
+A list handler restricts records to the caller's authorized scope before it filters or orders the result. Paging and total counts use that same scope. Protected fields cannot become search or ordering inputs that expose information the caller cannot read. A delegated grant further restricts the available records.
 
 ## Delegation and replay
 
-Effective access is your current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and bind to a principal, workspace and run. An agent run keeps its starting grant. A resource-scoped grant may change only those records; its `creates` list lets it add records of named types (e.g. `approval-request`).
+A delegated operation must satisfy current policy within its grant. A grant can constrain the operations and resource identifiers available to the run. It can also bind execution to a principal or workspace and impose an expiry. A resource-scoped grant's `creates` field permits new resources of the declared types. The agent definition establishes the run's starting grant.
 
-- **Retry:** the same idempotency key returns the stored command result after authorizing again, including each nested command (`replay` phase). An old command result can't recover revoked access.
-- **Dispatch:** before the first claim of an outbox effect, the runtime authorizes the committing person again without delegation (`dispatch` phase). A denial puts the effect in `held` for a person.
+Replaying an idempotency key reauthorizes the stored result under current access. The runtime also reauthorizes the nested commands recorded by the first execution and projects the returned value again. A stored command result therefore cannot restore revoked read access.
+
+Before an outbox effect's first claim, the default dispatcher requests a dispatch authorization check for its original actor without delegation. For `definePolicy`, the dispatch phase checks membership and role scope without re-evaluating the command's application preconditions on its already-changed state. A denied dispatch check holds the effect for reconciliation.
 
 ## Revocation and live updates
 
-Membership changes serialize with business changes and bump the authorization revision. The runtime rechecks grant expiry and run cancellation after every await. A session revoked while its command waits still commits ([known defect](implementation-status.md#known-defects)).
+Membership changes serialize with record changes and increment the authorization revision. The runtime checks grant expiry and run cancellation after awaited work. Session revocation while a command is already waiting remains a [known defect](implementation-status.md#known-defects); the runtime context does not currently prevent that command from committing solely because its session was revoked.
 
-Journal entries contain references and revisions, not contents, and the stream filters delivery inside the storage read. When the authorization revision changes, streams reset without leaking newly forbidden IDs, and live queries drop old data. Nothing can withdraw bytes already sent, so screens hide sensitive drafts after a revocation.
+The journal stores resource references and revisions. Event delivery applies current read access inside the storage read boundary. A change to the authorization revision resets subscriptions without returning newly forbidden resource identifiers. Live queries discard data obtained under the prior authorization revision. Screens must also clear sensitive drafts because access checks cannot retract data already delivered to a caller.
 
 ## UI sessions
 
-A UI session context stores navigation and selection, bound to the live credential, principal and workspace. The host checks selections against authorized queries and freezes them when a run captures them. UI intents go only to the captured session, the run reads each named record under its grant, and no intent commits records. A leaked session ID grants nothing.
+A UI session binds its navigation and selection to the credential that created it. The host checks that the selected resources are readable. A run captures a particular context version, and its later intents remain bound to that session. Possessing the session identifier does not establish permission to use it. The shared validation contract is specified in [Channels and interaction](interaction-contract.md#ui-session-context).
 
 ## Process boundary
 
-The instance owns the workspace under an exclusive OS lock. Other processes attach through its connection file. Nothing sandboxes processes running as the same OS user.
+A local serving instance owns the workspace through an exclusive OS lock. Other processes attach through the connection file. Hosted ownership uses a database lease. These ownership controls serialize workspace access; processes running as the same OS user are outside this application-level authorization boundary.
 
 ## CASL adapter
 
-The CASL adapter turns row scopes into SQL. It accepts only these over registered scalar fields:
+The CASL adapter supports a bounded condition language over registered scalar fields. Equality and set membership use `eq` and `in`. Boolean composition uses `and`, `or` and `not`. The adapter parameterizes values when compiling its SQL scope.
 
-```ts
-{ eq: ['workOrderId', 'w1'] }
-{ in: ['workOrderId', ['w1', 'w2']] }
-{ and: [a, b] } { or: [a, b] } { not: a }
+Unknown fields and unsupported operators are rejected. Unsafe column names and wildcards are refused, and deny rules take precedence. Extending the supported language requires agreement checks across object evaluation and the storage adapters. Run these checks from the repository root:
+
+```sh
+bun test packages/runtime/test packages/adapters/src/casl.test.ts
 ```
 
-It rejects unknown fields, operators, unsafe column names, wildcards and allow-after-deny; values become SQL parameters; denies win. A new operator needs agreement tests across object, memory and SQL (`packages/adapters/src/casl.test.ts`).
-
-## See also
-
-[State and reactivity](state-and-reactivity.md) · [Systems of record](systems-of-record.md#worker-claims) · [Adapters](adapters.md#http) · [Architecture](architecture.md#instances-and-hosts)
+The storage and event boundary is described in [Architecture](architecture.md#channels-and-identity). Outbox claim authorization is described in [Systems of record](systems-of-record.md#worker-claims).

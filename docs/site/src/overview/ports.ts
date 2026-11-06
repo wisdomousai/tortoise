@@ -1,6 +1,6 @@
 /**
  * The kernel's ports with their defaults and providers, then every host plugin with what it
- * requires, where it runs and which examples compose it.
+ * requires and which host platforms it supports.
  */
 import { h, link, shortName, table, type Links, type Overview, type View } from './dom';
 
@@ -15,10 +15,10 @@ const list = (items: readonly Node[]) =>
     : h('span', { class: 'ov-muted' }, 'None');
 
 export const ports: View = (element, data, links) => {
-  const composedBy = (id: string) =>
-    data.examples.filter((example) => example.plugins.includes(id)).map((example) => example.id);
   const usedBy = (name: string) =>
-    data.workspaces.filter((workspace) => workspace.dependsOn.includes(name));
+    data.workspaces.filter(
+      (workspace) => !workspace.layer.startsWith('showcase/') && workspace.dependsOn.includes(name),
+    );
   const hostPlugins = data.plugins.flatMap((plugin) =>
     plugin.kind === 'host-plugin' ? [plugin] : [],
   );
@@ -39,7 +39,7 @@ export const ports: View = (element, data, links) => {
       h('p', { class: 'ov-label' }, 'Host plugins'),
       table(
         '',
-        ['Plugin', 'Requires', 'Runs on', 'Composed by'],
+        ['Plugin', 'Requires', 'Runs on'],
         hostPlugins.map((plugin) => [
           [
             pluginLink(data, plugin.id, links),
@@ -48,9 +48,6 @@ export const ports: View = (element, data, links) => {
           ],
           list(plugin.requires.map((id) => pluginLink(data, id, links))),
           plugin.platforms.join(', '),
-          list(
-            composedBy(plugin.id).map((id) => link(links.workspace(`showcase/examples/${id}`), id)),
-          ),
         ]),
       ),
       h('p', { class: 'ov-label' }, 'Connector packages'),

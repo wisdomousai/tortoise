@@ -1,6 +1,6 @@
 ---
 name: serve-a-local-model
-description: Serve a local base or fine-tuned model to agents with measured digests, export approval request decisions as a training dataset, and gate a new model on agent scenarios before it serves. Use when an agent must run on a model on this host, when adding or replacing a model entry or LoRA adapter, when preparing fine-tuning data from approved and rejected approval requests, or when binding llama-server or vLLM in a deployment policy. Covers plugins/model-server, the model entries in packages/agents, exportApprovalDataset in packages/runtime and gateModel in packages/testing.
+description: Serve a declared local model with measured weights through the model-server plugin. Use for model entries and process bindings, exporting approval datasets, or evaluating a fine-tune before activation.
 ---
 
 # Serve a local model
@@ -10,9 +10,8 @@ A model entry names the weights by digest. At each start, the model server plugi
 ## Before writing
 
 - Pick the runtime: `llama-server` for GGUF files and LoRA adapters, or `vllm` for Hugging Face directories and LoRA modules.
-- Ollama is not managed. Run it outside the host as an unverified `localModel`.
+- An externally operated server can be configured through `localModel`; its weight digest remains unverified by the model-server plugin.
 - Decide which agents may use the model. A fine-tune made for one task lists those agents in the entry's `agents`. Each such agent lists the entry in its definition's `models`, with `model: 'local'`.
-- `showcase/patterns/local-model` runs an agent from a trigger on a served entry, exports a dataset from its decided approval requests and gates a fine-tune on it.
 - Compute the digests the entry names with `measure(path)` from `@tortoise/model-server/measure`, or with `sha256sum` for a single file.
 
 ## Steps
@@ -59,4 +58,3 @@ In tests and development launches, bind the process to Bun with `llamaServerStan
 
 - [Agents](../../../../docs/agents.md#local-models)
 - [`@tortoise/model-server`](../../README.md)
-- [Local model pattern](../../../../showcase/patterns/local-model/README.md)

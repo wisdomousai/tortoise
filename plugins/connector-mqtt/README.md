@@ -1,13 +1,13 @@
 # @tortoise/connector-mqtt
 
-Reads an MQTT broker (plain JSON or scalar topics, and Sparkplug B) and submits the values as observations through the app's ingest command with `createMqttObserver`. It never publishes. The decoder caps packets at 1 MB and reads protobuf fields by wire type with bounds checks, so it drops a malformed payload.
+`@tortoise/connector-mqtt` subscribes to configured MQTT readings through `createMqttObserver`. It decodes plain topics or Sparkplug B payloads and submits accepted readings through the application's ingest operation. Its protocol implementation does not publish values.
 
-Primitives:
-
-- [Observation](../../docs/primitives.md#observation)
+The decoder bounds packet sizes and checks protobuf wire reads before consuming a Sparkplug payload. Malformed input is discarded. The [plant-signal skill](../../packages/observation/skills/observe-plant-signals/SKILL.md) specifies source configuration and observation behavior.
 
 ## References
 
-- [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md)
-- [Implementation status: connector plugins](../../docs/implementation-status.md#connector-plugins)
-- `bun test plugins/connector-mqtt`
+[observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md)
+
+[Implementation status: connector plugins](../../docs/implementation-status.md#connector-plugins)
+
+`bun test plugins/connector-mqtt`

@@ -1,11 +1,13 @@
 # @tortoise/scaffold
 
-Creates new applications, adds parts to them and exports the framework as a standalone application. `bun run scaffold new <dir> --name <name>` starts one; `bun run scaffold add` inserts a collection, capability, target, agent, assignment kind or feature at the `// scaffold:` markers. It copies source only, never overwrites an existing directory and refuses a target inside the source checkout.
+`@tortoise/scaffold` exports the starter with a selected application and generates additions to that application. `scaffold new` creates a fresh application in a new directory. `scaffold add` inserts declarations and their server contributions at the generated `// scaffold:` markers.
 
-- Primitives: [Scaffold](../../docs/primitives.md#scaffold), [Framework release](../../docs/primitives.md#framework-release), [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target), [UI registry](../../docs/primitives.md#ui-registry).
+A source export copies the framework into the new repository. A registry export installs the matching framework version through package dependencies. The scaffold refuses an existing destination and a destination inside its source checkout. Generated policy insertions must be reviewed after the application renames a role.
 
 ## References
 
-- [create-agent-native-app](skills/create-agent-native-app/SKILL.md)
-- [Getting started](../../docs/getting-started.md)
-- Test: `bun run test:scaffold`, `bun run test:scaffold:full`
+[create-agent-native-app](skills/create-agent-native-app/SKILL.md)
+
+[Getting started](../../docs/getting-started.md)
+
+Test: `bun run test:scaffold`, `bun run test:scaffold:full`

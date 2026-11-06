@@ -1,6 +1,6 @@
 ---
 name: declare-a-workflow
-description: Declare a durable workflow whose steps run commands and wait on queries over minutes to weeks, as the person who started it, with retries and compensations, and run it with the workflows host plugin. Use when a sequence waits on a reviewer or an outbox outcome between steps, when a later failure must undo earlier steps, or when an application starts, follows or cancels workflow instances. Covers defineWorkflow, step.run, step.wait, the start command, compensations and runner tests.
+description: Declare a durable sequence over existing application capabilities. Use when steps wait for later results, need retries or compensation, or require persisted progress and a workflow start operation.
 ---
 
 # Declare a workflow
@@ -9,10 +9,10 @@ A workflow is a sequence of steps over existing capabilities. Each workflow inst
 
 ## Before writing
 
-- Writes that must commit together are one command with nested calls; work that starts on a change or a schedule is a trigger. [Choosing a composition](../../../../docs/capability-authoring.md#choosing-a-composition) compares the three.
+- Use a command with nested calls when the changes must share a transaction. Automation triggers start work after an event or on a schedule. A durable workflow retains its progress while steps wait. [Operations and state](../../../../docs/capability-authoring.md#declared-workflows) specifies workflow composition.
 - Every step names a command or query that already exists. Add a missing one with the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) first.
 - A step that ends in another system's acceptance enqueues an outbox effect; the `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers the target.
-- Decide what undoes each step that changes something outside the application. A compensation is an ordinary command, such as `filing.withdraw`, and it must be safe to run twice.
+- Decide what undoes each step that changes something outside the application. A compensation is an ordinary command and must tolerate repeated execution.
 
 ## Steps
 
@@ -23,7 +23,7 @@ A workflow is a sequence of steps over existing capabilities. Each workflow inst
    - bind inputs with `from.input`, `from.step`, `from.effect` and, in `until`, `from.result`; conditions use `equals`, `in`, `exists`, `all`, `any` and `not`;
    - `retry: { attempts, backoffMs, on }` lists the codes worth retrying beyond `UNAVAILABLE` and `CONFLICT`.
 3. List the workflow in the module's `workflows`. The catalog refuses an unknown operation, a binding that reads ahead, an unbound required input, a step that reaches a `workflow.*` operation and durations out of range.
-4. Write the start command. It lists `workflow.start` in `invokes` and calls `ctx.invoke(workflowOperations.start, { workflow, input, key })` from `@tortoise/workflows/contracts`. The `key` is the business key, such as a capture ID; one instance per key runs at a time. Its output is `instanceSchema`.
+4. Write the start command. It lists `workflow.start` in `invokes` and calls `ctx.invoke(workflowOperations.start, { workflow, input, key })` from `@tortoise/workflows/contracts`. The `key` is the business key; one instance per key runs at a time. Its output is `instanceSchema`.
 5. Give the start command a policy rule. The steps need none of their own: each passes the application's policy as the starter when it runs.
 6. Compose the plugin: `workflowsPluginManifest` in the manifest's plugins, `createWorkflowsPlugin({ intervalMs, now, newId })` in the application's plugins and `workflowsScreens` in the screens.
 7. Bind the start command to a screen with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). The `/workflows` route lists instances, their history, and cancel, retry and resolve.
@@ -31,7 +31,7 @@ A workflow is a sequence of steps over existing capabilities. Each workflow inst
 
 ## Checks
 
-Drive the runner one pass at a time on a test clock, with `passOnce` from `@tortoise/workflows/runner`, as `showcase/examples/asset-survey/test/capture-to-eam.test.ts` does. The kernel checks grant expiry on its own clock, so start the test clock at `Date.now()`. Cover:
+Drive the runner one pass at a time on a test clock, with `passOnce` from `@tortoise/workflows/runner`. The kernel checks grant expiry on its own clock, so start the test clock at `Date.now()`. Cover:
 
 - the instance reaching `succeeded`, and the records each step wrote;
 - a rejected effect or a permanent failure running the compensations, latest first;
@@ -48,5 +48,4 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 ## References
 
 - [Workflows plugin](../../README.md)
-- [Capability authoring](../../../../docs/capability-authoring.md#declared-workflows)
-- [`showcase/examples/asset-survey`](../../../../showcase/examples/asset-survey/README.md)
+- [Operations and state](../../../../docs/capability-authoring.md#declared-workflows)

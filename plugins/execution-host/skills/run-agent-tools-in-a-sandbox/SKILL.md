@@ -1,6 +1,6 @@
 ---
 name: run-agent-tools-in-a-sandbox
-description: Run the tools an agent uses (shell commands, a provider CLI, the application's CLI or MCP server) inside a Linux bubblewrap sandbox with a run-bound grant, through the execution host plugin. Use when an agent run or trigger job must execute code that is not trusted, when declaring a sandbox and its network destinations, when binding bubblewrap in a deployment policy, or when testing what a sandbox can reach. Covers plugins/execution-host and its use of plugins/process and plugins/network.
+description: Run agent tools inside the Linux execution-host sandbox. Use when declaring the tool and filesystem boundary, binding bubblewrap, or checking a run-bound grant and restricted network access.
 ---
 
 # Run agent tools in a sandbox
@@ -13,7 +13,6 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 - Decide the paths. A working directory is bound read-write at `/work`, and anything else is read-only, such as a checkout to read. Nothing else of the host is visible.
 - List the destinations the tools must reach, such as a model API. The manifest declares each one, and the deployment policy binds it.
 - A sandbox without destinations has no network except the host API.
-- `showcase/patterns/sandbox` runs a tool that reads and records through the application CLI, started from a plugin route as the signed-in caller.
 - Decide who the sandbox acts as. Its context must include a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@tortoise/runtime`. The sandbox can then call only what the agent definition allows.
 
 ## Steps
@@ -30,7 +29,7 @@ The execution host runs an agent's tools in a sandbox: a declared child process 
 
 ## Checks
 
-1. On any platform, run `bun test plugins/execution-host`. It covers the filter, the layout and the broker.
+1. On any platform, run `bun test plugins/execution-host`. It exercises the declared sandbox boundary using fixtures.
 2. Call `availability(sandbox)` to learn why a sandbox cannot run: not Linux, no bubblewrap binding, or no serving host.
 3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`. Add test paths to run an application's own sandbox tests in the same container, such as `bun run test:execution-host:linux showcase/patterns/sandbox`.
 4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
@@ -41,4 +40,3 @@ Record a run in a container separately from a run on a deployed host in [impleme
 ## References
 
 - [Security and compliance](../../../../docs/security-and-compliance.md#agent-tool-sandboxes)
-- [Sandbox pattern](../../../../showcase/patterns/sandbox/README.md)

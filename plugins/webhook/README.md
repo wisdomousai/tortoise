@@ -1,17 +1,11 @@
 # @tortoise/webhook
 
-An example third-party plugin. It posts a notification to one declared webhook whenever an observed command commits; `field-service` composes it, with screens from `@tortoise/webhook/plugin-screens`. The loop is a caller like an agent run: it acts as the local user, narrowed by a delegated grant to the observed capabilities and the plugin's own two.
+`@tortoise/webhook` observes committed operations and delivers configured webhook notifications. Its background loop acts through a delegated grant limited to the observed operations and the plugin's own capabilities.
 
-Primitives:
-
-- [Host plugin](../../docs/primitives.md#host-plugin)
-- [Module](../../docs/primitives.md#module)
-- [Capability](../../docs/primitives.md#capability)
-- [Requirement declaration](../../docs/primitives.md#requirement-declaration)
-- [Deployment policy](../../docs/primitives.md#deployment-policy)
-- [Policy](../../docs/primitives.md#policy)
+The application composes the plugin manifest and server contribution, then registers the supplied plugin screens if it exposes their controls. The destination must be declared and bound through the deployment policy.
 
 ## References
 
-- [write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md)
-- `bun test plugins/webhook`
+[write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md)
+
+`bun test plugins/webhook`

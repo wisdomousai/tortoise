@@ -1,10 +1,11 @@
 # @tortoise/client
 
-Typed command and query calls for non-React code: scripts, the MCP bridge and the React bindings. `LiveQuery` follows the journal to keep a result current. The transport has no identity of its own; a trusted process injects a bearer token with `createHttpTransport({ token })`.
+`@tortoise/client` provides the typed client used to invoke catalog operations through a transport. `createClient` exposes command and query methods. `createHttpTransport` sends those requests to an instance; its caller supplies the bearer credential when one is required.
 
-- Primitives: [Journal and live query](../../docs/primitives.md#journal-and-live-query), [Blob store](../../docs/primitives.md#blob-store).
+`LiveQuery` obtains a snapshot and follows subsequent journal events from that snapshot's cursor. Authorization resets clear cached results before the client reads again. Transport errors retain the application's safe error details. The client does not establish the caller's identity or authorize a record change.
 
 ## References
 
-- [build-screens](../frame/skills/build-screens/SKILL.md)
-- [State and reactivity](../../docs/state-and-reactivity.md#live-queries)
+[build-screens](../frame/skills/build-screens/SKILL.md)
+
+[Operations and state](../../docs/capability-authoring.md#live-queries)

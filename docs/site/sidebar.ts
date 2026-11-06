@@ -15,9 +15,9 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
   [
     'Start',
     [
-      ['overview', 'Overview'],
+      ['architecture', 'Architecture'],
       ['getting-started', 'Getting started'],
-      ['patterns', 'Patterns'],
+      ['patterns', 'Extension patterns'],
     ],
   ],
   [
@@ -37,13 +37,10 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
   [
     'Build an application',
     [
-      ['architecture', 'Architecture'],
-      ['primitives', 'Primitives'],
-      ['capability-authoring', 'Capability authoring'],
-      ['interaction-contract', 'Interaction contract'],
+      ['primitives', 'Concept reference'],
+      ['capability-authoring', 'Operations and state'],
+      ['interaction-contract', 'Channels and interaction'],
       ['authorization', 'Authorization'],
-      ['state-and-reactivity', 'State and reactivity'],
-      ['adapters', 'Adapters'],
     ],
   ],
   [
@@ -55,14 +52,12 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
       ['hardware-drivers', 'Hardware drivers'],
       ['agents', 'Agents'],
       ['assignments', 'Assignments'],
-      ['providers', 'Providers'],
     ],
   ],
   [
     'Run',
     [
-      ['hosting', 'Hosting'],
-      ['application-lifecycle', 'Application lifecycle'],
+      ['hosting', 'Deployment and operation'],
       ['security-and-compliance', 'Security and compliance'],
       ['desktop', 'Desktop'],
       ['mobile', 'Mobile'],
@@ -71,7 +66,6 @@ export const guides: ReadonlyArray<readonly [group: string, pages: ReadonlyArray
   [
     'Reference',
     [
-      ['glossary', 'Glossary'],
       ['development-and-testing', 'Development and testing'],
       ['implementation-status', 'Implementation status'],
       ['styleguide', 'Documentation styleguide'],
@@ -85,7 +79,6 @@ const layers: ReadonlyArray<readonly [directory: string, text: string]> = [
   ['workstations', 'Workstations'],
   ['plugins', 'Plugins'],
   ['apps', 'Apps'],
-  ['showcase/examples', 'Examples'],
   ['showcase/patterns', 'Patterns'],
   ['sdks', 'SDKs'],
 ];

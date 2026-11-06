@@ -1,4 +1,4 @@
-/** The overview views by name, as `<OverviewView view="...">` names them in `docs/overview.md`. */
+/** The overview views by name, as `<OverviewView view="...">` names them in a guide. */
 import type { Links, Overview, View } from './dom';
 import { examples } from './examples';
 import { layers } from './layers';

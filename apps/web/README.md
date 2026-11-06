@@ -1,11 +1,13 @@
 # @tortoise/web
 
-The web root: the web frame around the configured application's screens, plus shadcn primitives and styles. It never names application content; Vite resolves `virtual:tortoise/screens` from `app.config.json`. The local instance serves the build from a flat directory under a strict Content Security Policy with no inline scripts or styles, and Electron loads the same files unchanged.
+`@tortoise/web` is the starter's web entrypoint and override directory. Vite resolves the configured application's screens through `virtual:tortoise/screens`. Frame behavior is supplied by `@tortoise/frame`.
 
-- Primitives: [Starter](../../docs/primitives.md#starter), [Web frame](../../docs/primitives.md#web-frame), [UI registry](../../docs/primitives.md#ui-registry).
+The instance serves the resulting files under its Content Security Policy. Electron loads the same web build. Add an application-specific override at the corresponding path under `src/`; shared frame changes belong in the frame package.
 
 ## References
 
-- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
-- [Desktop](../../docs/desktop.md)
-- Test: `bun run check:boundaries`, `bun run test:e2e`
+[build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+
+[Desktop](../../docs/desktop.md)
+
+Test: `bun run check:boundaries`, `bun run test:e2e`

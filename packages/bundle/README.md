@@ -1,10 +1,11 @@
 # @tortoise/bundle
 
-Creates and verifies the bundle: one signed, versioned artifact per application and platform. Nothing from a bundle runs before `verifyBundle` passes, and the signature must come from a key the install lists as trusted.
+`@tortoise/bundle` creates signed application payloads and verifies them against trusted public keys. The bundle manifest identifies its target platform and contains the digests used to check its files.
 
-- Primitives: [Bundle](../../docs/primitives.md#bundle).
+`verifyBundle` checks the signature and payload before the deployment installer uses the bundle. Admission evaluates its declared requirements against deployment policy and the previous admitted requirements. Verification and admission return findings that the caller must handle before installation.
 
 ## References
 
-- [deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md), [decommission-an-application](../../plugins/deployment/skills/decommission-an-application/SKILL.md)
-- [Security and compliance](../../docs/security-and-compliance.md#compliance-bundle)
+[deploy-an-application](../../plugins/deployment/skills/deploy-an-application/SKILL.md), [decommission-an-application](../../plugins/deployment/skills/decommission-an-application/SKILL.md)
+
+[Security and compliance](../../docs/security-and-compliance.md#compliance-bundle)

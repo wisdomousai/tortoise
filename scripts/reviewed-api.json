@@ -20,7 +20,6 @@
     "check:registry:operator",
     "check:size",
     "check:skills",
-    "check:words",
     "cli",
     "dev",
     "dev:mobile",
